@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>얼굴 과외쌤</title>
+<style>
+@font-face{font-family:"Gmarket";src:url(fonts/GmarketSansTTFLight.ttf);font-weight:300}
+@font-face{font-family:"Gmarket";src:url(fonts/GmarketSansTTFMedium.ttf);font-weight:500}
+@font-face{font-family:"Gmarket";src:url(fonts/GmarketSansTTFBold.ttf);font-weight:700}
+@font-face{font-family:"LevelUp";src:url(fonts/LevelUp-Regular.woff2) format("woff2");font-weight:400}
+@font-face{font-family:"LevelUp";src:url(fonts/LevelUp-Bold.woff2) format("woff2");font-weight:700}
+@font-face{font-family:"Freesentation";src:url(fonts/Freesentation-4Regular.ttf);font-weight:400}
+@font-face{font-family:"Freesentation";src:url(fonts/Freesentation-6SemiBold.ttf);font-weight:600}
+@font-face{font-family:"Freesentation";src:url(fonts/Freesentation-8ExtraBold.ttf);font-weight:800}
+
+:root{
+  --bg:#e9e7e2; --paper:#fbfaf7; --ink:#1c1b19; --mute:#6b675f; --line:#1c1b19;
+  --accent:#2447e8; --hot:#ec3a2b; --ok:#13875a; --shirt:#2447e8;
+  --r:18px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#1b1a18;--paper:#262522;--ink:#f1efe9;--mute:#9a958a;--line:#f1efe9;--accent:#6f8bff;--hot:#ff6a5b;--ok:#4cc790;--shirt:#6f8bff}
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Freesentation",system-ui,sans-serif;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+h1,h2,h3{font-family:"Gmarket",sans-serif;font-weight:700;margin:0}
+.app{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.9fr);gap:0;min-height:100dvh}
+@media(max-width:860px){.app{grid-template-columns:1fr}}
+
+/* ───────── 교실(선생님 쪽) ───────── */
+.stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:56px 16px 96px;min-height:100dvh;overflow:hidden}
+@media(max-width:860px){.stage{min-height:78dvh}}
+.topbar{position:absolute;left:16px;right:16px;top:14px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+.brand{font-family:"Gmarket";font-weight:700;font-size:15px;letter-spacing:-.02em;color:var(--mute)}
+.iconbtn{border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px;font-weight:600}
+.iconbtn:active{transform:scale(.96)}
+
+.tutor{position:relative;width:min(36vh,330px);min-width:200px;flex:0 0 auto;margin-bottom:-2px;transform-origin:50% 100%}
+.tutor.talking{animation:bob .42s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0) rotate(-.6deg)}to{transform:translateY(-6px) rotate(.6deg)}}
+.tutor.think .head{animation:tilt 1.2s ease-in-out infinite alternate}
+@keyframes tilt{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+.head{position:relative;width:100%;aspect-ratio:6/7;transform-origin:50% 95%;z-index:2}
+.head img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.mouth{position:absolute;width:15%;height:3%;left:50%;top:70%;transform:translate(-50%,-50%);background:#2a0d0d;border-radius:50%;opacity:0;transition:opacity .12s;box-shadow:inset 0 -3px 0 #d44}
+.tutor.talking .mouth{opacity:.95}
+.mouth.m1{height:5%}.mouth.m2{height:9%}.mouth.m3{height:13%}
+.body{position:relative;margin-top:-9%;z-index:1;width:112%;margin-left:-6%}
+.body svg{display:block;width:100%;height:auto}
+
+.empty-head{width:100%;aspect-ratio:6/7;border:2.5px solid var(--line);border-radius:18% 18% 50% 50%/14% 14% 60% 60%;display:grid;place-items:center;text-align:center;font-family:"Gmarket";font-weight:700;font-size:clamp(28px,5vw,44px);background:var(--paper);cursor:pointer}
+.empty-head small{display:block;font:400 14px "Freesentation";color:var(--mute);margin-top:6px}
+
+.desk{position:absolute;left:0;right:0;bottom:0;height:96px;border-top:2.5px solid var(--line);background:var(--bg);z-index:3}
+.bubble{position:absolute;z-index:6;left:50%;transform:translateX(-50%);bottom:12px;width:min(92%,640px);background:var(--paper);border:2.5px solid var(--line);border-radius:22px;padding:14px 18px 12px;box-shadow:5px 5px 0 var(--line)}
+.bubble::before{content:"";position:absolute;left:50%;top:-14px;width:22px;height:22px;background:var(--paper);border-left:2.5px solid var(--line);border-top:2.5px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+.say{font-family:"LevelUp","Freesentation";font-size:clamp(18px,2.4vw,23px);line-height:1.5;min-height:3em;word-break:keep-all;white-space:pre-wrap}
+.ctrls{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.ctrls .grow{flex:1}
+.pill{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 16px;cursor:pointer;font-weight:600;font-size:15px}
+.pill.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.pill:disabled{opacity:.35;cursor:default}
+.dots{font-family:"Gmarket";font-size:13px;color:var(--mute)}
+
+/* ───────── 칠판/문제 패널 ───────── */
+.panel{border-left:2.5px solid var(--line);background:var(--paper);padding:20px 20px 28px;display:flex;flex-direction:column;gap:16px;overflow:auto;max-height:100dvh}
+@media(max-width:860px){.panel{border-left:0;border-top:2.5px solid var(--line);max-height:none}}
+.panel h2{font-size:18px}
+.sec{display:flex;flex-direction:column;gap:8px}
+textarea{width:100%;min-height:104px;resize:vertical;border:2px solid var(--line);border-radius:var(--r);background:var(--bg);padding:12px 14px}
+textarea:focus,input:focus,select:focus{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:1px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.drop{border:2px dashed var(--mute);border-radius:var(--r);padding:12px;text-align:center;color:var(--mute);cursor:pointer;font-size:15px}
+.drop.has{border-style:solid;border-color:var(--line);padding:6px}
+.drop img{max-width:100%;max-height:200px;border-radius:10px;display:block;margin:auto}
+.go{background:var(--hot);color:#fff;border:2.5px solid var(--line);border-radius:var(--r);padding:12px;font-family:"Gmarket";font-weight:700;font-size:18px;cursor:pointer;box-shadow:4px 4px 0 var(--line)}
+.go:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--line)}
+.go:disabled{opacity:.5;cursor:wait}
+.board{background:#16352b;color:#f4f4ec;border:2.5px solid var(--line);border-radius:var(--r);padding:14px 16px;min-height:120px;font-family:"Gmarket";font-weight:500;font-size:17px;line-height:1.7;white-space:pre-wrap;word-break:keep-all}
+.board .cur{color:#ffe36a}
+.board.empty{color:#9bb8ac;font-weight:300}
+.final{border:2.5px solid var(--ok);border-radius:var(--r);padding:12px 14px;display:none}
+.final b{font-family:"Gmarket";color:var(--ok)}
+.followup{display:none;gap:8px}
+.followup input{flex:1;border:2px solid var(--line);border-radius:999px;padding:8px 16px;background:var(--bg);min-width:0}
+select,input[type=password],input[type=text]{border:2px solid var(--line);border-radius:12px;padding:6px 10px;background:var(--bg)}
+.note{font-size:13px;color:var(--mute)}
+.err{color:var(--hot);font-size:14px;min-height:1.2em}
+
+/* ───────── 오리기 모달 ───────── */
+dialog{border:2.5px solid var(--line);border-radius:24px;background:var(--paper);color:var(--ink);padding:20px;width:min(94vw,460px)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+.cropwrap{position:relative;margin:12px auto;width:300px;max-width:100%;aspect-ratio:6/7;touch-action:none;background:repeating-conic-gradient(#0001 0 25%,transparent 0 50%) 0 0/16px 16px}
+.cropwrap canvas{width:100%;height:100%;display:block;cursor:grab}
+.mdot{position:absolute;width:22px;height:12px;border-radius:50%;background:#2a0d0d;border:2px solid #fff;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 0 1.5px #000}
+.tabs{display:flex;gap:6px;justify-content:center}
+.tabs button{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 14px;cursor:pointer;font-weight:600}
+.tabs button.on{background:var(--ink);color:var(--paper)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═════ 왼쪽: 1:1 과외 장면 ═════ -->
+  <main class="stage" id="stage">
+    <div class="topbar">
+      <span class="brand">얼굴 과외쌤</span>
+      <span class="row">
+        <button class="iconbtn" id="btnVoice" title="목소리">🔊 목소리 켬</button>
+        <button class="iconbtn" id="btnFace">📷 얼굴 바꾸기</button>
+      </span>
+    </div>
+
+    <div class="tutor" id="tutor">
+      <div id="emptyHead" class="empty-head">얼굴<small>눌러서 사진을 오려 붙이세요</small></div>
+      <div class="head hide" id="head">
+        <img id="faceImg" alt="선생님 얼굴">
+        <div class="mouth" id="mouth"></div>
+      </div>
+      <div class="body">
+        <svg viewBox="0 0 400 150" aria-hidden="true">
+          <path d="M150 0 Q150 38 135 52 L200 78 L265 52 Q250 38 250 0 Z" fill="#e9b996" stroke="var(--line)" stroke-width="3" stroke-linejoin="round" id="neck"/>
+          <path d="M30 150 Q34 78 112 56 L150 44 Q200 96 250 44 L288 56 Q366 78 370 150 Z" fill="var(--shirt)" stroke="var(--line)" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M150 44 Q200 96 250 44" fill="none" stroke="var(--line)" stroke-width="3"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="desk"></div>
+
+    <div class="bubble" id="bubble">
+      <div class="say" id="say">안녕! 문제를 오른쪽에 올려주면 내가 같이 풀어줄게.</div>
+      <div class="ctrls">
+        <button class="pill" id="prev" disabled>← 이전</button>
+        <button class="pill" id="replay" disabled>🔁 다시 듣기</button>
+        <span class="grow dots" id="dots"></span>
+        <button class="pill pri" id="next" disabled>다음 →</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═════ 오른쪽: 문제 · 칠판 ═════ -->
+  <aside class="panel">
+    <section class="sec">
+      <h2>1. 문제 올리기</h2>
+      <div class="drop" id="drop">📎 문제 사진 올리기 / 붙여넣기(Ctrl+V)</div>
+      <input type="file" id="probFile" accept="image/*" class="hide">
+      <textarea id="probText" placeholder="문제를 글로 적어도 돼요. (사진만 올려도 OK)"></textarea>
+      <div class="row">
+        <select id="level" aria-label="학년">
+          <option value="초등학생">초등</option><option value="중학생" selected>중등</option><option value="고등학생">고등</option><option value="대학생·성인">대학/성인</option>
+        </select>
+        <select id="style" aria-label="말투">
+          <option value="다정하고 친근한 반말 선생님">다정한 반말</option>
+          <option value="차분한 존댓말 선생님">차분한 존댓말</option>
+          <option value="활기차고 유머러스한 선생님">텐션 높게</option>
+        </select>
+      </div>
+      <button class="go" id="go">🔍 선생님, 풀어주세요!</button>
+      <div class="err" id="err"></div>
+    </section>
+
+    <section class="sec">
+      <h2>2. 칠판</h2>
+      <div class="board empty" id="board">여기에 풀이가 한 줄씩 적혀요.</div>
+      <div class="final" id="final"></div>
+      <form class="followup" id="followup">
+        <input type="text" id="fuText" placeholder="모르겠는 부분 물어보기 (예: 2번째 줄이 왜 그래요?)">
+        <button class="pill pri">질문</button>
+      </form>
+    </section>
+
+    <details class="sec">
+      <summary class="note" style="cursor:pointer">⚙️ 설정 (API 키 · 선생님 이름)</summary>
+      <div class="sec" style="margin-top:10px">
+        <label class="note">Claude API 키 (이 기기 브라우저에만 저장)</label>
+        <input type="password" id="apikey" placeholder="sk-ant-…" autocomplete="off">
+        <label class="note">선생님 이름</label>
+        <input type="text" id="tname" value="얼굴쌤">
+      </div>
+    </details>
+  </aside>
+</div>
+
+<!-- 얼굴 오리기 -->
+<dialog id="dlg">
+  <h2>얼굴 오려 붙이기</h2>
+  <p class="note" style="margin:6px 0 0">사진을 올리고, 끌어서 얼굴을 틀 안에 맞춰요. 확대는 슬라이더.</p>
+  <input type="file" id="faceFile" accept="image/*" style="margin-top:10px;max-width:100%">
+  <div class="tabs" style="margin-top:10px">
+    <button type="button" id="tabMove" class="on">얼굴 맞추기</button>
+    <button type="button" id="tabMouth">입 위치 찍기</button>
+  </div>
+  <div class="cropwrap" id="cw"><canvas id="cv" width="600" height="700"></canvas><div class="mdot" id="mdot"></div></div>
+  <input type="range" id="zoom" min="1" max="4" step="0.01" value="1" aria-label="확대">
+  <div class="row" style="justify-content:flex-end;margin-top:12px">
+    <button class="pill" id="cancel" type="button">취소</button>
+    <button class="pill pri" id="save" type="button">붙이기 ✂️</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d=""){ try{ return localStorage.getItem(k) ?? d }catch{ return d } },
+  set(k, v){ try{ localStorage.setItem(k, v) }catch{} }
+};
+
+/* ═════ 얼굴 ═════ */
+const FW = 600, FH = 700;
+const HEAD_R = { // 스케치의 둥근 얼굴 모양 (위는 평평, 턱은 둥글게)
+  path(ctx){
+    const w=FW, h=FH, p=6;
+    ctx.beginPath();
+    ctx.moveTo(w*.18, p+h*.03);
+    ctx.bezierCurveTo(w*.35,p, w*.65,p, w*.82,p+h*.03);
+    ctx.bezierCurveTo(w*.98,p+h*.06, w*.99,h*.30, w*.96,h*.52);
+    ctx.bezierCurveTo(w*.93,h*.78, w*.72,h-p, w*.5,h-p);
+    ctx.bezierCurveTo(w*.28,h-p, w*.07,h*.78, w*.04,h*.52);
+    ctx.bezierCurveTo(w*.01,h*.30, w*.02,p+h*.06, w*.18,p+h*.03);
+    ctx.closePath();
+  }
+};
+const cv = $("cv"), cx = cv.getContext("2d");
+let src = null, view = {x:0,y:0,s:1}, base = 1, mouth = {x:.5,y:.7}, mode = "move";
+
+function drawCrop(){
+  cx.clearRect(0,0,FW,FH);
+  cx.save(); HEAD_R.path(cx); cx.clip();
+  cx.fillStyle="#fff"; cx.fillRect(0,0,FW,FH);
+  if(src){
+    const sc = base*view.s;
+    cx.drawImage(src, view.x - src.width*sc/2 + FW/2, view.y - src.height*sc/2 + FH/2, src.width*sc, src.height*sc);
+  }
+  cx.restore();
+  HEAD_R.path(cx); cx.lineWidth=7; cx.lineJoin="round"; cx.strokeStyle="#1c1b19"; cx.stroke();
+  $("mdot").style.left = mouth.x*100+"%"; $("mdot").style.top = mouth.y*100+"%";
+}
+function openCrop(){
+  src = null;
+  const saved = store.get("face");
+  if(saved){ const im = new Image(); im.onload=()=>{ src=im; base=Math.max(FW/im.width,FH/im.height); view={x:0,y:0,s:1}; $("zoom").value=1; drawCrop() }; im.src=saved; }
+  mouth = JSON.parse(store.get("mouth", '{"x":0.5,"y":0.7}'));
+  drawCrop(); $("dlg").showModal();
+}
+$("faceFile").onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const im = new Image();
+  im.onload = () => { src=im; base=Math.max(FW/im.width,FH/im.height); view={x:0,y:0,s:1}; $("zoom").value=1; drawCrop(); URL.revokeObjectURL(im.src) };
+  im.src = URL.createObjectURL(f);
+};
+$("zoom").oninput = e => { view.s = +e.target.value; drawCrop() };
+$("tabMove").onclick = () => { mode="move"; $("tabMove").classList.add("on"); $("tabMouth").classList.remove("on") };
+$("tabMouth").onclick = () => { mode="mouth"; $("tabMouth").classList.add("on"); $("tabMove").classList.remove("on") };
+let drag = null;
+function cpos(e){ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width, y:(e.clientY-r.top)/r.height} }
+cv.onpointerdown = e => {
+  cv.setPointerCapture(e.pointerId);
+  if(mode==="mouth"){ mouth = cpos(e); drawCrop(); drag={mouth:true}; return }
+  drag = {x:e.clientX, y:e.clientY, vx:view.x, vy:view.y};
+};
+cv.onpointermove = e => {
+  if(!drag) return;
+  if(drag.mouth){ mouth = cpos(e); drawCrop(); return }
+  const k = FW / cv.getBoundingClientRect().width;
+  view.x = drag.vx + (e.clientX-drag.x)*k; view.y = drag.vy + (e.clientY-drag.y)*k; drawCrop();
+};
+cv.onpointerup = () => drag = null;
+cv.onwheel = e => { e.preventDefault(); view.s = Math.min(4,Math.max(1,view.s*(e.deltaY<0?1.06:.94))); $("zoom").value=view.s; drawCrop() };
+$("cancel").onclick = () => $("dlg").close();
+$("save").onclick = () => {
+  if(!src){ $("faceFile").click(); return }
+  const url = cv.toDataURL("image/png");
+  store.set("face", url); store.set("mouth", JSON.stringify(mouth));
+  applyFace(); $("dlg").close();
+};
+function applyFace(){
+  const f = store.get("face"); if(!f) return;
+  $("faceImg").src = f; $("head").classList.remove("hide"); $("emptyHead").classList.add("hide");
+  const m = JSON.parse(store.get("mouth", '{"x":0.5,"y":0.7}'));
+  $("mouth").style.left = m.x*100+"%"; $("mouth").style.top = m.y*100+"%";
+  // 목 색을 얼굴에서 가져오기
+  try{
+    const im = new Image(); im.onload = () => {
+      const c = document.createElement("canvas"); c.width=c.height=1;
+      const g = c.getContext("2d"); g.drawImage(im, im.width*.5, im.height*.55, 20, 20, 0,0,1,1);
+      const [r,gr,b] = g.getImageData(0,0,1,1).data; $("neck").setAttribute("fill", `rgb(${r},${gr},${b})`);
+    }; im.src = f;
+  }catch{}
+}
+$("emptyHead").onclick = $("btnFace").onclick = openCrop;
+
+/* ═════ 목소리 · 입모양 ═════ */
+let voiceOn = store.get("voice","1")==="1", mouthTimer = null;
+function paintVoice(){ $("btnVoice").textContent = voiceOn ? "🔊 목소리 켬" : "🔇 목소리 끔" }
+$("btnVoice").onclick = () => { voiceOn=!voiceOn; store.set("voice", voiceOn?"1":"0"); paintVoice(); if(!voiceOn) stopTalk() };
+paintVoice();
+function mouthLoop(on){
+  clearInterval(mouthTimer); const m=$("mouth"); m.className="mouth";
+  $("tutor").classList.toggle("talking", on);
+  if(on) mouthTimer = setInterval(()=>{ m.className = "mouth m"+Math.floor(Math.random()*4) }, 120);
+}
+function stopTalk(){ speechSynthesis?.cancel(); mouthLoop(false) }
+function speak(text){
+  stopTalk();
+  if(!voiceOn || !("speechSynthesis" in window)){ // 목소리 없이도 입은 글자 수만큼 움직임
+    mouthLoop(true); setTimeout(()=>mouthLoop(false), Math.min(9000, text.length*90)); return;
+  }
+  const u = new SpeechSynthesisUtterance(text.replace(/[*_`#]/g,""));
+  u.lang = "ko-KR"; u.rate = 1.02; u.pitch = 1.05;
+  const v = speechSynthesis.getVoices().find(v=>v.lang.startsWith("ko")); if(v) u.voice=v;
+  u.onstart = () => mouthLoop(true);
+  u.onend = u.onerror = () => mouthLoop(false);
+  speechSynthesis.speak(u);
+}
+
+/* ═════ 말풍선 · 단계 진행 ═════ */
+let steps = [], idx = 0, typing = null;
+function say(text, talk=true){
+  clearInterval(typing); const el=$("say"); el.textContent=""; let i=0;
+  const chars=[...text];
+  typing = setInterval(()=>{ el.textContent += chars[i++]??""; if(i>=chars.length) clearInterval(typing) }, 26);
+  if(talk) speak(text);
+}
+function showStep(i){
+  idx = Math.max(0, Math.min(steps.length-1, i));
+  const s = steps[idx]; say(s.say);
+  $("dots").textContent = `${idx+1} / ${steps.length}`;
+  $("prev").disabled = idx===0; $("next").disabled = idx===steps.length-1; $("replay").disabled=false;
+  const lines = steps.slice(0, idx+1).map(x=>x.board).filter(Boolean);
+  const b = $("board"); b.classList.toggle("empty", !lines.length); b.textContent="";
+  if(!lines.length){ b.textContent="(이번 단계는 말로만 설명해요)" }
+  lines.forEach((t,k)=>{ const d=document.createElement("div"); d.textContent=t; if(k===lines.length-1) d.className="cur"; b.appendChild(d) });
+  const last = idx===steps.length-1;
+  $("final").style.display = last && result.answer ? "block" : "none";
+  $("followup").style.display = "flex";
+}
+$("next").onclick = () => showStep(idx+1);
+$("prev").onclick = () => showStep(idx-1);
+$("replay").onclick = () => steps[idx] && speak(steps[idx].say);
+document.addEventListener("keydown", e => { if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; if(e.key==="ArrowRight") $("next").click(); if(e.key==="ArrowLeft") $("prev").click() });
+
+/* ═════ 문제 입력 ═════ */
+let probImg = null; // {media_type, data}
+const drop = $("drop");
+drop.onclick = () => $("probFile").click();
+$("probFile").onchange = e => e.target.files[0] && loadProb(e.target.files[0]);
+document.addEventListener("paste", e => { const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith("image/")); if(f) loadProb(f) });
+drop.ondragover = e => e.preventDefault();
+drop.ondrop = e => { e.preventDefault(); const f=e.dataTransfer.files[0]; f&&f.type.startsWith("image/")&&loadProb(f) };
+function loadProb(file){
+  const im = new Image();
+  im.onload = () => {
+    const k = Math.min(1, 1600/Math.max(im.width,im.height)), c=document.createElement("canvas");
+    c.width=im.width*k; c.height=im.height*k; c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+    const url = c.toDataURL("image/jpeg",.85);
+    probImg = {media_type:"image/jpeg", data:url.split(",")[1]};
+    drop.classList.add("has"); drop.innerHTML=""; const t=new Image(); t.src=url; drop.appendChild(t);
+    URL.revokeObjectURL(im.src);
+  };
+  im.src = URL.createObjectURL(file);
+}
+
+/* ═════ Claude 분석 ═════ */
+const MODEL = "claude-sonnet-5-5";
+let history = [], result = {};
+function systemPrompt(){
+  return `너는 "${$("tname").value||"얼굴쌤"}"이라는 1:1 과외 선생님이다. 학생은 ${$("level").value}이고, 말투는 ${$("style").value}.
+학생이 올린 문제(사진 또는 글)를 분석해 마주 앉아 설명하듯 가르쳐라.
+반드시 아래 JSON 하나만 출력한다(코드블록·설명 금지):
+{"subject":"과목/단원","summary":"문제가 묻는 것 한 줄","steps":[{"say":"선생님이 말하는 한두 문장(입말, 이모지·마크다운 금지)","board":"칠판에 적을 식이나 핵심 한 줄(없으면 빈 문자열)"}],"answer":"최종 정답(한 줄)","tip":"자주 하는 실수나 비슷한 문제 팁 한 줄"}
+규칙: steps는 4~8개. 첫 step은 문제를 같이 읽고 무엇을 구하는지 짚는다. 정답만 던지지 말고 왜 그렇게 되는지 이끌어라. 마지막 step은 검산 또는 확인 질문으로 끝낸다. 사진이 흐려 읽을 수 없으면 steps 하나로 다시 찍어달라고 말한다. 후속 질문에는 같은 JSON 형식으로 해당 부분만 다시 쉽게 설명한다.`;
+}
+async function ask(userContent){
+  const key = $("apikey").value.trim();
+  if(!key) throw new Error("오른쪽 아래 ⚙️ 설정에 Claude API 키를 먼저 넣어주세요.");
+  history.push({role:"user", content:userContent});
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body: JSON.stringify({model:MODEL, max_tokens:4000, system:systemPrompt(), messages:history})
+  });
+  if(!r.ok){ history.pop(); const t=await r.text(); throw new Error(r.status===401?"API 키가 올바르지 않아요.":`요청 실패 (${r.status}) ${t.slice(0,160)}`) }
+  const j = await r.json();
+  const text = j.content.filter(b=>b.type==="text").map(b=>b.text).join("");
+  history.push({role:"assistant", content:text});
+  return parse(text);
+}
+function parse(text){
+  const m = text.match(/\{[\s\S]*\}/);
+  try{ const o = JSON.parse(m?m[0]:text); if(Array.isArray(o.steps)&&o.steps.length) return o }catch{}
+  const parts = text.split(/\n{2,}/).filter(Boolean);
+  return {steps: parts.map(p=>({say:p.replace(/[*#`]/g,""),board:""})), answer:"", tip:""};
+}
+function render(o){
+  result = o; steps = o.steps.map(s=>({say:String(s.say||""), board:String(s.board||"")}));
+  const f=$("final"); f.textContent="";
+  const a=document.createElement("div"); const b=document.createElement("b"); b.textContent="정답 "; a.append(b, o.answer||""); f.appendChild(a);
+  if(o.tip){ const t=document.createElement("div"); t.className="note"; t.textContent="💡 "+o.tip; f.appendChild(t) }
+  showStep(0);
+}
+async function run(content, label){
+  $("err").textContent=""; $("go").disabled=true;
+  $("tutor").classList.add("think"); say(label, false);
+  try{ render(await ask(content)) }
+  catch(e){ $("err").textContent = e.message; say("앗, 문제가 생겼어. 오른쪽 안내를 확인해줘.", false) }
+  finally{ $("go").disabled=false; $("tutor").classList.remove("think") }
+}
+$("go").onclick = () => {
+  const text = $("probText").value.trim();
+  if(!text && !probImg){ $("err").textContent="문제 사진이나 글을 먼저 올려주세요."; return }
+  history = [];
+  const c = []; if(probImg) c.push({type:"image", source:{type:"base64", ...probImg}});
+  c.push({type:"text", text: text || "사진 속 문제를 풀어서 가르쳐줘."});
+  run(c, "음… 문제를 읽어볼게. 잠깐만 기다려줘 🤔");
+};
+$("followup").onsubmit = e => {
+  e.preventDefault(); const q=$("fuText").value.trim(); if(!q) return; $("fuText").value="";
+  run([{type:"text", text:"학생 질문: "+q}], "좋은 질문이야. 생각 좀 해볼게 🤔");
+};
+
+/* ═════ 설정 저장 ═════ */
+for(const id of ["apikey","tname"]){ $(id).value = store.get(id, $(id).value); $(id).onchange = () => store.set(id, $(id).value) }
+for(const id of ["level","style"]){ $(id).value = store.get(id, $(id).value); $(id).onchange = () => store.set(id, $(id).value) }
+speechSynthesis?.getVoices(); applyFace();
+if(!store.get("face")) say("먼저 내 얼굴(?)을 만들어줘! 가운데 '얼굴'을 눌러서 사진을 오려 붙여봐.", false);
+</script>
+</body>
+</html>
