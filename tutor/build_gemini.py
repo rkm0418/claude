@@ -16,7 +16,7 @@ t=t[:a]+r'''async function viaSample(model, signal){
   const contents=[];
   for(let i=0;i<hist.length;i++){
     const m=hist[i], parts=[{text:m.content}];
-    if(i===0&&probBlob) parts.unshift({inline_data:{mime_type:"image/jpeg",data:await b64(probBlob)}});
+    if(i===0&&useImg()) parts.unshift({inline_data:{mime_type:"image/jpeg",data:await b64(probBlob)}});
     contents.push({role:m.role==="assistant"?"model":"user",parts});
   }
   const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model.trim())+":generateContent",{method:"POST",signal,
@@ -24,16 +24,16 @@ t=t[:a]+r'''async function viaSample(model, signal){
   if(!r.ok){ let d=""; try{ d=(await r.json()).error.message }catch{} const e=new Error(r.status===400&&/API key/i.test(d)?"API 키가 올바르지 않아요.":r.status===429?"요청이 너무 많거나 무료 한도를 넘었어요. 잠시 뒤에 다시 해주세요.":"요청 실패 ("+r.status+") "+d.slice(0,120)); e.code="g"+r.status; throw e }
   const j=await r.json(); const text=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("");
   if(!text) throw new Error("빈 응답이 왔어요. 다시 시도해 주세요.");
-  const u=j.usageMetadata; recordUsage(hist.reduce((n,m)=>n+m.content.length,0), text.length, probBlob?1:0, model, u?(u.totalTokenCount||0):0);
+  const u=j.usageMetadata; recordUsage(hist.reduce((n,m)=>n+m.content.length,0), text.length, imgTokens(), model, u?(u.totalTokenCount||0):0);
   return text;
 }
 '''+t[b:]
 rep('if(!sample){ $("err").textContent="Claude 연결이 없는 화면이에요. claude.ai에서 이 링크를 열어주세요."; return }','if(!$("gkey").value.trim()){ $("err").textContent="Gemini API 키를 설정에 넣어주세요."; openDrawer(true); return }')
 # usage: use real token count when available
 rep('function recordUsage(inC,outC,img,model){','function recordUsage(inC,outC,img,model,realTok){')
-rep('EV.push({t:Date.now(),k:Math.round((inC+outC)/1.6)+img*1500});','EV.push({t:Date.now(),k:realTok||Math.round((inC+outC)/1.6)+img*1500});')
+rep('EV.push({t:Date.now(),k:Math.round((inC+outC)/1.6)+img});','EV.push({t:Date.now(),k:realTok||Math.round((inC+outC)/1.6)+img});')
 rep('U.calls++; U.inChars+=inC;','U.real=(U.real||0)+(realTok||0); U.calls++; U.inChars+=inC;')
-rep('const estTok=u=>Math.round((u.inChars+u.outChars)/1.6)+u.images*1500;','const estTok=u=>u.real||(Math.round((u.inChars+u.outChars)/1.6)+u.images*1500);')
+rep('const estTok=u=>Math.round((u.inChars+u.outChars)/1.6)+(u.imgTok||0);','const estTok=u=>u.real||(Math.round((u.inChars+u.outChars)/1.6)+(u.imgTok||0));')
 # unavail text, pickPhoto image checks, key restore
 t=t.replace('이 화면에는 Claude 연결이 없어요. claude.ai에서 이 링크를 열어주세요.','')
 rep('for(const id of ["tname","level","style","model"])','for(const id of ["tname","level","style","model","gkey"])')
