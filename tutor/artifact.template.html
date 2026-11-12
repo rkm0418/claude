@@ -454,16 +454,22 @@ let U={calls:0,inChars:0,outChars:0,images:0,model:""};
 try{ const sv=JSON.parse(store.get("usage","null")); if(sv&&sv.day===new Date().toDateString()) U=sv.u }catch{}
 const estTok=u=>Math.round((u.inChars+u.outChars)/1.6)+u.images*1500;
 function fmt(n){ return n>=1000?(n/1000).toFixed(1)+"k":String(n) }
+let EV=[]; try{ EV=JSON.parse(store.get("usageEv","[]")) }catch{}
+const H5=5*3600e3;
+function win(){ const now=Date.now(); EV=EV.filter(e=>now-e.t<H5); return EV }
+function hm(ms){ const m=Math.max(0,Math.ceil(ms/60000)); return Math.floor(m/60)+"시간 "+(m%60)+"분" }
 function paintUsage(){
+  const w=win(), wk=w.reduce((n,e)=>n+e.k,0), left=w.length?hm(H5-(Date.now()-w[0].t)):"-";
   $("usageBtn").textContent=`사용량 · ${U.calls}회 · 약 ${fmt(estTok(U))}토큰`;
-  $("usageInfo").innerHTML=`<b>오늘 이 기기에서 보낸 요청</b><br>요청 ${U.calls}회<br>보낸 글자 ${U.inChars.toLocaleString()} · 받은 글자 ${U.outChars.toLocaleString()}<br>사진 ${U.images}장<br>적용 모델 ${U.model||"-"}<br><span class="note">토큰은 글자 수로 어림한 값이고, 구독 남은 사용량은 아니에요. 정확한 잔여량은 claude.ai 사용량 화면에서 확인하세요.</span>`;
+  $("usageInfo").innerHTML=`<b>오늘 이 기기에서 보낸 요청</b><br>요청 ${U.calls}회<br>보낸 글자 ${U.inChars.toLocaleString()} · 받은 글자 ${U.outChars.toLocaleString()}<br>사진 ${U.images}장<br>적용 모델 ${U.model||"-"}<br><br><b>최근 5시간 (이 앱에서 보낸 것)</b><br>요청 ${w.length}회 · 약 ${fmt(wk)}토큰<br>가장 오래된 요청이 빠지기까지 ${left}<br><span class="note">토큰은 글자 수로 어림한 값이고, claude 구독의 실제 5시간 한도나 남은 양은 이 화면에서 읽을 수 없어요. 정확한 값은 claude.ai 사용량 화면에서 확인하세요.</span>`;
 }
 function recordUsage(inC,outC,img,model){
+  EV.push({t:Date.now(),k:Math.round((inC+outC)/1.6)+img*1500}); store.set("usageEv",JSON.stringify(EV));
   U.calls++; U.inChars+=inC; U.outChars+=outC; U.images+=img; if(model) U.model=model;
   store.set("usage",JSON.stringify({day:new Date().toDateString(),u:U})); paintUsage();
 }
 $("usageBtn").onclick=()=>$("usageInfo").classList.toggle("hide");
-paintUsage();
+paintUsage(); setInterval(paintUsage,60000);
 
 /* ═════ Claude (sample) ═════ */
 let sample=null, ctl=null;
