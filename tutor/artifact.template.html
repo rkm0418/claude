@@ -1,6 +1,8 @@
 <title>얼굴 과외쌤</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
+/*__KATEX_CSS__*/
+.katex{font-size:1.1em}.say .katex-display{margin:.5em 0;text-align:center}
 /* 레이아웃: 화면 정중앙에 선생님 얼굴, 아래 중앙에 말풍선과 질문칸, 문제 입력은 오른쪽 서랍 */
 @font-face{font-family:"Gmarket";src:url(data:font/woff2;base64,__g5__) format("woff2");font-weight:500}
 @font-face{font-family:"Gmarket";src:url(data:font/woff2;base64,__g7__) format("woff2");font-weight:700}
@@ -177,6 +179,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   </div>
 </dialog>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -346,10 +349,27 @@ addEventListener("resize",layout); layout();
 
 /* ═════ 말풍선 · 단계 ═════ */
 let steps=[], idx=0, typing=null, result={};
+function tokenize(t){
+  t=String(t||"").replace(/\\\[([\s\S]+?)\\\]/g,"$$$$$1$$$$").replace(/\\\(([\s\S]+?)\\\)/g,"$$$1$$");
+  const out=[], re=/\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g; let last=0, m;
+  while((m=re.exec(t))){ if(m.index>last) out.push({v:t.slice(last,m.index)}); out.push({m:(m[1]??m[2]).trim(), d:m[1]!==undefined}); last=re.lastIndex }
+  if(last<t.length) out.push({v:t.slice(last)}); return out;
+}
+function mathNode(tk){
+  const sp=document.createElement("span");
+  try{ if(!window.katex) throw 0; sp.innerHTML=katex.renderToString(tk.m,{displayMode:tk.d,throwOnError:false,output:"html"}) }
+  catch{ sp.textContent=(tk.d?"$$":"$")+tk.m+(tk.d?"$$":"$") }
+  if(tk.d){ sp.style.display="block"; sp.style.textAlign="center" } return sp;
+}
+function fillRich(el,text){ el.textContent=""; tokenize(text).forEach(tk=>el.appendChild(tk.m!==undefined?mathNode(tk):document.createTextNode(tk.v))) }
 function say(text, talk=true){
-  clearInterval(typing); const el=$("say"); el.textContent=""; let i=0; const chars=[...text];
-  typing=setInterval(()=>{ el.textContent+=chars[i++]??""; if(i>=chars.length) clearInterval(typing) }, 24);
-  if(talk) speak(text);
+  clearInterval(typing); const el=$("say"); el.textContent="";
+  const units=[]; tokenize(text).forEach(tk=>{ if(tk.m!==undefined) units.push(tk); else [...tk.v].forEach(ch=>units.push(ch)) });
+  let i=0, tn=null;
+  typing=setInterval(()=>{ const u=units[i++]; if(u===undefined){ clearInterval(typing); return }
+    if(typeof u==="string"){ if(!tn){ tn=document.createTextNode(""); el.appendChild(tn) } tn.data+=u }
+    else { tn=null; el.appendChild(mathNode(u)) } }, 24);
+  if(talk) speak(text.replace(/\$+/g,""));
 }
 function showStep(i){
   idx=Math.max(0,Math.min(steps.length-1,i)); say(steps[idx].say);
@@ -389,7 +409,8 @@ function rules(){
   return `너는 "${$("tname").value||"얼굴쌤"}"이라는 1:1 과외 선생님이다. 학생은 ${$("level").value}이고, 말투는 ${$("style").value}.
 학생이 올린 문제(사진 또는 글)를 분석해 마주 앉아 설명하듯 가르쳐라.
 반드시 아래 JSON 하나만 출력한다(코드블록·설명 금지):
-{"steps":[{"say":"선생님이 말하는 한두 문장(입말. 이모지·마크다운·LaTeX($, \\, ^, {}) 절대 금지. 수식은 평문 기호 ×, ÷, ², √, ≤, π, 분수는 3/4처럼 쓴다)"}],"answer":"최종 정답(한 줄)","tip":"자주 하는 실수나 비슷한 문제 팁 한 줄"}
+{"steps":[{"say":"선생님이 말하는 한두 문장(입말. 이모지·마크다운 금지)"}],"answer":"최종 정답(한 줄)","tip":"자주 하는 실수나 비슷한 문제 팁 한 줄"}
+수식 규칙: 수식은 표준 LaTeX로 쓴다. 인라인 수식은 $ 하나로, 블록 수식은 $$ 두 개로 감싼다. 수식 안에 한글을 직접 쓰지 말고 필요하면 \\text{한글}로 감싼다. 유니코드 수학기호(×, ÷, √, ² 등)를 쓰지 말고 \\frac, \\sqrt, \\times, \\div 같은 정확한 LaTeX 명령만 쓴다. JSON 문자열 안에서는 백슬래시를 반드시 두 개(\\\\frac)로 이스케이프한다.
 규칙: steps는 4~8개. 첫 step은 문제를 같이 읽고 무엇을 구하는지 짚는다. 정답만 던지지 말고 왜 그렇게 되는지 이끌어라. 마지막 step은 검산 또는 확인 질문으로 끝낸다. 사진이 흐려 읽을 수 없으면 steps 하나로 다시 찍어달라고 말한다. 후속 질문에는 같은 JSON 형식으로 해당 부분만 다시 쉽게 설명한다.`;
 }
 function parse(text){
@@ -397,21 +418,12 @@ function parse(text){
   try{ const o=JSON.parse(m?m[0]:text); if(Array.isArray(o.steps)&&o.steps.length) return o }catch{}
   return {steps:text.split(/\n{2,}/).filter(Boolean).map(p=>({say:p.replace(/[*#`]/g,"")})), answer:"", tip:""};
 }
-function clean(t){
-  let x=String(t||"");
-  const sup={"0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹","n":"ⁿ"};
-  for(let i=0;i<4;i++) x=x.replace(/\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g,"($1)/($2)");
-  x=x.replace(/\\sqrt\s*\{([^{}]*)\}/g,"√($1)").replace(/\\sqrt\s*(\w)/g,"√$1")
-     .replace(/\\times/g,"×").replace(/\\div/g,"÷").replace(/\\cdot/g,"·").replace(/\\pm/g,"±").replace(/\\leq?/g,"≤").replace(/\\geq?/g,"≥").replace(/\\neq/g,"≠")
-     .replace(/\\approx/g,"≈").replace(/\\pi/g,"π").replace(/\\theta/g,"θ").replace(/\\alpha/g,"α").replace(/\\beta/g,"β").replace(/\\infty/g,"∞").replace(/\\(?:rightarrow|to)/g,"→").replace(/\\angle/g,"∠").replace(/\\triangle/g,"△").replace(/\\circ/g,"°")
-     .replace(/\^\{?(\d|n)\}?/g,(m,d)=>sup[d]).replace(/\\[()\[\]]/g,"").replace(/\$+/g,"").replace(/\\(?:left|right)/g,"").replace(/\\[,;! ]/g," ")
-     .replace(/\\([a-zA-Z]+)/g,"$1").replace(/[{}]/g,"").replace(/\*\*|__|`+/g,"").replace(/^#+\s*/gm,"").replace(/^\s*[-*]\s+/gm,"· ");
-  return x.trim();
-}
+function fixEsc(x){ return String(x||"").replace(/\x0c/g,"\\f").replace(/\x08/g,"\\b").replace(/\t(?=[a-zA-Z])/g,"\\t").replace(/\r(?=[a-zA-Z])/g,"\\r") }
+function clean(t){ return fixEsc(t).replace(/\*\*|__|`+/g,"").replace(/^#+\s*/gm,"").replace(/^\s*[-*]\s+/gm,"· ").trim() }
 function render(o){
   result=o; steps=o.steps.map(s=>({say:clean(s.say)}));
-  const f=$("final"); f.textContent=""; const b=document.createElement("b"); b.textContent="정답 "; f.append(b, clean(o.answer));
-  if(o.tip){ const t=document.createElement("div"); t.className="note"; t.textContent="팁 · "+clean(o.tip); f.appendChild(t) }
+  const f=$("final"); f.textContent=""; const b=document.createElement("b"); b.textContent="정답 "; const an=document.createElement("span"); fillRich(an,clean(o.answer)); f.append(b, an);
+  if(o.tip){ const t=document.createElement("div"); t.className="note"; fillRich(t,"팁 · "+clean(o.tip)); f.appendChild(t) }
   showStep(0);
 }
 let hist=[];
