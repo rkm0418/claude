@@ -102,6 +102,32 @@ body:not(.explain) .dock{display:none}
 .nc .pt{font-size:16px;word-break:keep-all;white-space:pre-wrap;margin-top:2px}
 .nc .figs img{max-height:90px;display:inline-block;margin:6px 6px 0 0}
 .nc .lk{border:0;background:transparent;color:var(--coral2);font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
+/* ── 버튼 모션 ── */
+.iconbtn,.pill,.go,.cta,.tabs button{position:relative;overflow:hidden;transition:transform .18s cubic-bezier(.3,.7,.2,1),box-shadow .18s,filter .18s,background-color .18s}
+.cta{position:absolute}
+@media (hover:hover){
+  .iconbtn:hover,.pill:hover:not(:disabled),.tabs button:hover{transform:translateY(-2px);box-shadow:0 7px 16px rgba(0,0,0,.2)}
+  .pill.pri:hover,.go:hover,.cta:hover{filter:brightness(1.07)}
+  .cta:hover{transform:translate(-50%,-3px)}
+  .go:hover{transform:translateY(-2px)}
+}
+.pill:active:not(:disabled),.tabs button:active{transform:scale(.94)}
+.iconbtn:active{transform:scale(.93)}
+.cta{animation:ctaRing 2.4s ease-out infinite}
+@keyframes ctaRing{0%{box-shadow:0 6px 0 var(--coral2),var(--sh),0 0 0 0 rgba(239,106,98,.55)}70%,100%{box-shadow:0 6px 0 var(--coral2),var(--sh),0 0 0 18px rgba(239,106,98,0)}}
+.topbar .iconbtn{animation:popIn .55s cubic-bezier(.2,.9,.3,1.25) backwards}
+.topbar .row .iconbtn:nth-child(2){animation-delay:.08s}.topbar .row .iconbtn:nth-child(3){animation-delay:.16s}.topbar .row .iconbtn:nth-child(4){animation-delay:.24s}
+@keyframes popIn{from{opacity:0;transform:translateY(-14px) scale(.85)}to{opacity:1;transform:none}}
+.msg{animation:msgIn .3s cubic-bezier(.2,.9,.3,1) backwards}
+@keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+dialog[open]{animation:dlgIn .3s cubic-bezier(.2,.9,.3,1)}
+dialog[open]::backdrop{animation:fadeIn .25s ease-out}
+@keyframes dlgIn{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.saveRow .pill.on{animation:popOn .4s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes popOn{50%{transform:scale(1.14)}}
+.rp{position:absolute;border-radius:50%;background:currentColor;opacity:.22;transform:scale(0);pointer-events:none;animation:rpOut .55s ease-out forwards}
+@keyframes rpOut{to{transform:scale(1);opacity:0}}
 .dock{position:absolute;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom,0px));z-index:6;width:min(calc(100% - var(--gut-l) - var(--gut-r)),660px);display:flex;flex-direction:column;gap:10px}
 .bubble{position:relative;background:var(--card);border-radius:24px;padding:14px 20px 12px;box-shadow:var(--sh)}
 .bubble::before{content:"";position:absolute;left:50%;top:-9px;width:20px;height:20px;background:var(--card);transform:translateX(-50%) rotate(45deg);border-radius:4px}
@@ -157,13 +183,14 @@ dialog::backdrop{background:rgba(10,30,22,.6)}
 .tabs button{border:0;background:var(--soft);border-radius:12px;padding:6px 14px;cursor:pointer;font-weight:600}
 .tabs button.on{background:var(--ink);color:#fff}
 input[type=range]{width:100%;accent-color:var(--coral)}
-@media (prefers-reduced-motion:reduce){.tutor.anim{transition:none}.explain .dock,.dock.back{animation:none}.tutor-in,.tutor.talking .tutor-in,.tutor.talking .head,.tutor.think .head{animation:none}.drawer{transition:none}}
+@media (prefers-reduced-motion:reduce){.cta,.topbar .iconbtn,.msg,dialog[open],dialog[open]::backdrop,.saveRow .pill.on,.rp{animation:none!important}.iconbtn,.pill,.go,.cta,.tabs button{transition:none}.tutor.anim{transition:none}.explain .dock,.dock.back{animation:none}.tutor-in,.tutor.talking .tutor-in,.tutor.talking .head,.tutor.think .head{animation:none}.drawer{transition:none}}
 </style>
 
 <div class="topbar">
   <span class="brand">얼굴 과외쌤</span>
   <span class="row">
     <button class="iconbtn" id="btnNote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h6"/></svg>오답노트</button>
+    <button class="iconbtn" id="btnFull" type="button" aria-label="전체화면" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     <button class="iconbtn" id="btnSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>설정</button>
   </span>
 </div>
@@ -872,4 +899,13 @@ $("pdfExam").onclick=()=>exportPDF("exam"); $("pdfNote").onclick=()=>exportPDF("
 
 for(const id of ["tname","level","style","model"]){ $(id).value=store.get(id,$(id).value); $(id).onchange=()=>store.set(id,$(id).value) }
 applyFace(); openDrawer(false);
+document.addEventListener("pointerdown",e=>{
+  const b=e.target.closest&&e.target.closest(".pill,.iconbtn,.cta,.go,.tabs button"); if(!b||b.disabled||matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r=b.getBoundingClientRect(), d=Math.max(r.width,r.height)*2, sp=document.createElement("span"); sp.className="rp";
+  sp.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`; b.appendChild(sp); setTimeout(()=>sp.remove(),600);
+});
+const fsBtn=$("btnFull");
+if(document.fullscreenEnabled){ fsBtn.hidden=false;
+  fsBtn.onclick=()=>{ try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(()=>{ fsBtn.hidden=true }) }catch{ fsBtn.hidden=true } };
+  document.addEventListener("fullscreenchange",()=>{ fsBtn.setAttribute("aria-label",document.fullscreenElement?"전체화면 닫기":"전체화면"); layout() }) }
 </script>
