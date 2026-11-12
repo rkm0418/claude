@@ -148,6 +148,9 @@ dialog[open]::backdrop{animation:fadeIn .25s ease-out}
 
 /* 오른쪽 서랍 */
 .drawer{position:absolute;z-index:8;top:0;bottom:0;right:0;width:min(400px,100%);background:var(--card);border-radius:28px 0 0 28px;padding:74px 22px 28px;padding-right:max(22px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px;overflow:auto;box-shadow:var(--sh);transition:transform .25s}
+.drawer{touch-action:pan-y}
+.drawer.dragging{transition:none!important}
+.drawer::before{content:"";position:absolute;left:8px;top:50%;width:4px;height:44px;margin-top:-22px;border-radius:4px;background:#0003;pointer-events:none}
 .drawer.closed{transform:translateX(105%);visibility:hidden;transition:transform .25s,visibility 0s .25s}
 .drawer .head2{display:flex;justify-content:space-between;align-items:center}
 textarea{width:100%;min-height:96px;resize:vertical;border:0;border-radius:var(--r);background:var(--soft);padding:12px 14px}
@@ -594,6 +597,20 @@ function addMsg(cls,text){
 
 /* ═════ 서랍 · 문제 입력 ═════ */
 const drawer=$("drawer");
+/* 스와이프로 닫기: 오른쪽으로 밀면 닫혀요 */
+(function(){ let st=null;
+  const skip=t=>t.closest&&t.closest("input,textarea,select,button,canvas,label,summary");
+  drawer.addEventListener("pointerdown",e=>{ if(e.pointerType==="mouse"||skip(e.target)||drawer.classList.contains("closed")) return; st={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now(),on:false,dx:0} });
+  drawer.addEventListener("pointermove",e=>{
+    if(!st||e.pointerId!==st.id) return; const dx=e.clientX-st.x, dy=e.clientY-st.y;
+    if(!st.on){ if(Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){ st=null; return } if(dx>10&&dx>Math.abs(dy)){ st.on=true; try{ drawer.setPointerCapture(e.pointerId) }catch{} drawer.classList.add("dragging") } else return }
+    st.dx=Math.max(0,dx); drawer.style.transform=`translateX(${st.dx}px)`;
+  });
+  const end=e=>{ if(!st||e.pointerId!==st.id) return; const was=st; st=null; if(!was.on) return;
+    drawer.classList.remove("dragging"); const v=was.dx/Math.max(1,performance.now()-was.t);
+    drawer.style.transform=""; if(was.dx>Math.min(110,drawer.offsetWidth*.3)||v>.6) openDrawer(false) };
+  drawer.addEventListener("pointerup",end); drawer.addEventListener("pointercancel",end);
+})();
 function openDrawer(o){ drawer.classList.toggle("closed", !o); drawer.inert=!o }
 $("btnProb").onclick=()=>openDrawer(drawer.classList.contains("closed")); $("closeDrawer").onclick=()=>openDrawer(false);
 let probBlob=null; const drop=$("drop");
