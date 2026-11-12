@@ -76,7 +76,7 @@ textarea:focus,select:focus,.ask:focus-within{outline:3px solid #ef6a6255}
 .go{background:var(--coral);color:#fff;border:0;border-radius:var(--r);padding:14px;font-family:"Gmarket";font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 6px 0 var(--coral2)}
 .go:active{transform:translateY(4px);box-shadow:0 2px 0 var(--coral2)}
 .go:disabled{opacity:.55;cursor:wait}
-select,input[type=text],input[type=password]{border:0;border-radius:14px;padding:8px 12px;background:var(--soft)}
+select,input[type=text]{border:0;border-radius:14px;padding:8px 12px;background:var(--soft)}
 .note{font-size:13px;color:var(--mute)}
 .err{color:var(--coral2);font-size:14px;min-height:1.2em}
 
@@ -132,7 +132,9 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 <aside class="drawer" id="drawer">
   <div class="head2"><h2>문제 올리기</h2><button class="pill" id="closeDrawer">닫기</button></div>
   <div class="drop" id="drop" tabindex="0">문제 사진 올리기 / 붙여넣기(Ctrl+V)</div>
+  <div class="row"><button class="pill" id="pickPhoto" type="button">앨범에서 고르기</button><button class="pill" id="camPhoto" type="button">카메라로 찍기</button></div>
   <input type="file" id="probFile" accept="image/*" class="hide">
+  <input type="file" id="probCam" accept="image/*" capture="environment" class="hide">
   <textarea id="probText" aria-label="문제 글" placeholder="문제를 글로 적어도 돼요. (사진만 올려도 OK)"></textarea>
   <div class="row">
     <select id="level" aria-label="학년">
@@ -149,8 +151,6 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     <option value="claude-haiku-5-5" selected>모델 · 하이쿠 (빠름)</option>
     <option value="claude-sonnet-5-5">모델 · 소네트 (정확)</option>
   </select>
-  <input type="password" id="apikey" placeholder="Claude API 키 (선택)" autocomplete="off" aria-label="Claude API 키">
-  <div class="note">키를 넣으면 내 키로 직접 호출해요. 비워두면 이 화면의 Claude 연결을 써요. 키는 이 브라우저에만 저장돼요.</div>
   <input type="text" id="tname" value="얼굴쌤" aria-label="선생님 이름">
   <button class="go" id="go">선생님, 풀어주세요!</button>
   <div class="err" id="err" role="alert"></div>
@@ -290,7 +290,7 @@ const drawer=$("drawer");
 function openDrawer(o){ drawer.classList.toggle("closed", !o) }
 $("btnProb").onclick=()=>openDrawer(drawer.classList.contains("closed")); $("closeDrawer").onclick=()=>openDrawer(false);
 let probBlob=null; const drop=$("drop");
-drop.onclick=()=>$("probFile").click(); drop.onkeydown=e=>{ if(e.key==="Enter"||e.key===" ") $("probFile").click() };
+drop.onclick=$("pickPhoto").onclick=()=>$("probFile").click(); $("camPhoto").onclick=()=>$("probCam").click(); $("probCam").onchange=e=>e.target.files[0]&&loadProb(e.target.files[0]); drop.onkeydown=e=>{ if(e.key==="Enter"||e.key===" ") $("probFile").click() };
 $("probFile").onchange=e=>e.target.files[0]&&loadProb(e.target.files[0]);
 document.addEventListener("paste", e=>{ const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith("image/")); if(f){ openDrawer(true); loadProb(f) } });
 drop.ondragover=e=>e.preventDefault();
@@ -307,7 +307,8 @@ function loadProb(file){
 /* ═════ Claude (sample) ═════ */
 let sample=null, ctl=null;
 (async()=>{ try{ sample=await claude.use("sample") }catch{ sample=null }
-  if(!sample) $("unavail").textContent="이 화면에는 Claude 연결이 없어요. API 키를 넣으면 쓸 수 있어요." })();
+  if(!sample){ $("unavail").textContent="이 화면에는 Claude 연결이 없어요. claude.ai에서 이 링크를 열어주세요."; return }
+  try{ const l=await sample.limits(); if(!l.images){ $("pickPhoto").disabled=$("camPhoto").disabled=true; $("unavail").textContent="이 화면에서는 문제 사진을 보낼 수 없어요. 글로 적어주세요." } }catch{} })();
 function rules(){
   return `너는 "${$("tname").value||"얼굴쌤"}"이라는 1:1 과외 선생님이다. 학생은 ${$("level").value}이고, 말투는 ${$("style").value}.
 학생이 올린 문제(사진 또는 글)를 분석해 마주 앉아 설명하듯 가르쳐라.
@@ -328,34 +329,22 @@ function render(o){
 }
 let hist=[];
 const b64=blob=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(String(f.result).split(",")[1]);f.readAsDataURL(blob)});
-async function viaKey(key, model, signal){
-  const msgs=hist.map(m=>({role:m.role,content:m.content}));
-  if(probBlob) msgs[0]={role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:await b64(probBlob)}},{type:"text",text:hist[0].content}]};
-  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal,
-    headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-    body:JSON.stringify({model:model==="auto"?"claude-sonnet-5-5":model,max_tokens:4000,messages:msgs})});
-  if(!r.ok){ const e=new Error(r.status===401?"API 키가 올바르지 않아요.":"요청 실패 ("+r.status+")"); e.code="api_"+r.status; throw e }
-  const j=await r.json(); return j.content.filter(c=>c.type==="text").map(c=>c.text).join("");
-}
 async function viaSample(model, signal){
   const o={cache:false,signal}; if(probBlob) o.images=[probBlob]; if(model!=="auto") o.model=model;
   const {text}=await sample(hist.length===1?hist[0].content:hist, o); return text;
 }
 async function run(userText, label, isFirst){
-  const key=$("apikey").value.trim(), model=$("model").value;
-  if(!key&&!sample){ $("err").textContent="API 키를 넣거나, Claude 연결이 되는 화면에서 열어주세요."; return }
+  const model=$("model").value;
+  if(!sample){ $("err").textContent="Claude 연결이 없는 화면이에요. claude.ai에서 이 링크를 열어주세요."; return }
   if(isFirst) hist=[{role:"user",content:rules()+"\n\n[학생]\n"+userText}]; else hist.push({role:"user",content:userText});
   $("err").textContent=""; $("go").disabled=true; $("tutor").classList.add("think"); say(label,false);
   try{
-    ctl=new AbortController(); let text;
-    if(key){
-      try{ text=await viaKey(key,model,ctl.signal) }
-      catch(e){ if(e.code||!sample) throw e; $("err").textContent="이 화면에서는 키로 직접 호출이 막혀 있어서 Claude 연결로 대신 풀었어요."; text=await viaSample(model,ctl.signal) }
-    } else text=await viaSample(model,ctl.signal);
+    ctl=new AbortController();
+    const text=await viaSample(model,ctl.signal);
     hist.push({role:"assistant",content:text}); render(parse(text));
   }catch(e){
     hist.pop(); if(isFirst) hist=[];
-    const msg={not_granted:"Claude 사용을 허락해야 풀 수 있어요.",rate_limited:"요청이 많아요. 잠시 뒤에 다시 눌러주세요."}[e.code]||e.message||"문제가 생겼어요.";
+    const msg={not_granted:"Claude 사용을 허락해야 풀 수 있어요. 다시 눌러서 허락해 주세요.",rate_limited:"구독 사용량 한도에 걸렸거나 요청이 많아요. 잠시 뒤에 다시 눌러주세요.",images_unavailable:"이 화면에서는 사진을 Claude에 보낼 수 없어요. 문제를 글로 적어주세요.",image_rejected:"사진을 읽을 수 없어요. 다른 사진으로 다시 올려주세요."}[e.code]||e.message||"문제가 생겼어요.";
     $("err").textContent=msg; say("앗, 문제가 생겼어. 오른쪽 안내를 확인해줘.",false); openDrawer(true);
   }finally{ $("go").disabled=false; $("tutor").classList.remove("think") }
 }
@@ -372,7 +361,7 @@ $("followup").onsubmit=e=>{
   $("fuText").value=""; run("학생 질문: "+q, "좋은 질문이야. 생각 좀 해볼게.", false);
 };
 
-for(const id of ["tname","level","style","model","apikey"]){ $(id).value=store.get(id,$(id).value); $(id).onchange=()=>store.set(id,$(id).value) }
+for(const id of ["tname","level","style","model"]){ $(id).value=store.get(id,$(id).value); $(id).onchange=()=>store.set(id,$(id).value) }
 applyFace();
 if(!store.get("face")) say("먼저 내 얼굴을 만들어줘! 가운데 '얼굴'을 눌러서 사진을 오려 붙여봐.",false);
 </script>
