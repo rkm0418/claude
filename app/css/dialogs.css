@@ -31,18 +31,3 @@ dialog p.note{margin:6px 0 8px}
 
 #figCv{width:100%;max-width:420px;display:block;margin:auto;background:#fff;border:1px solid #bbb;border-radius:8px;touch-action:none;cursor:crosshair}
 
-/* 얼굴 편집 */
-.cropwrap{position:relative;margin:12px auto;width:min(300px,34dvh);min-width:200px;max-width:100%;aspect-ratio:8/9;touch-action:none;background:repeating-conic-gradient(#0001 0 25%,transparent 0 50%) 0 0/16px 16px;border-radius:12px}
-.cropwrap canvas{width:100%;height:100%;display:block;cursor:grab}
-#faceDlg.big{width:100vw;max-width:none;height:100dvh;max-height:none;border-radius:0;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:14px 18px}
-#faceDlg.big>*{width:100%;max-width:900px}
-#faceDlg.big>.help{display:none}
-#faceDlg.big>.cropwrap{width:min(94vw,calc((100dvh - 300px)*.8889));min-width:240px;margin:8px auto}
-#faceDlg.big .sliders{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-/* 가로 화면: 왼쪽 컨트롤, 오른쪽 큰 편집 칸 */
-@media (min-width:860px) and (orientation:landscape){
-  #faceDlg.big{display:grid;grid-template-columns:300px 1fr;grid-auto-rows:min-content;column-gap:20px;align-content:start;align-items:start;padding:16px 20px;overflow:hidden}
-  #faceDlg.big>*{max-width:none;grid-column:1;width:auto}
-  #faceDlg.big>.cropwrap{grid-column:2;grid-row:1 / span 12;width:min(calc((100dvh - 34px)*.8889),calc(100vw - 360px));margin:0 auto}
-  #faceDlg.big .sliders{grid-template-columns:1fr}
-}

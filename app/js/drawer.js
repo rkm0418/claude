@@ -1,42 +1,9 @@
-/* 문제 올리기 서랍: 사진/글 입력, 문제 부분 선택, 작게 줄이기 */
+/* 문제 올리기 화면: 사진/글 입력, 문제 부분 선택, 작게 줄이기 */
 import { $, decodeImage } from "./util.js";
 
 const MAXD = 1024; // 보낼 사진의 긴 변(px)
-const drawer = $("drawer");
 let src = null, rect = null; // 원본(캔버스)과 고른 영역
 let blob = null, dims = null; // 줄여서 보낼 JPEG
-
-export const isOpen = () => !drawer.classList.contains("closed");
-export function openDrawer(o) { drawer.classList.toggle("closed", !o); drawer.inert = !o }
-
-/** 오른쪽으로 스와이프하면 닫힘 */
-function initSwipe() {
-  let st = null;
-  const skip = t => t.closest?.("input,textarea,select,button,canvas,label,summary");
-  drawer.addEventListener("pointerdown", e => {
-    if (e.pointerType === "mouse" || skip(e.target) || drawer.classList.contains("closed")) return;
-    st = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), on: false, dx: 0 };
-  });
-  drawer.addEventListener("pointermove", e => {
-    if (!st || e.pointerId !== st.id) return;
-    const dx = e.clientX - st.x, dy = e.clientY - st.y;
-    if (!st.on) {
-      if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { st = null; return }
-      if (dx > 10 && dx > Math.abs(dy)) { st.on = true; try { drawer.setPointerCapture(e.pointerId) } catch {} drawer.classList.add("dragging") } else return;
-    }
-    st.dx = Math.max(0, dx); drawer.style.transform = `translateX(${st.dx}px)`;
-  });
-  const end = e => {
-    if (!st || e.pointerId !== st.id) return;
-    const was = st; st = null;
-    if (!was.on) return;
-    drawer.classList.remove("dragging");
-    const v = was.dx / Math.max(1, performance.now() - was.t);
-    drawer.style.transform = "";
-    if (was.dx > Math.min(110, drawer.offsetWidth * .3) || v > .6) openDrawer(false);
-  };
-  drawer.addEventListener("pointerup", end); drawer.addEventListener("pointercancel", end);
-}
 
 /* ── 사진 불러오기 · 영역 선택 ── */
 function autoTrim() { // 종이 바깥 여백 자동 제거
@@ -107,9 +74,7 @@ export function resetDrawer() {
 }
 
 export function initDrawer({ onStart }) {
-  openDrawer(false); initSwipe(); initCropDrag();
-  $("btnProb").onclick = () => openDrawer(!isOpen());
-  $("closeDrawer").onclick = () => openDrawer(false);
+  initCropDrag();
   const drop = $("drop");
   drop.onclick = $("pickPhoto").onclick = () => $("probFile").click();
   $("camPhoto").onclick = () => $("probCam").click();
@@ -119,7 +84,7 @@ export function initDrawer({ onStart }) {
   drop.ondrop = e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f?.type.startsWith("image/")) loadPhoto(f) };
   document.addEventListener("paste", e => {
     const f = [...(e.clipboardData?.files || [])].find(f => f.type.startsWith("image/"));
-    if (f) { openDrawer(true); loadPhoto(f) }
+    if (f) loadPhoto(f)
   });
   $("go").onclick = () => {
     const p = getProblem();

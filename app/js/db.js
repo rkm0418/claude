@@ -1,15 +1,14 @@
-/* IndexedDB 저장소: notes(오답노트), kv(얼굴 같은 설정값). 막혀 있으면 메모리로 대신함 */
-const mem = { notes: new Map(), kv: new Map() };
+/* IndexedDB 저장소: 오답노트. 막혀 있으면 메모리로 대신함 */
+const mem = { notes: new Map() };
 let dbp = null;
 
 function open() {
   if (!dbp) {
     dbp = new Promise((res, rej) => {
       try {
-        const r = indexedDB.open("faceTutor", 1);
+        const r = indexedDB.open("studyNotes", 1);
         r.onupgradeneeded = () => {
           r.result.createObjectStore("notes", { keyPath: "id" });
-          r.result.createObjectStore("kv");
         };
         r.onsuccess = () => res(r.result);
         r.onerror = () => rej(r.error);
@@ -38,7 +37,3 @@ export const notes = {
   async del(id) { if (!(await tx("notes", "readwrite", s => s.delete(id)))) mem.notes.delete(id) },
 };
 
-export const kv = {
-  async get(k) { const r = await tx("kv", "readonly", s => s.get(k)); return r ? r.v : mem.kv.get(k) },
-  async set(k, v) { if (!(await tx("kv", "readwrite", s => s.put(v, k)))) mem.kv.set(k, v) },
-};

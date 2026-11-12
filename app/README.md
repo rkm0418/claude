@@ -1,12 +1,12 @@
-# 얼굴 과외쌤 (독립형 앱)
+# 과외쌤 (독립형 앱)
 
-내 얼굴을 오려 붙인 선생님에게 문제에서 궁금한 점만 물어보는 앱입니다. 빌드 없이 정적 파일 그대로 동작하고, 홈 화면에 설치(PWA)할 수 있습니다.
+문제를 올리고 궁금한 점만 물어보는 공부용 앱입니다. 캐릭터·얼굴 없이 기능만 있습니다. 빌드 없이 정적 파일 그대로 동작하고, 홈 화면에 설치(PWA)할 수 있습니다.
 
 ## 폴더
 - `index.html` 화면 뼈대, `css/` 스타일, `js/` ES 모듈
-  - `character.js` 캐릭터 배치·머리 흔들기 / `face.js` 얼굴 편집 / `drawer.js` 문제 올리기 서랍
+  - `drawer.js` 문제 올리기 화면(사진/글, 영역 선택)
   - `session.js` 질문 세션 / `claude.js` API 호출 / `notes.js` 오답노트 / `pdf.js` PDF / `figures.js` 그림 추출 / `settings.js` 설정 / `db.js` IndexedDB
-- `vendor/` KaTeX, jsPDF, html2canvas, face-api(+모델), `fonts/` 폰트, `icons/` 아이콘
+- `vendor/` KaTeX, jsPDF, html2canvas, `fonts/` 폰트, `icons/` 아이콘
 - `sw.js` 오프라인용 서비스 워커. 파일을 추가·수정했으면 `sw.js`의 `VERSION`을 올리고 `SHELL` 목록을 맞추세요.
 
 ## 로컬 실행
@@ -27,4 +27,4 @@ python3 -m http.server 8000
 앱의 설정(톱니바퀴)에서 Anthropic API 키를 붙여 넣습니다. 키는 그 기기 브라우저의 localStorage에만 저장되고, `api.anthropic.com`으로만 전송됩니다. 코드나 저장소에는 키를 넣지 마세요. 모델은 설정에서 하이쿠(기본) / 소네트 중 고릅니다.
 
 ## 데이터
-오답노트와 얼굴은 브라우저 IndexedDB에 저장됩니다(서버 없음). 브라우저 데이터를 지우면 함께 사라집니다.
+오답노트는 브라우저 IndexedDB에 저장됩니다(서버 없음). 브라우저 데이터를 지우면 함께 사라집니다.

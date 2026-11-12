@@ -2,8 +2,7 @@
 import { $, blobToDataUrl } from "./util.js";
 import { fillRich } from "./rich.js";
 import { callClaude, imageBlock, parseFirst, cleanReply, ApiError } from "./claude.js";
-import { setAskMode, setThinking, speak } from "./character.js";
-import { openDrawer, resetDrawer } from "./drawer.js";
+import { resetDrawer } from "./drawer.js";
 import { makeFigures } from "./figures.js";
 import { saveNote } from "./notes.js";
 import { CATS, CATS_S } from "./cats.js";
@@ -14,6 +13,7 @@ let ctl = null;    // 진행 중인 요청 취소용
 let endTimer = null;
 
 const asking = () => !!S;
+const setAskMode = on => { document.body.classList.toggle("ask-mode", on); $("compose").inert = on; $("dock").inert = !on };
 
 /* ── 화면 부품 ── */
 function addMsg(cls, t) {
@@ -59,7 +59,7 @@ export function startSession(problem) {
   $("msgs").textContent = ""; $("saveBar").classList.add("hide"); makeSaveBar();
   fillProblemCard(); $("probCard").open = innerWidth > 760;
   resetEndButton();
-  openDrawer(false); setAskMode(true);
+  setAskMode(true);
   setTimeout(() => $("askText").focus(), 400);
 }
 
@@ -77,7 +77,7 @@ export function endSession(force) {
     clearTimeout(endTimer); endTimer = setTimeout(resetEndButton, 4000);
     return;
   }
-  ctl?.abort(); ctl = null; setThinking(false);
+  ctl?.abort(); ctl = null;
   resetEndButton(); S = null;
   resetDrawer(); $("msgs").textContent = ""; $("probBody").textContent = ""; $("saveBar").classList.add("hide");
   setAskMode(false);
@@ -103,7 +103,7 @@ async function ask(q) {
   const isFirst = S.qa.length === 0;
   addMsg("u", q);
   const wait = addMsg("a", "…");
-  setThinking(true); $("askSend").disabled = true;
+  $("askSend").disabled = true;
   const mine = S;
   try {
     ctl = new AbortController();
@@ -118,14 +118,14 @@ async function ask(q) {
     }
     reply = cleanReply(reply);
     S.qa.push({ q, a: reply });
-    wait.remove(); addMsg("a", reply); speak(reply.replace(/\$+/g, ""));
+    wait.remove(); addMsg("a", reply);
     $("saveBar").classList.remove("hide");
   } catch (e) {
     if (S !== mine || e.name === "AbortError") return;
     wait.remove(); addMsg("err", e.message || "문제가 생겼어요.");
     if (e instanceof ApiError && e.code === "no_key") openSettings();
   } finally {
-    if (S === mine) { setThinking(false); $("askSend").disabled = false; $("askText").focus() }
+    if (S === mine) { $("askSend").disabled = false; $("askText").focus() }
   }
 }
 

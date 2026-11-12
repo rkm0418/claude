@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#24493a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>얼굴 과외쌤</title>
+<title>과외쌤</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -26,20 +26,6 @@
   <button class="btn-top" id="btnSet" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.2 3h-4l-.4 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg><span>설정</span></button>
 </div>
 
-<!-- 캐릭터: 오려 붙인 얼굴 + 몸 -->
-<div class="tutor" id="tutor"><div class="tutor-in">
-  <button class="empty-head" id="emptyHead" type="button">얼굴<small>눌러서 사진을 오려 붙이세요</small></button>
-  <div class="head hide" id="head"><canvas id="faceCv" aria-label="선생님 얼굴"></canvas></div>
-  <div class="body">
-    <svg viewBox="0 0 400 150" aria-hidden="true">
-      <path d="M150 0 Q150 38 135 52 L200 78 L265 52 Q250 38 250 0 Z" fill="#e9b996" id="neck"/>
-      <path d="M20 150 Q26 78 112 56 L150 44 Q200 96 250 44 L288 56 Q374 78 380 150 Z" fill="var(--shirt)"/>
-      <path d="M150 44 Q200 96 250 44 L262 56 Q200 112 138 56 Z" fill="#cfd6e4"/>
-    </svg>
-  </div>
-</div></div>
-
-<button class="big-btn cta" id="btnProb" type="button">문제 올리기</button>
 
 <!-- 질문 창 (질문 모드에서만 보임) -->
 <section class="dock" id="dock" aria-label="질문">
@@ -55,9 +41,9 @@
   </div>
 </section>
 
-<!-- 문제 올리기 서랍 -->
-<aside class="drawer closed" id="drawer" inert>
-  <div class="row-between"><h2>문제 올리기</h2><button class="btn" id="closeDrawer" type="button">닫기</button></div>
+<!-- 문제 올리기 (처음 화면) -->
+<main class="compose" id="compose">
+  <h1>문제 올리기</h1>
   <div class="drop" id="drop" tabindex="0" role="button">문제 사진 올리기 / 붙여넣기(Ctrl+V)</div>
   <div class="row"><button class="btn" id="pickPhoto" type="button">앨범에서 고르기</button><button class="btn" id="camPhoto" type="button">카메라로 찍기</button></div>
   <div id="probPrev" class="hide">
@@ -71,7 +57,7 @@
   <textarea id="probText" aria-label="문제 글" placeholder="문제를 글로 적어도 돼요. (사진만 올려도 OK)"></textarea>
   <button class="big-btn go" id="go" type="button">질문하러 가기</button>
   <div class="err" id="err" role="alert"></div>
-</aside>
+</main>
 
 <!-- 오답노트 -->
 <dialog id="noteDlg" class="wide">
@@ -118,29 +104,7 @@
         <option value="활기차고 유머러스한 선생님">텐션 높게</option>
       </select>
     </div>
-    <button class="btn" id="btnFace" type="button">얼굴 편집</button>
   </div>
-</dialog>
-
-<!-- 얼굴 편집 -->
-<dialog id="faceDlg">
-  <div class="row-between"><h2>얼굴 오려 붙이기</h2><button class="btn" id="cropBig" type="button">크게 보기</button></div>
-  <p class="note help">사진을 올리고 점을 끌어 얼굴 윤곽을 따라 그려요(선을 누르면 점 추가, 두 번 누르면 삭제). "사진 이동·확대·회전" 탭에서는 끌어서 옮기고, 모서리 동그라미를 끌거나 두 손가락으로 모아 벌려 크기와 각도를 바꿔요.</p>
-  <div class="row mt"><button class="btn pri" id="facePick" type="button">앨범에서 고르기</button><button class="btn" id="faceCam" type="button">셀카 찍기</button></div>
-  <div class="note" id="faceMsg" role="status"></div>
-  <input type="file" id="faceFile" accept="image/*" class="hide">
-  <input type="file" id="faceSelfie" accept="image/*" capture="user" class="hide">
-  <div class="tabs mt">
-    <button type="button" id="tabShape" class="on">윤곽 편집</button>
-    <button type="button" id="tabMove">사진 이동·확대·회전</button>
-    <button type="button" id="resetOutline">윤곽 초기화(자동)</button>
-  </div>
-  <div class="cropwrap" id="cw"><canvas id="cv" width="800" height="900"></canvas></div>
-  <div class="sliders">
-    <div><label class="note" for="zoom">확대·축소</label><input type="range" id="zoom" min="0.1" max="5" step="0.01" value="1"></div>
-    <div><label class="note" for="rot">회전</label><input type="range" id="rot" min="-180" max="180" step="1" value="0"></div>
-  </div>
-  <div class="row end mt"><button class="btn" id="faceCancel" type="button">취소</button><button class="btn pri" id="faceSave" type="button">붙이기</button></div>
 </dialog>
 
 <script src="vendor/katex/katex.min.js"></script>

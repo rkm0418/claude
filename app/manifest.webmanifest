@@ -1,7 +1,7 @@
 {
-  "name": "얼굴 과외쌤",
+  "name": "과외쌤",
   "short_name": "과외쌤",
-  "description": "내 얼굴 선생님에게 문제에서 궁금한 점을 물어보는 앱",
+  "description": "문제를 올리고 궁금한 점만 물어보는 공부 앱",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",

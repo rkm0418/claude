@@ -8,7 +8,7 @@ export const getSettings = () => Object.fromEntries(Object.entries(KEYS).map(([k
 
 export function openSettings() { showDialog($("setDlg")) }
 
-export function initSettings({ onFaceEdit }) {
+export function initSettings() {
   const s = getSettings();
   for (const k of Object.keys(KEYS)) {
     const el = $(k);
@@ -18,5 +18,4 @@ export function initSettings({ onFaceEdit }) {
   }
   $("btnSet").onclick = openSettings;
   $("setClose").onclick = () => $("setDlg").close();
-  $("btnFace").onclick = () => { $("setDlg").close(); onFaceEdit() };
 }

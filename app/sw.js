@@ -1,6 +1,6 @@
 /* 서비스 워커: 앱 파일을 저장해 두어 오프라인에서도 열리게 함 (Anthropic API 요청은 건드리지 않음) */
-const VERSION = "v1";
-const CACHE = "face-tutor-" + VERSION;
+const VERSION = "v3";
+const CACHE = "study-tutor-" + VERSION;
 const SHELL = [
   "./",
   "css/base.css",
@@ -21,11 +21,9 @@ const SHELL = [
   "icons/icon.svg",
   "index.html",
   "js/cats.js",
-  "js/character.js",
   "js/claude.js",
   "js/db.js",
   "js/drawer.js",
-  "js/face.js",
   "js/figures.js",
   "js/main.js",
   "js/notes.js",
@@ -35,7 +33,6 @@ const SHELL = [
   "js/settings.js",
   "js/util.js",
   "manifest.webmanifest",
-  "vendor/face-api.js",
   "vendor/html2canvas.min.js",
   "vendor/jspdf.umd.min.js",
   "vendor/katex/fonts/KaTeX_AMS-Regular.woff2",
@@ -59,11 +56,7 @@ const SHELL = [
   "vendor/katex/fonts/KaTeX_Size4-Regular.woff2",
   "vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2",
   "vendor/katex/katex.min.css",
-  "vendor/katex/katex.min.js",
-  "vendor/models/face_landmark_68_tiny_model-weights_manifest.json",
-  "vendor/models/face_landmark_68_tiny_model.bin",
-  "vendor/models/tiny_face_detector_model-weights_manifest.json",
-  "vendor/models/tiny_face_detector_model.bin"
+  "vendor/katex/katex.min.js"
 ];
 
 self.addEventListener("install", e => {
@@ -72,7 +65,7 @@ self.addEventListener("install", e => {
 
 self.addEventListener("activate", e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith("face-tutor-") && k !== CACHE).map(k => caches.delete(k))))
+    caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith("study-tutor-") && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
