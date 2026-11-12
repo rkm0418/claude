@@ -26,7 +26,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 .hide{display:none!important}
 
-.topbar{flex-wrap:wrap;position:absolute;left:var(--gut-l);right:var(--gut-r);top:14px;z-index:7;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.topbar{flex-wrap:wrap;position:absolute;left:var(--gut-l);right:var(--gut-r);top:14px;z-index:9;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .brand{font-family:"Gmarket";font-weight:700;font-size:15px;color:#ffffffb0}
 .iconbtn{display:inline-flex;align-items:center;gap:6px;border:0;background:#fff;color:var(--ink);border-radius:16px;padding:10px 14px;cursor:pointer;font-weight:600;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.18)}
 .usageBox{position:relative}
@@ -73,7 +73,7 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 .ask .pill{border-radius:999px;padding:8px 20px}
 
 /* 오른쪽 서랍 */
-.drawer{position:absolute;z-index:8;top:0;bottom:0;right:0;width:min(400px,100%);background:var(--card);border-radius:28px 0 0 28px;padding:22px 22px 28px;padding-right:max(22px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px;overflow:auto;box-shadow:var(--sh);transition:transform .25s}
+.drawer{position:absolute;z-index:8;top:0;bottom:0;right:0;width:min(400px,100%);background:var(--card);border-radius:28px 0 0 28px;padding:74px 22px 28px;padding-right:max(22px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px;overflow:auto;box-shadow:var(--sh);transition:transform .25s}
 .drawer.closed{transform:translateX(105%)}
 .drawer .head2{display:flex;justify-content:space-between;align-items:center}
 textarea{width:100%;min-height:96px;resize:vertical;border:0;border-radius:var(--r);background:var(--soft);padding:12px 14px}
@@ -88,6 +88,18 @@ textarea:focus,select:focus,.ask:focus-within{outline:3px solid #ef6a6255}
 .go:disabled{opacity:.55;cursor:wait}
 select,input[type=text]{border:0;border-radius:14px;padding:8px 12px;background:var(--soft)}
 .note{font-size:13px;color:var(--mute)}
+.saveRow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.saveRow .pill{padding:5px 12px;font-size:13px}
+.saveRow .pill.on{background:var(--ok);color:#fff}
+dialog.wide{width:min(94vw,640px);max-height:88vh;overflow:auto}
+.head2{display:flex;justify-content:space-between;align-items:center}
+.noteList{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.nc{background:var(--soft);border-radius:18px;padding:12px 14px}
+.nc img{max-width:100%;max-height:180px;border-radius:10px;display:block;margin:6px 0}
+.nc .meta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute)}
+.nc details{margin-top:6px}.nc summary{cursor:pointer;font-weight:600;font-size:14px}
+.nc ol{margin:6px 0 0 18px;padding:0;font-size:15px}
+.tabs button .cnt{opacity:.7;margin-left:4px}
 .err{color:var(--coral2);font-size:14px;min-height:1.2em}
 
 dialog{border:0;border-radius:28px;background:var(--card);color:var(--ink);padding:22px;width:min(94vw,460px);box-shadow:var(--sh)}
@@ -105,6 +117,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   <span class="brand">얼굴 과외쌤</span>
   <span class="usageBox"><button class="chip" id="usageBtn" type="button">사용량</button><div class="usageInfo hide" id="usageInfo"></div></span>
   <span class="row">
+    <button class="iconbtn" id="btnNote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h6"/></svg>오답노트</button>
     <button class="iconbtn" id="btnProb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg>문제 올리기</button>
     <button class="iconbtn" id="btnFace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>얼굴 바꾸기</button>
   </span>
@@ -168,6 +181,13 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   <div class="note" id="unavail"></div>
 </aside>
 
+<dialog id="noteDlg" class="wide">
+  <div class="head2"><h2>오답노트</h2><button class="pill" id="noteClose" type="button">닫기</button></div>
+  <div class="tabs" id="noteTabs" style="margin-top:10px"></div>
+  <div class="row" style="margin-top:10px"><button class="pill pri" id="pdfBtn" type="button">이 분류 모의고사 PDF 내보내기</button><label class="note"><input type="checkbox" id="pdfKey" checked> 정답·해설 포함</label><span class="note" id="pdfMsg" role="status"></span></div>
+  <div id="noteList" class="noteList"></div>
+</dialog>
+
 <dialog id="dlg">
   <h2>얼굴 오려 붙이기</h2>
   <p class="note" style="margin:6px 0 0">사진을 올리고 점을 끌어 얼굴 윤곽을 따라 그려요(선을 누르면 점 추가, 두 번 누르면 삭제). 사진을 올리면 얼굴을 자동으로 찾아줘요. "사진 이동·확대·회전" 탭에서는 끌어서 옮기고, 모서리 동그라미를 끌거나 두 손가락으로 모아 벌려 크기와 각도를 바꿔요.</p>
@@ -191,6 +211,8 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
 <script>
 "use strict";
@@ -541,6 +563,7 @@ function render(o){
   result=o; steps=o.steps.map(s=>({say:clean(s.say)}));
   const f=$("final"); f.textContent=""; const b=document.createElement("b"); b.textContent="정답 "; const an=document.createElement("span"); fillRich(an,clean(o.answer)); f.append(b, an);
   if(o.tip){ const t=document.createElement("div"); t.className="note"; fillRich(t,"팁 · "+clean(o.tip)); f.appendChild(t) }
+  sessionSteps.push(...steps.map(x=>x.say)); makeSaveRow(f);
   showStep(0);
 }
 let hist=[];
@@ -581,7 +604,7 @@ async function run(userText, label, isFirst){
 $("go").onclick=()=>{
   const text=$("probText").value.trim();
   if(!text&&!probBlob){ $("err").textContent="문제 사진이나 글을 먼저 올려주세요."; return }
-  lastProblem=text||"사진 속 문제를 풀어서 가르쳐줘."; problemText=""; openDrawer(false);
+  lastProblem=text||"사진 속 문제를 풀어서 가르쳐줘."; probUserText=text; sessionSteps=[]; curNoteId=null; problemText=""; openDrawer(false);
   run(lastProblem, "분석 중…", true);
 };
 let lastProblem="";
@@ -590,6 +613,119 @@ $("followup").onsubmit=e=>{
   if(!hist.length){ say("문제를 먼저 올려주세요.",false); openDrawer(true); return }
   $("fuText").value=""; run("학생 질문: "+q, "분석 중…", false);
 };
+
+/* ═════ 오답노트 ═════ */
+const CATS=["풀 수 있는데 이해 안 됨","풀 수 있는데 얻은 것 있음","개념을 몰라서 못 품","어려워서 못 품"];
+let sessionSteps=[], curNoteId=null, probUserText="", noteCat=0, memNotes=[];
+const idb=(()=>{ let p=null;
+  const open=()=>p||(p=new Promise((res,rej)=>{ try{ const r=indexedDB.open("tutorNotes",1); r.onupgradeneeded=()=>r.result.createObjectStore("notes",{keyPath:"id"}); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error) }catch(e){ rej(e) } }));
+  const tx=async(mode,fn)=>{ try{ const db=await open(); return await new Promise((res,rej)=>{ const t=db.transaction("notes",mode), rq=fn(t.objectStore("notes")); t.oncomplete=()=>res(rq&&rq.result); t.onerror=()=>rej(t.error) }) }catch{ return undefined } };
+  return {
+    put:async n=>{ const r=await tx("readwrite",s=>s.put(n)); if(r===undefined){ memNotes=memNotes.filter(x=>x.id!==n.id); memNotes.push(n) } },
+    all:async()=>{ const r=await tx("readonly",s=>s.getAll()); return r===undefined?memNotes.slice():r },
+    del:async id=>{ const r=await tx("readwrite",s=>s.delete(id)); if(r===undefined) memNotes=memNotes.filter(x=>x.id!==id) } };
+})();
+const blobUrl=b=>new Promise(r=>{ const f=new FileReader(); f.onload=()=>r(f.result); f.readAsDataURL(b) });
+function makeSaveRow(f){
+  const row=document.createElement("div"); row.className="saveRow";
+  const lb=document.createElement("span"); lb.className="note"; lb.textContent="오답노트에 저장:"; row.appendChild(lb);
+  CATS.forEach((c,i)=>{ const b=document.createElement("button"); b.type="button"; b.className="pill"; b.textContent=c; b.dataset.c=i; b.onclick=async()=>{
+    await saveNote(i); [...row.querySelectorAll(".pill")].forEach(x=>x.classList.toggle("on",x===b)); lb.textContent="저장됨:" }; row.appendChild(b) });
+  f.appendChild(row);
+}
+async function saveNote(cat){
+  const note={id:curNoteId||("n"+Date.now()), t:Date.now(), cat, text:probUserText, tr:problemText, img:probBlob?await blobUrl(probBlob):"", steps:sessionSteps.slice(), answer:clean(result.answer)};
+  curNoteId=note.id; await idb.put(note);
+}
+async function openNotes(){ $("pdfMsg").textContent=""; await renderNotes(); try{ $("noteDlg").showModal() }catch{ $("noteDlg").setAttribute("open","") } }
+$("btnNote").onclick=openNotes; $("noteClose").onclick=()=>$("noteDlg").close();
+async function renderNotes(){
+  const all=(await idb.all()).sort((a,b)=>b.t-a.t), tabs=$("noteTabs"); tabs.textContent="";
+  CATS.forEach((c,i)=>{ const b=document.createElement("button"); b.type="button"; b.className=i===noteCat?"on":""; b.append(c); const n=document.createElement("span"); n.className="cnt"; n.textContent=all.filter(x=>x.cat===i).length; b.appendChild(n); b.onclick=()=>{ noteCat=i; renderNotes() }; tabs.appendChild(b) });
+  const list=$("noteList"); list.textContent=""; const mine=all.filter(x=>x.cat===noteCat);
+  if(!mine.length){ const e=document.createElement("div"); e.className="note"; e.textContent="아직 저장된 문제가 없어요. 풀이가 끝나면 아래 버튼으로 이 분류에 저장해요."; list.appendChild(e); return }
+  mine.forEach(n=>{
+    const c=document.createElement("div"); c.className="nc";
+    const m=document.createElement("div"); m.className="meta"; m.append(new Date(n.t).toLocaleString("ko-KR")); const d=document.createElement("button"); d.className="pill"; d.type="button"; d.textContent="삭제"; d.onclick=async()=>{ await idb.del(n.id); renderNotes() }; m.appendChild(d); c.appendChild(m);
+    if(n.img){ const im=new Image(); im.alt="문제 사진"; im.src=n.img; c.appendChild(im) }
+    const t=document.createElement("div"); fillRich(t,n.text||n.tr||""); c.appendChild(t);
+    const dt=document.createElement("details"); const sm=document.createElement("summary"); sm.textContent="해설 보기"; dt.appendChild(sm);
+    const ol=document.createElement("ol"); n.steps.forEach(x=>{ const li=document.createElement("li"); fillRich(li,x); ol.appendChild(li) }); dt.appendChild(ol);
+    const a=document.createElement("div"); const bb=document.createElement("b"); bb.textContent="정답 "; const as=document.createElement("span"); fillRich(as,n.answer); a.append(bb,as); dt.appendChild(a); c.appendChild(dt); list.appendChild(c);
+  });
+}
+/* ── 시험지 PDF ── */
+const PDF_CSS=`.pdfRoot{position:fixed;left:-10000px;top:0;z-index:-1}
+.pdfRoot *{box-sizing:border-box}
+.pg{width:794px;height:1123px;background:#fff;color:#111;padding:38px 44px 30px;display:flex;flex-direction:column;font-family:"Freesentation","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15.5px;line-height:1.6;position:relative;overflow:hidden}
+.pg .top{display:flex;align-items:center;gap:16px;flex:none}
+.pg .tag{flex:none;background:#111;color:#fff;font-family:"Gmarket";font-weight:700;font-size:15px;padding:6px 14px;border-radius:4px;letter-spacing:.08em}
+.pg .mid{flex:1;text-align:center}
+.pg .ttl{font-family:"Gmarket";font-weight:700;font-size:30px;letter-spacing:-.02em;line-height:1.2}
+.pg .sub{font-size:14px;color:#444;margin-top:3px}
+.pg .who{flex:none;font-size:13.5px;line-height:2}
+.pg .who u{display:inline-block;width:120px;border-bottom:1.5px solid #111;text-decoration:none;vertical-align:bottom;height:1.3em}
+.pg .rule{flex:none;border-top:3px solid #111;border-bottom:1px solid #111;height:7px;margin:10px 0 14px}
+.pg .rule.thin{border-top-width:1px;height:4px;margin:6px 0 12px}
+.pg .mini{flex:none;font-family:"Gmarket";font-weight:500;font-size:12.5px;color:#444}
+.pg .cols{flex:1;display:flex;min-height:0}
+.pg .col{flex:1;min-width:0;overflow:hidden;padding:0 18px}
+.pg .col:first-child{border-right:1.5px solid #111;padding-left:0}
+.pg .col:last-child{padding-right:0}
+.pg .foot{flex:none;display:flex;justify-content:space-between;font-size:12px;color:#666;padding-top:8px;border-top:1px solid #111;margin-top:8px}
+.pg .q{margin-bottom:18px}
+.pg .qh{display:flex;gap:6px;align-items:baseline}
+.pg .qh .n{font-family:"Gmarket";font-weight:700;font-size:19px}
+.pg .qh .t{flex:1;min-width:0}
+.pg .q img{display:block;max-width:100%;max-height:250px;margin:6px 0 2px;border:1px solid #999}
+.pg .sp{margin-top:8px;height:104px;border:1px dashed #999;border-radius:4px;position:relative}
+.pg .sp i{position:absolute;left:6px;top:2px;font-size:11px;color:#999;font-style:normal}
+.pg h3{font-family:"Gmarket";font-weight:700;font-size:19px;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid #111}
+.pg .ex{margin-bottom:14px;font-size:14px;line-height:1.55}
+.pg .ex b{font-family:"Gmarket"}
+.pg .ex ol{margin:3px 0 0 18px;padding:0}`;
+async function exportPDF(){
+  const cat=noteCat, msgEl=$("pdfMsg"), withKey=$("pdfKey").checked;
+  const notes=(await idb.all()).filter(x=>x.cat===cat).sort((a,b)=>a.t-b.t);
+  if(!notes.length){ msgEl.textContent="이 분류에 저장된 문제가 없어요."; return }
+  if(!window.jspdf||!window.html2canvas){ msgEl.textContent="PDF 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요."; return }
+  $("pdfBtn").disabled=true; msgEl.textContent="모의고사 만드는 중…";
+  const root=document.createElement("div"); root.className="pdfRoot"; const st=document.createElement("style"); st.textContent=PDF_CSS; root.appendChild(st); document.body.appendChild(root);
+  try{
+    await document.fonts.ready;
+    const pages=[], mk=(h,c)=>{ const e=document.createElement("div"); if(c) e.className=c; if(h!=null) e.innerHTML=h; return e };
+    const newPage=first=>{ const pg=mk(null,"pg");
+      if(first){ const top=mk('<div class="tag">모의고사</div><div class="mid"><div class="ttl">오답 모의고사</div><div class="sub"></div></div><div class="who"><div>성명 <u></u></div><div>수험번호 <u></u></div></div>',"top"); top.querySelector(".sub").textContent=CATS[cat]+" · 총 "+notes.length+"문항 · "+new Date().toLocaleDateString("ko-KR"); pg.append(top, mk("","rule")) }
+      else { const m=mk(null,"mini"); m.textContent="오답 모의고사 · "+CATS[cat]; pg.append(m, mk("","rule thin")) }
+      const cols=mk(null,"cols"), c1=mk(null,"col"), c2=mk(null,"col"); cols.append(c1,c2); pg.appendChild(cols);
+      const ft=mk('<span>오답노트 모의고사</span><span class="pn"></span>',"foot"); pg.appendChild(ft); root.appendChild(pg); pages.push(pg); return {cols:[c1,c2]} };
+    let P=newPage(true), ci=0;
+    const over=c=>c.scrollHeight>c.clientHeight+1;
+    const add=async el=>{ P.cols[ci].appendChild(el); await Promise.all([...el.querySelectorAll("img")].map(i=>i.decode().catch(()=>{})));
+      if(over(P.cols[ci])&&P.cols[ci].children.length>1){ P.cols[ci].removeChild(el);
+        if(ci===0){ ci=1; P.cols[1].appendChild(el) } else { P=newPage(false); ci=0; P.cols[0].appendChild(el) } } };
+    for(let i=0;i<notes.length;i++){ const n=notes[i], q=mk(null,"q"), qh=mk(null,"qh"), nm=mk(null,"n"), t=mk(null,"t");
+      nm.textContent=(i+1)+"."; fillRich(t,n.text||(n.img?"":n.tr)||""); qh.append(nm,t); q.appendChild(qh);
+      if(n.img){ const im=new Image(); im.src=n.img; q.appendChild(im) }
+      q.appendChild(mk("<i>풀이</i>","sp")); await add(q) }
+    if(withKey){ P=newPage(false); ci=0; const h=mk(null); h.innerHTML="<h3>정답 및 해설</h3>"; await add(h);
+      for(let i=0;i<notes.length;i++){ const n=notes[i], e=mk(null,"ex"), hd=mk(null), b=document.createElement("b"); b.textContent=(i+1)+". 정답 "; const a=document.createElement("span"); fillRich(a,n.answer); hd.append(b,a); e.appendChild(hd);
+        const ol=document.createElement("ol"); n.steps.forEach(x=>{ const li=document.createElement("li"); fillRich(li,x); ol.appendChild(li) }); e.appendChild(ol); await add(e) } }
+    pages.forEach((pg,i)=>pg.querySelector(".pn").textContent=(i+1)+" / "+pages.length);
+    const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"p"});
+    for(let i=0;i<pages.length;i++){ msgEl.textContent=`PDF 만드는 중 (${i+1}/${pages.length})…`;
+      const cv=await html2canvas(pages[i],{scale:2,backgroundColor:"#ffffff",useCORS:true,logging:false});
+      if(i) pdf.addPage(); pdf.addImage(cv.toDataURL("image/jpeg",.88),"JPEG",0,0,210,297) }
+    const name="오답모의고사_"+CATS[cat].replace(/\s+/g,"")+"_"+new Date().toISOString().slice(0,10)+".pdf";
+    const r=await saveFile(name,pdf.output("blob")); msgEl.textContent=r==="declined"?"저장을 취소했어요.":"PDF를 만들었어요.";
+  }catch(e){ msgEl.textContent="PDF를 만들지 못했어요: "+(e.message||e) }
+  finally{ if(!window.__keepPdf) root.remove(); $("pdfBtn").disabled=false }
+}
+async function saveFile(name,blob){
+  try{ const dl=window.claude?await claude.use("downloads"):null; if(dl){ await dl.save({filename:name,data:blob}); return "ok" } }catch(e){ if(e&&e.code==="declined") return "declined" }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); return "ok";
+}
+$("pdfBtn").onclick=exportPDF;
 
 for(const id of ["tname","level","style","model","gkey"]){ $(id).value=store.get(id,$(id).value); $(id).onchange=()=>store.set(id,$(id).value) }
 applyFace();
