@@ -155,7 +155,8 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   <div class="row"><button class="pill" id="pickPhoto" type="button">앨범에서 고르기</button><button class="pill" id="camPhoto" type="button">카메라로 찍기</button></div>
   <div id="probPrev" class="hide"><canvas id="probCv" aria-label="문제 사진 미리보기. 끌어서 문제 부분만 선택"></canvas>
     <div class="row" style="margin-top:6px"><button class="pill" id="resetCrop" type="button">자동 맞춤</button><button class="pill" id="fullCrop" type="button">전체 사용</button><span class="note" id="probInfo"></span></div>
-    <div class="note">사진 위를 끌어서 문제 부분만 고르면 토큰이 줄어요.</div></div>
+    <div class="note">사진 위를 끌어서 문제 부분만 고르면 토큰이 줄어요.</div>
+    <label class="note"><input type="checkbox" id="rmColor" checked> 오답노트 그림에서 파랑·빨강 등 색 펜 손글씨 지우기</label></div>
   <input type="file" id="probFile" accept="image/*" class="hide">
   <input type="file" id="probCam" accept="image/*" capture="environment" class="hide">
   <textarea id="probText" aria-label="문제 글" placeholder="문제를 글로 적어도 돼요. (사진만 올려도 OK)"></textarea>
@@ -185,6 +186,13 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   <div class="tabs" id="noteTabs" style="margin-top:10px"></div>
   <div class="row" style="margin-top:10px"><button class="pill pri" id="pdfBtn" type="button">이 분류 모의고사 PDF 내보내기</button><label class="note"><input type="checkbox" id="pdfKey" checked> 정답·해설 포함</label><span class="note" id="pdfMsg" role="status"></span></div>
   <div id="noteList" class="noteList"></div>
+</dialog>
+
+<dialog id="figDlg">
+  <h2>그림 다듬기</h2><p class="note" style="margin:6px 0 8px">손으로 쓴 글씨나 낙서 위를 문질러서 지워요.</p>
+  <canvas id="figCv" style="width:100%;max-width:420px;display:block;margin:auto;background:#fff;border:1px solid #bbb;border-radius:8px;touch-action:none;cursor:crosshair"></canvas>
+  <label class="note" for="brush">지우개 크기</label><input type="range" id="brush" min="4" max="60" value="18">
+  <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="pill" id="figReset" type="button">원래대로</button><button class="pill" id="figCancel" type="button">취소</button><button class="pill pri" id="figDone" type="button">완료</button></div>
 </dialog>
 
 <dialog id="dlg">
@@ -550,8 +558,9 @@ function rules(){
   return `너는 "${$("tname").value||"얼굴쌤"}"이라는 1:1 과외 선생님이다. 학생은 ${$("level").value}이고, 말투는 ${$("style").value}.
 학생이 올린 문제(사진 또는 글)를 분석해 마주 앉아 설명하듯 가르쳐라.
 반드시 아래 JSON 하나만 출력한다(코드블록·설명 금지):
-{"steps":[{"say":"선생님이 말하는 한두 문장(입말. 이모지·마크다운 금지)"}],"answer":"최종 정답(한 줄)","problem":"사진 문제일 때만: 문제 내용을 수식 포함 글로 정확히 옮긴 것"}
+{"steps":[{"say":"선생님이 말하는 한두 문장(입말. 이모지·마크다운 금지)"}],"answer":"최종 정답(한 줄)","problem":"사진 문제일 때만: 인쇄된 문제 본문과 보기만 수식 포함 글로 옮긴 것. 손글씨(풀이, 메모, 체크, 밑줄, 동그라미)는 절대 넣지 않는다","figures":[{"x":0.1,"y":0.2,"w":0.4,"h":0.3}]}
 수식 규칙: 수식은 표준 LaTeX로 쓴다. 인라인 수식은 $ 하나로, 블록 수식은 $$ 두 개로 감싼다. 수식 안에 한글을 직접 쓰지 말고 필요하면 \\text{한글}로 감싼다. 유니코드 수학기호(×, ÷, √, ² 등)를 쓰지 말고 \\frac, \\sqrt, \\times, \\div 같은 정확한 LaTeX 명령만 쓴다. JSON 문자열 안에서는 백슬래시를 반드시 두 개(\\\\frac)로 이스케이프한다.
+figures: 사진 문제일 때만, 문제에 인쇄된 그림·도형·그래프·표의 위치를 사진 전체 대비 0~1 비율(왼쪽 위 기준 x,y와 너비 w, 높이 h)로 최대 4개 적는다. 그림이 없으면 빈 배열. 손글씨는 그림으로 치지 않는다.
 규칙: steps는 3~7개. 인사, 맞장구, 칭찬, 격려, 감탄, 되묻기, 반복 설명, 자기소개, 군더더기 말은 절대 쓰지 않는다. 각 step은 풀이에 꼭 필요한 핵심만 한두 문장으로 쓴다. 첫 step은 구하는 것을 한 문장으로 말한다. 정답만 던지지 말고 왜 그런지 한 줄로 근거를 댄다. 마지막 step은 결론이다. 사진이 흐려 읽을 수 없으면 steps 하나로 다시 찍어달라고 말한다. 후속 질문에는 같은 JSON 형식으로 해당 부분만 다시 쉽게 설명한다.`;
 }
 function parse(text){
@@ -587,6 +596,7 @@ async function run(userText, label, isFirst){
     const text=await viaSample(model,ctl.signal);
     hist.push({role:"assistant",content:text}); const parsed=parse(text);
     if(isFirst&&probBlob&&parsed.problem){ problemText=String(parsed.problem); hist[0].content+="\n\n[문제 전사]\n"+problemText }
+    if(isFirst) curFigs=probBlob?makeFigs(parsed.figures):[];
     render(parsed);
   }catch(e){
     hist.pop(); if(isFirst) hist=[];
@@ -597,7 +607,7 @@ async function run(userText, label, isFirst){
 $("go").onclick=()=>{
   const text=$("probText").value.trim();
   if(!text&&!probBlob){ $("err").textContent="문제 사진이나 글을 먼저 올려주세요."; return }
-  lastProblem=text||"사진 속 문제를 풀어서 가르쳐줘."; probUserText=text; sessionSteps=[]; curNoteId=null; problemText=""; openDrawer(false);
+  lastProblem=text||"사진 속 문제를 풀어서 가르쳐줘."; curFigs=[]; probUserText=text; sessionSteps=[]; curNoteId=null; problemText=""; openDrawer(false);
   run(lastProblem, "분석 중…", true);
 };
 let lastProblem="";
@@ -606,6 +616,48 @@ $("followup").onsubmit=e=>{
   if(!hist.length){ say("문제를 먼저 올려주세요.",false); openDrawer(true); return }
   $("fuText").value=""; run("학생 질문: "+q, "분석 중…", false);
 };
+
+/* ═════ 문제 그림만 추출 (손글씨 지우기) ═════ */
+let curFigs=[];
+function processFig(cv0, rmColor){
+  const w=cv0.width, h=cv0.height, g=cv0.getContext("2d"), im=g.getImageData(0,0,w,h), d=im.data;
+  // 배경(종이 그늘) 추정: 작게 줄였다 키우기
+  const sw=Math.max(2,Math.round(w/14)), sh=Math.max(2,Math.round(h/14)), sm=document.createElement("canvas"); sm.width=sw; sm.height=sh; sm.getContext("2d").drawImage(cv0,0,0,sw,sh);
+  const bg=document.createElement("canvas"); bg.width=w; bg.height=h; const bgc=bg.getContext("2d"); bgc.imageSmoothingEnabled=true; bgc.drawImage(sm,0,0,w,h); const bd=bgc.getImageData(0,0,w,h).data;
+  for(let i=0;i<d.length;i+=4){
+    const r=d[i],gg=d[i+1],b=d[i+2], mx=Math.max(r,gg,b), mn=Math.min(r,gg,b);
+    if(rmColor&&mx-mn>48){ d[i]=d[i+1]=d[i+2]=255; continue }
+    const lum=.3*r+.59*gg+.11*b, bl=Math.max(60,.3*bd[i]+.59*bd[i+1]+.11*bd[i+2]);
+    let v=Math.min(255,lum*255/bl); v=Math.max(0,Math.min(255,(v-95)*255/(215-95))); d[i]=d[i+1]=d[i+2]=v;
+  }
+  g.putImageData(im,0,0); return cv0;
+}
+function makeFigs(list){
+  if(!Array.isArray(list)||!probSrc||!probRect) return [];
+  const out=[], rm=$("rmColor").checked, r=probRect;
+  for(const b of list.slice(0,4)){
+    let {x,y,w,h}=b||{}; x=+x;y=+y;w=+w;h=+h; if(![x,y,w,h].every(Number.isFinite)||w<.04||h<.04) continue;
+    const pad=.02; x=Math.max(0,x-pad); y=Math.max(0,y-pad); w=Math.min(1-x,w+pad*2); h=Math.min(1-y,h+pad*2);
+    const sx=r.x+x*r.w, sy=r.y+y*r.h, sw=w*r.w, sh=h*r.h, k=Math.min(1,760/Math.max(sw,sh));
+    const c=document.createElement("canvas"); c.width=Math.max(8,Math.round(sw*k)); c.height=Math.max(8,Math.round(sh*k));
+    c.getContext("2d").drawImage(probSrc,sx,sy,sw,sh,0,0,c.width,c.height); processFig(c,rm); out.push(c.toDataURL("image/jpeg",.85));
+  }
+  return out;
+}
+let figEdit=null; const fcv=()=>$("figCv");
+function openFigEdit(note,i){
+  figEdit={note,i}; const im=new Image(); im.onload=()=>{ const c=fcv(); c.width=im.width; c.height=im.height; c.getContext("2d").drawImage(im,0,0); try{ $("figDlg").showModal() }catch{ $("figDlg").setAttribute("open","") } }; im.src=note.figs[i];
+}
+(function(){ const c=fcv(); let last=null;
+  const pos=e=>{ const b=c.getBoundingClientRect(); return {x:(e.clientX-b.left)*c.width/b.width, y:(e.clientY-b.top)*c.height/b.height} };
+  const dot=(a,b)=>{ const g=c.getContext("2d"); g.strokeStyle="#fff"; g.fillStyle="#fff"; g.lineCap="round"; g.lineJoin="round"; g.lineWidth=+$("brush").value*c.width/320; g.beginPath(); g.moveTo(a.x,a.y); g.lineTo(b.x,b.y); g.stroke() };
+  c.onpointerdown=e=>{ c.setPointerCapture(e.pointerId); last=pos(e); dot(last,last) };
+  c.onpointermove=e=>{ if(!last) return; const p=pos(e); dot(last,p); last=p };
+  c.onpointerup=c.onpointercancel=()=>{ last=null };
+})();
+$("figReset").onclick=()=>{ if(!figEdit) return; const im=new Image(); im.onload=()=>{ fcv().getContext("2d").drawImage(im,0,0) }; im.src=figEdit.note.figs0[figEdit.i] };
+$("figCancel").onclick=()=>$("figDlg").close();
+$("figDone").onclick=async()=>{ if(!figEdit) return; figEdit.note.figs[figEdit.i]=fcv().toDataURL("image/jpeg",.88); await idb.put(figEdit.note); $("figDlg").close(); renderNotes() };
 
 /* ═════ 오답노트 ═════ */
 const CATS=["풀 수 있는데 이해 안 됨","풀 수 있는데 얻은 것 있음","개념을 몰라서 못 품","어려워서 못 품"];
@@ -627,7 +679,7 @@ function makeSaveRow(f){
   f.appendChild(row);
 }
 async function saveNote(cat){
-  const note={id:curNoteId||("n"+Date.now()), t:Date.now(), cat, text:probUserText, tr:problemText, img:probBlob?await blobUrl(probBlob):"", steps:sessionSteps.slice(), answer:clean(result.answer)};
+  const note={id:curNoteId||("n"+Date.now()), t:Date.now(), cat, text:probUserText, tr:problemText, img:probBlob?await blobUrl(probBlob):"", steps:sessionSteps.slice(), answer:clean(result.answer), figs:curFigs.slice(), figs0:curFigs.slice()};
   curNoteId=note.id; await idb.put(note);
 }
 async function openNotes(){ $("pdfMsg").textContent=""; await renderNotes(); try{ $("noteDlg").showModal() }catch{ $("noteDlg").setAttribute("open","") } }
@@ -640,8 +692,9 @@ async function renderNotes(){
   mine.forEach(n=>{
     const c=document.createElement("div"); c.className="nc";
     const m=document.createElement("div"); m.className="meta"; m.append(new Date(n.t).toLocaleString("ko-KR")); const d=document.createElement("button"); d.className="pill"; d.type="button"; d.textContent="삭제"; d.onclick=async()=>{ await idb.del(n.id); renderNotes() }; m.appendChild(d); c.appendChild(m);
-    if(n.img){ const im=new Image(); im.alt="문제 사진"; im.src=n.img; c.appendChild(im) }
-    const t=document.createElement("div"); fillRich(t,n.text||n.tr||""); c.appendChild(t);
+    const t=document.createElement("div"); fillRich(t,n.tr||n.text||""); c.appendChild(t);
+    (n.figs||[]).forEach((f,i)=>{ const w=document.createElement("div"); const im=new Image(); im.alt="문제 그림"; im.src=f; w.appendChild(im); const eb=document.createElement("button"); eb.className="pill"; eb.type="button"; eb.textContent="그림 지우개"; eb.onclick=()=>openFigEdit(n,i); w.appendChild(eb); c.appendChild(w) });
+    if(n.img){ const od=document.createElement("details"); const os=document.createElement("summary"); os.textContent="원본 사진 (모의고사에는 안 들어가요)"; od.appendChild(os); const im=new Image(); im.alt="원본 사진"; im.src=n.img; od.appendChild(im); c.appendChild(od) }
     const dt=document.createElement("details"); const sm=document.createElement("summary"); sm.textContent="해설 보기"; dt.appendChild(sm);
     const ol=document.createElement("ol"); n.steps.forEach(x=>{ const li=document.createElement("li"); fillRich(li,x); ol.appendChild(li) }); dt.appendChild(ol);
     const a=document.createElement("div"); const bb=document.createElement("b"); bb.textContent="정답 "; const as=document.createElement("span"); fillRich(as,n.answer); a.append(bb,as); dt.appendChild(a); c.appendChild(dt); list.appendChild(c);
@@ -669,8 +722,8 @@ const PDF_CSS=`.pdfRoot{position:fixed;left:-10000px;top:0;z-index:-1}
 .pg .q{margin-bottom:18px}
 .pg .qh{display:flex;gap:6px;align-items:baseline}
 .pg .qh .n{font-family:"Gmarket";font-weight:700;font-size:19px}
-.pg .qh .t{flex:1;min-width:0}
-.pg .q img{display:block;max-width:100%;max-height:250px;margin:6px 0 2px;border:1px solid #999}
+.pg .qh .t{flex:1;min-width:0;white-space:pre-wrap}
+.pg .q img{display:block;max-width:100%;max-height:240px;margin:6px 0 2px}
 .pg .sp{margin-top:8px;height:104px;border:1px dashed #999;border-radius:4px;position:relative}
 .pg .sp i{position:absolute;left:6px;top:2px;font-size:11px;color:#999;font-style:normal}
 .pg h3{font-family:"Gmarket";font-weight:700;font-size:19px;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid #111}
@@ -698,8 +751,8 @@ async function exportPDF(){
       if(over(P.cols[ci])&&P.cols[ci].children.length>1){ P.cols[ci].removeChild(el);
         if(ci===0){ ci=1; P.cols[1].appendChild(el) } else { P=newPage(false); ci=0; P.cols[0].appendChild(el) } } };
     for(let i=0;i<notes.length;i++){ const n=notes[i], q=mk(null,"q"), qh=mk(null,"qh"), nm=mk(null,"n"), t=mk(null,"t");
-      nm.textContent=(i+1)+"."; fillRich(t,n.text||(n.img?"":n.tr)||""); qh.append(nm,t); q.appendChild(qh);
-      if(n.img){ const im=new Image(); im.src=n.img; q.appendChild(im) }
+      nm.textContent=(i+1)+"."; const body=n.tr||n.text||""; fillRich(t,body||(n.img&&!(n.figs&&n.figs.length)?"(문제 글을 옮기지 못해 원본 사진을 넣었어요)":"")); qh.append(nm,t); q.appendChild(qh);
+      if(n.figs&&n.figs.length) n.figs.forEach(f=>{ const im=new Image(); im.src=f; q.appendChild(im) }); else if(!body&&n.img){ const im=new Image(); im.src=n.img; q.appendChild(im) }
       q.appendChild(mk("<i>풀이</i>","sp")); await add(q) }
     if(withKey){ P=newPage(false); ci=0; const h=mk(null); h.innerHTML="<h3>정답 및 해설</h3>"; await add(h);
       for(let i=0;i<notes.length;i++){ const n=notes[i], e=mk(null,"ex"), hd=mk(null), b=document.createElement("b"); b.textContent=(i+1)+". 정답 "; const a=document.createElement("span"); fillRich(a,n.answer); hd.append(b,a); e.appendChild(hd);
