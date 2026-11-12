@@ -46,7 +46,7 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 @keyframes tilt{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
 .head{position:relative;width:100%;aspect-ratio:var(--ar,6/7);transform-origin:50% 95%;z-index:2;filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}
 .head canvas{position:absolute;left:0;top:0;width:100%;height:112%;display:block;pointer-events:none}
-.body{position:relative;margin-top:-10%;z-index:1;width:104%;margin-left:-2%}
+.body{position:relative;margin-top:-8%;z-index:1;width:128%;margin-left:-14%}
 .body svg{display:block;width:100%;height:auto}
 .empty-head{width:100%;aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:"Gmarket";font-weight:700;font-size:clamp(28px,5vw,44px);background:#ffffff22;color:#fff;border:3px dashed #ffffffb0;cursor:pointer}
 .empty-head small{display:block;font:400 14px "Freesentation";color:#ffffffc0;margin-top:6px}
@@ -499,25 +499,8 @@ function showFace(url, ar, feats){
   }; im.src=url;
 }
 function drawFace(){
-  if(!F.img) return; const key=F.open.toFixed(2)+"|"+F.blink.toFixed(2); if(key===F.drawn) return; F.drawn=key;
-  const im=F.img, W=im.width, H=im.height, c=$("faceCv").getContext("2d"), f=F.f;
-  c.clearRect(0,0,W,H*1.12);
-  const my=f.my*H, mx=f.mx*W, dist=(f.rx-f.lx)*W, op=F.open*dist*.28;
-  c.drawImage(im,0,0,W,my,0,0,W,my);
-  if(op>0.5){
-    c.drawImage(im,0,my,W,3,0,my,W,op);
-    const mw=dist*.34*(0.8+0.2*F.open);
-    c.save(); c.fillStyle="#3a1414"; c.beginPath(); c.ellipse(mx,my+op/2,mw,Math.max(1,op*.62),0,0,7); c.fill();
-    c.fillStyle="#c4545a"; c.beginPath(); c.ellipse(mx,my+op*.78,mw*.55,op*.2,0,0,7); c.fill(); c.restore();
-  }
-  c.drawImage(im,0,my,W,H-my,0,my+op,W,H-my);
-  if(F.blink>0.02){
-    const r=dist*.16;
-    for(const [ex,ey] of [[f.lx*W,f.ly*H],[f.rx*W,f.ry*H]]){
-      c.save(); c.fillStyle=F.skin; c.beginPath(); c.ellipse(ex,ey,r*1.7,r*1.15*F.blink,0,0,7); c.fill();
-      c.strokeStyle="rgba(30,15,10,.75)"; c.lineWidth=Math.max(2,r*.22); c.lineCap="round"; c.beginPath(); c.ellipse(ex,ey,r*1.7,r*1.15*F.blink,0,0.1,Math.PI-0.1); c.stroke(); c.restore();
-    }
-  }
+  if(!F.img||F.drawn) return; F.drawn="1"; // 한 번에 통째로 그려서 이음선(검은 실선)이 생기지 않게
+  const im=F.img, c=$("faceCv").getContext("2d"); c.clearRect(0,0,$("faceCv").width,$("faceCv").height); c.drawImage(im,0,0);
 }
 function applyFace(){
   const f=store.get("face"); if(!f) return;
@@ -552,13 +535,13 @@ requestAnimationFrame(headLoop);
 function layout(){
   const exp=document.body.classList.contains("explain"), narrow=innerWidth<=760, t=$("tutor"), topPad=62;
   const ar=$("head").classList.contains("hide")?1:F.ar, root=document.documentElement.style;
-  const head=1/ar, tot=head+0.30, vis=head+0.18; // 어깨 아래 일부는 화면 아래로 잘려서 땅에 붙어 보이게
+  const head=1/ar, tot=head+0.40, vis=head+0.28; // 어깨 아래 일부는 화면 아래로 잘려서 땅에 붙어 보이게
   let w, left="50%", bottom;
   if(!exp){
-    w=Math.max(110, Math.min((innerHeight-topPad)/vis, 440, innerWidth*.72)); bottom=innerHeight+0.12*w;
+    w=Math.max(110, Math.min((innerHeight-topPad)/vis, innerWidth*.6, 900)); bottom=innerHeight+0.12*w;
   } else if(!narrow){
-    const zone=Math.min(innerWidth*.36,460); root.setProperty("--zone",zone+"px");
-    w=Math.max(120, Math.min((innerHeight-topPad)/vis, zone-24, 430)); left=(zone/2+8)+"px"; bottom=innerHeight+0.12*w;
+    const zone=Math.min(innerWidth*.36,620); root.setProperty("--zone",zone+"px");
+    w=Math.max(120, Math.min((innerHeight-topPad)/vis, (zone-16)/1.12, 800)); left=(zone/2+8)+"px"; bottom=innerHeight+0.12*w;
   } else {
     const zh=Math.max(150, innerHeight*.30); root.setProperty("--zoneH",zh+"px");
     w=Math.max(100, Math.min(zh/vis, innerWidth*.5)); bottom=topPad+zh+0.12*w;
