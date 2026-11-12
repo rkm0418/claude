@@ -35,6 +35,8 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 @keyframes idle{from{transform:translateY(0)}to{transform:translateY(-3px)}}
 .tutor.talking .tutor-in{animation:bob .42s ease-in-out infinite alternate}
 @keyframes bob{from{transform:translateY(0) rotate(-.6deg)}to{transform:translateY(-6px) rotate(.6deg)}}
+.tutor.talking .head{animation:shake .5s ease-in-out infinite alternate}
+@keyframes shake{0%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(1deg) translateY(-5px)}100%{transform:rotate(5deg) translateY(0)}}
 .tutor.think .head{animation:tilt 1.2s ease-in-out infinite alternate}
 @keyframes tilt{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
 .head{position:relative;width:100%;aspect-ratio:var(--ar,6/7);transform-origin:50% 95%;z-index:2;filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}
@@ -87,7 +89,7 @@ dialog::backdrop{background:rgba(10,30,22,.6)}
 .tabs button{border:0;background:var(--soft);border-radius:12px;padding:6px 14px;cursor:pointer;font-weight:600}
 .tabs button.on{background:var(--ink);color:#fff}
 input[type=range]{width:100%;accent-color:var(--coral)}
-@media (prefers-reduced-motion:reduce){.tutor-in,.tutor.talking .tutor-in,.tutor.think .head{animation:none}.drawer{transition:none}}
+@media (prefers-reduced-motion:reduce){.tutor-in,.tutor.talking .tutor-in,.tutor.talking .head,.tutor.think .head{animation:none}.drawer{transition:none}}
 </style>
 
 <div class="topbar">
@@ -157,7 +159,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 
 <dialog id="dlg">
   <h2>얼굴 오려 붙이기</h2>
-  <p class="note" style="margin:6px 0 0">사진을 올리고 점을 끌어 얼굴 윤곽을 따라 그려요(선을 누르면 점 추가, 두 번 누르면 삭제). 그다음 "왼쪽 눈", "오른쪽 눈", "입" 탭에서 각각의 위치를 눌러 찍으면 눈을 깜빡이고 입이 벌어져요.</p>
+  <p class="note" style="margin:6px 0 0">사진을 올리고 점을 끌어 얼굴 윤곽을 따라 그려요(선을 누르면 점 추가, 두 번 누르면 삭제).</p>
   <div class="row" style="margin-top:10px"><button class="pill pri" id="facePick" type="button">앨범에서 고르기</button><button class="pill" id="faceCam" type="button">셀카 찍기</button></div>
   <div class="note" id="faceMsg" role="status" style="margin-top:6px"></div>
   <input type="file" id="faceFile" accept="image/*" class="hide">
@@ -165,9 +167,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   <div class="tabs" style="margin-top:10px">
     <button type="button" id="tabShape" class="on">윤곽 편집</button>
     <button type="button" id="tabMove">사진 이동·확대</button>
-    <button type="button" id="tabEyeL">왼쪽 눈</button>
-    <button type="button" id="tabEyeR">오른쪽 눈</button>
-    <button type="button" id="tabMouth">입</button>
+    
   </div>
   <div class="cropwrap" id="cw"><canvas id="cv" width="800" height="900"></canvas></div>
   <input type="range" id="zoom" min="0.3" max="4" step="0.01" value="1" aria-label="확대">
@@ -238,7 +238,7 @@ $("facePick").onclick=()=>$("faceFile").click(); $("faceCam").onclick=()=>$("fac
 $("faceSelfie").onchange=e=>{ loadFace(e.target.files[0]); e.target.value="" };
 $("faceFile").onchange=e=>{ loadFace(e.target.files[0]); e.target.value="" };
 $("zoom").oninput = e => { view.s=+e.target.value; drawCrop() };
-const TABS=[["shape","tabShape"],["move","tabMove"],["eyeL","tabEyeL"],["eyeR","tabEyeR"],["mouth","tabMouth"]];
+const TABS=[["shape","tabShape"],["move","tabMove"]];
 function setTab(){ for(const [k,id] of TABS) $(id).classList.toggle("on", mode===k); drawCrop() }
 for(const [k,id] of TABS) $(id).onclick=()=>{ mode=k; setTab() };
 let drag=null;
@@ -328,18 +328,9 @@ function applyFace(){
 }
 $("emptyHead").onclick = $("btnFace").onclick = openCrop;
 
-/* 애니메이션 루프 */
-let talking=false, openTarget=0, nextOpen=0, blinkT=-1, nextBlink=performance.now()+2500;
-function frame(t){
-  if(talking){ if(t>nextOpen){ openTarget=[.15,.5,.9,1,.3][Math.floor(Math.random()*5)]; nextOpen=t+110 } } else openTarget=0;
-  F.open+= (openTarget-F.open)*.35; if(F.open<.02&&!talking) F.open=0;
-  if(blinkT<0&&t>nextBlink){ blinkT=t }
-  if(blinkT>=0){ const p=(t-blinkT)/200; if(p>=1){ blinkT=-1; F.blink=0; nextBlink=t+2200+Math.random()*3500 } else F.blink=1-Math.abs(2*p-1) }
-  drawFace(); requestAnimationFrame(frame);
-}
-requestAnimationFrame(frame);
+/* 말할 때는 머리를 흔들어요 (눈·입은 움직이지 않음) */
 let talkEnd=null;
-function mouthLoop(on){ talking=on; $("tutor").classList.toggle("talking", on) }
+function mouthLoop(on){ $("tutor").classList.toggle("talking", on) }
 function speak(text){ clearTimeout(talkEnd); mouthLoop(true); talkEnd=setTimeout(()=>mouthLoop(false), Math.min(9000, text.length*70)) }
 
 /* 얼굴을 말풍선 위 공간의 가운데에 맞추기 (글이 얼굴을 가리지 않게) */
