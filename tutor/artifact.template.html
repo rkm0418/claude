@@ -161,18 +161,20 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 
 <dialog id="dlg">
   <h2>얼굴 오려 붙이기</h2>
-  <p class="note" style="margin:6px 0 0">사진을 올리고 점을 끌어 얼굴 윤곽을 따라 그려요(선을 누르면 점 추가, 두 번 누르면 삭제).</p>
+  <p class="note" style="margin:6px 0 0">사진을 올리고 점을 끌어 얼굴 윤곽을 따라 그려요(선을 누르면 점 추가, 두 번 누르면 삭제). 사진을 올리면 얼굴을 자동으로 찾아줘요. "사진 이동·확대·회전" 탭에서는 끌어서 옮기고, 모서리 동그라미를 끌거나 두 손가락으로 모아 벌려 크기와 각도를 바꿔요.</p>
   <div class="row" style="margin-top:10px"><button class="pill pri" id="facePick" type="button">앨범에서 고르기</button><button class="pill" id="faceCam" type="button">셀카 찍기</button></div>
   <div class="note" id="faceMsg" role="status" style="margin-top:6px"></div>
   <input type="file" id="faceFile" accept="image/*" class="hide">
   <input type="file" id="faceSelfie" accept="image/*" capture="user" class="hide">
   <div class="tabs" style="margin-top:10px">
     <button type="button" id="tabShape" class="on">윤곽 편집</button>
-    <button type="button" id="tabMove">사진 이동·확대</button>
+    <button type="button" id="tabMove">사진 이동·확대·회전</button>
+    <button type="button" id="resetOutline">윤곽 초기화(자동)</button>
     
   </div>
   <div class="cropwrap" id="cw"><canvas id="cv" width="800" height="900"></canvas></div>
-  <input type="range" id="zoom" min="0.3" max="4" step="0.01" value="1" aria-label="확대">
+  <label class="note" for="zoom">확대·축소</label><input type="range" id="zoom" min="0.1" max="5" step="0.01" value="1">
+  <label class="note" for="rot">회전</label><input type="range" id="rot" min="-180" max="180" step="1" value="0">
   <div class="row" style="justify-content:flex-end;margin-top:12px">
     <button class="pill" id="cancel" type="button">취소</button>
     <button class="pill pri" id="save" type="button">붙이기</button>
@@ -180,6 +182,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -191,7 +194,8 @@ const store = {
 /* ═════ 얼굴 오리기 (윤곽 + 이목구비 수동 설정) ═════ */
 const FW = 800, FH = 900;
 const cv = $("cv"), cx = cv.getContext("2d");
-let src = null, view = {x:0,y:0,s:1}, base = 1, mode = "shape", pts = [];
+let src = null, view = {x:0,y:0,s:1,a:0}, base = 1, mode = "shape", pts = [];
+/*__FA_MODELS__*/
 const defFeat=()=>({lx:FW*.37,ly:FH*.42,rx:FW*.63,ry:FH*.42,mx:FW*.5,my:FH*.72});
 let ed = defFeat();
 const FEAT = {eyeL:["lx","ly","왼쪽 눈"], eyeR:["rx","ry","오른쪽 눈"], mouth:["mx","my","입"]};
@@ -203,6 +207,8 @@ function bez(P){ const n=P.length, seg=[];
 function tracePath(c){ const seg=bez(pts); c.beginPath(); c.moveTo(seg[0][0].x,seg[0][0].y); seg.forEach(s=>c.bezierCurveTo(s[1].x,s[1].y,s[2].x,s[2].y,s[3].x,s[3].y)); c.closePath() }
 function samples(){ const out=[]; bez(pts).forEach((s,i)=>{ for(let k=0;k<12;k++){ const t=k/12,u=1-t;
   out.push({i, x:u*u*u*s[0].x+3*u*u*t*s[1].x+3*u*t*t*s[2].x+t*t*t*s[3].x, y:u*u*u*s[0].y+3*u*u*t*s[1].y+3*u*t*t*s[2].y+t*t*t*s[3].y}) } }); return out }
+function paintPhoto(c){ if(!src) return; const sc=base*view.s; c.save(); c.translate(FW/2+view.x,FH/2+view.y); c.rotate(view.a||0); c.scale(sc,sc); c.drawImage(src,-src.width/2,-src.height/2); c.restore() }
+function handlePos(){ const sc=base*view.s, w2=src.width/2*sc, h2=src.height/2*sc, co=Math.cos(view.a||0), si=Math.sin(view.a||0); return {x:FW/2+view.x+w2*co-h2*si, y:FH/2+view.y+w2*si+h2*co} }
 function marker(x,y,label,on){
   cx.beginPath(); cx.arc(x,y,on?16:11,0,7); cx.fillStyle=on?"#ffe36a":"#ffffffcc"; cx.fill(); cx.lineWidth=4; cx.strokeStyle="#1f2a26"; cx.stroke();
   cx.font="700 26px Gmarket,sans-serif"; cx.textAlign="center"; cx.lineWidth=6; cx.strokeStyle="#1f2a26"; cx.strokeText(label,x,y-24); cx.fillStyle="#fff"; cx.fillText(label,x,y-24);
@@ -210,16 +216,18 @@ function marker(x,y,label,on){
 function drawCrop(){
   cx.clearRect(0,0,FW,FH); cx.fillStyle="#22223a"; cx.fillRect(0,0,FW,FH);
   if(!src){ cx.fillStyle="#ffffffcc"; cx.font="700 40px Gmarket,sans-serif"; cx.textAlign="center"; cx.fillText("얼굴 사진을 올려주세요",FW/2,FH*.88) }
-  if(src){ const sc=base*view.s; cx.drawImage(src, view.x-src.width*sc/2+FW/2, view.y-src.height*sc/2+FH/2, src.width*sc, src.height*sc) }
+  paintPhoto(cx);
   cx.save(); cx.fillStyle="rgba(10,10,25,.6)"; const pp=new Path2D(); pp.rect(0,0,FW,FH); const sg=bez(pts); pp.moveTo(sg[0][0].x,sg[0][0].y); sg.forEach(q=>pp.bezierCurveTo(q[1].x,q[1].y,q[2].x,q[2].y,q[3].x,q[3].y)); pp.closePath(); cx.fill(pp,"evenodd"); cx.restore();
   tracePath(cx); cx.lineWidth=4; cx.strokeStyle="#e060e0"; cx.stroke();
   if(mode==="shape"){ pts.forEach(p=>{ cx.beginPath(); cx.arc(p.x,p.y,9,0,7); cx.fillStyle="#fff"; cx.fill(); cx.lineWidth=3; cx.strokeStyle="#e060e0"; cx.stroke() }) }
-  else if(mode!=="move"){ for(const k in FEAT){ const [xk,yk,l]=FEAT[k]; marker(ed[xk],ed[yk],l,k===mode) } }
+  if(mode==="move"&&src){ const h=handlePos(); cx.beginPath(); cx.arc(h.x,h.y,22,0,7); cx.fillStyle="#ffe36a"; cx.fill(); cx.lineWidth=4; cx.strokeStyle="#1f2a26"; cx.stroke(); cx.fillStyle="#1f2a26"; cx.font="700 26px Gmarket,sans-serif"; cx.textAlign="center"; cx.fillText("↻",h.x,h.y+9) }
 }
-function setSrc(im, keepView){ src=im; base=Math.max(FW/im.width,FH/im.height); if(!keepView){ view={x:0,y:0,s:1}; $("zoom").value=1 } drawCrop() }
+function syncSliders(){ $("zoom").value=view.s; $("rot").value=Math.round((view.a||0)*180/Math.PI) }
+function setSrc(im, keepView){ src=im; base=Math.max(FW/im.width,FH/im.height); if(!keepView){ view={x:0,y:0,s:1,a:0} } syncSliders(); drawCrop() }
 function openCrop(){
-  src=null; pts=defaultPts(); view={x:0,y:0,s:1}; $("zoom").value=1; ed=defFeat();
-  try{ const st=JSON.parse(store.get("faceState","null")); if(st&&st.pts){ pts=st.pts; view=st.view; if(st.ed) ed=st.ed; $("zoom").value=view.s } }catch{}
+  src=null; pts=defaultPts(); view={x:0,y:0,s:1,a:0}; ed=defFeat();
+  try{ const st=JSON.parse(store.get("faceState","null")); if(st&&st.pts){ pts=st.pts; view=Object.assign({a:0},st.view) } }catch{}
+  syncSliders();
   const sv=store.get("faceSrc"); if(sv){ const im=new Image(); im.onload=()=>setSrc(im,true); im.src=sv }
   mode="shape"; msg(""); setTab(); try{ $("dlg").showModal() }catch{ $("dlg").setAttribute("open","") }
 }
@@ -234,22 +242,55 @@ async function decode(file){
 }
 async function loadFace(file){
   if(!file) return; msg("사진을 불러오는 중…");
-  try{ setSrc(await decode(file)); msg("불러왔어요. 윤곽을 맞추고, 눈과 입 위치를 찍은 뒤 '붙이기'를 누르세요.") }
+  try{ setSrc(await decode(file)); await autoOutline() }
   catch(e){ msg("이 사진은 읽을 수 없어요. JPG나 PNG로 다시 골라주세요. (아이폰 HEIC는 '가장 호환성 높은 형식'으로 바꿔야 할 수 있어요)") }
 }
 $("facePick").onclick=()=>$("faceFile").click(); $("faceCam").onclick=()=>$("faceSelfie").click();
 $("faceSelfie").onchange=e=>{ loadFace(e.target.files[0]); e.target.value="" };
 $("faceFile").onchange=e=>{ loadFace(e.target.files[0]); e.target.value="" };
 $("zoom").oninput = e => { view.s=+e.target.value; drawCrop() };
+$("rot").oninput = e => { view.a=+e.target.value*Math.PI/180; drawCrop() };
+/* ── 자동 윤곽 (얼굴 인식) ── */
+let faceReady=null;
+async function loadModels(){
+  if(!window.faceapi) throw new Error("lib");
+  if(!faceReady) faceReady=(async()=>{ const tf=faceapi.tf;
+    let ok=false; try{ ok=await tf.setBackend("webgl") }catch{} if(!ok) await tf.setBackend("cpu"); await tf.ready();
+    for(const [net,key] of [[faceapi.nets.tinyFaceDetector,"det"],[faceapi.nets.faceLandmark68TinyNet,"lm"]]){
+      const bin=Uint8Array.from(atob(FA[key].b),c=>c.charCodeAt(0)).buffer;
+      net.loadFromWeightMap(tf.io.decodeWeights(bin, FA[key].m[0].weights)) } })();
+  return faceReady;
+}
+function outlineFrom(L){
+  const dx=L[16].x-L[0].x, dy=L[16].y-L[0].y, w=Math.hypot(dx,dy), ux=dy/w, uy=-dx/w; // 위쪽 방향
+  const jaw=L.slice(0,17).map(p=>({x:p.x,y:p.y}));
+  const top=[[26,.4],[24,.62],[22,.7],[21,.7],[19,.62],[17,.4]].map(([i,k])=>({x:L[i].x+ux*k*w, y:L[i].y+uy*k*w}));
+  return jaw.concat(top);
+}
+async function autoOutline(){
+  if(!src) return; msg("얼굴을 찾는 중…");
+  try{
+    await loadModels();
+    const c=document.createElement("canvas"); c.width=FW; c.height=FH; const g=c.getContext("2d"); g.fillStyle="#808080"; g.fillRect(0,0,FW,FH); paintPhoto(g);
+    const det=await faceapi.detectSingleFace(c,new faceapi.TinyFaceDetectorOptions({inputSize:416,scoreThreshold:.25})).withFaceLandmarks(true);
+    if(!det) throw new Error("none");
+    pts=outlineFrom(det.landmarks.positions); msg("얼굴을 찾았어요. 점을 끌어 다듬고 '붙이기'를 누르세요.");
+  }catch(e){ pts=defaultPts(); msg("자동으로 얼굴을 찾지 못했어요. 점을 끌어 직접 맞춰주세요.") }
+  drawCrop();
+}
+$("resetOutline").onclick=()=>{ if(!src){ msg("먼저 사진을 올려주세요."); return } autoOutline() };
 const TABS=[["shape","tabShape"],["move","tabMove"]];
 function setTab(){ for(const [k,id] of TABS) $(id).classList.toggle("on", mode===k); drawCrop() }
 for(const [k,id] of TABS) $(id).onclick=()=>{ mode=k; setTab() };
-let drag=null;
+let drag=null, pinch=null; const ptrs=new Map();
 function cpos(e){ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width*FW, y:(e.clientY-r.top)/r.height*FH} }
 function hitPt(q){ let b=-1,d=26; pts.forEach((p,i)=>{ const k=Math.hypot(p.x-q.x,p.y-q.y); if(k<d){d=k;b=i} }); return b }
+function two(){ const [a,b]=[...ptrs.values()]; return {d:Math.hypot(b.x-a.x,b.y-a.y)||1, ang:Math.atan2(b.y-a.y,b.x-a.x)} }
 cv.onpointerdown = e => {
-  cv.setPointerCapture(e.pointerId); const q=cpos(e);
-  if(FEAT[mode]){ const [xk,yk]=FEAT[mode]; ed[xk]=q.x; ed[yk]=q.y; drawCrop(); drag={feat:mode}; return }
+  cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); const q=cpos(e);
+  if(ptrs.size===2){ const t=two(); pinch={d:t.d,ang:t.ang,s:view.s,a:view.a||0}; drag=null; return }
+  if(mode==="move"&&src){ const h=handlePos();
+    if(Math.hypot(h.x-q.x,h.y-q.y)<46){ const cxp=FW/2+view.x, cyp=FH/2+view.y; drag={handle:1,cx:cxp,cy:cyp,r0:Math.hypot(q.x-cxp,q.y-cyp)||1,an0:Math.atan2(q.y-cyp,q.x-cxp),s0:view.s,a0:view.a||0}; return } }
   if(mode==="shape"){
     let i=hitPt(q);
     if(i<0){ let best=null,bd=22; samples().forEach(s=>{ const k=Math.hypot(s.x-q.x,s.y-q.y); if(k<bd){bd=k;best=s} }); if(best){ pts.splice(best.i+1,0,{x:q.x,y:q.y}); i=best.i+1 } }
@@ -258,14 +299,18 @@ cv.onpointerdown = e => {
   drag={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y};
 };
 cv.onpointermove = e => {
+  if(ptrs.has(e.pointerId)) ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&ptrs.size>=2){ const t=two(); view.s=Math.min(5,Math.max(.1,pinch.s*t.d/pinch.d)); view.a=pinch.a+(t.ang-pinch.ang); syncSliders(); drawCrop(); return }
   if(!drag) return; const q=cpos(e);
-  if(drag.feat){ const [xk,yk]=FEAT[drag.feat]; ed[xk]=q.x; ed[yk]=q.y } else if(drag.pt!==undefined){ pts[drag.pt]={x:q.x,y:q.y} }
+  if(drag.handle){ const r=Math.hypot(q.x-drag.cx,q.y-drag.cy)||1; view.s=Math.min(5,Math.max(.1,drag.s0*r/drag.r0)); view.a=drag.a0+(Math.atan2(q.y-drag.cy,q.x-drag.cx)-drag.an0); syncSliders() }
+  else if(drag.pt!==undefined){ pts[drag.pt]={x:q.x,y:q.y} }
   else { const k=FW/cv.getBoundingClientRect().width; view.x=drag.vx+(e.clientX-drag.x)*k; view.y=drag.vy+(e.clientY-drag.y)*k }
   drawCrop();
 };
-cv.onpointerup = () => drag=null;
+const upP=e=>{ ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null; if(ptrs.size===0) drag=null };
+cv.onpointerup=upP; cv.onpointercancel=upP;
 cv.ondblclick = e => { if(mode!=="shape"||pts.length<=6) return; const i=hitPt(cpos(e)); if(i>=0){ pts.splice(i,1); drawCrop() } };
-cv.onwheel = e => { e.preventDefault(); view.s=Math.min(4,Math.max(.3,view.s*(e.deltaY<0?1.06:.94))); $("zoom").value=view.s; drawCrop() };
+cv.onwheel = e => { e.preventDefault(); if(e.shiftKey){ view.a=(view.a||0)+(e.deltaY<0?.05:-.05) } else view.s=Math.min(5,Math.max(.1,view.s*(e.deltaY<0?1.06:.94))); syncSliders(); drawCrop() };
 $("cancel").onclick = () => $("dlg").close();
 $("save").onclick = () => {
   if(!src){ msg("먼저 사진을 올려주세요."); return }
@@ -274,7 +319,7 @@ $("save").onclick = () => {
   x0=Math.max(0,x0-4);y0=Math.max(0,y0-4);x1=Math.min(FW,x1+4);y1=Math.min(FH,y1+4);
   const w=x1-x0,h=y1-y0, out=document.createElement("canvas"); out.width=w; out.height=h; const o=out.getContext("2d");
   o.translate(-x0,-y0); tracePath(o); o.clip();
-  const sc=base*view.s; o.drawImage(src, view.x-src.width*sc/2+FW/2, view.y-src.height*sc/2+FH/2, src.width*sc, src.height*sc);
+  paintPhoto(o);
   const url=out.toDataURL("image/png"), n=(x,y)=>[(x-x0)/w,(y-y0)/h];
   const [lx,ly]=n(ed.lx,ed.ly),[rx,ry]=n(ed.rx,ed.ry),[mx,my]=n(ed.mx,ed.my);
   const feats={lx,ly,rx,ry,mx,my};

@@ -8,5 +8,9 @@ css=re.sub(r'src:url\(fonts/([^)]+)\.woff2\) format\("woff2"\),url\([^)]+\) form
            lambda m:'src:url(data:font/woff2;base64,'+d(f'katex/fonts/{m.group(1)}.woff2')+') format("woff2")',css)
 assert 'fonts/' not in css
 t=t.replace('/*__KATEX_CSS__*/',css)
+import json
+def fam(n):
+    return {'m':json.load(open(f'models/{n}-weights_manifest.json')),'b':d(f'models/{n}.bin')}
+t=t.replace('/*__FA_MODELS__*/','const FA='+json.dumps({'det':fam('tiny_face_detector_model'),'lm':fam('face_landmark_68_tiny_model')})+';')
 open('/tmp/claude-0/artifact.html','w').write(t)
 print(len(t))
