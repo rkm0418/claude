@@ -1,6 +1,6 @@
 /* 대화상자: 오답노트, 그림 다듬기, 설정, 얼굴 편집 */
 dialog{border:0;border-radius:28px;background:var(--card);color:var(--ink);padding:22px;width:min(94vw,460px);max-height:92dvh;box-shadow:var(--sh)}
-dialog::backdrop{background:rgba(10,30,22,.6)}
+dialog::backdrop{background:rgba(0,0,0,.7)}
 dialog[open]{animation:dlgIn .38s var(--pop)}
 dialog[open]::backdrop{animation:fadeIn .25s ease-out}
 @keyframes dlgIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
@@ -24,7 +24,7 @@ dialog p.note{margin:6px 0 8px}
 .nc .pt{font-size:16px;word-break:keep-all;white-space:pre-wrap;margin-top:2px}
 .nc summary{cursor:pointer;font-size:13px;color:var(--mute);margin-top:6px}
 .nc .figs img{max-height:90px;max-width:100%;display:inline-block;margin:6px 6px 0 0;background:#fff;border-radius:6px}
-.nc .lk{border:0;background:transparent;color:var(--coral2);font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
+.nc .lk{border:0;background:transparent;color:#000;font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
 .nc .q{font-weight:600;margin-top:8px}
 .nc .orig img{max-height:120px;max-width:100%;display:block;margin-top:4px;border-radius:8px}
 .export-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;position:sticky;bottom:-22px;background:var(--card);padding:10px 0 6px}

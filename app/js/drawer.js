@@ -30,7 +30,7 @@ function paint(sel) {
   const r = sel || rect;
   g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(0, 0, cv.width, cv.height);
   g.save(); g.beginPath(); g.rect(r.x * sc, r.y * sc, r.w * sc, r.h * sc); g.clip(); g.drawImage(src, 0, 0, cv.width, cv.height); g.restore();
-  g.strokeStyle = "#ef6a62"; g.lineWidth = 3; g.strokeRect(r.x * sc, r.y * sc, r.w * sc, r.h * sc);
+  g.strokeStyle = "#fff"; g.lineWidth = 3; g.strokeRect(r.x * sc, r.y * sc, r.w * sc, r.h * sc);
 }
 
 /** 고른 영역 → 긴 변 1024px, 흑백·대비, JPEG 0.72 */

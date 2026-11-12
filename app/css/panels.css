@@ -14,7 +14,7 @@
 .msg{max-width:94%;padding:10px 14px;border-radius:18px;line-height:1.65;word-break:keep-all;white-space:pre-wrap;font-size:clamp(17px,1.8vw,21px);animation:pop .35s var(--pop) backwards}
 .msg.u{align-self:flex-end;background:var(--coral);color:#fff;border-bottom-right-radius:5px;transform-origin:right bottom}
 .msg.a{align-self:flex-start;background:var(--soft);border-bottom-left-radius:5px;font-family:var(--font-chat);transform-origin:left bottom}
-.msg.err{align-self:flex-start;color:var(--coral2);font-size:15px;white-space:pre-wrap}
+.msg.err{align-self:flex-start;color:#000;font-size:15px;white-space:pre-wrap}
 .katex{font-size:1.1em}.msg .katex-display{margin:.5em 0;text-align:center}
 .save-bar{flex:none;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .save-bar .btn{padding:5px 12px;font-size:13px}
