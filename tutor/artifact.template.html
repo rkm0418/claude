@@ -178,6 +178,13 @@ dialog.wide{width:min(94vw,640px);max-height:88vh;overflow:auto}
 
 dialog{border:0;border-radius:28px;background:var(--card);color:var(--ink);padding:22px;width:min(94vw,460px);box-shadow:var(--sh)}
 dialog::backdrop{background:rgba(10,30,22,.6)}
+dialog#dlg.big{width:100vw;max-width:none;height:100dvh;max-height:none;border-radius:0;display:flex;flex-direction:column;align-items:center;overflow:auto;padding:14px 18px}
+dialog#dlg.big>*{width:100%;max-width:900px}
+dialog#dlg.big .cropwrap{width:min(94vw,calc((100dvh - 300px)*.8889));min-width:240px;margin:8px auto}
+dialog#dlg.big>p.note{display:none}
+dialog#dlg.big>.row:last-child{position:sticky;bottom:0;background:var(--card);padding:8px 0}
+dialog#dlg.big input[type=range]{margin:0}
+dialog#dlg.big .sliders{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .cropwrap{position:relative;margin:12px auto;width:300px;max-width:100%;aspect-ratio:8/9;touch-action:none;background:repeating-conic-gradient(#0001 0 25%,transparent 0 50%) 0 0/16px 16px;border-radius:12px}
 .cropwrap canvas{width:100%;height:100%;display:block;cursor:grab}
 .tabs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
@@ -284,7 +291,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 </dialog>
 
 <dialog id="dlg">
-  <h2>얼굴 오려 붙이기</h2>
+  <div class="head2"><h2>얼굴 오려 붙이기</h2><button class="pill" id="cropBig" type="button">크게 보기</button></div>
   <p class="note" style="margin:6px 0 0">사진을 올리고 점을 끌어 얼굴 윤곽을 따라 그려요(선을 누르면 점 추가, 두 번 누르면 삭제). 사진을 올리면 얼굴을 자동으로 찾아줘요. "사진 이동·확대·회전" 탭에서는 끌어서 옮기고, 모서리 동그라미를 끌거나 두 손가락으로 모아 벌려 크기와 각도를 바꿔요.</p>
   <div class="row" style="margin-top:10px"><button class="pill pri" id="facePick" type="button">앨범에서 고르기</button><button class="pill" id="faceCam" type="button">셀카 찍기</button></div>
   <div class="note" id="faceMsg" role="status" style="margin-top:6px"></div>
@@ -297,8 +304,8 @@ input[type=range]{width:100%;accent-color:var(--coral)}
     
   </div>
   <div class="cropwrap" id="cw"><canvas id="cv" width="800" height="900"></canvas></div>
-  <label class="note" for="zoom">확대·축소</label><input type="range" id="zoom" min="0.1" max="5" step="0.01" value="1">
-  <label class="note" for="rot">회전</label><input type="range" id="rot" min="-180" max="180" step="1" value="0">
+  <div class="sliders"><div><label class="note" for="zoom">확대·축소</label><input type="range" id="zoom" min="0.1" max="5" step="0.01" value="1"></div>
+  <div><label class="note" for="rot">회전</label><input type="range" id="rot" min="-180" max="180" step="1" value="0"></div></div>
   <div class="row" style="justify-content:flex-end;margin-top:12px">
     <button class="pill" id="cancel" type="button">취소</button>
     <button class="pill pri" id="save" type="button">붙이기</button>
@@ -437,6 +444,13 @@ const upP=e=>{ ptrs.delete(e.pointerId); if(ptrs.size<2) pinch=null; if(ptrs.siz
 cv.onpointerup=upP; cv.onpointercancel=upP;
 cv.ondblclick = e => { if(mode!=="shape"||pts.length<=6) return; const i=hitPt(cpos(e)); if(i>=0){ pts.splice(i,1); drawCrop() } };
 cv.onwheel = e => { e.preventDefault(); if(e.shiftKey){ view.a=(view.a||0)+(e.deltaY<0?.05:-.05) } else view.s=Math.min(5,Math.max(.1,view.s*(e.deltaY<0?1.06:.94))); syncSliders(); drawCrop() };
+function setBig(on){
+  const d=$("dlg"); d.classList.toggle("big",on); $("cropBig").textContent=on?"작게 보기":"크게 보기";
+  try{ if(on&&document.fullscreenEnabled&&!document.fullscreenElement) d.requestFullscreen().catch(()=>{}); else if(!on&&document.fullscreenElement) document.exitFullscreen() }catch{}
+  drawCrop();
+}
+$("cropBig").onclick=()=>setBig(!$("dlg").classList.contains("big"));
+$("dlg").addEventListener("close",()=>{ if($("dlg").classList.contains("big")) setBig(false) });
 $("cancel").onclick = () => $("dlg").close();
 $("save").onclick = () => {
   if(!src){ msg("먼저 사진을 올려주세요."); return }
