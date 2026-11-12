@@ -161,6 +161,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   <h2>얼굴 오려 붙이기</h2>
   <p class="note" style="margin:6px 0 0">사진을 올리고 점을 끌어 얼굴 윤곽을 따라 그려요. 선을 누르면 점이 추가되고, 점을 두 번 누르면 지워져요.</p>
   <div class="row" style="margin-top:10px"><button class="pill pri" id="facePick" type="button">앨범에서 고르기</button><button class="pill" id="faceCam" type="button">셀카 찍기</button></div>
+  <div class="note" id="faceMsg" role="status" style="margin-top:6px"></div>
   <input type="file" id="faceFile" accept="image/*" class="hide">
   <input type="file" id="faceSelfie" accept="image/*" capture="user" class="hide">
   <div class="tabs" style="margin-top:10px">
@@ -210,11 +211,25 @@ function openCrop(){
   src=null; pts=defaultPts(); view={x:0,y:0,s:1}; $("zoom").value=1; mouth={x:FW*.5,y:FH*.72};
   try{ const st=JSON.parse(store.get("faceState","null")); if(st){ pts=st.pts; view=st.view; mouth=st.mouth; $("zoom").value=view.s } }catch{}
   const sv=store.get("faceSrc"); if(sv){ const im=new Image(); im.onload=()=>setSrc(im,true); im.src=sv }
-  mode="shape"; setTab(); $("dlg").showModal();
+  mode="shape"; msg(""); setTab(); try{ $("dlg").showModal() }catch{ $("dlg").setAttribute("open","") }
+}
+function msg(t){ $("faceMsg").textContent=t }
+async function decode(file){
+  let bmp=null;
+  try{ bmp=await createImageBitmap(file,{imageOrientation:"from-image"}) }catch{}
+  if(!bmp){ bmp=await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onerror=()=>rej(new Error("read")); fr.onload=()=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error("decode")); im.src=fr.result }; fr.readAsDataURL(file) }) }
+  const k=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+  if(k<1){ const c=document.createElement("canvas"); c.width=Math.round(bmp.width*k); c.height=Math.round(bmp.height*k); c.getContext("2d").drawImage(bmp,0,0,c.width,c.height); return c }
+  return bmp;
+}
+async function loadFace(file){
+  if(!file) return; msg("사진을 불러오는 중…");
+  try{ setSrc(await decode(file)); msg("불러왔어요. 점을 끌어 얼굴 윤곽을 맞추고 '붙이기'를 누르세요.") }
+  catch(e){ msg("이 사진은 읽을 수 없어요. JPG나 PNG로 다시 골라주세요. (아이폰 HEIC는 '가장 호환성 높은 형식'으로 바꿔야 할 수 있어요)") }
 }
 $("facePick").onclick=()=>$("faceFile").click(); $("faceCam").onclick=()=>$("faceSelfie").click();
-$("faceSelfie").onchange = e => { const f=e.target.files[0]; if(!f) return; const im=new Image(); im.onload=()=>{ setSrc(im); URL.revokeObjectURL(im.src) }; im.src=URL.createObjectURL(f) };
-$("faceFile").onchange = e => { const f=e.target.files[0]; if(!f) return; const im=new Image(); im.onload=()=>{ setSrc(im); URL.revokeObjectURL(im.src) }; im.src=URL.createObjectURL(f) };
+$("faceSelfie").onchange=e=>{ loadFace(e.target.files[0]); e.target.value="" };
+$("faceFile").onchange=e=>{ loadFace(e.target.files[0]); e.target.value="" };
 $("zoom").oninput = e => { view.s=+e.target.value; drawCrop() };
 function setTab(){ for(const [k,id] of [["shape","tabShape"],["move","tabMove"],["mouth","tabMouth"]]) $(id).classList.toggle("on", mode===k); drawCrop() }
 $("tabShape").onclick=()=>{mode="shape";setTab()}; $("tabMove").onclick=()=>{mode="move";setTab()}; $("tabMouth").onclick=()=>{mode="mouth";setTab()};
@@ -242,7 +257,8 @@ cv.ondblclick = e => { if(mode!=="shape"||pts.length<=6) return; const i=hitPt(c
 cv.onwheel = e => { e.preventDefault(); view.s=Math.min(4,Math.max(.3,view.s*(e.deltaY<0?1.06:.94))); $("zoom").value=view.s; drawCrop() };
 $("cancel").onclick = () => $("dlg").close();
 $("save").onclick = () => {
-  if(!src){ $("faceFile").click(); return }
+  if(!src){ msg("먼저 사진을 올려주세요."); return }
+  try{
   const S=samples(); let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; S.forEach(p=>{x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y)});
   x0=Math.max(0,x0-4);y0=Math.max(0,y0-4);x1=Math.min(FW,x1+4);y1=Math.min(FH,y1+4);
   const w=x1-x0,h=y1-y0, out=document.createElement("canvas"); out.width=w; out.height=h; const o=out.getContext("2d");
@@ -254,6 +270,7 @@ $("save").onclick = () => {
   const k=Math.min(1,1000/Math.max(src.width,src.height)), c=document.createElement("canvas"); c.width=src.width*k; c.height=src.height*k; c.getContext("2d").drawImage(src,0,0,c.width,c.height);
   store.set("faceSrc", c.toDataURL("image/jpeg",.85)); store.set("faceState", JSON.stringify({pts,view,mouth}));
   showFace(url, w/h, m); $("dlg").close();
+  }catch(e){ msg("붙이는 중 문제가 생겼어요: "+(e.message||e)) }
 };
 function showFace(url, ar, m){
   $("faceImg").src=url; $("head").classList.remove("hide"); $("emptyHead").classList.add("hide");
