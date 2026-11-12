@@ -6,10 +6,6 @@
 .qa{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:10px;background:var(--card);border-radius:24px;padding:18px 20px 14px;box-shadow:var(--sh)}
 .qa-head{display:flex;justify-content:space-between;align-items:center;flex:none}
 .qa-head b{font-family:"Gmarket";font-size:16px}
-.prob-card{flex:none;background:var(--soft);border-radius:16px;padding:8px 12px;max-height:34%;overflow:auto}
-.prob-card summary{cursor:pointer;font-weight:600;font-size:14px}
-#probBody{margin-top:6px;font-size:16px;line-height:1.55;word-break:keep-all;white-space:pre-wrap}
-#probBody img{display:block;max-width:100%;max-height:170px;border-radius:8px;margin-bottom:6px}
 .msgs{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px}
 .msg{max-width:94%;padding:10px 14px;border-radius:18px;line-height:1.65;word-break:keep-all;white-space:pre-wrap;font-size:clamp(17px,1.8vw,21px);animation:pop .35s var(--pop) backwards}
 .msg.u{align-self:flex-end;background:var(--coral);color:#fff;border-bottom-right-radius:5px;transform-origin:right bottom}
@@ -17,8 +13,10 @@
 .msg.err{align-self:flex-start;color:#000;font-size:15px;white-space:pre-wrap}
 .katex{font-size:1.1em}.msg .katex-display{margin:.5em 0;text-align:center}
 .save-bar{flex:none;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.save-bar .btn{padding:5px 12px;font-size:13px}
-.save-bar .btn.on{background:var(--ok);color:#fff;animation:pop .4s var(--pop)}
+.save-bar .btn{padding:9px 14px}
+.save-bar .btn.on{background:#000;animation:pop .4s var(--pop)}
 .ask{flex:none;display:flex;gap:8px;background:var(--soft);border-radius:999px;padding:6px 6px 6px 18px}
 .ask input{flex:1;background:transparent;outline:0;padding:6px 0;border-radius:0}
 .ask .btn{border-radius:999px;padding:8px 20px}
+.dots{display:inline-flex;gap:4px;align-items:center;vertical-align:middle}
+.dots i{width:13px;height:13px;border-radius:50%;background:#e5322d;display:block}

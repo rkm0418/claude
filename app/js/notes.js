@@ -3,10 +3,10 @@ import { $, showDialog, loadImage } from "./util.js";
 import { notes } from "./db.js";
 import { fillRich } from "./rich.js";
 import { exportPdf } from "./pdf.js";
-import { CATS, CATS_S } from "./cats.js";
+import { CATS, ORDER, dotsEl } from "./cats.js";
 
 
-let curCat = 0;
+let curCat = 1; // 처음엔 "얻은 것 있음"
 export const currentCat = () => curCat;
 
 /** 문제 글 + 그림 + 질문/답을 저장 (원본 사진은 목록에서만 보임). 같은 id면 분류만 바뀜 */
@@ -77,9 +77,9 @@ function card(n) {
 async function renderNotes() {
   const all = (await notes.all()).sort((a, b) => b.t - a.t), tabs = $("noteTabs");
   tabs.textContent = "";
-  CATS_S.forEach((name, i) => {
-    const b = el("button", i === curCat ? "on" : "", name); b.type = "button"; b.title = CATS[i];
-    b.appendChild(el("span", "cnt", all.filter(x => x.cat === i).length));
+  ORDER.forEach(i => {
+    const b = el("button", i === curCat ? "on" : ""); b.type = "button"; b.title = CATS[i]; b.setAttribute("aria-label", CATS[i]);
+    b.append(dotsEl(i), el("span", "cnt", all.filter(x => x.cat === i).length));
     b.onclick = () => { curCat = i; renderNotes() };
     tabs.appendChild(b);
   });

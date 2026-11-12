@@ -5,7 +5,7 @@ import { callClaude, imageBlock, parseFirst, cleanReply, ApiError } from "./clau
 import { resetDrawer } from "./drawer.js";
 import { makeFigures } from "./figures.js";
 import { saveNote } from "./notes.js";
-import { CATS, CATS_S } from "./cats.js";
+import { CATS, ORDER, dotsEl } from "./cats.js";
 import { openSettings } from "./settings.js";
 
 let S = null;      // 지금 세션: {problem, qa, transcript, figs, noteId}
@@ -24,25 +24,16 @@ function addMsg(cls, t) {
   return d;
 }
 
-function fillProblemCard() {
-  const b = $("probBody"), { blob, text } = S.problem;
-  b.textContent = "";
-  if (blob && !S.transcript) { const im = new Image(); im.alt = "문제 사진"; im.src = URL.createObjectURL(blob); b.appendChild(im) }
-  if (text || S.transcript) { const t = document.createElement("div"); fillRich(t, S.transcript || text); b.appendChild(t) }
-  S.figs.forEach(f => { const im = new Image(); im.alt = "문제 그림"; im.src = f; b.appendChild(im) });
-}
-
-/** 저장 버튼 4개 (누르면 해당 분류로 저장, 다시 누르면 분류 변경) */
+/** 저장 버튼 4개: 빨간 동그라미 1~4개 아이콘 (얻은 것 있음 → 이해 안 됨 → 개념 몰라서 → 어려워서) */
 function makeSaveBar() {
   const bar = $("saveBar"); bar.textContent = "";
-  const lb = document.createElement("span"); lb.className = "note"; lb.textContent = "오답노트에 저장:"; bar.appendChild(lb);
-  CATS_S.forEach((name, i) => {
+  ORDER.forEach(i => {
     const b = document.createElement("button");
-    b.type = "button"; b.className = "btn"; b.textContent = name; b.title = CATS[i];
+    b.type = "button"; b.className = "btn"; b.title = CATS[i]; b.setAttribute("aria-label", CATS[i] + " 으로 오답노트에 저장");
+    b.appendChild(dotsEl(i));
     b.onclick = async () => {
       await persist(i);
       bar.querySelectorAll(".btn").forEach(x => x.classList.toggle("on", x === b));
-      lb.textContent = "저장됨:";
     };
     bar.appendChild(b);
   });
@@ -57,7 +48,6 @@ async function persist(cat) {
 export function startSession(problem) {
   S = { problem, qa: [], transcript: "", figs: [], noteId: null, t: Date.now() };
   $("msgs").textContent = ""; $("saveBar").classList.add("hide"); makeSaveBar();
-  fillProblemCard(); $("probCard").open = innerWidth > 760;
   resetEndButton();
   setAskMode(true);
   setTimeout(() => $("askText").focus(), 400);
@@ -79,7 +69,7 @@ export function endSession(force) {
   }
   ctl?.abort(); ctl = null;
   resetEndButton(); S = null;
-  resetDrawer(); $("msgs").textContent = ""; $("probBody").textContent = ""; $("saveBar").classList.add("hide");
+  resetDrawer(); $("msgs").textContent = ""; $("saveBar").classList.add("hide");
   setAskMode(false);
 }
 
@@ -114,7 +104,6 @@ async function ask(q) {
       const o = parseFirst(text); reply = o.reply;
       if (S.problem.blob && o.problem) S.transcript = String(o.problem);
       S.figs = S.problem.blob ? makeFigures(o.figures, S.problem.src, S.problem.rect, S.problem.rmColor) : [];
-      fillProblemCard();
     }
     reply = cleanReply(reply);
     S.qa.push({ q, a: reply });

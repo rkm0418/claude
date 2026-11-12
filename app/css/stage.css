@@ -7,4 +7,3 @@
 .compose h1{font-family:"Gmarket";font-weight:700;font-size:22px;margin:0}
 .ask-mode .compose{display:none}
 .drop{border:2px dashed #999;border-radius:var(--r);padding:18px;text-align:center;color:var(--mute);cursor:pointer;font-size:15px}
-#probCv{width:100%;max-width:360px;display:block;border-radius:12px;touch-action:none;cursor:crosshair;margin:auto}

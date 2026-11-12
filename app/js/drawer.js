@@ -1,5 +1,5 @@
 /* 문제 올리기 화면: 사진/글 입력, 문제 부분 선택, 작게 줄이기 */
-import { $, decodeImage } from "./util.js";
+import { $, decodeImage, showDialog } from "./util.js";
 
 const MAXD = 1024; // 보낼 사진의 긴 변(px)
 let src = null, rect = null; // 원본(캔버스)과 고른 영역
@@ -23,14 +23,17 @@ function autoTrim() { // 종이 바깥 여백 자동 제거
   return r.w * r.h > .85 * W * H ? { x: 0, y: 0, w: W, h: H } : r;
 }
 
+/** 사진을 큰 창에 꽉 차게 그리고, 고른 영역만 밝게 */
 function paint(sel) {
-  const cv = $("probCv"), cw = Math.min(320, $("probPrev").clientWidth || 320), sc = cw / src.width;
-  cv.width = Math.round(src.width * sc); cv.height = Math.round(src.height * sc);
-  const g = cv.getContext("2d"); g.drawImage(src, 0, 0, cv.width, cv.height);
-  const r = sel || rect;
-  g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(0, 0, cv.width, cv.height);
+  const cv = $("probCv"), st = $("cropStage"), dpr = devicePixelRatio || 1;
+  const fit = Math.min(st.clientWidth / src.width, st.clientHeight / src.height) || 1;
+  cv.style.width = src.width * fit + "px"; cv.style.height = src.height * fit + "px";
+  cv.width = Math.round(src.width * fit * dpr); cv.height = Math.round(src.height * fit * dpr);
+  const sc = fit * dpr, g = cv.getContext("2d"), r = sel || rect;
+  g.drawImage(src, 0, 0, cv.width, cv.height);
+  g.fillStyle = "rgba(0,0,0,.6)"; g.fillRect(0, 0, cv.width, cv.height);
   g.save(); g.beginPath(); g.rect(r.x * sc, r.y * sc, r.w * sc, r.h * sc); g.clip(); g.drawImage(src, 0, 0, cv.width, cv.height); g.restore();
-  g.strokeStyle = "#fff"; g.lineWidth = 3; g.strokeRect(r.x * sc, r.y * sc, r.w * sc, r.h * sc);
+  g.strokeStyle = "#fff"; g.lineWidth = 3 * dpr; g.strokeRect(r.x * sc, r.y * sc, r.w * sc, r.h * sc);
 }
 
 /** 고른 영역 → 긴 변 1024px, 흑백·대비, JPEG 0.72 */
@@ -41,16 +44,21 @@ function rebuild() {
   try { g.filter = "grayscale(1) contrast(1.25)" } catch {}
   g.fillStyle = "#fff"; g.fillRect(0, 0, w, h);
   g.drawImage(src, rect.x, rect.y, rect.w, rect.h, 0, 0, w, h);
-  c.toBlob(b => { blob = b; dims = { w, h }; $("probInfo").textContent = `${w}×${h}px · 약 ${Math.round(w * h / 750)}토큰 · ${Math.round(b.size / 1024)}KB` }, "image/jpeg", .72);
+  c.toBlob(b => { blob = b; dims = { w, h }; $("probInfo").textContent = `${w}×${h}px · 약 ${Math.round(w * h / 750)}토큰` }, "image/jpeg", .72);
 }
 
 async function loadPhoto(file) {
   try {
     src = await decodeImage(file, 1600);
     rect = autoTrim();
-    $("probPrev").classList.remove("hide"); $("drop").textContent = "사진 바꾸기"; $("err").textContent = "";
-    paint(); rebuild();
+    $("drop").textContent = "사진 바꾸기"; $("err").textContent = "";
+    openCrop(); rebuild();
   } catch { $("err").textContent = "이 사진은 읽을 수 없어요. 다른 사진으로 올려주세요." }
+}
+
+function openCrop() {
+  showDialog($("cropDlg"));
+  requestAnimationFrame(() => src && paint());
 }
 
 function initCropDrag() {
@@ -60,6 +68,10 @@ function initCropDrag() {
   cv.onpointerdown = e => { if (!src) return; cv.setPointerCapture(e.pointerId); st = pos(e) };
   cv.onpointermove = e => { if (st) paint(rc(st, pos(e))) };
   cv.onpointerup = e => { if (!st) return; const r = rc(st, pos(e)); st = null; if (r.w > 30 && r.h > 30) { rect = r; rebuild() } paint() };
+  $("cropDone").onclick = () => $("cropDlg").close();
+  $("cropDlg").addEventListener("close", () => { if (src) $("probPrev").classList.remove("hide") });
+  $("recrop").onclick = openCrop;
+  addEventListener("resize", () => { if (src && $("cropDlg").open) paint() });
   $("resetCrop").onclick = () => { if (src) { rect = autoTrim(); paint(); rebuild() } };
   $("fullCrop").onclick = () => { if (src) { rect = { x: 0, y: 0, w: src.width, h: src.height }; paint(); rebuild() } };
 }

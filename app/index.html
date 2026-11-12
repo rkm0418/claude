@@ -31,7 +31,6 @@
 <section class="dock" id="dock" aria-label="질문">
   <div class="qa">
     <div class="qa-head"><b>이 문제에서 궁금한 점</b><button class="btn" id="btnEnd" type="button">끝내기</button></div>
-    <details class="prob-card" id="probCard" open><summary>문제 보기</summary><div id="probBody"></div></details>
     <div class="msgs" id="msgs" aria-live="polite"></div>
     <div class="save-bar hide" id="saveBar"></div>
     <form class="ask" id="askForm">
@@ -46,18 +45,21 @@
   <h1>문제 올리기</h1>
   <div class="drop" id="drop" tabindex="0" role="button">문제 사진 올리기 / 붙여넣기(Ctrl+V)</div>
   <div class="row"><button class="btn" id="pickPhoto" type="button">앨범에서 고르기</button><button class="btn" id="camPhoto" type="button">카메라로 찍기</button></div>
-  <div id="probPrev" class="hide">
-    <canvas id="probCv" aria-label="문제 사진 미리보기. 끌어서 문제 부분만 선택"></canvas>
-    <div class="row mt"><button class="btn" id="resetCrop" type="button">자동 맞춤</button><button class="btn" id="fullCrop" type="button">전체 사용</button><span class="note" id="probInfo"></span></div>
-    <div class="note">사진 위를 끌어서 문제 부분만 고르면 토큰이 줄어요.</div>
-    <label class="note"><input type="checkbox" id="rmColor" checked> 오답노트 그림에서 색 펜 손글씨 지우기</label>
-  </div>
+  <div id="probPrev" class="hide row"><button class="btn" id="recrop" type="button">범위 다시 고르기</button><span class="note" id="probInfo"></span></div>
   <input type="file" id="probFile" accept="image/*" class="hide">
   <input type="file" id="probCam" accept="image/*" capture="environment" class="hide">
   <textarea id="probText" aria-label="문제 글" placeholder="문제를 글로 적어도 돼요. (사진만 올려도 OK)"></textarea>
   <button class="big-btn go" id="go" type="button">질문하러 가기</button>
   <div class="err" id="err" role="alert"></div>
 </main>
+
+<!-- 문제 범위 고르기 (사진을 크게 보여줌) -->
+<dialog id="cropDlg" class="crop">
+  <div class="row-between"><h2>문제 범위 고르기</h2><button class="btn pri" id="cropDone" type="button">완료</button></div>
+  <div class="crop-stage" id="cropStage"><canvas id="probCv" aria-label="문제 사진. 끌어서 문제 부분만 선택"></canvas></div>
+  <div class="row"><button class="btn" id="resetCrop" type="button">자동 맞춤</button><button class="btn" id="fullCrop" type="button">전체 사용</button><label class="note"><input type="checkbox" id="rmColor" checked> 오답노트 그림에서 색 펜 손글씨 지우기</label></div>
+  <div class="note">사진 위를 끌어서 문제 부분만 고르세요. 작게 줄여 보내서 토큰이 절약돼요.</div>
+</dialog>
 
 <!-- 오답노트 -->
 <dialog id="noteDlg" class="wide">
