@@ -72,6 +72,26 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 @keyframes dockBack{from{opacity:0;transform:translate(-50%,40px)}to{opacity:1;transform:translateX(-50%)}}
 @media(max-width:760px){.explain .dock{left:var(--gut-l);top:calc(70px + var(--zoneH,200px));animation-name:panelUp}@keyframes panelUp{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:none}}}
 @media(max-width:560px){.iconbtn{font-size:0;padding:10px 12px;gap:0}.iconbtn svg{width:20px;height:20px}.brand{display:none}.topbar{flex-wrap:nowrap;justify-content:space-between}.pill{white-space:nowrap;padding:8px 11px;font-size:14px}.ctrls{gap:6px}.dots{white-space:nowrap}#replay{display:none}}
+body:not(.explain) .dock{display:none}
+.hint{position:absolute;left:0;right:0;bottom:16px;text-align:center;color:#ffffffb8;font-size:15px;z-index:3;pointer-events:none}
+.explain .hint{display:none}
+.explain .dock{display:flex}
+.qa{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;background:var(--card);border-radius:24px;padding:18px 20px 14px;box-shadow:var(--sh)}
+.qaHead{display:flex;justify-content:space-between;align-items:center;flex:none}
+.qaHead b{font-family:"Gmarket";font-size:16px}
+.pill.warn{background:var(--coral2);color:#fff}
+.probCard{flex:none;background:var(--soft);border-radius:16px;padding:8px 12px;max-height:34%;overflow:auto}
+.probCard summary{cursor:pointer;font-weight:600;font-size:14px}
+#probBody{margin-top:6px;font-size:16px;line-height:1.55;word-break:keep-all;white-space:pre-wrap}
+#probBody img{display:block;max-width:100%;max-height:170px;border-radius:8px;margin-bottom:6px}
+.msgs{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px}
+.msg{max-width:94%;padding:10px 14px;border-radius:18px;line-height:1.65;word-break:keep-all;white-space:pre-wrap;font-size:clamp(17px,1.8vw,21px)}
+.msg.u{align-self:flex-end;background:var(--coral);color:#fff;border-bottom-right-radius:5px}
+.msg.a{align-self:flex-start;background:var(--soft);border-bottom-left-radius:5px;font-family:"LevelUp","Freesentation","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+.msg.err{align-self:flex-start;color:var(--coral2);font-size:15px}
+.saveBar{flex:none}
+.ask{flex:none}
+.qa .ask{box-shadow:none;background:var(--soft)}
 .dock{position:absolute;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom,0px));z-index:6;width:min(calc(100% - var(--gut-l) - var(--gut-r)),660px);display:flex;flex-direction:column;gap:10px}
 .bubble{position:relative;background:var(--card);border-radius:24px;padding:14px 20px 12px;box-shadow:var(--sh)}
 .bubble::before{content:"";position:absolute;left:50%;top:-9px;width:20px;height:20px;background:var(--card);transform:translateX(-50%) rotate(45deg);border-radius:4px}
@@ -152,22 +172,19 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   </div>
 </div></div>
 
+<div class="hint" id="hint"></div>
+
 <div class="dock" id="dock">
-  <div class="bubble">
-    <div class="sayWrap" id="sayWrap"><div class="trail" id="trail"></div><div class="say" id="say" aria-live="polite">문제를 올려주세요.</div>
-    <div class="final hide" id="final"></div></div>
-    <div class="ctrls">
-      <button class="pill" id="prev" disabled>← 이전</button>
-      <button class="pill" id="replay" disabled>다시 보기</button>
-      <button class="pill" id="exitExplain" type="button">처음으로</button>
-      <span class="grow dots" id="dots"></span>
-      <button class="pill pri" id="next" disabled>다음 →</button>
-    </div>
+  <div class="qa">
+    <div class="qaHead"><b>이 문제에서 궁금한 점</b><button class="pill" id="exitExplain" type="button">끝내기</button></div>
+    <details class="probCard" id="probCard" open><summary>문제 보기</summary><div id="probBody"></div></details>
+    <div class="msgs" id="msgs" aria-live="polite"></div>
+    <div class="saveBar hide" id="saveBar"></div>
+    <form class="ask" id="followup">
+      <input type="text" id="fuText" placeholder="궁금한 점을 물어보세요" aria-label="질문" autocomplete="off">
+      <button class="pill pri">질문</button>
+    </form>
   </div>
-  <form class="ask" id="followup">
-    <input type="text" id="fuText" placeholder="모르는 부분을 물어보세요" aria-label="질문">
-    <button class="pill pri">질문</button>
-  </form>
 </div>
 
 <aside class="drawer" id="drawer">
@@ -195,7 +212,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
   <input type="text" id="model" value="gemini-2.0-flash" aria-label="Gemini 모델 이름">
   <div class="note">키는 이 브라우저에만 저장돼요. 모델 이름은 바꿀 수 있어요.</div>
   <input type="text" id="tname" value="얼굴쌤" aria-label="선생님 이름">
-  <button class="go" id="go">선생님, 풀어주세요!</button>
+  <button class="go" id="go">질문하러 가기</button>
   <div class="err" id="err" role="alert"></div>
   <div class="note" id="unavail"></div>
 </aside>
@@ -400,7 +417,7 @@ function showFace(url, ar, feats){
       const n=sp(.5,.62); $("neck").setAttribute("fill",`rgb(${n[0]},${n[1]},${n[2]})`);
     }catch{}
     const cvs=$("faceCv"); cvs.width=im.width; cvs.height=Math.round(im.height*1.12);
-    $("head").style.setProperty("--ar", ar); $("head").classList.remove("hide"); $("emptyHead").classList.add("hide");
+    $("head").style.setProperty("--ar", ar); $("head").classList.remove("hide"); $("emptyHead").classList.add("hide"); $("hint").textContent="";
     F.drawn=""; drawFace(); layout();
   }; im.src=url;
 }
@@ -444,7 +461,7 @@ function layout(){
   const ar=$("head").classList.contains("hide")?1:F.ar, unit=1/ar+0.30, root=document.documentElement.style;
   let availH, w, left="50%";
   if(!exp){
-    const dock=$("dock").getBoundingClientRect(); availH=Math.max(120, dock.top-topPad-14);
+    availH=Math.max(120, innerHeight-topPad-48);
     w=Math.max(110, Math.min(availH/unit, 440, innerWidth*.72));
   } else if(!narrow){
     const zone=Math.min(innerWidth*.36,460); root.setProperty("--zone",zone+"px");
@@ -461,7 +478,6 @@ function setExplain(on){
   const d=$("dock"); if(!on){ d.classList.remove("back"); void d.offsetWidth; d.classList.add("back") }
   layout();
 }
-$("exitExplain").onclick=()=>setExplain(false);
 requestAnimationFrame(()=>requestAnimationFrame(()=>$("tutor").classList.add("anim")));
 addEventListener("resize",layout); layout();
 
@@ -480,27 +496,11 @@ function mathNode(tk){
   if(tk.d){ sp.style.display="block"; sp.style.textAlign="center" } return sp;
 }
 function fillRich(el,text){ el.textContent=""; tokenize(text).forEach(tk=>el.appendChild(tk.m!==undefined?mathNode(tk):document.createTextNode(tk.v))) }
-function say(text, talk=true){
-  clearInterval(typing); const el=$("say"); el.textContent="";
-  const units=[]; tokenize(text).forEach(tk=>{ if(tk.m!==undefined) units.push(tk); else [...tk.v].forEach(ch=>units.push(ch)) });
-  let i=0, tn=null;
-  typing=setInterval(()=>{ const u=units[i++]; if(u===undefined){ clearInterval(typing); return }
-    if(typeof u==="string"){ if(!tn){ tn=document.createTextNode(""); el.appendChild(tn) } tn.data+=u }
-    else { tn=null; el.appendChild(mathNode(u)) }
-    const sw=$("sayWrap"); if(sw) sw.scrollTop=sw.scrollHeight }, 24);
-  if(talk) speak(text.replace(/\$+/g,""));
+function say(t){ $("hint").textContent=t||"" }
+function addMsg(cls,text){
+  const d=document.createElement("div"); d.className="msg "+cls; if(cls==="u") d.textContent=text; else fillRich(d,text);
+  const m=$("msgs"); m.appendChild(d); m.scrollTop=m.scrollHeight; return d;
 }
-function showStep(i){
-  idx=Math.max(0,Math.min(steps.length-1,i));
-  const tr=$("trail"); tr.textContent=""; for(let j=0;j<idx;j++){ const d=document.createElement("div"); d.className="old"; const b=document.createElement("b"); b.textContent=(j+1)+"."; d.appendChild(b); const sp=document.createElement("span"); fillRich(sp,steps[j].say); d.appendChild(sp); tr.appendChild(d) }
-  say(steps[idx].say);
-  $("dots").textContent=`${idx+1} / ${steps.length}`;
-  $("prev").disabled=idx===0; $("next").disabled=idx===steps.length-1; $("replay").disabled=false;
-  const last=idx===steps.length-1; $("final").classList.toggle("hide", !(last&&result.answer));
-}
-$("next").onclick=()=>showStep(idx+1); $("prev").onclick=()=>showStep(idx-1);
-$("replay").onclick=()=>steps[idx]&&say(steps[idx].say);
-document.addEventListener("keydown", e=>{ if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; if(e.key==="ArrowRight") $("next").click(); if(e.key==="ArrowLeft") $("prev").click() });
 
 /* ═════ 서랍 · 문제 입력 ═════ */
 const drawer=$("drawer");
@@ -591,28 +591,21 @@ paintUsage(); setInterval(paintUsage,60000);
 let ctl=null;
 function rules(){
   return `너는 "${$("tname").value||"얼굴쌤"}"이라는 1:1 과외 선생님이다. 학생은 ${$("level").value}이고, 말투는 ${$("style").value}.
-학생이 올린 문제(사진 또는 글)를 분석해 마주 앉아 설명하듯 가르쳐라.
-반드시 아래 JSON 하나만 출력한다(코드블록·설명 금지):
-{"steps":[{"say":"선생님이 말하는 한두 문장(입말. 이모지·마크다운 금지)"}],"answer":"최종 정답(한 줄)","problem":"사진 문제일 때만: 인쇄된 문제 본문과 보기만 수식 포함 글로 옮긴 것. 손글씨(풀이, 메모, 체크, 밑줄, 동그라미)는 절대 넣지 않는다","figures":[{"x":0.1,"y":0.2,"w":0.4,"h":0.3}]}
-수식 규칙: 수식은 표준 LaTeX로 쓴다. 인라인 수식은 $ 하나로, 블록 수식은 $$ 두 개로 감싼다. 수식 안에 한글을 직접 쓰지 말고 필요하면 \\text{한글}로 감싼다. 유니코드 수학기호(×, ÷, √, ² 등)를 쓰지 말고 \\frac, \\sqrt, \\times, \\div 같은 정확한 LaTeX 명령만 쓴다. JSON 문자열 안에서는 백슬래시를 반드시 두 개(\\\\frac)로 이스케이프한다.
-figures: 사진 문제일 때만, 문제에 인쇄된 그림·도형·그래프·표의 위치를 사진 전체 대비 0~1 비율(왼쪽 위 기준 x,y와 너비 w, 높이 h)로 최대 4개 적는다. 그림이 없으면 빈 배열. 손글씨는 그림으로 치지 않는다.
-규칙: steps는 3~7개. 인사, 맞장구, 칭찬, 격려, 감탄, 되묻기, 반복 설명, 자기소개, 군더더기 말은 절대 쓰지 않는다. 각 step은 풀이에 꼭 필요한 핵심만 한두 문장으로 쓴다. 첫 step은 구하는 것을 한 문장으로 말한다. 정답만 던지지 말고 왜 그런지 한 줄로 근거를 댄다. 마지막 step은 결론이다. 사진이 흐려 읽을 수 없으면 steps 하나로 다시 찍어달라고 말한다. 후속 질문에는 같은 JSON 형식으로 해당 부분만 다시 쉽게 설명한다.`;
+학생이 문제(사진 또는 글)를 올리고, 그 문제에서 궁금한 점을 묻는다. 묻는 것에만 짧고 정확하게 답한다. 요청하지 않았으면 문제 전체를 풀지 않는다. 인사, 맞장구, 칭찬, 격려, 감탄, 되묻기, 반복 설명, 군더더기 말은 절대 쓰지 않는다. 이모지·마크다운 금지.
+수식 규칙: 수식은 표준 LaTeX로 쓴다. 인라인 수식은 $ 하나로, 블록 수식은 $$ 두 개로 감싼다. 수식 안에 한글을 직접 쓰지 말고 필요하면 \\text{한글}로 감싼다. 유니코드 수학기호(×, ÷, √, ² 등)를 쓰지 말고 \\frac, \\sqrt, \\times, \\div 같은 정확한 LaTeX 명령만 쓴다.
+첫 번째 답변만 JSON 하나로 출력한다(코드블록 금지, JSON 문자열 안의 백슬래시는 \\\\처럼 두 개로 이스케이프):
+{"reply":"질문에 대한 답","problem":"사진 문제일 때만: 인쇄된 문제 본문과 보기만 수식 포함 글로 옮긴 것. 손글씨(풀이, 메모, 체크, 밑줄, 동그라미)는 절대 넣지 않는다","figures":[{"x":0.1,"y":0.2,"w":0.4,"h":0.3}]}
+figures: 사진 문제일 때만, 문제에 인쇄된 그림·도형·그래프·표의 위치를 사진 전체 대비 0~1 비율(왼쪽 위 기준 x,y와 너비 w, 높이 h)로 최대 4개. 없으면 빈 배열. 손글씨는 그림으로 치지 않는다.
+두 번째 답변부터는 JSON 없이 평문으로만 답한다. 사진이 흐려 읽을 수 없으면 reply에 다시 찍어달라고만 쓴다.`;
 }
-function parse(text){
+function parseFirst(text){
   const m=text.match(/\{[\s\S]*\}/);
-  try{ const o=JSON.parse(m?m[0]:text); if(Array.isArray(o.steps)&&o.steps.length) return o }catch{}
-  return {steps:text.split(/\n{2,}/).filter(Boolean).map(p=>({say:p.replace(/[*#`]/g,"")})), answer:"", tip:""};
+  try{ const o=JSON.parse(m?m[0]:text); if(typeof o.reply==="string") return o }catch{}
+  return {reply:text, problem:"", figures:[]};
 }
 function fixEsc(x){ return String(x||"").replace(/\x0c/g,"\\f").replace(/\x08/g,"\\b").replace(/\t(?=[a-zA-Z])/g,"\\t").replace(/\r(?=[a-zA-Z])/g,"\\r") }
 function clean(t){ return fixEsc(t).replace(/\*\*|__|`+/g,"").replace(/^#+\s*/gm,"").replace(/^\s*[-*]\s+/gm,"· ").trim() }
-function render(o){
-  result=o; steps=o.steps.map(s=>({say:clean(s.say)}));
-  const f=$("final"); f.textContent=""; const b=document.createElement("b"); b.textContent="정답 "; const an=document.createElement("span"); fillRich(an,clean(o.answer)); f.append(b, an);
-  if(o.tip){ const t=document.createElement("div"); t.className="note"; fillRich(t,"팁 · "+clean(o.tip)); f.appendChild(t) }
-  sessionSteps.push(...steps.map(x=>x.say)); makeSaveRow(f);
-  setExplain(true); showStep(0);
-}
-let hist=[];
+let hist=[], qa=[];
 const b64=blob=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(String(f.result).split(",")[1]);f.readAsDataURL(blob)});
 async function viaSample(model, signal){
   const key=$("gkey").value.trim(); store.set("gkey",key); store.set("gmodel",model);
@@ -633,32 +626,56 @@ async function viaSample(model, signal){
 async function run(userText, label, isFirst){
   const model=$("model").value;
   if(!$("gkey").value.trim()){ $("err").textContent="Gemini API 키를 설정에 넣어주세요."; openDrawer(true); return }
-  if(isFirst) hist=[{role:"user",content:rules()+"\n\n[학생]\n"+userText}]; else hist.push({role:"user",content:userText});
-  $("err").textContent=""; $("go").disabled=true; $("tutor").classList.add("think"); say(label,false);
+  if(isFirst) hist=[{role:"user",content:rules()+"\n\n[문제]\n"+(probUserText||"(사진 참고)")+"\n\n[질문]\n"+userText}]; else hist.push({role:"user",content:userText});
+  const wait=addMsg("a","…"); $("tutor").classList.add("think"); $("followup").querySelector(".pill").disabled=true;
   try{
     ctl=new AbortController();
-    const text=await viaSample(model,ctl.signal);
-    hist.push({role:"assistant",content:text}); const parsed=parse(text);
-    if(isFirst&&probBlob&&parsed.problem){ problemText=String(parsed.problem); hist[0].content+="\n\n[문제 전사]\n"+problemText }
-    if(isFirst) curFigs=probBlob?makeFigs(parsed.figures):[];
-    render(parsed);
+    const text=await viaSample(model,ctl.signal); let reply=text;
+    if(isFirst){ const o=parseFirst(text); reply=o.reply;
+      if(probBlob&&o.problem){ problemText=String(o.problem); hist[0].content+="\n\n[문제 전사]\n"+problemText }
+      curFigs=probBlob?makeFigs(o.figures):[]; fillProbBody() }
+    reply=clean(reply); hist.push({role:"assistant",content:reply});
+    wait.remove(); addMsg("a",reply); qa.push({q:userText,a:reply}); speak(reply.replace(/\$+/g,""));
+    $("saveBar").classList.remove("hide");
   }catch(e){
     hist.pop(); if(isFirst) hist=[];
-    const msg={not_granted:"Claude 사용을 허락해야 풀 수 있어요. 다시 눌러서 허락해 주세요.",rate_limited:"Gemini 사용량 한도에 걸렸거나 요청이 많아요. 잠시 뒤에 다시 눌러주세요.",images_unavailable:"이 화면에서는 사진을 Claude에 보낼 수 없어요. 문제를 글로 적어주세요.",image_rejected:"사진을 읽을 수 없어요. 다른 사진으로 다시 올려주세요."}[e.code]||e.message||"문제가 생겼어요.";
-    $("err").textContent=msg; openDrawer(true);
-  }finally{ $("go").disabled=false; $("tutor").classList.remove("think") }
+    const msg={not_granted:"Claude 사용을 허락해야 답할 수 있어요. 다시 질문해 주세요.",rate_limited:"Gemini 사용량 한도에 걸렸거나 요청이 많아요. 잠시 뒤에 다시 질문해 주세요.",images_unavailable:"이 화면에서는 사진을 Claude에 보낼 수 없어요. 문제를 글로 적어주세요.",image_rejected:"사진을 읽을 수 없어요. 다른 사진으로 다시 올려주세요."}[e.code]||e.message||"문제가 생겼어요.";
+    wait.remove(); addMsg("err",msg);
+  }finally{ $("tutor").classList.remove("think"); $("followup").querySelector(".pill").disabled=false; $("fuText").focus() }
 }
+/* ── 문제 세션: 문제 올리고 → 궁금한 점 묻기 → 끝내면 원래 화면으로 ── */
+function fillProbBody(){
+  const b=$("probBody"); b.textContent="";
+  if(probBlob&&!problemText){ const im=new Image(); im.alt="문제 사진"; im.src=URL.createObjectURL(probBlob); b.appendChild(im) }
+  if(probUserText||problemText){ const t=document.createElement("div"); fillRich(t,problemText||probUserText); b.appendChild(t) }
+  if(problemText&&curFigs&&curFigs.length) curFigs.forEach(f=>{ const im=new Image(); im.alt="문제 그림"; im.src=f; b.appendChild(im) });
+}
+function startSession(){
+  hist=[]; qa=[]; curFigs=[]; problemText=""; curNoteId=null; probUserText=$("probText").value.trim();
+  $("msgs").textContent=""; $("saveBar").classList.add("hide"); $("saveBar").textContent=""; makeSaveRow($("saveBar"));
+  fillProbBody(); $("probCard").open=innerWidth>760; $("exitExplain").textContent="끝내기"; $("exitExplain").classList.remove("warn");
+  openDrawer(false); setExplain(true); setTimeout(()=>$("fuText").focus(),400);
+}
+let exitTimer=null;
+function endSession(force){
+  const btn=$("exitExplain");
+  if(!force&&qa.length&&!curNoteId&&!btn.classList.contains("warn")){ btn.textContent="저장 안 하고 끝내기"; btn.classList.add("warn"); clearTimeout(exitTimer); exitTimer=setTimeout(()=>{ btn.textContent="끝내기"; btn.classList.remove("warn") },4000); return }
+  clearTimeout(exitTimer); btn.textContent="끝내기"; btn.classList.remove("warn");
+  hist=[]; qa=[]; curFigs=[]; problemText=""; curNoteId=null; probUserText=""; probBlob=null; probSrc=null; probRect=null; probDims=null;
+  $("probText").value=""; $("probPrev").classList.add("hide"); $("drop").textContent="문제 사진 올리기 / 붙여넣기(Ctrl+V)"; $("err").textContent="";
+  $("msgs").textContent=""; $("saveBar").classList.add("hide"); $("probBody").textContent="";
+  setExplain(false);
+}
+$("exitExplain").onclick=()=>endSession(false);
 $("go").onclick=()=>{
   const text=$("probText").value.trim();
   if(!text&&!probBlob){ $("err").textContent="문제 사진이나 글을 먼저 올려주세요."; return }
-  lastProblem=text||"사진 속 문제를 풀어서 가르쳐줘."; curFigs=[]; setExplain(false); probUserText=text; sessionSteps=[]; curNoteId=null; problemText=""; openDrawer(false);
-  run(lastProblem, "분석 중…", true);
+  startSession();
 };
-let lastProblem="";
 $("followup").onsubmit=e=>{
   e.preventDefault(); const q=$("fuText").value.trim(); if(!q) return;
-  if(!hist.length){ say("문제를 먼저 올려주세요.",false); openDrawer(true); return }
-  $("fuText").value=""; run("학생 질문: "+q, "분석 중…", false);
+  if(!document.body.classList.contains("explain")){ openDrawer(true); return }
+  $("fuText").value=""; addMsg("u",q); run(q, "", hist.length===0);
 };
 
 /* ═════ 문제 그림만 추출 (손글씨 지우기) ═════ */
@@ -705,7 +722,7 @@ $("figDone").onclick=async()=>{ if(!figEdit) return; figEdit.note.figs[figEdit.i
 
 /* ═════ 오답노트 ═════ */
 const CATS=["풀 수 있는데 이해 안 됨","풀 수 있는데 얻은 것 있음","개념을 몰라서 못 품","어려워서 못 품"];
-let sessionSteps=[], curNoteId=null, probUserText="", noteCat=0, memNotes=[];
+let curNoteId=null, probUserText="", noteCat=0, memNotes=[];
 const idb=(()=>{ let p=null;
   const open=()=>p||(p=new Promise((res,rej)=>{ try{ const r=indexedDB.open("tutorNotes",1); r.onupgradeneeded=()=>r.result.createObjectStore("notes",{keyPath:"id"}); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error) }catch(e){ rej(e) } }));
   const tx=async(mode,fn)=>{ try{ const db=await open(); return await new Promise((res,rej)=>{ const t=db.transaction("notes",mode), rq=fn(t.objectStore("notes")); t.oncomplete=()=>res(rq&&rq.result); t.onerror=()=>rej(t.error) }) }catch{ return undefined } };
@@ -723,7 +740,7 @@ function makeSaveRow(f){
   f.appendChild(row);
 }
 async function saveNote(cat){
-  const note={id:curNoteId||("n"+Date.now()), t:Date.now(), cat, text:probUserText, tr:problemText, img:probBlob?await blobUrl(probBlob):"", steps:sessionSteps.slice(), answer:clean(result.answer), figs:curFigs.slice(), figs0:curFigs.slice()};
+  const note={id:curNoteId||("n"+Date.now()), t:Date.now(), cat, text:probUserText, tr:problemText, img:probBlob?await blobUrl(probBlob):"", qa:qa.map(x=>({q:x.q,a:x.a})), steps:qa.flatMap(x=>["Q. "+x.q,x.a]), answer:"", figs:curFigs.slice(), figs0:curFigs.slice()};
   curNoteId=note.id; await idb.put(note);
 }
 async function openNotes(){ $("pdfMsg").textContent=""; await renderNotes(); try{ $("noteDlg").showModal() }catch{ $("noteDlg").setAttribute("open","") } }
@@ -739,9 +756,10 @@ async function renderNotes(){
     const t=document.createElement("div"); fillRich(t,n.tr||n.text||""); c.appendChild(t);
     (n.figs||[]).forEach((f,i)=>{ const w=document.createElement("div"); const im=new Image(); im.alt="문제 그림"; im.src=f; w.appendChild(im); const eb=document.createElement("button"); eb.className="pill"; eb.type="button"; eb.textContent="그림 지우개"; eb.onclick=()=>openFigEdit(n,i); w.appendChild(eb); c.appendChild(w) });
     if(n.img){ const od=document.createElement("details"); const os=document.createElement("summary"); os.textContent="원본 사진 (모의고사에는 안 들어가요)"; od.appendChild(os); const im=new Image(); im.alt="원본 사진"; im.src=n.img; od.appendChild(im); c.appendChild(od) }
-    const dt=document.createElement("details"); const sm=document.createElement("summary"); sm.textContent="해설 보기"; dt.appendChild(sm);
-    const ol=document.createElement("ol"); n.steps.forEach(x=>{ const li=document.createElement("li"); fillRich(li,x); ol.appendChild(li) }); dt.appendChild(ol);
-    const a=document.createElement("div"); const bb=document.createElement("b"); bb.textContent="정답 "; const as=document.createElement("span"); fillRich(as,n.answer); a.append(bb,as); dt.appendChild(a); c.appendChild(dt); list.appendChild(c);
+    const dt=document.createElement("details"); const sm=document.createElement("summary"); sm.textContent="질문·답변 보기"; dt.appendChild(sm);
+    if(n.qa&&n.qa.length){ n.qa.forEach(x=>{ const q=document.createElement("div"); q.style.fontWeight="600"; q.textContent="Q. "+x.q; const a=document.createElement("div"); fillRich(a,x.a); a.style.marginBottom="8px"; dt.append(q,a) }) }
+    else { const ol=document.createElement("ol"); n.steps.forEach(x=>{ const li=document.createElement("li"); fillRich(li,x); ol.appendChild(li) }); dt.appendChild(ol);
+      if(n.answer){ const a=document.createElement("div"); const bb=document.createElement("b"); bb.textContent="정답 "; const as=document.createElement("span"); fillRich(as,n.answer); a.append(bb,as); dt.appendChild(a) } } c.appendChild(dt); list.appendChild(c);
   });
 }
 /* ── 시험지 PDF ── */
@@ -799,8 +817,10 @@ async function exportPDF(){
       if(n.figs&&n.figs.length) n.figs.forEach(f=>{ const im=new Image(); im.src=f; q.appendChild(im) }); else if(!body&&n.img){ const im=new Image(); im.src=n.img; q.appendChild(im) }
       q.appendChild(mk("<i>풀이</i>","sp")); await add(q) }
     if(withKey){ P=newPage(false); ci=0; const h=mk(null); h.innerHTML="<h3>정답 및 해설</h3>"; await add(h);
-      for(let i=0;i<notes.length;i++){ const n=notes[i], e=mk(null,"ex"), hd=mk(null), b=document.createElement("b"); b.textContent=(i+1)+". 정답 "; const a=document.createElement("span"); fillRich(a,n.answer); hd.append(b,a); e.appendChild(hd);
-        const ol=document.createElement("ol"); n.steps.forEach(x=>{ const li=document.createElement("li"); fillRich(li,x); ol.appendChild(li) }); e.appendChild(ol); await add(e) } }
+      for(let i=0;i<notes.length;i++){ const n=notes[i], e=mk(null,"ex"), hd=mk(null), b=document.createElement("b"); b.textContent=(i+1)+(n.answer?". 정답 ":". 질문과 해설"); hd.appendChild(b); if(n.answer){ const a=document.createElement("span"); fillRich(a,n.answer); hd.appendChild(a) } e.appendChild(hd);
+        if(n.qa&&n.qa.length){ n.qa.forEach(x=>{ const q=mk(null); q.style.cssText="font-weight:700;margin-top:4px"; q.textContent="Q. "+x.q; const a=mk(null); fillRich(a,x.a); a.style.cssText="white-space:pre-wrap;margin-bottom:6px"; e.append(q,a) }) }
+        else { const ol=document.createElement("ol"); n.steps.forEach(x=>{ const li=document.createElement("li"); fillRich(li,x); ol.appendChild(li) }); e.appendChild(ol) }
+        await add(e) } }
     pages.forEach((pg,i)=>pg.querySelector(".pn").textContent=(i+1)+" / "+pages.length);
     const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"p"});
     for(let i=0;i<pages.length;i++){ msgEl.textContent=`PDF 만드는 중 (${i+1}/${pages.length})…`;
