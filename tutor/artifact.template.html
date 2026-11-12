@@ -160,7 +160,9 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 <dialog id="dlg">
   <h2>얼굴 오려 붙이기</h2>
   <p class="note" style="margin:6px 0 0">사진을 올리고 점을 끌어 얼굴 윤곽을 따라 그려요. 선을 누르면 점이 추가되고, 점을 두 번 누르면 지워져요.</p>
-  <input type="file" id="faceFile" accept="image/*" style="margin-top:10px;max-width:100%">
+  <div class="row" style="margin-top:10px"><button class="pill pri" id="facePick" type="button">앨범에서 고르기</button><button class="pill" id="faceCam" type="button">셀카 찍기</button></div>
+  <input type="file" id="faceFile" accept="image/*" class="hide">
+  <input type="file" id="faceSelfie" accept="image/*" capture="user" class="hide">
   <div class="tabs" style="margin-top:10px">
     <button type="button" id="tabShape" class="on">윤곽 편집</button>
     <button type="button" id="tabMove">사진 이동·확대</button>
@@ -196,6 +198,7 @@ function samples(){ const out=[]; bez(pts).forEach((s,i)=>{ for(let k=0;k<12;k++
   out.push({i, x:u*u*u*s[0].x+3*u*u*t*s[1].x+3*u*t*t*s[2].x+t*t*t*s[3].x, y:u*u*u*s[0].y+3*u*u*t*s[1].y+3*u*t*t*s[2].y+t*t*t*s[3].y}) } }); return out }
 function drawCrop(){
   cx.clearRect(0,0,FW,FH); cx.fillStyle="#22223a"; cx.fillRect(0,0,FW,FH);
+  if(!src){ cx.fillStyle="#ffffffcc"; cx.font="700 40px Gmarket,sans-serif"; cx.textAlign="center"; cx.fillText("얼굴 사진을 올려주세요",FW/2,FH*.88) }
   if(src){ const sc=base*view.s; cx.drawImage(src, view.x-src.width*sc/2+FW/2, view.y-src.height*sc/2+FH/2, src.width*sc, src.height*sc) }
   cx.save(); cx.fillStyle="rgba(10,10,25,.6)"; const pp=new Path2D(); pp.rect(0,0,FW,FH); const sg=bez(pts); pp.moveTo(sg[0][0].x,sg[0][0].y); sg.forEach(q=>pp.bezierCurveTo(q[1].x,q[1].y,q[2].x,q[2].y,q[3].x,q[3].y)); pp.closePath(); cx.fill(pp,"evenodd"); cx.restore();
   tracePath(cx); cx.lineWidth=4; cx.strokeStyle="#e060e0"; cx.stroke();
@@ -209,6 +212,8 @@ function openCrop(){
   const sv=store.get("faceSrc"); if(sv){ const im=new Image(); im.onload=()=>setSrc(im,true); im.src=sv }
   mode="shape"; setTab(); $("dlg").showModal();
 }
+$("facePick").onclick=()=>$("faceFile").click(); $("faceCam").onclick=()=>$("faceSelfie").click();
+$("faceSelfie").onchange = e => { const f=e.target.files[0]; if(!f) return; const im=new Image(); im.onload=()=>{ setSrc(im); URL.revokeObjectURL(im.src) }; im.src=URL.createObjectURL(f) };
 $("faceFile").onchange = e => { const f=e.target.files[0]; if(!f) return; const im=new Image(); im.onload=()=>{ setSrc(im); URL.revokeObjectURL(im.src) }; im.src=URL.createObjectURL(f) };
 $("zoom").oninput = e => { view.s=+e.target.value; drawCrop() };
 function setTab(){ for(const [k,id] of [["shape","tabShape"],["move","tabMove"],["mouth","tabMouth"]]) $(id).classList.toggle("on", mode===k); drawCrop() }
