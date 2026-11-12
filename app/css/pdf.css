@@ -1,0 +1,39 @@
+/* PDF용 A4 쪽 (화면 밖에서 그려서 이미지로 저장) */
+.pdf-root{position:fixed;left:-10000px;top:0;z-index:-1}
+.pdf-root *{box-sizing:border-box}
+.pg{width:794px;height:1123px;background:#fff;color:#111;padding:38px 44px 30px;display:flex;flex-direction:column;font-family:var(--font);font-size:15.5px;line-height:1.6;position:relative;overflow:hidden}
+.pg .top{display:flex;align-items:center;gap:16px;flex:none}
+.pg .tag{flex:none;background:#111;color:#fff;font-family:"Gmarket";font-weight:700;font-size:15px;padding:6px 14px;border-radius:4px;letter-spacing:.08em}
+.pg .mid{flex:1;text-align:center}
+.pg .ttl{font-family:"Gmarket";font-weight:700;font-size:30px;letter-spacing:-.02em;line-height:1.2}
+.pg .sub{font-size:14px;color:#444;margin-top:3px}
+.pg .who{flex:none;font-size:13.5px;line-height:2}
+.pg .who u{display:inline-block;width:120px;border-bottom:1.5px solid #111;text-decoration:none;vertical-align:bottom;height:1.3em}
+.pg .rule{flex:none;border-top:3px solid #111;border-bottom:1px solid #111;height:7px;margin:10px 0 14px}
+.pg .rule.thin{border-top-width:1px;height:4px;margin:6px 0 12px}
+.pg .mini{flex:none;font-family:"Gmarket";font-weight:500;font-size:12.5px;color:#444}
+.pg .cols{flex:1;display:flex;min-height:0}
+.pg .col{flex:1;min-width:0;overflow:hidden;padding:0 18px}
+.pg .col:first-child{border-right:1.5px solid #111;padding-left:0}
+.pg .col:last-child{padding-right:0}
+.pg.single .col{padding:0;border:0}
+.pg.single .col:last-child{display:none}
+.pg .foot{flex:none;display:flex;justify-content:space-between;font-size:12px;color:#666;padding-top:8px;border-top:1px solid #111;margin-top:8px}
+.pg .q{margin-bottom:18px}
+.pg .qh{display:flex;gap:6px;align-items:baseline}
+.pg .qh .n{font-family:"Gmarket";font-weight:700;font-size:19px}
+.pg .qh .t{flex:1;min-width:0;white-space:pre-wrap}
+.pg .q img,.pg .card img{display:block;max-width:100%;max-height:240px;margin:6px 0 2px}
+.pg .sp{margin-top:8px;height:104px;border:1px dashed #999;border-radius:4px;position:relative}
+.pg .sp i{position:absolute;left:6px;top:2px;font-size:11px;color:#999;font-style:normal}
+.pg h3{font-family:"Gmarket";font-weight:700;font-size:19px;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid #111}
+.pg .ex{margin-bottom:14px;font-size:14px;line-height:1.55}
+.pg .ex b{font-family:"Gmarket"}
+.pg .ex .qq,.pg .ex .aa{font-size:14px}
+.pg .card{border:1.5px solid #222;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:15px}
+.pg .card .nh{display:flex;gap:10px;align-items:center;font-size:12.5px;color:#555;margin-bottom:6px}
+.pg .card .chip{background:#111;color:#fff;border-radius:4px;padding:1px 9px;font-family:"Gmarket"}
+.pg .pt{white-space:pre-wrap}
+.pg .qq{font-weight:700;margin-top:6px}
+.pg .aa{white-space:pre-wrap;margin-bottom:4px}
+.pg .memo{margin-top:8px;border-top:1px dashed #999;padding-top:4px;font-size:12px;color:#888;height:44px}

@@ -1,0 +1,65 @@
+/* 폰트: 제목 Gmarket Sans, 대화 LevelUp, 본문 Freesentation */
+@font-face{font-family:"Gmarket";src:url(../fonts/g5.woff2) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"Gmarket";src:url(../fonts/g7.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"LevelUp";src:url(../fonts/l4.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Freesentation";src:url(../fonts/f4.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Freesentation";src:url(../fonts/f6.woff2) format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"Freesentation";src:url(../fonts/f8.woff2) format("woff2");font-weight:800;font-display:swap}
+
+:root{
+  --g1:#3b6b57; --g2:#24493a; --ink:#1f2a26; --mute:#6f7f77; --card:#fff; --soft:#eef2ef;
+  --coral:#ef6a62; --coral2:#d9564e; --ok:#2f9e6f; --shirt:#e9edf5; --r:20px;
+  --sh:0 10px 30px rgba(10,35,25,.28);
+  --gut-l:max(16px,env(safe-area-inset-left,0px)); --gut-r:max(16px,env(safe-area-inset-right,0px));
+  --font:"Freesentation","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  --font-chat:"LevelUp","Freesentation","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  --ease:cubic-bezier(.3,.7,.2,1); --pop:cubic-bezier(.2,.9,.3,1.25);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{height:100%;overflow:hidden}
+body{margin:0;position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;background:radial-gradient(120% 90% at 50% 0%,var(--g1),var(--g2)) var(--g2);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input,textarea,select{font:inherit;color:inherit}
+h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
+.hide{display:none!important}
+.note{font-size:13px;color:var(--mute)}
+.err{color:var(--coral2);font-size:14px;min-height:1.2em}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.row-between{display:flex;justify-content:space-between;align-items:center}
+.mt{margin-top:10px}
+
+/* 버튼 */
+.btn,.btn-top,.big-btn,.tabs button{position:relative;overflow:hidden;border:0;cursor:pointer;transition:transform .18s var(--ease),box-shadow .18s,filter .18s,background-color .18s}
+.btn{background:var(--soft);border-radius:14px;padding:8px 16px;font-weight:600;font-size:15px}
+.btn.pri{background:var(--coral);color:#fff}
+.btn.warn{background:var(--coral2);color:#fff}
+.btn:disabled{opacity:.35;cursor:default}
+.btn-top{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--ink);border-radius:16px;padding:10px 14px;font-weight:600;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.btn-top svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.big-btn{background:var(--coral);color:#fff;border-radius:var(--r);padding:14px 32px;font-family:"Gmarket";font-weight:700;font-size:18px;box-shadow:0 6px 0 var(--coral2),var(--sh)}
+.big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--coral2)}
+.big-btn:disabled{opacity:.55;cursor:wait}
+:is(.btn,.btn-top,.big-btn,.tabs button):focus-visible,.empty-head:focus-visible{outline:3px solid #ffe36a;outline-offset:2px}
+@media (hover:hover){
+  .btn:hover:not(:disabled),.btn-top:hover,.tabs button:hover{transform:translateY(-2px);box-shadow:0 7px 16px rgba(0,0,0,.2)}
+  .big-btn:hover,.btn.pri:hover{filter:brightness(1.07)}
+  .big-btn:hover{transform:translateY(-2px)}
+}
+.btn:active:not(:disabled),.tabs button:active{transform:scale(.94)}
+.btn-top:active{transform:scale(.93)}
+/* 눌렀을 때 한 번만 퍼지는 물결 */
+.rp{position:absolute;border-radius:50%;background:currentColor;opacity:.22;transform:scale(0);pointer-events:none;animation:rpOut .55s ease-out forwards}
+@keyframes rpOut{to{transform:scale(1);opacity:0}}
+@keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+input[type=text],input[type=password],select{border:0;border-radius:14px;padding:8px 12px;background:var(--soft);min-width:0}
+textarea{width:100%;min-height:96px;resize:vertical;border:0;border-radius:var(--r);background:var(--soft);padding:12px 14px}
+textarea:focus,select:focus,input:focus-visible,.ask:focus-within{outline:3px solid #ef6a6255}
+input[type=range]{width:100%;accent-color:var(--coral)}
+
+/* 동작 줄이기 */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}

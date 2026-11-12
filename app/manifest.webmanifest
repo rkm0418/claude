@@ -1,0 +1,17 @@
+{
+  "name": "얼굴 과외쌤",
+  "short_name": "과외쌤",
+  "description": "내 얼굴 선생님에게 문제에서 궁금한 점을 물어보는 앱",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#24493a",
+  "theme_color": "#24493a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
