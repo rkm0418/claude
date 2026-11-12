@@ -23,9 +23,12 @@ button,input,textarea,select{font:inherit;color:inherit}
 h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 .hide{display:none!important}
 
-.topbar{position:absolute;left:var(--gut-l);right:var(--gut-r);top:14px;z-index:7;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.topbar{flex-wrap:wrap;position:absolute;left:var(--gut-l);right:var(--gut-r);top:14px;z-index:7;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .brand{font-family:"Gmarket";font-weight:700;font-size:15px;color:#ffffffb0}
 .iconbtn{display:inline-flex;align-items:center;gap:6px;border:0;background:#fff;color:var(--ink);border-radius:16px;padding:10px 14px;cursor:pointer;font-weight:600;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.usageBox{position:relative}
+.chip{border:0;background:#ffffff26;color:#fff;border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer}
+.usageInfo{position:absolute;top:calc(100% + 8px);left:0;width:min(300px,80vw);background:var(--card);border-radius:18px;padding:14px 16px;font-size:14px;line-height:1.6;box-shadow:var(--sh)}
 .iconbtn svg{width:18px;height:18px}
 .iconbtn:active{transform:scale(.95)}
 .iconbtn:focus-visible,.pill:focus-visible,.go:focus-visible{outline:3px solid #ffe36a;outline-offset:2px}
@@ -96,6 +99,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 
 <div class="topbar">
   <span class="brand">얼굴 과외쌤</span>
+  <span class="usageBox"><button class="chip" id="usageBtn" type="button">사용량</button><div class="usageInfo hide" id="usageInfo"></div></span>
   <span class="row">
     <button class="iconbtn" id="btnProb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg>문제 올리기</button>
     <button class="iconbtn" id="btnFace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>얼굴 바꾸기</button>
@@ -116,7 +120,7 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 
 <div class="dock" id="dock">
   <div class="bubble">
-    <div class="sayWrap"><div class="say" id="say" aria-live="polite">안녕! 오른쪽 위 '문제 올리기'로 문제를 보여주면 내가 같이 풀어줄게.</div>
+    <div class="sayWrap"><div class="say" id="say" aria-live="polite">문제를 올려주세요.</div>
     <div class="final hide" id="final"></div></div>
     <div class="ctrls">
       <button class="pill" id="prev" disabled>← 이전</button>
@@ -445,6 +449,22 @@ function loadProb(file){
   im.src=URL.createObjectURL(file);
 }
 
+/* ═════ 사용량 (이 화면에서 보낸 요청 기준 추정치) ═════ */
+let U={calls:0,inChars:0,outChars:0,images:0,model:""};
+try{ const sv=JSON.parse(store.get("usage","null")); if(sv&&sv.day===new Date().toDateString()) U=sv.u }catch{}
+const estTok=u=>Math.round((u.inChars+u.outChars)/1.6)+u.images*1500;
+function fmt(n){ return n>=1000?(n/1000).toFixed(1)+"k":String(n) }
+function paintUsage(){
+  $("usageBtn").textContent=`사용량 · ${U.calls}회 · 약 ${fmt(estTok(U))}토큰`;
+  $("usageInfo").innerHTML=`<b>오늘 이 기기에서 보낸 요청</b><br>요청 ${U.calls}회<br>보낸 글자 ${U.inChars.toLocaleString()} · 받은 글자 ${U.outChars.toLocaleString()}<br>사진 ${U.images}장<br>적용 모델 ${U.model||"-"}<br><span class="note">토큰은 글자 수로 어림한 값이고, 구독 남은 사용량은 아니에요. 정확한 잔여량은 claude.ai 사용량 화면에서 확인하세요.</span>`;
+}
+function recordUsage(inC,outC,img,model){
+  U.calls++; U.inChars+=inC; U.outChars+=outC; U.images+=img; if(model) U.model=model;
+  store.set("usage",JSON.stringify({day:new Date().toDateString(),u:U})); paintUsage();
+}
+$("usageBtn").onclick=()=>$("usageInfo").classList.toggle("hide");
+paintUsage();
+
 /* ═════ Claude (sample) ═════ */
 let sample=null, ctl=null;
 (async()=>{ try{ sample=await claude.use("sample") }catch{ sample=null }
@@ -454,9 +474,9 @@ function rules(){
   return `너는 "${$("tname").value||"얼굴쌤"}"이라는 1:1 과외 선생님이다. 학생은 ${$("level").value}이고, 말투는 ${$("style").value}.
 학생이 올린 문제(사진 또는 글)를 분석해 마주 앉아 설명하듯 가르쳐라.
 반드시 아래 JSON 하나만 출력한다(코드블록·설명 금지):
-{"steps":[{"say":"선생님이 말하는 한두 문장(입말. 이모지·마크다운 금지)"}],"answer":"최종 정답(한 줄)","tip":"자주 하는 실수나 비슷한 문제 팁 한 줄"}
+{"steps":[{"say":"선생님이 말하는 한두 문장(입말. 이모지·마크다운 금지)"}],"answer":"최종 정답(한 줄)"}
 수식 규칙: 수식은 표준 LaTeX로 쓴다. 인라인 수식은 $ 하나로, 블록 수식은 $$ 두 개로 감싼다. 수식 안에 한글을 직접 쓰지 말고 필요하면 \\text{한글}로 감싼다. 유니코드 수학기호(×, ÷, √, ² 등)를 쓰지 말고 \\frac, \\sqrt, \\times, \\div 같은 정확한 LaTeX 명령만 쓴다. JSON 문자열 안에서는 백슬래시를 반드시 두 개(\\\\frac)로 이스케이프한다.
-규칙: steps는 4~8개. 첫 step은 문제를 같이 읽고 무엇을 구하는지 짚는다. 정답만 던지지 말고 왜 그렇게 되는지 이끌어라. 마지막 step은 검산 또는 확인 질문으로 끝낸다. 사진이 흐려 읽을 수 없으면 steps 하나로 다시 찍어달라고 말한다. 후속 질문에는 같은 JSON 형식으로 해당 부분만 다시 쉽게 설명한다.`;
+규칙: steps는 3~7개. 인사, 맞장구, 칭찬, 격려, 감탄, 되묻기, 반복 설명, 자기소개, 군더더기 말은 절대 쓰지 않는다. 각 step은 풀이에 꼭 필요한 핵심만 한두 문장으로 쓴다. 첫 step은 구하는 것을 한 문장으로 말한다. 정답만 던지지 말고 왜 그런지 한 줄로 근거를 댄다. 마지막 step은 결론이다. 사진이 흐려 읽을 수 없으면 steps 하나로 다시 찍어달라고 말한다. 후속 질문에는 같은 JSON 형식으로 해당 부분만 다시 쉽게 설명한다.`;
 }
 function parse(text){
   const m=text.match(/\{[\s\S]*\}/);
@@ -475,7 +495,10 @@ let hist=[];
 const b64=blob=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(String(f.result).split(",")[1]);f.readAsDataURL(blob)});
 async function viaSample(model, signal){
   const o={cache:false,signal}; if(probBlob) o.images=[probBlob]; if(model!=="auto") o.model=model;
-  const {text}=await sample(hist.length===1?hist[0].content:hist, o); return text;
+  const input=hist.length===1?hist[0].content:hist;
+  const res=await sample(input, o);
+  recordUsage(hist.reduce((n,m)=>n+m.content.length,0), res.text.length, probBlob?1:0, res.modelApplied||res.modelTierApplied||"");
+  return res.text;
 }
 async function run(userText, label, isFirst){
   const model=$("model").value;
@@ -489,23 +512,23 @@ async function run(userText, label, isFirst){
   }catch(e){
     hist.pop(); if(isFirst) hist=[];
     const msg={not_granted:"Claude 사용을 허락해야 풀 수 있어요. 다시 눌러서 허락해 주세요.",rate_limited:"구독 사용량 한도에 걸렸거나 요청이 많아요. 잠시 뒤에 다시 눌러주세요.",images_unavailable:"이 화면에서는 사진을 Claude에 보낼 수 없어요. 문제를 글로 적어주세요.",image_rejected:"사진을 읽을 수 없어요. 다른 사진으로 다시 올려주세요."}[e.code]||e.message||"문제가 생겼어요.";
-    $("err").textContent=msg; say("앗, 문제가 생겼어. 오른쪽 안내를 확인해줘.",false); openDrawer(true);
+    $("err").textContent=msg; openDrawer(true);
   }finally{ $("go").disabled=false; $("tutor").classList.remove("think") }
 }
 $("go").onclick=()=>{
   const text=$("probText").value.trim();
   if(!text&&!probBlob){ $("err").textContent="문제 사진이나 글을 먼저 올려주세요."; return }
   lastProblem=text||"사진 속 문제를 풀어서 가르쳐줘."; openDrawer(false);
-  run(lastProblem, "음… 문제를 읽어볼게. 잠깐만 기다려줘.", true);
+  run(lastProblem, "분석 중…", true);
 };
 let lastProblem="";
 $("followup").onsubmit=e=>{
   e.preventDefault(); const q=$("fuText").value.trim(); if(!q) return;
-  if(!hist.length){ say("먼저 문제를 올려줘! 오른쪽 위 '문제 올리기'를 눌러봐.",false); openDrawer(true); return }
-  $("fuText").value=""; run("학생 질문: "+q, "좋은 질문이야. 생각 좀 해볼게.", false);
+  if(!hist.length){ say("문제를 먼저 올려주세요.",false); openDrawer(true); return }
+  $("fuText").value=""; run("학생 질문: "+q, "분석 중…", false);
 };
 
 for(const id of ["tname","level","style","model"]){ $(id).value=store.get(id,$(id).value); $(id).onchange=()=>store.set(id,$(id).value) }
 applyFace();
-if(!store.get("face")) say("먼저 내 얼굴을 만들어줘! 가운데 '얼굴'을 눌러서 사진을 오려 붙여봐.",false);
+if(!store.get("face")) say("얼굴 사진을 올려주세요.",false);
 </script>
