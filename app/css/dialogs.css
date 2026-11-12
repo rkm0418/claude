@@ -15,7 +15,8 @@ dialog p.note{margin:6px 0 8px}
 .tabs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .tabs button{background:var(--soft);border-radius:12px;padding:6px 14px;font-weight:600}
 .tabs button.on{background:var(--ink);color:#fff}
-.tabs .cnt{opacity:.7;margin-left:6px}
+.note-tabs button,#noteTabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:64px;text-align:center;line-height:1.2}
+.tabs .cnt{opacity:.7;display:block;width:100%;text-align:center;font-size:14px}
 
 .note-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 .nc{background:var(--soft);border-radius:18px;padding:12px 14px}
