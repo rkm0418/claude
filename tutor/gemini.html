@@ -55,6 +55,23 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 .empty-head small{display:block;font:400 14px "Freesentation";color:#ffffffc0;margin-top:6px}
 
 /* 아래 중앙: 말풍선 + 질문칸 */
+.tutor.anim{transition:left .7s cubic-bezier(.3,.7,.2,1),top .7s cubic-bezier(.3,.7,.2,1),width .7s cubic-bezier(.3,.7,.2,1)}
+.trail{display:none}
+#exitExplain{display:none}
+.explain #exitExplain{display:inline-block}
+.explain .trail{display:block}
+.trail .old{color:var(--mute);font-size:clamp(16px,1.6vw,19px);line-height:1.55;padding:6px 0;border-bottom:1px solid #0001;word-break:keep-all;white-space:pre-wrap}
+.trail .old b{font-family:"Gmarket";margin-right:8px;color:var(--coral)}
+.explain .dock{left:calc(var(--zone,420px) + 24px);right:max(16px,env(safe-area-inset-right,0px));width:auto;transform:none;top:72px;bottom:16px;animation:panelIn .65s cubic-bezier(.3,.7,.2,1)}
+.explain .bubble{flex:1;min-height:0;display:flex;flex-direction:column;padding:22px 26px 16px}
+.explain .bubble::before{display:none}
+.explain .sayWrap{flex:1;height:auto;min-height:0}
+.explain .say{font-size:clamp(20px,2.2vw,27px)}
+.dock.back{animation:dockBack .55s cubic-bezier(.3,.7,.2,1)}
+@keyframes panelIn{from{opacity:0;transform:translateX(70px)}to{opacity:1;transform:none}}
+@keyframes dockBack{from{opacity:0;transform:translate(-50%,40px)}to{opacity:1;transform:translateX(-50%)}}
+@media(max-width:760px){.explain .dock{left:var(--gut-l);top:calc(70px + var(--zoneH,200px));animation-name:panelUp}@keyframes panelUp{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:none}}}
+@media(max-width:560px){.iconbtn{font-size:0;padding:10px 12px;gap:0}.iconbtn svg{width:20px;height:20px}.brand{display:none}.topbar{flex-wrap:nowrap;justify-content:space-between}.pill{white-space:nowrap;padding:8px 11px;font-size:14px}.ctrls{gap:6px}.dots{white-space:nowrap}#replay{display:none}}
 .dock{position:absolute;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom,0px));z-index:6;width:min(calc(100% - var(--gut-l) - var(--gut-r)),660px);display:flex;flex-direction:column;gap:10px}
 .bubble{position:relative;background:var(--card);border-radius:24px;padding:14px 20px 12px;box-shadow:var(--sh)}
 .bubble::before{content:"";position:absolute;left:50%;top:-9px;width:20px;height:20px;background:var(--card);transform:translateX(-50%) rotate(45deg);border-radius:4px}
@@ -74,7 +91,7 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 
 /* 오른쪽 서랍 */
 .drawer{position:absolute;z-index:8;top:0;bottom:0;right:0;width:min(400px,100%);background:var(--card);border-radius:28px 0 0 28px;padding:74px 22px 28px;padding-right:max(22px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px;overflow:auto;box-shadow:var(--sh);transition:transform .25s}
-.drawer.closed{transform:translateX(105%)}
+.drawer.closed{transform:translateX(105%);visibility:hidden;transition:transform .25s,visibility 0s .25s}
 .drawer .head2{display:flex;justify-content:space-between;align-items:center}
 textarea{width:100%;min-height:96px;resize:vertical;border:0;border-radius:var(--r);background:var(--soft);padding:12px 14px}
 textarea:focus,select:focus,.ask:focus-within{outline:3px solid #ef6a6255}
@@ -110,7 +127,7 @@ dialog::backdrop{background:rgba(10,30,22,.6)}
 .tabs button{border:0;background:var(--soft);border-radius:12px;padding:6px 14px;cursor:pointer;font-weight:600}
 .tabs button.on{background:var(--ink);color:#fff}
 input[type=range]{width:100%;accent-color:var(--coral)}
-@media (prefers-reduced-motion:reduce){.tutor-in,.tutor.talking .tutor-in,.tutor.talking .head,.tutor.think .head{animation:none}.drawer{transition:none}}
+@media (prefers-reduced-motion:reduce){.tutor.anim{transition:none}.explain .dock,.dock.back{animation:none}.tutor-in,.tutor.talking .tutor-in,.tutor.talking .head,.tutor.think .head{animation:none}.drawer{transition:none}}
 </style>
 
 <div class="topbar">
@@ -137,11 +154,12 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 
 <div class="dock" id="dock">
   <div class="bubble">
-    <div class="sayWrap"><div class="say" id="say" aria-live="polite">문제를 올려주세요.</div>
+    <div class="sayWrap" id="sayWrap"><div class="trail" id="trail"></div><div class="say" id="say" aria-live="polite">문제를 올려주세요.</div>
     <div class="final hide" id="final"></div></div>
     <div class="ctrls">
       <button class="pill" id="prev" disabled>← 이전</button>
       <button class="pill" id="replay" disabled>다시 보기</button>
+      <button class="pill" id="exitExplain" type="button">처음으로</button>
       <span class="grow dots" id="dots"></span>
       <button class="pill pri" id="next" disabled>다음 →</button>
     </div>
@@ -422,13 +440,29 @@ function speak(text){ clearTimeout(talkEnd); mouthLoop(true); talkEnd=setTimeout
 
 /* 얼굴을 말풍선 위 공간의 가운데에 맞추기 (글이 얼굴을 가리지 않게) */
 function layout(){
-  const dock=$("dock").getBoundingClientRect(), topPad=62;
-  const availH=Math.max(120, dock.top-topPad-14);
-  const ar=$("head").classList.contains("hide")?1:F.ar;
-  const unit=1/ar*1.0+0.30;
-  const w=Math.max(110, Math.min(availH/unit, 440, innerWidth*.72));
-  const t=$("tutor"); t.style.width=w+"px"; t.style.top=(topPad+availH/2)+"px";
+  const exp=document.body.classList.contains("explain"), narrow=innerWidth<=760, t=$("tutor"), topPad=62;
+  const ar=$("head").classList.contains("hide")?1:F.ar, unit=1/ar+0.30, root=document.documentElement.style;
+  let availH, w, left="50%";
+  if(!exp){
+    const dock=$("dock").getBoundingClientRect(); availH=Math.max(120, dock.top-topPad-14);
+    w=Math.max(110, Math.min(availH/unit, 440, innerWidth*.72));
+  } else if(!narrow){
+    const zone=Math.min(innerWidth*.36,460); root.setProperty("--zone",zone+"px");
+    availH=innerHeight-topPad-24; w=Math.max(120, Math.min(availH/unit, zone-24, 430)); left=(zone/2+8)+"px";
+  } else {
+    const zh=Math.max(150, innerHeight*.30); root.setProperty("--zoneH",zh+"px");
+    availH=zh; w=Math.max(100, Math.min(availH/unit, innerWidth*.5));
+  }
+  t.style.width=w+"px"; t.style.top=(topPad+availH/2)+"px"; t.style.left=left;
 }
+function setExplain(on){
+  const was=document.body.classList.contains("explain"); if(was===on) return;
+  document.body.classList.toggle("explain",on);
+  const d=$("dock"); if(!on){ d.classList.remove("back"); void d.offsetWidth; d.classList.add("back") }
+  layout();
+}
+$("exitExplain").onclick=()=>setExplain(false);
+requestAnimationFrame(()=>requestAnimationFrame(()=>$("tutor").classList.add("anim")));
 addEventListener("resize",layout); layout();
 
 /* ═════ 말풍선 · 단계 ═════ */
@@ -452,11 +486,14 @@ function say(text, talk=true){
   let i=0, tn=null;
   typing=setInterval(()=>{ const u=units[i++]; if(u===undefined){ clearInterval(typing); return }
     if(typeof u==="string"){ if(!tn){ tn=document.createTextNode(""); el.appendChild(tn) } tn.data+=u }
-    else { tn=null; el.appendChild(mathNode(u)) } }, 24);
+    else { tn=null; el.appendChild(mathNode(u)) }
+    const sw=$("sayWrap"); if(sw) sw.scrollTop=sw.scrollHeight }, 24);
   if(talk) speak(text.replace(/\$+/g,""));
 }
 function showStep(i){
-  idx=Math.max(0,Math.min(steps.length-1,i)); say(steps[idx].say);
+  idx=Math.max(0,Math.min(steps.length-1,i));
+  const tr=$("trail"); tr.textContent=""; for(let j=0;j<idx;j++){ const d=document.createElement("div"); d.className="old"; const b=document.createElement("b"); b.textContent=(j+1)+"."; d.appendChild(b); const sp=document.createElement("span"); fillRich(sp,steps[j].say); d.appendChild(sp); tr.appendChild(d) }
+  say(steps[idx].say);
   $("dots").textContent=`${idx+1} / ${steps.length}`;
   $("prev").disabled=idx===0; $("next").disabled=idx===steps.length-1; $("replay").disabled=false;
   const last=idx===steps.length-1; $("final").classList.toggle("hide", !(last&&result.answer));
@@ -467,7 +504,7 @@ document.addEventListener("keydown", e=>{ if(/INPUT|TEXTAREA|SELECT/.test(e.targ
 
 /* ═════ 서랍 · 문제 입력 ═════ */
 const drawer=$("drawer");
-function openDrawer(o){ drawer.classList.toggle("closed", !o) }
+function openDrawer(o){ drawer.classList.toggle("closed", !o); drawer.inert=!o }
 $("btnProb").onclick=()=>openDrawer(drawer.classList.contains("closed")); $("closeDrawer").onclick=()=>openDrawer(false);
 let probBlob=null; const drop=$("drop");
 drop.onclick=$("pickPhoto").onclick=()=>$("probFile").click(); $("camPhoto").onclick=()=>$("probCam").click(); $("probCam").onchange=e=>e.target.files[0]&&loadProb(e.target.files[0]); drop.onkeydown=e=>{ if(e.key==="Enter"||e.key===" ") $("probFile").click() };
@@ -573,7 +610,7 @@ function render(o){
   const f=$("final"); f.textContent=""; const b=document.createElement("b"); b.textContent="정답 "; const an=document.createElement("span"); fillRich(an,clean(o.answer)); f.append(b, an);
   if(o.tip){ const t=document.createElement("div"); t.className="note"; fillRich(t,"팁 · "+clean(o.tip)); f.appendChild(t) }
   sessionSteps.push(...steps.map(x=>x.say)); makeSaveRow(f);
-  showStep(0);
+  setExplain(true); showStep(0);
 }
 let hist=[];
 const b64=blob=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(String(f.result).split(",")[1]);f.readAsDataURL(blob)});
@@ -614,7 +651,7 @@ async function run(userText, label, isFirst){
 $("go").onclick=()=>{
   const text=$("probText").value.trim();
   if(!text&&!probBlob){ $("err").textContent="문제 사진이나 글을 먼저 올려주세요."; return }
-  lastProblem=text||"사진 속 문제를 풀어서 가르쳐줘."; curFigs=[]; probUserText=text; sessionSteps=[]; curNoteId=null; problemText=""; openDrawer(false);
+  lastProblem=text||"사진 속 문제를 풀어서 가르쳐줘."; curFigs=[]; setExplain(false); probUserText=text; sessionSteps=[]; curNoteId=null; problemText=""; openDrawer(false);
   run(lastProblem, "분석 중…", true);
 };
 let lastProblem="";
