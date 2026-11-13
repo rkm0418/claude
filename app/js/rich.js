@@ -27,9 +27,9 @@ function addTokens(el, text) {
   tokenize(text).forEach(tk => el.appendChild(tk.m !== undefined ? mathNode(tk) : document.createTextNode(tk.v)));
 }
 
-const SECTION = /^\[(사용된 개념|조건 해석|풀이)\][ 	]*$/m;
+const SECTION = /^\[(사용된 개념|조건 해석|풀이 방향|풀이|검산|자주 하는 실수|한 줄 정리)\][ 	]*$/m;
 
-/** 수식을 그려 넣고, [사용된 개념]·[조건 해석]·[풀이] 제목 줄은 구역으로 나눠 보여줌 */
+/** 수식을 그려 넣고, [사용된 개념]·[조건 해석]·[풀이]처럼 제목만 있는 줄은 구역으로 나눠 보여줌 */
 export function fillRich(el, text) {
   el.textContent = "";
   const parts = String(text || "").split(new RegExp(SECTION.source, "gm"));
