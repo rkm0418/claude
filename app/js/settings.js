@@ -3,7 +3,7 @@ import { $, store, showDialog } from "./util.js";
 import { swipeSelect } from "./picker.js";
 
 const KEYS = { apiKey: "ft.apiKey", model: "ft.model", level: "ft.level", style: "ft.style" };
-const DEFAULTS = { apiKey: "", model: "claude-haiku-5-5", level: "중학생", style: "다정하고 친근한 반말 선생님" };
+const DEFAULTS = { apiKey: "", model: "claude-haiku-5-5", level: "고등학생", style: "차분한 존댓말 선생님" };
 
 export const getSettings = () => Object.fromEntries(Object.entries(KEYS).map(([k, key]) => [k, store.get(key, DEFAULTS[k])]));
 

@@ -68,6 +68,8 @@ export function initButtonEffects() {
 
 /** 전체화면: 첫 터치/클릭에서 자동으로 켜고 계속 유지. 버튼이나 Esc로 직접 나가면 다시 누를 때까지 그대로 둠 */
 export function initFullscreen(btn) {
+  // 설치한 앱이 이미 전체화면으로 열렸으면 따로 요청하지 않음 (브라우저의 "Esc로 종료" 안내도 없음)
+  if (matchMedia("(display-mode: fullscreen)").matches) return;
   if (!document.fullscreenEnabled) return;
   btn.hidden = false;
   let auto = true;
@@ -76,9 +78,10 @@ export function initFullscreen(btn) {
     if (document.fullscreenElement) { auto = false; document.exitFullscreen() }
     else { auto = true; enter() }
   };
-  document.addEventListener("pointerdown", e => {
-    if (auto && !document.fullscreenElement && !e.target.closest("#" + btn.id)) enter();
-  }, true);
+  // 브라우저는 사용자가 누르거나 키를 누른 순간에만 전체화면을 허용하므로 첫 입력에서 바로 켬
+  const onGesture = e => { if (auto && !document.fullscreenElement && !e.target.closest?.("#" + btn.id)) enter() };
+  document.addEventListener("pointerdown", onGesture, true);
+  document.addEventListener("keydown", e => { if (e.key !== "Escape") onGesture(e) }, true);
   document.addEventListener("fullscreenchange", () => {
     if (!document.fullscreenElement) auto = false;
     btn.setAttribute("aria-label", document.fullscreenElement ? "전체화면 닫기" : "전체화면");

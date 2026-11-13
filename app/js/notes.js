@@ -68,7 +68,7 @@ function card(n) {
     });
     dt.appendChild(fw);
   }
-  (n.qa || []).forEach(x => { dt.appendChild(el("div", "q", "Q. " + x.q)); const a = el("div"); fillRich(a, x.a); dt.appendChild(a) });
+  (n.qa || []).forEach(x => { dt.appendChild(el("div", "q", "Q. " + x.q)); const a = el("div"); fillRich(a, x.a, { pager: true }); dt.appendChild(a) });
   if (n.img) {
     const od = el("div", "note orig", "원본 사진 (PDF에는 안 들어가요)"), im = new Image(); im.alt = "원본 사진"; im.src = n.img; od.appendChild(im); dt.appendChild(od);
   }

@@ -20,7 +20,7 @@ const setAskMode = on => { document.body.classList.toggle("ask-mode", on); $("co
 function addMsg(cls, t) {
   const d = document.createElement("div");
   d.className = "msg " + cls;
-  if (cls === "a") fillRich(d, t); else d.textContent = t;
+  if (cls === "a") fillRich(d, t, { pager: true }); else d.textContent = t;
   const m = $("msgs"); m.appendChild(d);
   // 긴 답은 처음부터 읽을 수 있게 말풍선 위쪽에 맞추고, 내 질문은 맨 아래로
   if (cls === "a") m.scrollTop += d.getBoundingClientRect().top - m.getBoundingClientRect().top - 8; else m.scrollTop = m.scrollHeight;
