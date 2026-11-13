@@ -77,19 +77,19 @@ function initCropDrag() {
 }
 
 /** 지금 입력된 문제 (세션이 가져가 씀) */
-export const getProblem = () => ({ text: $("probText").value.trim(), blob, dims, src, rect: rect && { ...rect }, rmColor: $("rmColor").checked });
+export const getProblem = () => ({ text: "", blob, dims, src, rect: rect && { ...rect }, rmColor: $("rmColor").checked });
 
 export function resetDrawer() {
   src = rect = blob = dims = null;
-  $("probText").value = ""; $("probPrev").classList.add("hide"); $("err").textContent = "";
+  $("probPrev").classList.add("hide"); $("err").textContent = "";
 }
 
 export function initDrawer({ onStart }) {
   initCropDrag();
   const drop = $("drop");
-  drop.onclick = () => $("probFile").click();
-  $("probFile").onchange = e => { const f = e.target.files[0]; if (f) loadPhoto(f); e.target.value = "" };
-  drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("probFile").click() } };
+  $("pickPhoto").onclick = () => $("probFile").click();
+  $("camPhoto").onclick = () => $("probCam").click();
+  for (const id of ["probFile", "probCam"]) $(id).onchange = e => { const f = e.target.files[0]; if (f) loadPhoto(f); e.target.value = "" };
   drop.ondragover = e => e.preventDefault();
   drop.ondrop = e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f?.type.startsWith("image/")) loadPhoto(f) };
   document.addEventListener("paste", e => {
@@ -97,8 +97,6 @@ export function initDrawer({ onStart }) {
     if (f) loadPhoto(f)
   });
   $("go").onclick = () => {
-    const p = getProblem();
-    if (!p.text && !p.blob) { $("err").textContent = "문제 사진이나 글을 먼저 올려주세요."; return }
-    onStart(p);
+    onStart(getProblem()); // 사진이 없으면 문제 글도 질문 칸에 적으면 됨
   };
 }

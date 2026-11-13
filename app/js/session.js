@@ -39,7 +39,7 @@ function makeSaveBar() {
 
 async function persist(cat) {
   S.noteId ||= "n" + Date.now();
-  await saveNote({ id: S.noteId, t: S.t, cat, text: S.problem.text, tr: S.transcript, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa: S.qa, figs: S.figs });
+  await saveNote({ id: S.noteId, t: S.t, cat, text: S.problem.blob ? "" : (S.qa[0]?.q || ""), tr: S.transcript, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa: S.qa, figs: S.figs });
 }
 
 /* ── 시작 / 끝 ── */
@@ -75,7 +75,7 @@ export function endSession(force) {
 /** 지금까지의 대화를 API 메시지로. 사진은 전사 전(=첫 질문)에만 보냄 */
 async function buildMessages(newQ) {
   const { problem, transcript, qa } = S;
-  const head = `[문제]\n${problem.text || "(사진 참고)"}${transcript ? "\n\n[문제 전사]\n" + transcript : ""}\n\n[질문]\n`;
+  const head = `[문제]\n${problem.blob ? "(사진 참고)" : "(질문에 함께 적음)"}${transcript ? "\n\n[문제 전사]\n" + transcript : ""}\n\n[질문]\n`;
   const useImg = !!problem.blob && !transcript;
   const first = qa.length ? qa[0].q : newQ;
   const content = [];
