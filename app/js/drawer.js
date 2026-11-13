@@ -65,9 +65,14 @@ function useSource(canvas) {
 /* ── 화면 캡처: 원하는 앱·화면을 고르고 3초 안에 넘어가면 그 장면을 찍음 (누르면 바로 캡처) ── */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function captureScreen() {
-  let stream;
+  let stream; const t0 = performance.now();
   try { stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }) }
-  catch { return } // 취소
+  catch {
+    // 고르는 창이 떴다가 취소했으면 조용히, 창도 없이 바로 거절되면(아티팩트 등) 안내
+    if (performance.now() - t0 < 400) $("err").textContent = "이 화면에서는 화면 캡처가 막혀 있어요. 스크린샷을 앨범에서 올리거나 Ctrl+V로 붙여넣어 주세요.";
+    return;
+  }
+  $("err").textContent = "";
   try {
     const video = document.createElement("video");
     video.srcObject = stream; video.muted = true; await video.play();
