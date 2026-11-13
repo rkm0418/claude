@@ -48,12 +48,41 @@ function rebuild() {
 }
 
 async function loadPhoto(file) {
+  try { useSource(await decodeImage(file, 1600)) }
+  catch { $("err").textContent = "이 사진은 읽을 수 없어요. 다른 사진으로 올려주세요." }
+}
+
+/** 사진·캡처 어느 쪽이든 큰 범위 선택 창으로 */
+function useSource(canvas) {
   try {
-    src = await decodeImage(file, 1600);
+    src = canvas;
     rect = autoTrim();
     $("err").textContent = "";
     openCrop(); rebuild();
   } catch { $("err").textContent = "이 사진은 읽을 수 없어요. 다른 사진으로 올려주세요." }
+}
+
+/* ── 화면 캡처: 원하는 앱·화면을 고르고 3초 안에 넘어가면 그 장면을 찍음 (누르면 바로 캡처) ── */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function captureScreen() {
+  let stream;
+  try { stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }) }
+  catch { return } // 취소
+  try {
+    const video = document.createElement("video");
+    video.srcObject = stream; video.muted = true; await video.play();
+    const cd = $("countdown"), num = $("cdNum");
+    cd.classList.remove("hide");
+    let now = false; cd.onclick = () => { now = true };
+    const end = Date.now() + 3000; // 다른 앱으로 넘어가 이 탭이 느려져도 시간 기준으로 끝남
+    while (!now && Date.now() < end) { num.textContent = Math.ceil((end - Date.now()) / 1000); await sleep(100) }
+    cd.classList.add("hide"); await sleep(250); // 안내 화면이 캡처에 안 찍히게
+    const k = Math.min(1, 2000 / Math.max(video.videoWidth, video.videoHeight));
+    const c = document.createElement("canvas"); c.width = Math.round(video.videoWidth * k); c.height = Math.round(video.videoHeight * k);
+    c.getContext("2d").drawImage(video, 0, 0, c.width, c.height);
+    useSource(c);
+  } catch { $("err").textContent = "화면을 가져오지 못했어요." }
+  finally { stream.getTracks().forEach(t => t.stop()); $("countdown").classList.add("hide") }
 }
 
 function openCrop() {
@@ -89,6 +118,7 @@ export function initDrawer({ onStart }) {
   const drop = $("drop");
   $("pickPhoto").onclick = () => $("probFile").click();
   $("camPhoto").onclick = () => $("probCam").click();
+  if (navigator.mediaDevices?.getDisplayMedia) { $("screenCap").classList.remove("hide"); $("screenCap").onclick = captureScreen }
   for (const id of ["probFile", "probCam"]) $(id).onchange = e => { const f = e.target.files[0]; if (f) loadPhoto(f); e.target.value = "" };
   drop.ondragover = e => e.preventDefault();
   drop.ondrop = e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f?.type.startsWith("image/")) loadPhoto(f) };
