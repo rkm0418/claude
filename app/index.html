@@ -68,13 +68,26 @@
   <div class="row-between"><h2>오답노트</h2><button class="btn" id="noteClose" type="button">닫기</button></div>
   <div class="tabs" id="noteTabs"></div>
   <div class="note-list" id="noteList"></div>
-  <div class="export-bar">
+  <div class="export-bar" id="exportBar">
     <select id="pdfScope" aria-label="범위"><option value="cat">이 분류만</option><option value="all">전체 섞어서</option></select>
     <button class="btn pri" id="pdfExam" type="button">모의고사 PDF</button>
     <button class="btn" id="pdfVar" type="button">변형 모의고사 PDF</button>
     <button class="btn" id="pdfNote" type="button">오답노트 PDF</button>
   </div>
+  <div class="export-bar hide" id="selBar">
+    <span class="sel-count" id="selCount"></span>
+    <button class="btn" id="selDel" type="button">삭제</button>
+    <button class="btn pri" id="selVar" type="button">변형 문제 만들기</button>
+    <button class="btn" id="selCancel" type="button">취소</button>
+  </div>
   <div class="note" id="pdfMsg" role="status"></div>
+</dialog>
+
+<!-- 삭제 확인 -->
+<dialog id="confirmDlg">
+  <h2 id="cfTitle">진짜 삭제할까요?</h2>
+  <p class="note" id="cfMsg"></p>
+  <div class="row end mt"><button class="btn" id="cfNo" type="button">취소</button><button class="btn pri" id="cfYes" type="button">삭제</button></div>
 </dialog>
 
 <!-- 그림 지우개 -->

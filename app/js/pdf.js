@@ -56,10 +56,11 @@ function qaInto(n, box) {
   });
 }
 
-export async function exportPdf(mode, { scope, cat, setMsg, busy }) {
+export async function exportPdf(mode, { scope, cat, setMsg, busy, ids }) {
   const variant = mode === "variant", exam = mode !== "note";
   let list = await notes.all();
-  list = scope === "cat" ? list.filter(x => x.cat === cat).sort((a, b) => a.t - b.t) : shuffle(list.slice());
+  list = ids ? list.filter(x => ids.has(x.id)).sort((a, b) => a.t - b.t) // 꾹 눌러 고른 문제들만
+    : scope === "cat" ? list.filter(x => x.cat === cat).sort((a, b) => a.t - b.t) : shuffle(list.slice());
   if (!list.length) { setMsg("내보낼 문제가 없어요."); return }
   busy(true); setMsg(variant ? "변형 문제를 만드는 중…" : "만드는 중…");
   const root = mk("pdf-root"); document.body.appendChild(root);
@@ -76,7 +77,7 @@ export async function exportPdf(mode, { scope, cat, setMsg, busy }) {
     await Promise.all([loadScript("vendor/jspdf.umd.min.js"), loadScript("vendor/html2canvas.min.js")]);
     await document.fonts.ready;
     if (exam) await Promise.all([document.fonts.load('15px "Myeongjo"'), document.fonts.load('700 15px "Myeongjo"')]);
-    const label = scope === "cat" ? CATS[cat] : "전체 · 섞어서", today = new Date().toLocaleDateString("ko-KR");
+    const label = ids ? "선택한 문제" : scope === "cat" ? CATS[cat] : "전체 · 섞어서", today = new Date().toLocaleDateString("ko-KR");
     const title = variant ? "변형 모의고사" : exam ? "오답 모의고사" : "오답노트", pages = [];
 
     const newPage = (first, { single = false, slots = false } = {}) => {
@@ -157,7 +158,7 @@ export async function exportPdf(mode, { scope, cat, setMsg, busy }) {
       pdf.addImage(cv.toDataURL("image/jpeg", .88), "JPEG", 0, 0, 210, 297);
     }
     const kind = variant ? "변형모의고사_" : exam ? "오답모의고사_" : "오답노트_";
-    download(kind + (scope === "cat" ? CATS_S[cat].replace(/\s+/g, "") : "전체") + "_" + new Date().toISOString().slice(0, 10) + ".pdf", pdf.output("blob"));
+    download(kind + (ids ? "선택" : scope === "cat" ? CATS_S[cat].replace(/\s+/g, "") : "전체") + "_" + new Date().toISOString().slice(0, 10) + ".pdf", pdf.output("blob"));
     setMsg("PDF를 만들었어요.");
   } catch (e) {
     setMsg("PDF를 만들지 못했어요: " + (e.message || e));

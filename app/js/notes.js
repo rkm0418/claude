@@ -1,5 +1,5 @@
 /* 오답노트: 4분류 저장, 목록, 그림 지우개 */
-import { $, showDialog, closeDialog, loadImage } from "./util.js";
+import { $, showDialog, closeDialog, loadImage, confirmBox } from "./util.js";
 import { notes } from "./db.js";
 import { fillRich, fixNl } from "./rich.js";
 import { exportPdf } from "./pdf.js";
@@ -10,6 +10,8 @@ import { categoryBar } from "./catbar.js";
 
 let curCat = 1; // 처음엔 "얻은 것 있음"
 let catbar = null;
+let sel = new Set(); // 꾹 눌러 고른 문제들 (id)
+const selMode = () => sel.size > 0;
 export const currentCat = () => curCat;
 
 /** 문제 글 + 그림 + 질문/답을 저장 (원본 사진은 목록에서만 보임). 같은 id면 분류만 바뀜 */
@@ -72,9 +74,15 @@ function editCard(n, c) {
 }
 
 function card(n) {
-  const c = el("div", "nc"), top = el("div", "top", new Date(n.t).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }));
+  const c = el("div", "nc"), top = el("div", "top"), left = el("span", "tl");
+  c.dataset.id = n.id;
+  const mark = el("span", "selmark"); mark.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12.5l3.2 3.2L17 8.8"/></svg>';
+  left.append(mark, new Date(n.t).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })); top.appendChild(left);
+  c.classList.toggle("sel", sel.has(n.id));
   const del = el("button", "x", "×"); del.type = "button"; del.setAttribute("aria-label", "삭제");
-  del.onclick = async () => { await notes.del(n.id); renderNotes() };
+  del.onclick = async () => {
+    if (await confirmBox({ title: "진짜 삭제할까요?", msg: "삭제하면 되돌릴 수 없어요." })) { await notes.del(n.id); renderNotes() }
+  };
   const edit = el("button", "x", ""); edit.type = "button"; edit.setAttribute("aria-label", "수정");
   edit.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 7.5l3 3"/></svg>';
   edit.onclick = () => editCard(n, c);
@@ -99,6 +107,16 @@ function card(n) {
   return c;
 }
 
+/** 선택 상태를 화면에 반영 (선택이 있으면 선택 모드) */
+function paintSel() {
+  const list = $("noteList");
+  list.classList.toggle("sel-mode", selMode());
+  list.querySelectorAll(".nc").forEach(c => c.classList.toggle("sel", sel.has(c.dataset.id)));
+  $("selBar").classList.toggle("hide", !selMode()); $("exportBar").classList.toggle("hide", selMode());
+  $("selCount").textContent = sel.size + "개 선택";
+}
+function toggleSel(id, on) { if (on ?? !sel.has(id)) sel.add(id); else sel.delete(id); paintSel() }
+
 async function renderNotes() {
   const all = (await notes.all()).sort((a, b) => b.t - a.t);
   const cnt = {}; all.forEach(x => { cnt[x.cat] = (cnt[x.cat] || 0) + 1 }); catbar.setCounts(cnt);
@@ -106,12 +124,13 @@ async function renderNotes() {
   list.textContent = "";
   if (!mine.length) list.appendChild(el("div", "note", "저장된 문제가 없어요."));
   else mine.forEach(n => list.appendChild(card(n)));
+  sel = new Set([...sel].filter(id => mine.some(n => n.id === id))); paintSel();
 }
 
 export function initNotes() {
   initFigEditor();
   // 분류 선택: 아이콘 아래 이름이 있는 버튼 (눌러서 선택)
-  catbar = categoryBar({ value: curCat, showCount: true, onChange: cat => { curCat = cat; renderNotes() } });
+  catbar = categoryBar({ value: curCat, showCount: true, onChange: cat => { curCat = cat; sel.clear(); renderNotes() } });
   $("noteTabs").replaceChildren(catbar.el);
   swipeSelect($("pdfScope"), "PDF 범위 (위아래로 쓸어서 선택)");
   $("btnNote").onclick = async () => { $("pdfMsg").textContent = ""; await renderNotes(); showDialog($("noteDlg")) };
@@ -120,4 +139,43 @@ export function initNotes() {
   $("pdfExam").onclick = () => run("exam");
   $("pdfNote").onclick = () => run("note");
   $("pdfVar").onclick = () => run("variant");
+  initSelection();
+}
+
+/* ── 꾹 눌러서 여러 개 고르기 → 삭제 / 그 문제들만 변형 문제 만들기 ── */
+function initSelection() {
+  const list = $("noteList");
+  let timer = null, sx = 0, sy = 0, suppress = false;
+  const cancel = () => { clearTimeout(timer); timer = null };
+  list.addEventListener("pointerdown", e => {
+    const c = e.target.closest(".nc");
+    if (!c || e.target.closest("button, textarea, input")) return;
+    sx = e.clientX; sy = e.clientY; cancel();
+    timer = setTimeout(() => { timer = null; suppress = true; toggleSel(c.dataset.id, true) }, 500);
+  });
+  list.addEventListener("pointermove", e => { if (timer && Math.hypot(e.clientX - sx, e.clientY - sy) > 10) cancel() });
+  for (const t of ["pointerup", "pointercancel", "pointerleave"]) list.addEventListener(t, () => {
+    cancel();
+    // 꾹 누른 뒤 손을 뗄 때 오는 클릭은 무시. 터치에서는 클릭이 안 올 수도 있어서 잠시 뒤 해제
+    if (suppress) setTimeout(() => { suppress = false }, 300);
+  });
+  list.addEventListener("contextmenu", e => { if (e.target.closest(".nc")) e.preventDefault() });
+  // 선택 모드에서는 카드를 누르면 선택/해제, 꾹 누른 직후의 클릭은 무시
+  list.addEventListener("click", e => {
+    const c = e.target.closest(".nc");
+    if (suppress) { suppress = false; e.preventDefault(); e.stopPropagation(); return }
+    if (!selMode() || !c) return;
+    e.preventDefault(); e.stopPropagation(); toggleSel(c.dataset.id);
+  }, true);
+  $("selCancel").onclick = () => { sel.clear(); paintSel() };
+  $("selDel").onclick = async () => {
+    const n = sel.size;
+    if (!n || !(await confirmBox({ title: "진짜 삭제할까요?", msg: `선택한 ${n}개를 삭제하면 되돌릴 수 없어요.` }))) return;
+    for (const id of [...sel]) await notes.del(id);
+    sel.clear(); renderNotes();
+  };
+  $("selVar").onclick = () => {
+    if (!sel.size) return;
+    exportPdf("variant", { ids: new Set(sel), scope: "cat", cat: curCat, setMsg: t => { $("pdfMsg").textContent = t }, busy: b => { $("selVar").disabled = $("selDel").disabled = b } });
+  };
 }

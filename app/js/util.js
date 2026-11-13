@@ -103,3 +103,18 @@ export function initFullscreen(btn) {
     btn.setAttribute("aria-label", document.fullscreenElement ? "전체화면 닫기" : "전체화면");
   });
 }
+
+/** "진짜 삭제할까요?" 같은 확인 창 (브라우저 confirm 대신). 확인하면 true */
+export function confirmBox({ title, msg = "", ok = "삭제" }) {
+  return new Promise(res => {
+    const d = document.getElementById("confirmDlg");
+    document.getElementById("cfTitle").textContent = title;
+    document.getElementById("cfMsg").textContent = msg;
+    document.getElementById("cfYes").textContent = ok;
+    let v = false;
+    document.getElementById("cfYes").onclick = () => { v = true; closeDialog(d) };
+    document.getElementById("cfNo").onclick = () => closeDialog(d);
+    d.addEventListener("close", () => res(v), { once: true });
+    showDialog(d);
+  });
+}

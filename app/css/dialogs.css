@@ -45,3 +45,16 @@ select[hidden]{display:none}
 .nc .x svg{width:18px;height:18px;fill:none;stroke:#000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
 .nc .x{color:#000;display:inline-flex;align-items:center}
 .nc textarea.ed{width:100%;min-height:0;resize:vertical;border:1.5px solid #000;background:#fff;border-radius:12px;padding:8px 10px;line-height:1.6;margin:2px 0 8px}
+/* 꾹 눌러서 고르기 */
+.nc .tl{display:inline-flex;align-items:center;gap:8px}
+.nc .selmark{display:none;width:24px;height:24px;border-radius:50%;border:2px solid #000;background:#fff;align-items:center;justify-content:center;transition:background-color .2s,transform .38s var(--spring)}
+.nc .selmark svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.sel-mode .nc .selmark{display:inline-flex}
+.sel-mode .nc{cursor:pointer;user-select:none;-webkit-user-select:none}
+.sel-mode .nc .acts{visibility:hidden}
+.nc.sel{outline:3px solid #000;outline-offset:-3px}
+.nc.sel .selmark{background:#000;transform:scale(1.1)}
+.nc.sel .selmark svg{opacity:1}
+.note-list{-webkit-touch-callout:none}
+.sel-count{font:700 .95em "Gmarket",sans-serif;margin-right:auto}
+.export-bar.hide{display:none}
