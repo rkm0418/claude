@@ -4,7 +4,7 @@ import { notes } from "./db.js";
 import { fillRich } from "./rich.js";
 import { exportPdf } from "./pdf.js";
 import { CATS, ORDER, levelDots } from "./cats.js";
-import { createPicker } from "./picker.js";
+import { createPicker, swipeSelect } from "./picker.js";
 
 
 let curCat = 1; // 처음엔 "얻은 것 있음"
@@ -90,6 +90,7 @@ export function initNotes() {
   // 분류 선택기: 위아래로 쓸어서 바꿈
   picker = createPicker({ value: ORDER.indexOf(curCat) + 1, render: levelDots, showCount: true, label: "오답노트 분류 (위아래로 쓸어서 선택)", onChange: lv => { curCat = ORDER[lv - 1]; renderNotes() } });
   $("noteTabs").replaceChildren(picker.el);
+  swipeSelect($("pdfScope"), "PDF 범위 (위아래로 쓸어서 선택)");
   $("btnNote").onclick = async () => { $("pdfMsg").textContent = ""; await renderNotes(); showDialog($("noteDlg")) };
   $("noteClose").onclick = () => $("noteDlg").close();
   const run = mode => exportPdf(mode, { scope: $("pdfScope").value, cat: curCat, setMsg: t => { $("pdfMsg").textContent = t }, busy: b => { $("pdfExam").disabled = $("pdfNote").disabled = b } });

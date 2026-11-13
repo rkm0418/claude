@@ -35,14 +35,14 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 .btn.pri{background:var(--coral);color:#fff}
 .btn.warn{background:#fff;color:#000;box-shadow:inset 0 0 0 2px #000}
 .btn:disabled{opacity:.35;cursor:default}
-.btn-top{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--ink);border-radius:16px;padding:10px 14px;font-weight:600;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.btn-top{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--ink);border-radius:16px;padding:10px 14px;font-weight:600;font-size:14px;box-shadow:0 3px 0 #555}
 .btn-top svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.big-btn{background:var(--coral);color:#fff;border-radius:var(--r);padding:14px 32px;font-family:"Gmarket";font-weight:700;font-size:18px;box-shadow:0 6px 0 var(--coral2),var(--sh)}
+.big-btn{background:var(--coral);color:#fff;border-radius:var(--r);padding:14px 32px;font-family:"Gmarket";font-weight:700;font-size:18px;box-shadow:0 6px 0 #444}
 .big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--coral2)}
 .big-btn:disabled{opacity:.55;cursor:wait}
 :is(.btn,.btn-top,.big-btn,.tabs button):focus-visible,.empty-head:focus-visible{outline:3px solid #888;outline-offset:2px}
 @media (hover:hover){
-  .btn:hover:not(:disabled),.btn-top:hover,.tabs button:hover{transform:translateY(-2px);box-shadow:0 7px 16px rgba(0,0,0,.2)}
+  .btn:hover:not(:disabled),.btn-top:hover,.tabs button:hover{transform:translateY(-2px);box-shadow:0 4px 0 #555}
   .big-btn:hover,.btn.pri:hover{filter:brightness(1.07)}
   .big-btn:hover{transform:translateY(-2px)}
 }

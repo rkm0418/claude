@@ -1,5 +1,6 @@
 /* 설정: API 키·모델·학년·말투 (이 기기의 localStorage에만 저장) */
 import { $, store, showDialog } from "./util.js";
+import { swipeSelect } from "./picker.js";
 
 const KEYS = { apiKey: "ft.apiKey", model: "ft.model", level: "ft.level", style: "ft.style" };
 const DEFAULTS = { apiKey: "", model: "claude-haiku-5-5", level: "중학생", style: "다정하고 친근한 반말 선생님" };
@@ -16,6 +17,10 @@ export function initSettings() {
     if (el.value !== s[k]) el.value = DEFAULTS[k]; // 목록에 없는 값이면 기본값
     el.onchange = el.oninput = () => store.set(KEYS[k], el.value.trim());
   }
+  // 목록에서 누르는 대신 위아래로 쓸어서 고름
+  swipeSelect($("model"), "모델 (위아래로 쓸어서 선택)");
+  swipeSelect($("level"), "학년 (위아래로 쓸어서 선택)");
+  swipeSelect($("style"), "말투 (위아래로 쓸어서 선택)");
   $("btnSet").onclick = openSettings;
   $("setClose").onclick = () => $("setDlg").close();
 }
