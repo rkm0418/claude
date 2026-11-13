@@ -4,7 +4,7 @@
    - 오답노트: 1단 카드 */
 import { loadScript, shuffle } from "./util.js";
 import { notes } from "./db.js";
-import { fillRich } from "./rich.js";
+import { fillRich, parseSections } from "./rich.js";
 import { CATS, CATS_S } from "./cats.js";
 import { makeVariants } from "./claude.js";
 
@@ -20,6 +20,29 @@ function problemParts(n) {
   if (n.figs?.length) n.figs.forEach(f => { const im = new Image(); im.src = f; imgs.push(im) });
   else if (!body && n.img) { const im = new Image(); im.src = n.img; imgs.push(im) }
   return { t, imgs };
+}
+
+const strip = s => String(s || "").replace(/\(공식\d+\)/g, "").replace(/[ \t]+$/gm, "");
+
+/** 답지용 풀이: 내가 고른(저장한) 칸의 내용만, 제목 없이 이어서 */
+function keyBody(n) {
+  const parts = [];
+  (n.qa || []).forEach(x => {
+    const { pre, secs } = parseSections(x.a);
+    if (secs.length) { if (pre) parts.push(pre); secs.forEach(s => parts.push(s.body)) } else parts.push(x.a);
+  });
+  return strip(parts.join("\n")).trim();
+}
+
+/** 답지용 답: 저장된 답, 없으면 [풀이]의 마지막 줄 */
+function keyAnswer(n) {
+  if (n.ans) return strip(n.ans).trim();
+  for (const x of n.qa || []) {
+    const s = parseSections(x.a).secs.find(s => s.h === "풀이");
+    const last = s && s.body.split("\n").map(l => l.trim()).filter(Boolean).pop();
+    if (last) return strip(last).trim();
+  }
+  return "";
 }
 
 /** 질문과 답 (검산 구역은 fillRich가 알아서 뺌) */
@@ -56,12 +79,13 @@ export async function exportPdf(mode, { scope, cat, setMsg, busy }) {
     const newPage = (first, { single = false, slots = false } = {}) => {
       const pg = mk("pg" + (single ? " single" : "") + (exam ? " serif" : "") + (slots ? " slots" : ""));
       if (first) {
-        const top = mk("top", '<div class="tag"></div><div class="mid"><div class="ttl"></div><div class="sub"></div></div>' + (exam ? '<div class="who"><div>성명 <u></u></div><div>수험번호 <u></u></div></div>' : ""));
+        const top = mk("top", '<div class="tag"></div><div class="mid"><div class="ttl"></div><div class="sub"></div></div>' + "");
         top.querySelector(".tag").textContent = variant ? "변형" : exam ? "모의고사" : "오답노트";
         top.querySelector(".ttl").textContent = title;
-        top.querySelector(".sub").textContent = `${label} · 총 ${items.length}문항 · ${today}`;
+        if (exam) top.querySelector(".sub").remove(); // 모의고사는 제목만
+        else top.querySelector(".sub").textContent = `${label} · 총 ${items.length}문항 · ${today}`;
         pg.append(top, mk("rule"));
-      } else pg.append(text("mini", title + " · " + label), mk("rule thin"));
+      } else pg.append(text("mini", exam ? title : title + " · " + label), mk("rule thin"));
       const cols = mk("cols"), c1 = mk("col"), c2 = mk("col");
       cols.append(c1, c2); pg.appendChild(cols);
       pg.appendChild(mk("foot", `<span>${title}</span><span class="pn"></span>`));
@@ -102,13 +126,11 @@ export async function exportPdf(mode, { scope, cat, setMsg, busy }) {
       }
       cols = newPage(false); ci = 0; // 정답 및 해설은 새 쪽에서
       await add(mk(null, "<h3>정답 및 해설</h3>"));
-      for (let i = 0; i < items.length; i++) {
-        const it = items[i], e = mk("ex"), hd = document.createElement("b"); hd.textContent = (i + 1) + ".";
-        e.appendChild(hd);
-        if (variant) {
-          const a = mk("aa"); fillRich(a, "정답 " + (it.answer || "")); e.appendChild(a);
-          if (it.solution) { const s = mk("aa"); fillRich(s, it.solution); e.appendChild(s) }
-        } else qaInto(it, e);
+      for (let i = 0; i < items.length; i++) { // 답지: 답 / 풀이만
+        const it = items[i], e = mk("ex"), hd = mk("ak"), nb = document.createElement("b"), av = document.createElement("span");
+        const ans = variant ? it.answer : keyAnswer(it), sol = variant ? it.solution : keyBody(it);
+        nb.textContent = (i + 1) + ". 답 "; fillRich(av, ans || "-"); hd.append(nb, av); e.appendChild(hd);
+        if (sol) { const body = mk("aa"); fillRich(body, sol); e.append(text("sl", "풀이"), openAll(body)) }
         await add(e);
       }
     } else {

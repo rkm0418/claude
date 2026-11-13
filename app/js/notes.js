@@ -14,7 +14,7 @@ export const currentCat = () => curCat;
 
 /** 문제 글 + 그림 + 질문/답을 저장 (원본 사진은 목록에서만 보임). 같은 id면 분류만 바뀜 */
 export async function saveNote(n) {
-  await notes.put({ id: n.id, t: n.t, cat: n.cat, text: n.text, tr: n.tr, img: n.img, qa: n.qa.map(x => ({ q: x.q, a: x.a })), figs: n.figs.slice(), figs0: n.figs.slice() });
+  await notes.put({ id: n.id, t: n.t, cat: n.cat, text: n.text, tr: n.tr, ans: n.ans || "", img: n.img, qa: n.qa.map(x => ({ q: x.q, a: x.a })), figs: n.figs.slice(), figs0: n.figs.slice() });
 }
 
 /* ── 그림 지우개 ── */
@@ -56,13 +56,14 @@ const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls)
 function editCard(n, c) {
   c.textContent = "";
   const ta = (value, rows) => { const t = el("textarea", "ed"); t.value = value; t.rows = rows; t.addEventListener("input", () => { t.style.height = "auto"; t.style.height = t.scrollHeight + "px" }); return t };
-  const body = ta(n.tr || n.text || "", 3), qas = (n.qa || []).map(x => ({ q: ta(x.q, 1), a: ta(x.a, 6) }));
-  c.append(el("div", "note", "문제"), body);
+  const body = ta(n.tr || n.text || "", 3), ansIn = ta(n.ans || "", 1), qas = (n.qa || []).map(x => ({ q: ta(x.q, 1), a: ta(x.a, 6) }));
+  c.append(el("div", "note", "문제"), body, el("div", "note", "답 (모의고사 답지에 나와요)"), ansIn);
   qas.forEach(x => c.append(el("div", "note", "질문"), x.q, el("div", "note", "답 ([제목] 줄로 칸이 나뉘어요)"), x.a));
   const row = el("div", "row end mt"), cancel = el("button", "btn", "취소"), ok = el("button", "btn pri", "저장");
   cancel.type = ok.type = "button"; cancel.onclick = () => renderNotes();
   ok.onclick = async () => {
     if (n.tr) n.tr = body.value.trim(); else n.text = body.value.trim();
+    n.ans = ansIn.value.trim();
     n.qa = qas.map(x => ({ q: x.q.value.trim(), a: x.a.value.trim() })).filter(x => x.q || x.a);
     await notes.put(n); renderNotes();
   };

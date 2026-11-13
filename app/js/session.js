@@ -39,12 +39,12 @@ function makeSaveBar() {
 async function persist(cat) {
   S.noteId ||= "n" + Date.now(); S.cat = cat;
   const qa = S.qa.map(x => ({ q: x.q, a: joinSections(x.a, x.skip).trim() })).filter(x => x.a);
-  await saveNote({ id: S.noteId, t: S.t, cat, text: S.transcript ? "" : (S.problem.blob ? "" : (S.qa[0]?.q || "")), tr: S.transcript, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa, figs: S.figs });
+  await saveNote({ id: S.noteId, t: S.t, cat, text: S.transcript ? "" : (S.problem.blob ? "" : (S.qa[0]?.q || "")), tr: S.transcript, ans: S.ans, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa, figs: S.figs });
 }
 
 /* ── 시작 / 끝 ── */
 export function startSession(problem) {
-  S = { problem, qa: [], transcript: "", figs: [], noteId: null, t: Date.now() };
+  S = { problem, qa: [], transcript: "", ans: "", figs: [], noteId: null, t: Date.now() };
   $("msgs").textContent = ""; $("saveBar").classList.add("hide"); makeSaveBar();
   resetEndButton();
   setAskMode(true);
@@ -100,6 +100,7 @@ async function ask(q) {
     let reply = text;
     if (isFirst) {
       const o = parseFirst(text); reply = o.reply;
+      if (o.answer) S.ans = String(o.answer);
       if (o.problem) S.transcript = String(o.problem); // 사진이 없어도 글에서 문제 부분만 따로 저장
       S.figs = S.problem.blob ? makeFigures(o.figures, S.problem.src, S.problem.rect, S.problem.rmColor) : [];
     }
