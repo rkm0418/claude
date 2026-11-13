@@ -125,9 +125,12 @@ function buildPager(el, secs, opts = {}) {
 
 const SECTION = /^\[(사용된 개념|조건 해석|풀이 방향|풀이|빠른 풀이|검산|자주 하는 실수|한 줄 정리)\][ 	]*$/m;
 
+/** 글자 그대로 들어온 "\\n"(백슬래시+n)은 줄바꿈으로. \\neq 같은 LaTeX 명령(뒤에 영문자)은 그대로 둠 */
+export const fixNl = t => String(t || "").replace(/\\n(?![a-zA-Z])/g, "\n");
+
 /** 답을 [제목] 구역으로 나눔 (pre: 제목 앞 글). 검산 구역은 쓰지 않으므로 뺌 */
 export function parseSections(text) {
-  const parts = String(text || "").split(new RegExp(SECTION.source, "gm")), secs = [];
+  const parts = fixNl(text).split(new RegExp(SECTION.source, "gm")), secs = [];
   for (let i = 1; i < parts.length; i += 2) if (parts[i] !== "검산") secs.push({ h: parts[i], body: (parts[i + 1] || "").trim() });
   return { pre: (parts[0] || "").trim(), secs };
 }
@@ -147,6 +150,7 @@ export function joinSections(text, skip = new Set()) {
     [빠른 풀이]는 칸이 아닐 때 접어 두고 따로 펼쳐 볼 수 있게 함 */
 export function fillRich(el, text, opts = {}) {
   el.textContent = ""; el.classList.add("rich-root");
+  text = fixNl(text);
   const { pre, secs } = parseSections(text);
   if (!secs.length) { addBody(el, String(text || "").replace(/^\[검산\][\s\S]*$/m, "").trim() || String(text || "")); return }
   if (opts.pager && secs.length >= 2) {

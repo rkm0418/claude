@@ -1,7 +1,7 @@
 /* 오답노트: 4분류 저장, 목록, 그림 지우개 */
 import { $, showDialog, closeDialog, loadImage } from "./util.js";
 import { notes } from "./db.js";
-import { fillRich } from "./rich.js";
+import { fillRich, fixNl } from "./rich.js";
 import { exportPdf } from "./pdf.js";
 import { CATS } from "./cats.js";
 import { swipeSelect } from "./picker.js";
@@ -56,7 +56,7 @@ const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls)
 function editCard(n, c) {
   c.textContent = "";
   const ta = (value, rows) => { const t = el("textarea", "ed"); t.value = value; t.rows = rows; t.addEventListener("input", () => { t.style.height = "auto"; t.style.height = t.scrollHeight + "px" }); return t };
-  const body = ta(n.tr || n.text || "", 3), ansIn = ta(n.ans || "", 1), qas = (n.qa || []).map(x => ({ q: ta(x.q, 1), a: ta(x.a, 6) }));
+  const body = ta(fixNl(n.tr || n.text || ""), 3), ansIn = ta(fixNl(n.ans || ""), 1), qas = (n.qa || []).map(x => ({ q: ta(fixNl(x.q), 1), a: ta(fixNl(x.a), 6) }));
   c.append(el("div", "note", "문제"), body, el("div", "note", "답 (모의고사 답지에 나와요)"), ansIn);
   qas.forEach(x => c.append(el("div", "note", "질문"), x.q, el("div", "note", "답 ([제목] 줄로 칸이 나뉘어요)"), x.a));
   const row = el("div", "row end mt"), cancel = el("button", "btn", "취소"), ok = el("button", "btn pri", "저장");

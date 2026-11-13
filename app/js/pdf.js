@@ -4,7 +4,7 @@
    - 오답노트: 1단 카드 */
 import { loadScript, shuffle } from "./util.js";
 import { notes } from "./db.js";
-import { fillRich, parseSections } from "./rich.js";
+import { fillRich, parseSections, fixNl } from "./rich.js";
 import { CATS, CATS_S } from "./cats.js";
 import { makeVariants } from "./claude.js";
 
@@ -13,8 +13,11 @@ const text = (cls, t) => { const e = mk(cls); e.textContent = t; return e };
 const openAll = el => { el.querySelectorAll("details").forEach(d => { d.open = true }); return el };
 
 /** 문제 글 + 그림. 글을 못 옮겼으면 원본 사진으로 대신함 */
-function problemParts(n) {
-  const body = n.tr || n.text || "";
+/** 모의고사에는 보기(①~⑤ 선택지)를 넣지 않음 */
+const stripChoices = t => { const s = String(t || ""), i = s.indexOf("①"); return i >= 0 && s.indexOf("②", i) > 0 ? s.slice(0, i).trimEnd() : s };
+
+function problemParts(n, noChoices) {
+  const body = noChoices ? stripChoices(fixNl(n.tr || n.text || "")) : (n.tr || n.text || "");
   const t = mk("t"); fillRich(t, body || (n.img && !n.figs?.length ? "(문제 글을 옮기지 못해 원본 사진을 넣었어요)" : ""));
   const imgs = [];
   if (n.figs?.length) n.figs.forEach(f => { const im = new Image(); im.src = f; imgs.push(im) });
@@ -119,7 +122,7 @@ export async function exportPdf(mode, { scope, cat, setMsg, busy }) {
     if (exam) {
       cols = newPage(true, { slots: true });
       for (let i = 0; i < items.length; i++) {
-        const q = mk("q"), qh = mk("qh"), { t, imgs } = problemParts(items[i]);
+        const q = mk("q"), qh = mk("qh"), { t, imgs } = problemParts(items[i], true);
         qh.append(text("n", (i + 1) + "."), t); q.appendChild(qh);
         imgs.forEach(im => q.appendChild(im));
         await place(q);

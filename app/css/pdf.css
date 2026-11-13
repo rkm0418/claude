@@ -52,4 +52,7 @@
 .pg.slots .q{flex:0 0 50%;height:50%;min-height:0;overflow:hidden;margin:0;padding:2px 0 8px}
 .pg.serif .ak{font-size:1.05em;margin-bottom:2px}
 .pg.serif .sl{font-weight:700;margin-top:2px}
-.pg.serif .top{justify-content:flex-start}
+/* 제목은 쪽 가운데, 표시는 왼쪽 끝 */
+.pg.serif .top{position:relative;justify-content:center;min-height:40px}
+.pg.serif .tag{position:absolute;left:0;top:50%;transform:translateY(-50%)}
+.pg.serif .mid{flex:none;text-align:center}
