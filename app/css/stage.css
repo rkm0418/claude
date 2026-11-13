@@ -6,4 +6,7 @@
 .compose{position:absolute;inset:68px var(--gut-r) 16px var(--gut-l);margin:auto;width:min(560px,calc(100% - var(--gut-l) - var(--gut-r)));max-height:calc(100% - 84px);height:fit-content;overflow:auto;background:var(--card);border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--sh);animation:pop .55s var(--pop) backwards}
 .compose h1{font-family:"Gmarket";font-weight:700;font-size:22px;margin:0}
 .ask-mode .compose{display:none}
-.drop{border:2px dashed #999;border-radius:var(--r);padding:18px;text-align:center;color:var(--mute);cursor:pointer;font-size:15px}
+.drop{display:flex;align-items:center;justify-content:center;border:2px dashed #999;border-radius:var(--r);padding:26px;color:#666;cursor:pointer;transition:transform .18s var(--ease)}
+.drop svg{width:48px;height:48px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.drop:focus-visible{outline:3px solid #888}
+@media (hover:hover){.drop:hover{transform:scale(1.02)}}

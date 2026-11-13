@@ -51,7 +51,7 @@ async function loadPhoto(file) {
   try {
     src = await decodeImage(file, 1600);
     rect = autoTrim();
-    $("drop").textContent = "사진 바꾸기"; $("err").textContent = "";
+    $("err").textContent = "";
     openCrop(); rebuild();
   } catch { $("err").textContent = "이 사진은 읽을 수 없어요. 다른 사진으로 올려주세요." }
 }
@@ -82,7 +82,6 @@ export const getProblem = () => ({ text: $("probText").value.trim(), blob, dims,
 export function resetDrawer() {
   src = rect = blob = dims = null;
   $("probText").value = ""; $("probPrev").classList.add("hide"); $("err").textContent = "";
-  $("drop").textContent = "문제 사진 올리기 / 붙여넣기(Ctrl+V)";
 }
 
 export function initDrawer({ onStart }) {
