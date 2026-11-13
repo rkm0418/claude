@@ -1,7 +1,7 @@
 {
-  "name": "과외쌤",
-  "short_name": "과외쌤",
-  "description": "문제를 올리고 궁금한 점만 물어보는 공부 앱",
+  "name": "오답노트",
+  "short_name": "오답노트",
+  "description": "문제를 올려 풀이를 보고 오답노트로 모으는 공부 앱",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",
