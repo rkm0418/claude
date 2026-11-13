@@ -118,3 +118,11 @@ export function confirmBox({ title, msg = "", ok = "삭제" }) {
     showDialog(d);
   });
 }
+
+/** 파일로 저장 (브라우저 다운로드) */
+export function saveFile(name, blob) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  a.style.display = "none"; document.body.appendChild(a); a.click();
+  setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href) }, 10000);
+}

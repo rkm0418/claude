@@ -75,10 +75,16 @@
     <button class="btn" id="pdfVar" type="button">변형 모의고사 PDF</button>
     <button class="btn" id="pdfNote" type="button">오답노트 PDF</button>
   </div>
+  <div class="row mt" id="backupBar">
+    <button class="btn" id="bkExport" type="button">백업 내보내기</button>
+    <button class="btn" id="bkImport" type="button">불러오기</button>
+    <input type="file" id="bkFile" accept=".json,application/json" class="hide">
+  </div>
   <div class="export-bar hide" id="selBar">
     <span class="sel-count" id="selCount"></span>
     <button class="btn" id="selDel" type="button">삭제</button>
     <button class="btn pri" id="selVar" type="button">변형 문제 만들기</button>
+    <button class="btn" id="selExport" type="button">내보내기</button>
     <button class="btn" id="selCancel" type="button">취소</button>
   </div>
   <div class="note" id="pdfMsg" role="status"></div>

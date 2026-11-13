@@ -1,5 +1,5 @@
 /* 서비스 워커: 앱 파일을 저장해 두어 오프라인에서도 열리게 함 (Anthropic API 요청은 건드리지 않음) */
-const VERSION = "v45";
+const VERSION = "v46";
 const CACHE = "study-tutor-" + VERSION;
 const SHELL = [
   "./",
@@ -14,12 +14,16 @@ const SHELL = [
   "fonts/g5.woff2",
   "fonts/g7.woff2",
   "fonts/l4.woff2",
+  "fonts/mj4.woff2",
+  "fonts/mj7.woff2",
   "icons/apple-touch-icon.png",
   "icons/icon-192.png",
   "icons/icon-512.png",
   "icons/icon-maskable-512.png",
   "icons/icon.svg",
   "index.html",
+  "js/backup.js",
+  "js/catbar.js",
   "js/cats.js",
   "js/claude.js",
   "js/db.js",

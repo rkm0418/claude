@@ -2,7 +2,7 @@
    - 모의고사: 명조체 2단 시험지, 한 단에 두 문제씩(풀이 칸 없음) + 정답 및 해설
    - 변형 모의고사: 저장한 문제를 Claude가 변형한 문제로 같은 모양의 시험지
    - 오답노트: 1단 카드 */
-import { loadScript, shuffle } from "./util.js";
+import { loadScript, shuffle, saveFile } from "./util.js";
 import { notes } from "./db.js";
 import { fillRich, parseSections, fixNl } from "./rich.js";
 import { CATS, CATS_S } from "./cats.js";
@@ -158,18 +158,11 @@ export async function exportPdf(mode, { scope, cat, setMsg, busy, ids }) {
       pdf.addImage(cv.toDataURL("image/jpeg", .88), "JPEG", 0, 0, 210, 297);
     }
     const kind = variant ? "변형모의고사_" : exam ? "오답모의고사_" : "오답노트_";
-    download(kind + (ids ? "선택" : scope === "cat" ? CATS_S[cat].replace(/\s+/g, "") : "전체") + "_" + new Date().toISOString().slice(0, 10) + ".pdf", pdf.output("blob"));
+    await saveFile(kind + (ids ? "선택" : scope === "cat" ? CATS_S[cat].replace(/\s+/g, "") : "전체") + "_" + new Date().toISOString().slice(0, 10) + ".pdf", pdf.output("blob"));
     setMsg("PDF를 만들었어요.");
   } catch (e) {
     setMsg("PDF를 만들지 못했어요: " + (e.message || e));
   } finally {
     root.remove(); busy(false);
   }
-}
-
-function download(name, blob) {
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = name;
-  a.style.display = "none"; document.body.appendChild(a); a.click();
-  setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href) }, 10000);
 }

@@ -6,6 +6,7 @@ import { exportPdf } from "./pdf.js";
 import { CATS } from "./cats.js";
 import { swipeSelect } from "./picker.js";
 import { categoryBar } from "./catbar.js";
+import { exportBackup, readBackup, importBackup } from "./backup.js";
 
 
 let curCat = 1; // 처음엔 "얻은 것 있음"
@@ -112,7 +113,7 @@ function paintSel() {
   const list = $("noteList");
   list.classList.toggle("sel-mode", selMode());
   list.querySelectorAll(".nc").forEach(c => c.classList.toggle("sel", sel.has(c.dataset.id)));
-  $("selBar").classList.toggle("hide", !selMode()); $("exportBar").classList.toggle("hide", selMode());
+  $("selBar").classList.toggle("hide", !selMode()); $("exportBar").classList.toggle("hide", selMode()); $("backupBar").classList.toggle("hide", selMode());
   $("selCount").textContent = sel.size + "개 선택";
 }
 function toggleSel(id, on) { if (on ?? !sel.has(id)) sel.add(id); else sel.delete(id); paintSel() }
@@ -139,7 +140,7 @@ export function initNotes() {
   $("pdfExam").onclick = () => run("exam");
   $("pdfNote").onclick = () => run("note");
   $("pdfVar").onclick = () => run("variant");
-  initSelection();
+  initSelection(); initBackup();
 }
 
 /* ── 꾹 눌러서 여러 개 고르기 → 삭제 / 그 문제들만 변형 문제 만들기 ── */
@@ -177,5 +178,25 @@ function initSelection() {
   $("selVar").onclick = () => {
     if (!sel.size) return;
     exportPdf("variant", { ids: new Set(sel), scope: "cat", cat: curCat, setMsg: t => { $("pdfMsg").textContent = t }, busy: b => { $("selVar").disabled = $("selDel").disabled = b } });
+  };
+}
+
+/* ── 백업 파일: 전체/꾹 눌러 고른 문제 내보내기, 파일에서 불러오기 ── */
+function initBackup() {
+  const msg = t => { $("pdfMsg").textContent = t };
+  const run = async ids => {
+    try { const n = await exportBackup(ids); msg(`${n}개를 백업 파일로 저장했어요.`) } catch (e) { msg(e.message || "백업하지 못했어요.") }
+  };
+  $("bkExport").onclick = () => run(null);
+  $("selExport").onclick = () => { if (sel.size) run(new Set(sel)) };
+  $("bkImport").onclick = () => $("bkFile").click();
+  $("bkFile").onchange = async e => {
+    const f = e.target.files[0]; e.target.value = "";
+    if (!f) return;
+    try {
+      const list = await readBackup(f);
+      if (!(await confirmBox({ title: "백업을 불러올까요?", msg: `${list.length}개의 문제를 불러와요. 같은 문제는 백업 내용으로 바뀌어요.`, ok: "불러오기" }))) return;
+      await importBackup(list); await renderNotes(); msg(`${list.length}개를 불러왔어요.`);
+    } catch (err) { msg(err.message || "불러오지 못했어요.") }
   };
 }
