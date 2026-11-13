@@ -109,7 +109,7 @@ function buildPager(el, secs, opts = {}) {
   stage.addEventListener("pointercancel", () => { sx = null });
   prev.onclick = () => show(cur - 1); next.onclick = () => show(cur + 1);
   if (pick) {
-    const mark = k => { const off = opts.skip.has(secs[k].h); tabEls[k].classList.toggle("off", off); cards[k].classList.toggle("off", off) };
+    const mark = k => tabEls[k].classList.toggle("picked", !opts.skip.has(secs[k].h)); // 담은 칸은 제목에 체크 표시
     secs.forEach((_, k) => mark(k));
     pick.onclick = () => {
       const h = secs[cur].h, on = opts.skip.has(h); // 지금은 빠져 있으면 담기

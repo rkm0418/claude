@@ -73,8 +73,7 @@
 .pg-pick.on path{opacity:1}
 @media (hover:hover){.pg-pick:hover{transform:scale(1.08)}}
 .pg-pick:active{transform:scale(1.12)}
-.pg-tab.off{opacity:.45;border-style:dashed}
-.pg-card.off{opacity:.5}
+.pg-tab.picked::before{content:"";width:5px;height:9px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg);margin:-3px 8px 0 2px;display:inline-block}
 /* 분류 선택 버튼: 아이콘 아래 이름 */
 .catbar{display:flex;gap:8px;justify-content:center;width:100%}
 .cat-btn{flex:1 1 0;min-width:60px;max-width:96px;border:1.5px solid #000;background:#fff;color:#000;border-radius:16px;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;font:700 .85em "Gmarket",sans-serif;line-height:1.1;transition:transform .38s var(--spring),background-color .2s,color .2s}

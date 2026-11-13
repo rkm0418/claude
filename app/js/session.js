@@ -105,7 +105,9 @@ async function ask(q) {
       S.figs = S.problem.blob ? makeFigures(o.figures, S.problem.src, S.problem.rect, S.problem.rmColor) : [];
     }
     reply = cleanReply(reply);
-    const entry = { q, a: reply, skip: new Set() }; S.qa.push(entry);
+    // 처음에는 모든 칸이 선택 해제 상태: 오답노트에 넣을 칸만 체크해서 담음
+    const ps = parseSections(reply), skip = new Set([...(ps.secs.length && ps.pre ? ["요약"] : []), ...ps.secs.map(s => s.h)]);
+    const entry = { q, a: reply, skip }; S.qa.push(entry);
     if (S.noteId) persist(S.cat); // 이미 저장한 문제면 새 답도 같이 저장
     wait.remove(); addMsg("a", reply, entry);
     $("saveBar").classList.remove("hide");
