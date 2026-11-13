@@ -3,12 +3,13 @@ import { $, showDialog, closeDialog, loadImage } from "./util.js";
 import { notes } from "./db.js";
 import { fillRich } from "./rich.js";
 import { exportPdf } from "./pdf.js";
-import { CATS, ORDER, levelDots } from "./cats.js";
-import { createPicker, swipeSelect } from "./picker.js";
+import { CATS } from "./cats.js";
+import { swipeSelect } from "./picker.js";
+import { categoryBar } from "./catbar.js";
 
 
 let curCat = 1; // 처음엔 "얻은 것 있음"
-let picker = null;
+let catbar = null;
 export const currentCat = () => curCat;
 
 /** 문제 글 + 그림 + 질문/답을 저장 (원본 사진은 목록에서만 보임). 같은 id면 분류만 바뀜 */
@@ -51,11 +52,32 @@ function initFigEditor() {
 /* ── 목록 ── */
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e };
 
+/** 수정 화면: 문제 글, 질문, 답을 고치거나 지울 수 있음 (비우면 그 부분이 빠짐) */
+function editCard(n, c) {
+  c.textContent = "";
+  const ta = (value, rows) => { const t = el("textarea", "ed"); t.value = value; t.rows = rows; t.addEventListener("input", () => { t.style.height = "auto"; t.style.height = t.scrollHeight + "px" }); return t };
+  const body = ta(n.tr || n.text || "", 3), qas = (n.qa || []).map(x => ({ q: ta(x.q, 1), a: ta(x.a, 6) }));
+  c.append(el("div", "note", "문제"), body);
+  qas.forEach(x => c.append(el("div", "note", "질문"), x.q, el("div", "note", "답 ([제목] 줄로 칸이 나뉘어요)"), x.a));
+  const row = el("div", "row end mt"), cancel = el("button", "btn", "취소"), ok = el("button", "btn pri", "저장");
+  cancel.type = ok.type = "button"; cancel.onclick = () => renderNotes();
+  ok.onclick = async () => {
+    if (n.tr) n.tr = body.value.trim(); else n.text = body.value.trim();
+    n.qa = qas.map(x => ({ q: x.q.value.trim(), a: x.a.value.trim() })).filter(x => x.q || x.a);
+    await notes.put(n); renderNotes();
+  };
+  row.append(cancel, ok); c.appendChild(row);
+  c.querySelectorAll("textarea").forEach(t => { t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight, 360) + "px" });
+}
+
 function card(n) {
   const c = el("div", "nc"), top = el("div", "top", new Date(n.t).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }));
   const del = el("button", "x", "×"); del.type = "button"; del.setAttribute("aria-label", "삭제");
   del.onclick = async () => { await notes.del(n.id); renderNotes() };
-  top.appendChild(del); c.appendChild(top);
+  const edit = el("button", "x", ""); edit.type = "button"; edit.setAttribute("aria-label", "수정");
+  edit.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 7.5l3 3"/></svg>';
+  edit.onclick = () => editCard(n, c);
+  const acts = el("span", "acts"); acts.append(edit, del); top.appendChild(acts); c.appendChild(top);
   const pt = el("div", "pt"); fillRich(pt, n.tr || n.text || (n.img ? "(사진 문제)" : "")); c.appendChild(pt);
 
   const dt = el("details"); dt.appendChild(el("summary", null, "자세히"));
@@ -78,7 +100,7 @@ function card(n) {
 
 async function renderNotes() {
   const all = (await notes.all()).sort((a, b) => b.t - a.t);
-  picker.setCount(all.filter(x => x.cat === curCat).length);
+  const cnt = {}; all.forEach(x => { cnt[x.cat] = (cnt[x.cat] || 0) + 1 }); catbar.setCounts(cnt);
   const list = $("noteList"), mine = all.filter(x => x.cat === curCat);
   list.textContent = "";
   if (!mine.length) list.appendChild(el("div", "note", "저장된 문제가 없어요."));
@@ -87,13 +109,14 @@ async function renderNotes() {
 
 export function initNotes() {
   initFigEditor();
-  // 분류 선택기: 위아래로 쓸어서 바꿈
-  picker = createPicker({ value: ORDER.indexOf(curCat) + 1, render: levelDots, showCount: true, label: "오답노트 분류 (위아래로 쓸어서 선택)", onChange: lv => { curCat = ORDER[lv - 1]; renderNotes() } });
-  $("noteTabs").replaceChildren(picker.el);
+  // 분류 선택: 아이콘 아래 이름이 있는 버튼 (눌러서 선택)
+  catbar = categoryBar({ value: curCat, showCount: true, onChange: cat => { curCat = cat; renderNotes() } });
+  $("noteTabs").replaceChildren(catbar.el);
   swipeSelect($("pdfScope"), "PDF 범위 (위아래로 쓸어서 선택)");
   $("btnNote").onclick = async () => { $("pdfMsg").textContent = ""; await renderNotes(); showDialog($("noteDlg")) };
   $("noteClose").onclick = () => closeDialog($("noteDlg"));
-  const run = mode => exportPdf(mode, { scope: $("pdfScope").value, cat: curCat, setMsg: t => { $("pdfMsg").textContent = t }, busy: b => { $("pdfExam").disabled = $("pdfNote").disabled = b } });
+  const run = mode => exportPdf(mode, { scope: $("pdfScope").value, cat: curCat, setMsg: t => { $("pdfMsg").textContent = t }, busy: b => { $("pdfExam").disabled = $("pdfNote").disabled = $("pdfVar").disabled = b } });
   $("pdfExam").onclick = () => run("exam");
   $("pdfNote").onclick = () => run("note");
+  $("pdfVar").onclick = () => run("variant");
 }

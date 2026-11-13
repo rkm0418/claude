@@ -1,12 +1,12 @@
 /* 질문 세션: 문제 올림 → 궁금한 점 묻기(자동 풀이 없음) → 끝내기 */
 import { $, blobToDataUrl } from "./util.js";
-import { fillRich } from "./rich.js";
+import { fillRich, joinSections, parseSections } from "./rich.js";
 import { callClaude, imageBlock, parseFirst, cleanReply, ApiError } from "./claude.js";
 import { resetDrawer } from "./drawer.js";
 import { makeFigures } from "./figures.js";
 import { saveNote } from "./notes.js";
-import { CATS, ORDER, levelDots } from "./cats.js";
-import { createPicker } from "./picker.js";
+
+import { categoryBar } from "./catbar.js";
 import { openSettings } from "./settings.js";
 
 let S = null;      // 지금 세션: {problem, qa, transcript, figs, noteId}
@@ -17,31 +17,29 @@ const asking = () => !!S;
 const setAskMode = on => { document.body.classList.toggle("ask-mode", on); $("compose").inert = on; $("dock").inert = !on };
 
 /* ── 화면 부품 ── */
-function addMsg(cls, t) {
+function addMsg(cls, t, entry) {
   const d = document.createElement("div");
   d.className = "msg " + cls;
-  if (cls === "a") fillRich(d, t, { pager: true }); else d.textContent = t;
+  if (cls === "a") fillRich(d, t, entry ? { pager: true, selectable: true, skip: entry.skip, onToggle: () => { if (S?.noteId) persist(S.cat) } } : { pager: true });
+  else d.textContent = t;
   const m = $("msgs"); m.appendChild(d);
   // 긴 답은 처음부터 읽을 수 있게 말풍선 위쪽에 맞추고, 내 질문은 맨 아래로
   if (cls === "a") m.scrollTop += d.getBoundingClientRect().top - m.getBoundingClientRect().top - 8; else m.scrollTop = m.scrollHeight;
   return d;
 }
 
-/** 저장 선택기: 위아래로 쓸어서 고르면 바로 오답노트에 저장(바꾸면 분류만 바뀜).
-    빨간 동그라미 1~4개: 얻은 것 있음 → 이해 안 됨 → 개념 몰라서 → 어려워서 */
-let saveTimer = null;
+/** 저장 선택: 빨간 동그라미 아이콘 아래에 이름을 쓴 버튼 4개 (얻음 · 애매 · 개념 · 어려움).
+    누르면 바로 오답노트에 저장하고, 다른 버튼을 누르면 분류만 바뀜 */
 function makeSaveBar() {
   const bar = $("saveBar"); bar.textContent = "";
-  const pk = createPicker({
-    render: levelDots, label: "오답노트 분류 (위아래로 쓸어서 선택)",
-    onChange: lv => { clearTimeout(saveTimer); const mine = S; saveTimer = setTimeout(() => { if (S === mine) persist(ORDER[lv - 1]) }, 350) },
-  });
-  bar.appendChild(pk.el);
+  bar.appendChild(categoryBar({ onChange: cat => persist(cat) }).el);
 }
 
+/** 오답노트에는 내가 담은 칸만 저장 (칸이 없는 짧은 답은 그대로) */
 async function persist(cat) {
-  S.noteId ||= "n" + Date.now();
-  await saveNote({ id: S.noteId, t: S.t, cat, text: S.problem.blob ? "" : (S.qa[0]?.q || ""), tr: S.transcript, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa: S.qa, figs: S.figs });
+  S.noteId ||= "n" + Date.now(); S.cat = cat;
+  const qa = S.qa.map(x => ({ q: x.q, a: joinSections(x.a, x.skip).trim() })).filter(x => x.a);
+  await saveNote({ id: S.noteId, t: S.t, cat, text: S.transcript ? "" : (S.problem.blob ? "" : (S.qa[0]?.q || "")), tr: S.transcript, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa, figs: S.figs });
 }
 
 /* ── 시작 / 끝 ── */
@@ -102,12 +100,13 @@ async function ask(q) {
     let reply = text;
     if (isFirst) {
       const o = parseFirst(text); reply = o.reply;
-      if (S.problem.blob && o.problem) S.transcript = String(o.problem);
+      if (o.problem) S.transcript = String(o.problem); // 사진이 없어도 글에서 문제 부분만 따로 저장
       S.figs = S.problem.blob ? makeFigures(o.figures, S.problem.src, S.problem.rect, S.problem.rmColor) : [];
     }
     reply = cleanReply(reply);
-    S.qa.push({ q, a: reply });
-    wait.remove(); addMsg("a", reply);
+    const entry = { q, a: reply, skip: new Set() }; S.qa.push(entry);
+    if (S.noteId) persist(S.cat); // 이미 저장한 문제면 새 답도 같이 저장
+    wait.remove(); addMsg("a", reply, entry);
     $("saveBar").classList.remove("hide");
   } catch (e) {
     if (S !== mine || e.name === "AbortError") return;

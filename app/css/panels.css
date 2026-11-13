@@ -64,3 +64,23 @@
 .pg-btn:active:not(:disabled){transform:scale(1.12)}
 .pg-count{font:700 .8em "Gmarket",sans-serif}
 .msg.a:has(.pager){width:100%;max-width:100%}
+.pg-mid{display:inline-flex;align-items:center;gap:10px}
+.pg-pick{width:40px;height:36px;border:1.5px solid #000;border-radius:12px;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .38s var(--spring),background-color .2s}
+.pg-pick svg{width:24px;height:24px;fill:none;stroke:#000;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pg-pick path{opacity:0}
+.pg-pick.on{background:#000}
+.pg-pick.on svg{stroke:#fff}
+.pg-pick.on path{opacity:1}
+@media (hover:hover){.pg-pick:hover{transform:scale(1.08)}}
+.pg-pick:active{transform:scale(1.12)}
+.pg-tab.off{opacity:.45;border-style:dashed}
+.pg-card.off{opacity:.5}
+/* 분류 선택 버튼: 아이콘 아래 이름 */
+.catbar{display:flex;gap:8px;justify-content:center;width:100%}
+.cat-btn{flex:1 1 0;min-width:60px;max-width:96px;border:1.5px solid #000;background:#fff;color:#000;border-radius:16px;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;font:700 .85em "Gmarket",sans-serif;line-height:1.1;transition:transform .38s var(--spring),background-color .2s,color .2s}
+.cat-btn .dots{gap:3px}
+.cat-btn .dots i{width:10px;height:10px}
+.cat-btn.on{background:#000;color:#fff}
+.cat-btn .cat-cnt{font:600 .85em var(--font);opacity:.75}
+@media (hover:hover){.cat-btn:hover{transform:scale(1.05)}}
+.cat-btn:active{transform:scale(1.08);transition-duration:.12s}
