@@ -87,9 +87,8 @@ export function resetDrawer() {
 export function initDrawer({ onStart }) {
   initCropDrag();
   const drop = $("drop");
-  drop.onclick = $("pickPhoto").onclick = () => $("probFile").click();
-  $("camPhoto").onclick = () => $("probCam").click();
-  for (const id of ["probFile", "probCam"]) $(id).onchange = e => { const f = e.target.files[0]; if (f) loadPhoto(f); e.target.value = "" };
+  drop.onclick = () => $("probFile").click();
+  $("probFile").onchange = e => { const f = e.target.files[0]; if (f) loadPhoto(f); e.target.value = "" };
   drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("probFile").click() } };
   drop.ondragover = e => e.preventDefault();
   drop.ondrop = e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f?.type.startsWith("image/")) loadPhoto(f) };
