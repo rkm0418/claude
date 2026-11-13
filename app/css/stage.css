@@ -8,4 +8,4 @@
 .ask-mode .compose{display:none}
 .drop{display:flex;align-items:center;justify-content:center;gap:16px;border:2px dashed #999;border-radius:var(--r);padding:26px}
 .btn.icon{display:flex;align-items:center;justify-content:center;width:72px;height:72px;padding:0;border-radius:20px;color:#000}
-.btn.icon svg{width:36px;height:36px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn.icon svg{width:40px;height:40px}
