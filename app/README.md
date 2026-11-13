@@ -2,6 +2,16 @@
 
 문제를 올리고 궁금한 점만 물어보는 공부용 앱입니다. 캐릭터·얼굴 없이 기능만 있습니다. 빌드 없이 정적 파일 그대로 동작하고, 홈 화면에 설치(PWA)할 수 있습니다.
 
+## 화면
+
+| 첫 화면 | 범위 고르기 | 질문 | 오답노트 | 설정 |
+|---|---|---|---|---|
+| ![](screenshots/phone-1-home.png) | ![](screenshots/phone-2-crop.png) | ![](screenshots/phone-3-ask.png) | ![](screenshots/phone-4-notes.png) | ![](screenshots/phone-5-settings.png) |
+
+PC 화면: [첫 화면](screenshots/pc-1-home.png) · [범위 고르기](screenshots/pc-2-crop.png) · [질문](screenshots/pc-3-ask.png) · [오답노트](screenshots/pc-4-notes.png) · [설정](screenshots/pc-5-settings.png)
+
+(스크린샷은 가짜 응답으로 찍은 예시입니다.)
+
 ## 폴더
 - `index.html` 화면 뼈대, `css/` 스타일, `js/` ES 모듈
   - `drawer.js` 문제 올리기 화면(사진/글, 영역 선택)
