@@ -83,3 +83,4 @@
 .cat-btn .cat-cnt{font:600 .85em var(--font);opacity:.75}
 @media (hover:hover){.cat-btn:hover{transform:scale(1.05)}}
 .cat-btn:active{transform:scale(1.08);transition-duration:.12s}
+.msg-pick{display:flex;margin:10px 0 0 auto}
