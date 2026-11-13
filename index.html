@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>뱃살 터치 게임</title>
+<style>
+  :root{
+    --bg:#fff4e6; --ink:#4a2c1a; --belly:#f6c9a0; --belly-edge:#e0a678;
+    --fat:#ffb3a7; --lime:#e9ecef; --lime-edge:#868e96; --accent:#e8590c;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:system-ui,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;overflow:hidden}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+  .screen.active{display:flex}
+
+  /* lobby */
+  #lobby h1{font-size:clamp(2rem,8vw,3.5rem);margin:0 0 8px}
+  #lobby p{margin:4px 0;opacity:.8}
+  #best{margin:12px 0 24px;font-weight:700}
+  button.big{font:inherit;font-size:1.4rem;font-weight:700;padding:14px 40px;border:0;border-radius:999px;
+    background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 4px 0 #b24208}
+  button.big:active{transform:translateY(3px);box-shadow:0 1px 0 #b24208}
+
+  /* game */
+  #game{justify-content:flex-start;padding:0}
+  #hud{width:100%;padding:12px 16px 0;display:flex;flex-direction:column;gap:8px;z-index:2}
+  #hudrow{display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem}
+  #barwrap{height:18px;background:#fff;border-radius:9px;border:2px solid var(--belly-edge);overflow:hidden}
+  #bar{height:100%;width:100%;background:var(--accent);transform-origin:left}
+  #field{position:relative;flex:1;width:100%;max-width:900px;margin:0 auto}
+
+  /* big belly */
+  #belly{position:absolute;left:50%;top:50%;width:min(46vw,380px);aspect-ratio:1/1.05;transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 50% 40%,#fbd9b8,var(--belly) 60%,var(--belly-edge));
+    border-radius:50% 50% 48% 48%/45% 45% 55% 55%;border:4px solid var(--belly-edge);
+    box-shadow:inset 0 -14px 30px rgba(160,90,40,.25)}
+  #belly::after{content:"";position:absolute;left:50%;top:52%;width:9%;height:4.5%;transform:translate(-50%,-50%);
+    background:var(--belly-edge);border-radius:50%;box-shadow:inset 0 3px 4px rgba(0,0,0,.25)}
+  #belly.jiggle{animation:jig .18s}
+  @keyframes jig{50%{transform:translate(-50%,-50%) scale(1.04,.97)}}
+
+  /* items */
+  .item{position:absolute;top:50%;width:min(22vw,170px);aspect-ratio:1;transform:translateY(-50%);
+    border:0;padding:0;border-radius:50%;cursor:pointer;font-weight:800;font-size:clamp(.9rem,3vw,1.3rem);color:var(--ink);
+    display:none;align-items:center;justify-content:center;animation:pop .15s ease-out}
+  .item.show{display:flex}
+  .item.left{left:2%} .item.right{right:2%}
+  .item.fat{background:radial-gradient(circle at 35% 30%,#ffd8d0,var(--fat));border:4px solid #f08a78}
+  .item.lime{background:radial-gradient(circle at 35% 30%,#fff,var(--lime));border:4px dashed var(--lime-edge);color:#495057}
+  @keyframes pop{from{transform:translateY(-50%) scale(.3)}to{transform:translateY(-50%) scale(1)}}
+
+  #over h2{font-size:2.2rem;margin:0 0 8px}
+  #reason{margin:0 0 4px;opacity:.8}
+  #final{font-size:1.6rem;font-weight:800;margin:8px 0 24px}
+</style>
+</head>
+<body>
+
+<section id="lobby" class="screen active">
+  <h1>뱃살 터치!</h1>
+  <p>뱃살(분홍)은 터치! 석회(회색)는 터치 금지!</p>
+  <p>시간이 다 되거나 석회를 누르면 끝!</p>
+  <div id="best">최고 점수: 0</div>
+  <button class="big" id="startBtn">시작</button>
+</section>
+
+<section id="game" class="screen">
+  <div id="hud">
+    <div id="hudrow"><span id="score">점수 0</span><span id="time">10.0초</span></div>
+    <div id="barwrap"><div id="bar"></div></div>
+  </div>
+  <div id="field">
+    <div id="belly"></div>
+    <button class="item left" id="itemL"></button>
+    <button class="item right" id="itemR"></button>
+  </div>
+</section>
+
+<section id="over" class="screen">
+  <h2>게임 종료</h2>
+  <p id="reason"></p>
+  <div id="final"></div>
+  <button class="big" id="lobbyBtn">로비로</button>
+</section>
+
+<script>
+(() => {
+  const S_INIT = 10, S_MIN = 2, S_STEP = 0.1, LIME_MS = 2000;
+  const $ = id => document.getElementById(id);
+  const screens = {lobby:$('lobby'), game:$('game'), over:$('over')};
+  const items = {left:$('itemL'), right:$('itemR')};
+  const show = n => Object.entries(screens).forEach(([k,e]) => e.classList.toggle('active', k===n));
+
+  let best = 0;
+  try { best = +localStorage.getItem('bellyBest') || 0; } catch(e){}
+  $('best').textContent = '최고 점수: ' + best;
+
+  let s, score, remaining, lastTs, timerOn, current, limeTimeout, raf, running;
+
+  function start(){
+    s = S_INIT; score = 0; remaining = s; timerOn = false; running = true; current = null;
+    updateHud(); show('game');
+    lastTs = performance.now();
+    raf = requestAnimationFrame(tick);
+    spawn();
+  }
+
+  function spawn(){
+    if(!running) return;
+    clearTimeout(limeTimeout);
+    const side = Math.random() < .5 ? 'left' : 'right';
+    const type = Math.random() < .35 ? 'lime' : 'fat';
+    current = {side, type};
+    for(const k in items) items[k].className = 'item ' + k; // hide both
+    const el = items[side];
+    el.className = `item ${side} ${type} show`;
+    el.textContent = type === 'fat' ? '뱃살' : '석회';
+    if(!timerOn){ timerOn = true; remaining = s; lastTs = performance.now(); } // 첫 등장 시 타이머 시작
+    if(type === 'lime'){
+      limeTimeout = setTimeout(() => {      // 2초 동안 안 누름 → +1점, 다음으로
+        if(!running) return;
+        score++; remaining = s; updateHud(); spawn();
+      }, LIME_MS);
+    }
+  }
+
+  function hit(side){
+    if(!running || !current || current.side !== side) return;
+    if(current.type === 'lime') return end('석회를 눌렀어요!');
+    score++;
+    s = Math.max(S_MIN, Math.round((s - S_STEP) * 10) / 10);
+    remaining = s;
+    const b = $('belly'); b.classList.remove('jiggle'); void b.offsetWidth; b.classList.add('jiggle');
+    updateHud(); spawn();
+  }
+
+  function tick(ts){
+    if(!running) return;
+    if(timerOn){
+      remaining -= (ts - lastTs) / 1000;
+      if(remaining <= 0){ remaining = 0; updateHud(); return end('시간 초과!'); }
+    }
+    lastTs = ts;
+    updateHud();
+    raf = requestAnimationFrame(tick);
+  }
+
+  function updateHud(){
+    $('score').textContent = '점수 ' + score;
+    $('time').textContent = remaining.toFixed(1) + '초';
+    $('bar').style.transform = `scaleX(${Math.max(0, remaining / s)})`;
+  }
+
+  function end(reason){
+    running = false; clearTimeout(limeTimeout); cancelAnimationFrame(raf);
+    if(score > best){ best = score; try{ localStorage.setItem('bellyBest', best); }catch(e){} }
+    $('reason').textContent = reason;
+    $('final').textContent = `점수 ${score} (최고 ${best})`;
+    $('best').textContent = '최고 점수: ' + best;
+    show('over');
+  }
+
+  // pointerdown 으로 즉각 반응
+  for(const k in items) items[k].addEventListener('pointerdown', e => { e.preventDefault(); hit(k); });
+  $('startBtn').onclick = start;
+  $('lobbyBtn').onclick = () => show('lobby');
+})();
+</script>
+</body>
+</html>
