@@ -118,7 +118,8 @@ export function initDrawer({ onStart }) {
   const drop = $("drop");
   $("pickPhoto").onclick = () => $("probFile").click();
   $("camPhoto").onclick = () => $("probCam").click();
-  if (navigator.mediaDevices?.getDisplayMedia) { $("screenCap").classList.remove("hide"); $("screenCap").onclick = captureScreen }
+  const sc = $("screenCap"); // 화면 캡처를 지원하는 브라우저에서만 아이콘을 보임
+  if (sc && navigator.mediaDevices?.getDisplayMedia) { sc.classList.remove("hide"); sc.onclick = captureScreen }
   for (const id of ["probFile", "probCam"]) $(id).onchange = e => { const f = e.target.files[0]; if (f) loadPhoto(f); e.target.value = "" };
   drop.ondragover = e => e.preventDefault();
   drop.ondrop = e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f?.type.startsWith("image/")) loadPhoto(f) };
