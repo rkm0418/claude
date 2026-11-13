@@ -11,3 +11,8 @@
 .btn.icon svg{width:36px;height:36px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .countdown{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);cursor:pointer}
 .countdown span{font-family:"Gmarket";font-weight:700;font-size:min(40vw,200px);color:#fff;line-height:1}
+.pw{background:#fff;color:#000;border-radius:24px;padding:24px;width:min(380px,calc(100% - 32px));text-align:center;cursor:default;display:flex;flex-direction:column;align-items:center;gap:10px}
+.pw svg{width:48px;height:48px;fill:none;stroke:#000;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pw p{margin:0;font-size:15px}
+.pw .keys{font-size:14px}
+.pw kbd{font:600 13px var(--font);background:var(--soft);border-radius:6px;padding:2px 7px}

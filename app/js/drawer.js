@@ -55,7 +55,7 @@ async function loadPhoto(file) {
 /** 사진·캡처 어느 쪽이든 큰 범위 선택 창으로 */
 function useSource(canvas) {
   try {
-    src = canvas;
+    src = canvas; pasteWait(false);
     rect = autoTrim();
     $("err").textContent = "";
     openCrop(); rebuild();
@@ -68,8 +68,8 @@ async function captureScreen() {
   let stream; const t0 = performance.now();
   try { stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }) }
   catch {
-    // 고르는 창이 떴다가 취소했으면 조용히, 창도 없이 바로 거절되면(아티팩트 등) 안내
-    if (performance.now() - t0 < 400) $("err").textContent = "이 화면에서는 화면 캡처가 막혀 있어요. 스크린샷을 앨범에서 올리거나 Ctrl+V로 붙여넣어 주세요.";
+    // 고르는 창이 떴다가 취소했으면 조용히, 창도 없이 바로 거절되면(아티팩트 등) 직접 캡처 후 붙여넣기 모드
+    if (performance.now() - t0 < 400) pasteWait(true);
     return;
   }
   $("err").textContent = "";
@@ -88,6 +88,26 @@ async function captureScreen() {
     useSource(c);
   } catch { $("err").textContent = "화면을 가져오지 못했어요." }
   finally { stream.getTracks().forEach(t => t.stop()); $("countdown").classList.add("hide") }
+}
+
+/* ── 직접 캡처 후 붙여넣기: 창으로 돌아오면 클립보드 이미지를 자동으로 시도, 안 되면 Ctrl+V ── */
+async function readClipboardImage() {
+  try {
+    for (const it of await navigator.clipboard.read()) {
+      const type = it.types.find(t => t.startsWith("image/"));
+      if (type) return new File([await it.getType(type)], "capture", { type });
+    }
+  } catch {}
+  return null;
+}
+function pasteWait(on) {
+  $("pasteWait").classList.toggle("hide", !on);
+  if (on) $("pwCancel").focus();
+}
+async function onReturn() {
+  if ($("pasteWait").classList.contains("hide")) return;
+  const f = await readClipboardImage();
+  if (f) loadPhoto(f);
 }
 
 function openCrop() {
@@ -123,6 +143,9 @@ export function initDrawer({ onStart }) {
   const drop = $("drop");
   $("pickPhoto").onclick = () => $("probFile").click();
   $("camPhoto").onclick = () => $("probCam").click();
+  $("pwCancel").onclick = () => pasteWait(false);
+  addEventListener("keydown", e => { if (e.key === "Escape") pasteWait(false) });
+  addEventListener("focus", onReturn); document.addEventListener("visibilitychange", () => { if (!document.hidden) onReturn() });
   const sc = $("screenCap"); // 화면 캡처를 지원하는 브라우저에서만 아이콘을 보임
   if (sc && navigator.mediaDevices?.getDisplayMedia) { sc.classList.remove("hide"); sc.onclick = captureScreen }
   for (const id of ["probFile", "probCam"]) $(id).onchange = e => { const f = e.target.files[0]; if (f) loadPhoto(f); e.target.value = "" };
