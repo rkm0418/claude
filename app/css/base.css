@@ -13,7 +13,7 @@
   --gut-l:max(16px,env(safe-area-inset-left,0px)); --gut-r:max(16px,env(safe-area-inset-right,0px));
   --font:"Freesentation","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
   --font-chat:"LevelUp","Freesentation","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
-  --ease:cubic-bezier(.3,.7,.2,1); --pop:cubic-bezier(.2,.9,.3,1.25);
+  --ease:cubic-bezier(.3,.7,.2,1); --pop:cubic-bezier(.22,.9,.3,1); --spring:cubic-bezier(.34,1.45,.5,1);
   color-scheme:light;
 }
 *{box-sizing:border-box}
@@ -30,7 +30,7 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 .mt{margin-top:10px}
 
 /* 버튼 */
-.btn,.btn-top,.big-btn,.tabs button{position:relative;overflow:hidden;border:0;cursor:pointer;transition:transform .18s var(--ease),box-shadow .18s,filter .18s,background-color .18s}
+.btn,.btn-top,.big-btn,.tabs button{position:relative;overflow:hidden;border:0;cursor:pointer;transition:transform .38s var(--spring),filter .2s,background-color .2s}
 .btn{background:var(--soft);border-radius:14px;padding:8px 16px;font-weight:600;font-size:15px}
 .btn.pri{background:var(--coral);color:#fff}
 .btn.warn{background:#fff;color:#000;box-shadow:inset 0 0 0 2px #000}
@@ -48,10 +48,12 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 }
 .btn:active:not(:disabled),.tabs button:active{transform:scale(1.08)}
 .btn-top:active{transform:scale(1.08)}
+/* 누르는 순간은 빠르게 커지고, 놓으면 살짝 넘쳤다가 부드럽게 제자리로 */
+.btn:active:not(:disabled),.btn-top:active,.big-btn:active:not(:disabled),.tabs button:active{transition-duration:.12s,.2s,.2s;transition-timing-function:ease-out}
 /* 눌렀을 때 한 번만 퍼지는 물결 */
 .rp{position:absolute;border-radius:50%;background:currentColor;opacity:.22;transform:scale(0);pointer-events:none;animation:rpOut .55s ease-out forwards}
 @keyframes rpOut{to{transform:scale(1);opacity:0}}
-@keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.035)}100%{opacity:1;transform:scale(1)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 input[type=text],input[type=password],select{border:0;border-radius:14px;padding:8px 12px;background:var(--soft);min-width:0}
