@@ -7,5 +7,5 @@
 .compose h1{font-family:"Gmarket";font-weight:700;font-size:22px;margin:0}
 .ask-mode .compose{display:none}
 .drop{display:flex;align-items:center;justify-content:center;gap:16px;border:2px dashed #999;border-radius:var(--r);padding:26px}
-.btn.icon{display:flex;align-items:center;justify-content:center;width:72px;height:72px;padding:0;border-radius:20px;color:#000}
+.btn.icon{display:flex;align-items:center;justify-content:center;width:72px;height:72px;padding:0;border-radius:20px;background:#000;color:#fff}
 .btn.icon svg{width:40px;height:40px}
