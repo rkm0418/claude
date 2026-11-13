@@ -1,5 +1,5 @@
 /* 서비스 워커: 앱 파일을 저장해 두어 오프라인에서도 열리게 함 (Anthropic API 요청은 건드리지 않음) */
-const VERSION = "v15";
+const VERSION = "v16";
 const CACHE = "study-tutor-" + VERSION;
 const SHELL = [
   "./",
@@ -71,15 +71,17 @@ self.addEventListener("activate", e => {
   );
 });
 
-/* 저장된 파일을 먼저 보여주고, 뒤에서 새 버전을 받아 둠 */
+/* 온라인이면 항상 새 파일을 받아서 보여주고(바뀐 내용이 바로 반영됨), 오프라인일 때만 저장해 둔 파일을 씀 */
 self.addEventListener("fetch", e => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== "GET" || url.origin !== location.origin) return;
   e.respondWith(
-    caches.open(CACHE).then(async c => {
-      const hit = await c.match(req, { ignoreSearch: true });
-      const net = fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res }).catch(() => null);
-      return hit || (await net) || (req.mode === "navigate" ? c.match("./index.html") : Response.error());
+    fetch(req, { cache: "no-cache" }).then(res => {
+      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)) }
+      return res;
+    }).catch(async () => {
+      const c = await caches.open(CACHE);
+      return (await c.match(req, { ignoreSearch: true })) || (req.mode === "navigate" ? c.match("./index.html") : Response.error());
     })
   );
 });
