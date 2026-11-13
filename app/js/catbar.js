@@ -2,7 +2,7 @@
 import { CATS, ORDER, catDots } from "./cats.js";
 
 /** 아이콘 아래에 쓰는 짧은 이름 (저장 번호 기준) */
-export const CAT_SHORT = { 4: "실수", 1: "얻음", 0: "애매", 2: "개념", 3: "어려움" };
+export const CAT_SHORT = { 4: "시간", 1: "얻음", 0: "애매", 2: "개념", 3: "어려움" };
 
 /** value: 처음 선택(없으면 null), showCount: 분류별 문제 수 표시, onChange(cat): 눌렀을 때 */
 export function categoryBar({ value = null, showCount = false, onChange }) {
