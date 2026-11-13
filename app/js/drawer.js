@@ -1,5 +1,5 @@
 /* 문제 올리기 화면: 사진/글 입력, 문제 부분 선택, 작게 줄이기 */
-import { $, decodeImage, showDialog } from "./util.js";
+import { $, decodeImage, showDialog, closeDialog } from "./util.js";
 
 const MAXD = 1024; // 보낼 사진의 긴 변(px)
 let src = null, rect = null; // 원본(캔버스)과 고른 영역
@@ -74,7 +74,7 @@ function initCropDrag() {
   cv.onpointerdown = e => { if (!src) return; cv.setPointerCapture(e.pointerId); st = pos(e) };
   cv.onpointermove = e => { if (st) paint(rc(st, pos(e))) };
   cv.onpointerup = e => { if (!st) return; const r = rc(st, pos(e)); st = null; if (r.w > 30 && r.h > 30) { rect = r; rebuild() } paint() };
-  $("cropDone").onclick = () => $("cropDlg").close();
+  $("cropDone").onclick = () => closeDialog($("cropDlg"));
   $("cropDlg").addEventListener("close", () => { if (src) $("probPrev").classList.remove("hide") });
   $("recrop").onclick = openCrop;
   addEventListener("resize", () => { if (src && $("cropDlg").open) paint() });

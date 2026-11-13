@@ -1,5 +1,5 @@
 /* 오답노트: 4분류 저장, 목록, 그림 지우개 */
-import { $, showDialog, loadImage } from "./util.js";
+import { $, showDialog, closeDialog, loadImage } from "./util.js";
 import { notes } from "./db.js";
 import { fillRich } from "./rich.js";
 import { exportPdf } from "./pdf.js";
@@ -39,12 +39,12 @@ function initFigEditor() {
   c.onpointermove = e => { if (!last) return; const p = pos(e); line(last, p); last = p };
   c.onpointerup = c.onpointercancel = () => { last = null };
   $("figReset").onclick = async () => { if (figEdit) fcv().getContext("2d").drawImage(await loadImage(figEdit.note.figs0[figEdit.i]), 0, 0) };
-  $("figCancel").onclick = () => $("figDlg").close();
+  $("figCancel").onclick = () => closeDialog($("figDlg"));
   $("figDone").onclick = async () => {
     if (!figEdit) return;
     figEdit.note.figs[figEdit.i] = fcv().toDataURL("image/jpeg", .88);
     await notes.put(figEdit.note);
-    $("figDlg").close(); renderNotes();
+    closeDialog($("figDlg")); renderNotes();
   };
 }
 
@@ -92,7 +92,7 @@ export function initNotes() {
   $("noteTabs").replaceChildren(picker.el);
   swipeSelect($("pdfScope"), "PDF 범위 (위아래로 쓸어서 선택)");
   $("btnNote").onclick = async () => { $("pdfMsg").textContent = ""; await renderNotes(); showDialog($("noteDlg")) };
-  $("noteClose").onclick = () => $("noteDlg").close();
+  $("noteClose").onclick = () => closeDialog($("noteDlg"));
   const run = mode => exportPdf(mode, { scope: $("pdfScope").value, cat: curCat, setMsg: t => { $("pdfMsg").textContent = t }, busy: b => { $("pdfExam").disabled = $("pdfNote").disabled = b } });
   $("pdfExam").onclick = () => run("exam");
   $("pdfNote").onclick = () => run("note");

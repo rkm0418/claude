@@ -10,7 +10,23 @@ export const store = {
 export const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function showDialog(d) {
+  d.classList.remove("closing");
   try { d.showModal() } catch { d.setAttribute("open", "") }
+}
+
+/** 닫을 때도 나올 때처럼 부드럽게 (바로 사라져서 튀지 않게) */
+export function closeDialog(d) {
+  if (!d.open || d.classList.contains("closing")) return;
+  if (reduceMotion()) { d.close(); return }
+  d.classList.add("closing");
+  const done = () => { if (d.classList.contains("closing")) { d.classList.remove("closing"); d.close() } };
+  d.addEventListener("animationend", e => { if (e.target === d) done() }, { once: false });
+  setTimeout(done, 350);
+}
+
+/** Esc로 닫을 때도 같은 모션 */
+export function initDialogs() {
+  document.querySelectorAll("dialog").forEach(d => d.addEventListener("cancel", e => { e.preventDefault(); closeDialog(d) }));
 }
 
 /** 스크립트를 처음 필요할 때 한 번만 불러오기 */

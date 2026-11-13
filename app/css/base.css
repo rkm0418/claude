@@ -55,6 +55,7 @@ h2{font-family:"Gmarket",sans-serif;font-weight:700;margin:0;font-size:17px}
 @keyframes rpOut{to{transform:scale(1);opacity:0}}
 @keyframes pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.035)}100%{opacity:1;transform:scale(1)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
 
 input[type=text],input[type=password],select{border:0;border-radius:14px;padding:8px 12px;background:var(--soft);min-width:0}
 textarea{width:100%;min-height:96px;resize:vertical;border:0;border-radius:var(--r);background:var(--soft);padding:12px 14px}

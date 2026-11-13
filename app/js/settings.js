@@ -1,5 +1,5 @@
 /* 설정: API 키·모델·학년·말투 (이 기기의 localStorage에만 저장) */
-import { $, store, showDialog } from "./util.js";
+import { $, store, showDialog, closeDialog } from "./util.js";
 import { swipeSelect } from "./picker.js";
 
 const KEYS = { apiKey: "ft.apiKey", model: "ft.model", level: "ft.level", style: "ft.style" };
@@ -22,5 +22,5 @@ export function initSettings() {
   swipeSelect($("level"), "학년 (위아래로 쓸어서 선택)");
   swipeSelect($("style"), "말투 (위아래로 쓸어서 선택)");
   $("btnSet").onclick = openSettings;
-  $("setClose").onclick = () => $("setDlg").close();
+  $("setClose").onclick = () => closeDialog($("setDlg"));
 }
