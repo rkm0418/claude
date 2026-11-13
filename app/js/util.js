@@ -66,14 +66,21 @@ export function initButtonEffects() {
   });
 }
 
+/** 전체화면: 첫 터치/클릭에서 자동으로 켜고 계속 유지. 버튼이나 Esc로 직접 나가면 다시 누를 때까지 그대로 둠 */
 export function initFullscreen(btn) {
   if (!document.fullscreenEnabled) return;
   btn.hidden = false;
+  let auto = true;
+  const enter = () => { try { document.documentElement.requestFullscreen({ navigationUI: "hide" }).catch(() => {}) } catch {} };
   btn.onclick = () => {
-    try {
-      if (document.fullscreenElement) document.exitFullscreen();
-      else document.documentElement.requestFullscreen().catch(() => { btn.hidden = true });
-    } catch { btn.hidden = true }
+    if (document.fullscreenElement) { auto = false; document.exitFullscreen() }
+    else { auto = true; enter() }
   };
-  document.addEventListener("fullscreenchange", () => btn.setAttribute("aria-label", document.fullscreenElement ? "전체화면 닫기" : "전체화면"));
+  document.addEventListener("pointerdown", e => {
+    if (auto && !document.fullscreenElement && !e.target.closest("#" + btn.id)) enter();
+  }, true);
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) auto = false;
+    btn.setAttribute("aria-label", document.fullscreenElement ? "전체화면 닫기" : "전체화면");
+  });
 }
