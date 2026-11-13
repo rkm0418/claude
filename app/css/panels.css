@@ -34,3 +34,15 @@
 .sec-h{display:inline-block;font-family:"Gmarket";font-weight:700;font-size:.78em;background:#000;color:#fff;border-radius:8px;padding:2px 12px;margin:12px 0 6px}
 .sec-h:first-child{margin-top:0}
 .sec-b{white-space:pre-wrap}
+/* 공식 번호 칩 · 사용한 곳 강조 · 빠른 풀이 */
+.fchip{display:inline-flex;align-items:center;justify-content:center;min-width:1.6em;height:1.6em;padding:0 .4em;margin:0 .2em;border-radius:999px;border:1.5px solid #000;background:#fff;color:#000;font:700 .72em var(--font);vertical-align:middle;cursor:pointer}
+.fchip.on{background:#000;color:#fff}
+.ln{padding:2px 8px;margin:1px -8px;border-radius:8px;white-space:pre-wrap}
+.ln.hl{background:#000;color:#fff}
+.ln.hl .fchip{background:#fff;color:#000}
+.tag-out{display:inline-block;font:700 .72em var(--font);border:1.5px solid currentColor;border-radius:6px;padding:0 6px;margin:0 4px 0 2px;vertical-align:middle}
+.sec-fast{margin-top:12px}
+.sec-fast>summary{cursor:pointer;list-style:none;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.sec-fast>summary::-webkit-details-marker{display:none}
+.sec-fast>summary .sec-h{margin:0}
+.sec-fast>.sec-b{margin-top:8px}

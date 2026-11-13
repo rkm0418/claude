@@ -18,7 +18,7 @@ function problemParts(n) {
 }
 
 function qaInto(n, box) {
-  (n.qa || []).forEach(x => { box.appendChild(text("qq", "Q. " + x.q)); const a = mk("aa"); fillRich(a, x.a); box.appendChild(a) });
+  (n.qa || []).forEach(x => { box.appendChild(text("qq", "Q. " + x.q)); const a = mk("aa"); fillRich(a, x.a); a.querySelectorAll("details").forEach(d => { d.open = true }); box.appendChild(a) });
 }
 
 export async function exportPdf(mode, { scope, cat, setMsg, busy }) {
