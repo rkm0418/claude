@@ -3,10 +3,12 @@ import { $, showDialog, loadImage } from "./util.js";
 import { notes } from "./db.js";
 import { fillRich } from "./rich.js";
 import { exportPdf } from "./pdf.js";
-import { CATS, ORDER, dotsEl } from "./cats.js";
+import { CATS, ORDER, levelDots } from "./cats.js";
+import { createPicker } from "./picker.js";
 
 
 let curCat = 1; // 처음엔 "얻은 것 있음"
+let picker = null;
 export const currentCat = () => curCat;
 
 /** 문제 글 + 그림 + 질문/답을 저장 (원본 사진은 목록에서만 보임). 같은 id면 분류만 바뀜 */
@@ -75,14 +77,8 @@ function card(n) {
 }
 
 async function renderNotes() {
-  const all = (await notes.all()).sort((a, b) => b.t - a.t), tabs = $("noteTabs");
-  tabs.textContent = "";
-  ORDER.forEach(i => {
-    const b = el("button", i === curCat ? "on" : ""); b.type = "button"; b.title = CATS[i]; b.setAttribute("aria-label", CATS[i]);
-    b.append(dotsEl(i), el("span", "cnt", all.filter(x => x.cat === i).length));
-    b.onclick = () => { curCat = i; renderNotes() };
-    tabs.appendChild(b);
-  });
+  const all = (await notes.all()).sort((a, b) => b.t - a.t);
+  picker.setCount(all.filter(x => x.cat === curCat).length);
   const list = $("noteList"), mine = all.filter(x => x.cat === curCat);
   list.textContent = "";
   if (!mine.length) list.appendChild(el("div", "note", "저장된 문제가 없어요."));
@@ -91,6 +87,9 @@ async function renderNotes() {
 
 export function initNotes() {
   initFigEditor();
+  // 분류 선택기: 위아래로 쓸어서 바꿈
+  picker = createPicker({ value: ORDER.indexOf(curCat) + 1, render: levelDots, showCount: true, label: "오답노트 분류 (위아래로 쓸어서 선택)", onChange: lv => { curCat = ORDER[lv - 1]; renderNotes() } });
+  $("noteTabs").replaceChildren(picker.el);
   $("btnNote").onclick = async () => { $("pdfMsg").textContent = ""; await renderNotes(); showDialog($("noteDlg")) };
   $("noteClose").onclick = () => $("noteDlg").close();
   const run = mode => exportPdf(mode, { scope: $("pdfScope").value, cat: curCat, setMsg: t => { $("pdfMsg").textContent = t }, busy: b => { $("pdfExam").disabled = $("pdfNote").disabled = b } });

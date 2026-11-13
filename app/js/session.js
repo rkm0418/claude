@@ -5,7 +5,8 @@ import { callClaude, imageBlock, parseFirst, cleanReply, ApiError } from "./clau
 import { resetDrawer } from "./drawer.js";
 import { makeFigures } from "./figures.js";
 import { saveNote } from "./notes.js";
-import { CATS, ORDER, dotsEl } from "./cats.js";
+import { CATS, ORDER, levelDots } from "./cats.js";
+import { createPicker } from "./picker.js";
 import { openSettings } from "./settings.js";
 
 let S = null;      // 지금 세션: {problem, qa, transcript, figs, noteId}
@@ -24,19 +25,16 @@ function addMsg(cls, t) {
   return d;
 }
 
-/** 저장 버튼 4개: 빨간 동그라미 1~4개 아이콘 (얻은 것 있음 → 이해 안 됨 → 개념 몰라서 → 어려워서) */
+/** 저장 선택기: 위아래로 쓸어서 고르면 바로 오답노트에 저장(바꾸면 분류만 바뀜).
+    빨간 동그라미 1~4개: 얻은 것 있음 → 이해 안 됨 → 개념 몰라서 → 어려워서 */
+let saveTimer = null;
 function makeSaveBar() {
   const bar = $("saveBar"); bar.textContent = "";
-  ORDER.forEach(i => {
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "btn"; b.title = CATS[i]; b.setAttribute("aria-label", CATS[i] + " 으로 오답노트에 저장");
-    b.appendChild(dotsEl(i));
-    b.onclick = async () => {
-      await persist(i);
-      bar.querySelectorAll(".btn").forEach(x => x.classList.toggle("on", x === b));
-    };
-    bar.appendChild(b);
+  const pk = createPicker({
+    render: levelDots, label: "오답노트 분류 (위아래로 쓸어서 선택)",
+    onChange: lv => { clearTimeout(saveTimer); const mine = S; saveTimer = setTimeout(() => { if (S === mine) persist(ORDER[lv - 1]) }, 350) },
   });
+  bar.appendChild(pk.el);
 }
 
 async function persist(cat) {
