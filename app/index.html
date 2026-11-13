@@ -46,7 +46,6 @@
   <div class="drop" id="drop" role="group" aria-label="문제 사진 올리기 (끌어다 놓기·붙여넣기도 가능)">
     <button class="btn icon" id="pickPhoto" type="button" aria-label="앨범에서 고르기"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg></button>
     <button class="btn icon" id="camPhoto" type="button" aria-label="카메라로 찍기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.6-2.5h6.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.8"/></svg></button>
-    <button class="btn icon hide" id="screenCap" type="button" aria-label="다른 앱·화면에서 캡처하기"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M9 8v1M9 8h1M15 8v1M15 8h-1M9 12v-1M9 12h1M15 12v-1M15 12h-1"/></svg></button>
   </div>
   <div id="probPrev" class="hide row"><button class="btn" id="recrop" type="button">범위 다시 고르기</button><span class="note" id="probInfo"></span></div>
   <input type="file" id="probFile" accept="image/*" class="hide">
@@ -54,20 +53,6 @@
   <button class="big-btn go" id="go" type="button">질문하러 가기</button>
   <div class="err" id="err" role="alert"></div>
 </main>
-
-<!-- 화면 캡처 카운트다운: 원하는 앱 화면으로 넘어갈 시간. 누르면 바로 캡처 -->
-<div class="countdown hide" id="countdown" role="status" aria-live="assertive"><span id="cdNum"></span></div>
-
-<!-- 화면 캡처가 막힌 환경: 직접 캡처해서 붙여넣기 기다리는 안내 -->
-<div class="countdown hide" id="pasteWait" role="dialog" aria-label="캡처한 화면 붙여넣기">
-  <div class="pw">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M9 8v1M9 8h1M15 8v1M15 8h-1M9 12v-1M9 12h1M15 12v-1M15 12h-1"/></svg>
-    <p>원하는 앱 화면으로 가서 영역을 캡처하세요</p>
-    <p class="keys"><kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> &nbsp;/&nbsp; <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Ctrl</kbd>+<kbd>4</kbd></p>
-    <p>캡처하고 이 창으로 돌아오면 자동으로 가져오고, 안 되면 <kbd>Ctrl</kbd>+<kbd>V</kbd></p>
-    <button class="btn" id="pwCancel" type="button">닫기</button>
-  </div>
-</div>
 
 <!-- 문제 범위 고르기 (사진을 크게 보여줌) -->
 <dialog id="cropDlg" class="crop">
