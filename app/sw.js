@@ -1,5 +1,5 @@
 /* 서비스 워커: 앱 파일을 저장해 두어 오프라인에서도 열리게 함 (Anthropic API 요청은 건드리지 않음) */
-const VERSION = "v23";
+const VERSION = "v24";
 const CACHE = "study-tutor-" + VERSION;
 const SHELL = [
   "./",

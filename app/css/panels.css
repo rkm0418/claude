@@ -30,3 +30,7 @@
 .pk-count{font-size:15px;font-weight:600;line-height:1.1;width:100%;text-align:center}
 .picker.text{min-width:150px;padding:4px 16px}
 .picker.text .pk-face{font-weight:600;font-size:16px;min-height:26px;text-align:center}
+/* 설명 구역: 사용된 개념 / 조건 해석 / 풀이 */
+.sec-h{display:inline-block;font-family:"Gmarket";font-weight:700;font-size:.78em;background:#000;color:#fff;border-radius:8px;padding:2px 12px;margin:12px 0 6px}
+.sec-h:first-child{margin-top:0}
+.sec-b{white-space:pre-wrap}
