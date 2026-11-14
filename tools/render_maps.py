@@ -2,7 +2,7 @@
 """maps/*.txt 배치도를 PNG로 바꾼다.  사용: python3 tools/render_maps.py
 출력: maps/out/<이름>.png, <이름>_dream.png (원본 크기), maps/out/preview_all.png (전체 미리보기)"""
 import glob, math, os, re, sys
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 import render
 
 BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
@@ -142,6 +142,7 @@ def dream_grade(img, emitters):
     return img
 
 OUTLINE = (26, 22, 32)
+OUTER_OUTLINE = True   # 사물 바깥 1점 외곽선(조명 뒤에 그림). 끄려면 False
 FLAT = {'rug', 'blanket', 'slipper', 'frame_down', 'puddle', 'bottles', 'shoes'}
 WALL_MOUNTED = {'clock', 'clock_bird', 'bulb', 'drawing', 'shelf', 'coats', 'coats_dream', 'moon', 'window_eye'}
 WALLISH = {'wall_base', 'brick', 'brick_lit', 'facade', 'facade_window', 'balcony_body'}
@@ -239,6 +240,8 @@ def draw_map(m, lib, lights, path, dream):
         if not base and lift == 0 and name not in WALL_MOUNTED and name not in FLAT and sp.height > 10:
             cast_shadow(img, sp, x * T, top + sp.height, light_pts, floor_mask)
         img.alpha_composite(sp, (x * T, top))
+        if not base:
+            sil.paste(255, (x * T, top), sp.getchannel('A').point(lambda v: 255 if v else 0))
         if base and name in FLOORISH:
             floor_mask.paste(255, (x * T, y * T, x * T + T, y * T + T))
         if base and name == 'wall':
@@ -249,6 +252,7 @@ def draw_map(m, lib, lights, path, dream):
             emitters.append((x * T + sp.width / 2, top + min(8, sp.height / 2)) + lights[name])
     img = Image.new('RGBA', (len(rows[0]) * T, len(rows) * T))
     floor_mask = Image.new('L', img.size, 0)
+    sil = Image.new('L', img.size, 0)     # 사물 실루엣 합집합(바깥 외곽선용)
     for y, row in enumerate(rows):
         for x, ch in enumerate(row):
             place(img, m['legend'][ch][0], x, y, base=True)
@@ -265,6 +269,9 @@ def draw_map(m, lib, lights, path, dream):
             for x in range(img.width):
                 r, g, b, a = px[x, y]
                 px[x, y] = (r * m['tone'][0] // 255, g * m['tone'][1] // 255, b * m['tone'][2] // 255, a)
+    if OUTER_OUTLINE:                                  # 조명 처리 뒤에 그려서 어두운 곳에서도 또렷한 바깥 외곽선
+        ring = ImageChops.subtract(sil.filter(ImageFilter.MaxFilter(3)), sil)
+        img.paste((4, 3, 8, 255), mask=ring)
     return img
 
 def main():
