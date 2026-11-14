@@ -119,6 +119,12 @@ def figure(seed):
         c.line(sx, sy, sx - math.cos(a) * r2.uniform(1.5, 3), sy - math.sin(a) * r2.uniform(1.5, 3.5), 1, ch='m')
     L = chain(c, [(12, 53), (10, 72), (10, 94)])
     tube(c, [(36, 53), (37, 70), (37, 90)], 4.2, 3.4); c.ell(37, 93, 2.6, 3.4, "s")
+    tmp2 = C()                                                         # 팔에도 회색 뿌리 (팔 끝 y>84 는 제외)
+    for sx, a0 in [(12, 95), (10, 85), (14, 100), (36, 85), (37, 95), (35, 80)]:
+        root2(tmp2, sx, 54, math.radians(a0), 10, 5, r2)
+    for y in range(54, 85):
+        for x in range(48):
+            if tmp2.g[y][x] != '.' and c.g[y][x] != '.' and (x <= 16 or x >= 33): c.g[y][x] = tmp2.g[y][x]
     trunk2(c, 5, 51, 31)
     for i in range(4):
         dome(c, 24 + (i - 1.5) * 1.6, 31, math.radians(-90 + (i - 1.5) * rng.uniform(32, 40)), 7.5, 5, rng)
