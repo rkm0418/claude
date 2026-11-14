@@ -98,8 +98,8 @@ def figure(seed):
     import gen_shadow as G
     G.W, G.H = 48, 104
     c = C(); rng = random.Random(seed)
-    tube(c, [(24, 50), (24, 78)], 15, 9, .03); c.ell(24, 52, 11, 3.6, 's'); tube(c, [(24, 44), (24, 53)], 7, 10)
-    tube(c, [(21, 76), (19, 90), (21, 103)], 3.4, 2); tube(c, [(27, 76), (29, 90), (27, 103)], 3.4, 2)
+    tube(c, [(24, 50), (24, 74)], 15, 8, .03); c.ell(24, 52, 11, 3.6, 's'); tube(c, [(24, 44), (24, 53)], 7, 10)
+    tube(c, [(22, 66), (20, 88), (21, 103)], 6, 2.4); tube(c, [(26, 66), (28, 88), (27, 103)], 6, 2.4)
     r2 = random.Random(seed + 100); tmp = C()
     for sx, a0 in [(20, 105), (28, 75), (16, 115), (32, 65), (24, 90), (22, 98), (30, 80)]:
         root2(tmp, sx, 54, math.radians(a0), 9, 5, r2)
@@ -117,8 +117,8 @@ def figure(seed):
     for a0 in (200, 340, 270):                              # 구멍 가장자리에서 안쪽으로 뻗은 뿌리 잔가지
         a = math.radians(a0); sx, sy = hx + math.cos(a) * 3.6, hy + math.sin(a) * 4.6
         c.line(sx, sy, sx - math.cos(a) * r2.uniform(1.5, 3), sy - math.sin(a) * r2.uniform(1.5, 3.5), 1, ch='m')
-    L = chain(c, [(13, 53), (8, 72), (8, 94)])
-    tube(c, [(34, 53), (37, 70), (36, 90)], 4.2, 3.4); c.ell(36, 93, 2.6, 3.4, "s")
+    L = chain(c, [(12, 53), (10, 72), (10, 94)])
+    tube(c, [(36, 53), (37, 70), (37, 90)], 4.2, 3.4); c.ell(37, 93, 2.6, 3.4, "s")
     trunk2(c, 5, 51, 31)
     for i in range(4):
         dome(c, 24 + (i - 1.5) * 1.6, 31, math.radians(-90 + (i - 1.5) * rng.uniform(32, 40)), 7.5, 5, rng)
