@@ -19,7 +19,8 @@ D wall_base_cozy door
 Q wall_base_cozy doorway_dark
 O wall_base_cozy closet
 C wall_base_cozy coats^4
-X wall_base_cozy balcony_door
+X wall_base_cozy balcony_door_closed
+Q wall_base_cozy balcony_door
 . floor_cozy
 O floor_cozy sofa
 v floor_cozy tv
@@ -33,9 +34,9 @@ Z floor_cozy rug_big
 map:
 ####################
 #tttttttttttttttttt#
-#wWVwGwGwKwFwFwGwww#
+#wWVwGwGwKwGwGwGwww#
 #bbbbbbbbbbbbbXbbbb#
-#..O.....v..Yc.....#
+#..O.....v..Y......#
 #..................#
 #....L.............#
 #..................#
@@ -46,13 +47,13 @@ map:
 dream_map:
 ####################
 #tttttttttttttttttt#
-#wWVwwwwwKwwwwwwwww#
-#bbbbbbbbbbbbbXbbbb#
-#..O.....v..Y......#
+#wWVwGwGwKwFwFwGwww#
+#bbbbbbbbbbbbbQbbbb#
+#..O.....v..Yc.....#
 #..................#
 #....L.............#
-#...x..............#
-#..Z...............#
+#..................#
+#..ZTqq............#
 #..................#
 #..................#
 ####################

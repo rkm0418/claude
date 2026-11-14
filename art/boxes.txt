@@ -195,3 +195,10 @@ box 12 3 12 4 6 3 w
 box 16 3 9 4 6 3 w
 box 20 3 6 4 6 3 w
 box 24 3 3 4 6 3 w
+
+[wardrobe] 평범한 옷장 | real
+box 0 0 0 16 6 32 b
+decal 1 0 2 14 28 n
+decal 7 0 2 2 28 k
+decal 4 0 14 2 4 y
+decal 10 0 14 2 4 y

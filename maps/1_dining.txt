@@ -12,7 +12,8 @@ F wall_cozy frame_back
 G wall_cozy frame
 K wall_cozy clock
 N wall_cozy calendar
-D wall_base_cozy doorway_dark
+D wall_base_cozy door
+Q wall_base_cozy doorway_dark
 . floor_cozy
 S floor_cozy sideboard
 P floor_cozy plant
@@ -29,26 +30,26 @@ L floor_cozy pendant^12
 map:
 ####################
 #tttttttttttttttttt#
-#wWVGwKwNwFwWVFwwww#
+#wWVGwKwNwGwWVGwwww#
 #bbbbbbbbbbbbbbbDbb#
 #.S.........B.PH...#
 #..............M...#
 #.......L......A...#
 #..................#
 #...cZTppp.c.......#
-#................Y.#
+#.......c..........#
 #..................#
 ####################
 dream_map:
 ####################
 #tttttttttttttttttt#
-#wWVwwKwNwwwWVwwwww#
-#bbbbbbbbbbbbbbbDbb#
+#wWVGwKwNwFwWVFwwww#
+#bbbbbbbbbbbbbbbQbb#
 #.S.........B.PH...#
 #..............M...#
 #.......L......A...#
 #..................#
-#....ZT..p.........#
-#..................#
+#...cZTppp.c.......#
+#................Y.#
 #..................#
 ####################

@@ -20,6 +20,7 @@ Q wall_base_cozy doorway_dark
 O wall_base_cozy closet
 C wall_base_cozy coats^4
 X wall_base_cozy balcony_door
+o wall_base_cozy wardrobe
 . floor_cozy
 E floor_cozy bed
 x floor_cozy desk
@@ -32,9 +33,9 @@ c floor_cozy chair
 map:
 ####################
 #tttttttttttttttttt#
-#wWVwwHwwPwPwPwwwww#
-#bbObbbbbbbbbbDbbbb#
-#...B.x..E..M.c....#
+#wWVwwHwwPwwwwwwwww#
+#bbobbbbbbbbbbDbbbb#
+#...B.x..E..M......#
 #.J................#
 #..................#
 #..................#
@@ -45,9 +46,9 @@ map:
 dream_map:
 ####################
 #tttttttttttttttttt#
-#wWVwwHwwwwwwwwwwww#
+#wWVwwHwwPwPwPwwwww#
 #bbObbbbbbbbbbDbbbb#
-#...B.x..E..M......#
+#...B.x..E..M.c....#
 #.J................#
 #..................#
 #..................#
