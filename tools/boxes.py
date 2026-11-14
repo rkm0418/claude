@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw
 import render
 
 OUTLINE = (26, 22, 32, 255)
-SK, SS = 0.0, 0.5   # 깊이 1당 화면에서 (오른쪽 SK, 위쪽 SS)만큼 이동. SK=0 이면 옆면 없이 앞면+윗면만 보인다(0.5 로 바꾸면 옆면이 다시 나옴)
+SK, SS = 0.5, 0.5   # 깊이 1당 화면에서 (오른쪽 SK, 위쪽 SS)만큼 이동 = 비스듬한 시점. SK=0 이면 옆면 없이 앞면+윗면만 보인다
 
 def load_boxes(path):
     items, cur = [], None
