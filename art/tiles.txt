@@ -11,32 +11,66 @@ kkkdkkkkkkkkkkkk
 kkkkkkkkkkkkkkkk *3
 
 [floor_wood] 마루 바닥 | real
-nnnnnnnnbnnnnnnn *7
-bbbbbbbbbbbbbbbb
-nnnbnnnnnnnnnnnn *7
-bbbbbbbbbbbbbbbb
+nnnnnnnnnnnnnnnn *3
+nnnnnnnnnnnnennn
+nnnnnnnnnnnnnnnn *3
+eeeeeeeeeeeeeeee
+nnnnnnnnnnnnnnnn *3
+nnnennnnnnnnnnnn
+nnnnnnnnnnnnnnnn *3
+eeeeeeeeeeeeeeee
 
 [floor_kitchen] 식탁 방 바닥 | real
-llllllllmmmmmmmm *8
-mmmmmmmmllllllll *8
+llllllllgggggggg *8
+ggggggggllllllll *8
+
+[wall_top] 벽 윗단 | real
+kkkkkkkkkkkkkkkk *3
+dddddddddddddddd *2
+lllglllllllgllll *11
 
 [wall] 벽지 | real
-lllmlllllllmllll *16
+lllglllllllgllll *16
 
 [wall_base] 벽 아랫단 (걸레받이) | real
-lllmlllllllmllll *12
-bbbbbbbbbbbbbbbb
+lllglllllllgllll *11
+eeeeeeeeeeeeeeee
 nnnnnnnnnnnnnnnn *2
 kkkkkkkkkkkkkkkk
+ssssssssssssssss
 
 [window] 밤 창문 | real
-lllmlllllllmllll *2
+lllglllllllgllll *2
 lkkkkkkkkkkkkkkl
 lkddddddkdddddkl *5
 lkkkkkkkkkkkkkkl
 lkddddddkdddddkl *5
 lkkkkkkkkkkkkkkl
-lllmlllllllmllll
+lllglllllllgllll
+
+[window_eye] 눈이 들여다보는 창문 | dream
+lllglllllllgllll *2
+lkkkkkkkkkkkkkkl
+lkddddddddddddkl
+lkddwwwwwwwwddkl
+lkdwwwkvvkwwwdkl
+lkdwwkvkkvkwwdkl *3
+lkdwwwkvvkwwwdkl
+lkddwwwwwwwwddkl
+lkddddddddddddkl
+lkkkkkkkkkkkkkkl
+lllglllllllgllll *3
+
+[eye_wall] 벽에 뜬 눈 | dream
+lllglllllllgllll *4
+llllkkkkkkkkllll
+llkkwwwwwwwwkkll
+lkwwwwkvvkwwwwkl
+lkwwwkvkkvkwwwkl *2
+lkwwwwkvvkwwwwkl
+llkkwwwwwwwwkkll
+llllkkkkkkkkllll
+lllglllllllgllll *4
 
 [pavement] 골목 바닥 | real
 dddddddddddddddd *7
@@ -50,6 +84,16 @@ ddddcccccccddddd
 dddccccccccccddd *3
 ddddccccccccdddd
 dddddddddddddddd *6
+kkkkkkkkkkkkkkkk
+
+[puddle_eye] 눈이 비치는 물웅덩이 | dream
+dddddddddddddddd *4
+ddddcccccccddddd
+dddccwwwwwwccddd
+dddcwwkvvkwwcddd *2
+dddccwwwwwwccddd
+ddddccccccccdddd
+dddddddddddddddd *5
 kkkkkkkkkkkkkkkk
 
 [brick] 골목 벽돌 | real
@@ -68,6 +112,17 @@ bkkkkkkkkkkkkkkb
 bkyyyyyykyyyyykb *5
 bkkkkkkkkkkkkkkb
 bkyyyyyykyyyyykb *4
+bkkkkkkkkkkkkkkb
+bbbkbbbbbbbkbbbb *2
+
+[watcher] 창문에서 내려다보는 그림자 | dream
+bbbbbbbkbbbbbbbk *2
+bkkkkkkkkkkkkkkb
+bkyyyyyyyyyyyykb
+bkyyykkkkkkyyykb *2
+bkyykkwkkwkkyykb
+bkyykkkkkkkkyykb *2
+bkykkkkkkkkkkykb *4
 bkkkkkkkkkkkkkkb
 bbbkbbbbbbbkbbbb *2
 

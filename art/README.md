@@ -18,3 +18,10 @@
   - `dream:` 줄에 `cup=cup_rising` 처럼 쓰면 꿈 버전에서 그 사물만 바뀐다. 배치도는 현실과 꿈이 공유한다.
   - `map:` 아래 글자를 옮기면 가구 위치가 바뀐다.
 - `python3 tools/render_maps.py` 를 실행하면 `maps/out/<이름>.png`, `<이름>_dream.png`, `preview_all.png` 가 다시 만들어진다.
+
+## 조명과 꿈 연출
+
+- 맵 파일의 `ambient: 0.3` 은 방의 기본 밝기(0 = 캄캄함, 1 = 조명 없음)다.
+- `art/lights.txt` 에 적힌 타일/사물은 빛을 낸다(이름, 반경, 세기, 색). 손전등이나 전구를 맵에 놓으면 그 주위가 밝아진다.
+- `dream_add: hands@4,8 shadow_adult@13,6` 은 꿈 버전에만 추가되는 것들이다(이름@가로칸,세로칸).
+- 꿈 버전은 자동으로 화면이 일렁이고 보랏빛이 돈다(`tools/render_maps.py` 의 `wobble`, `DREAM_TINT`).

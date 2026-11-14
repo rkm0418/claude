@@ -255,18 +255,19 @@ kkkkkkkkkkkkkkkk
 ....kddddddk....
 ....kkkkkkkk....
 
-[lamp_giant] 눈을 감지 못하는 가로등 거인 | dream
+[lamp_giant] 눈을 감지 못하는 가로등 거인 (16x48) | dream
 ................
 ....kkkkkkkk....
 ...kppppppppk...
 ..kpwwwkkwwwpk.. *2
 ...kppppppppk...
 ....kkkkkkkk....
-......kddk...... *6
+......kddk...... *12
 .kkkkkkddkkkkkk.
-.kdk..kddk..kdk. *8
+.kdk..kddk..kdk. *14
+.kwk..kddk..kwk.
 .kkk..kddk..kkk.
-......kddk...... *6
+......kddk...... *9
 .....kddddk.....
 ....kddddddk....
 ....kkkkkkkk....
@@ -278,3 +279,178 @@ knnnnnnnnnnnnnnk
 kkkkkkkkkkkkkkkk
 .kb..........bk.
 ................ *3
+
+[bulb] 천장 전구 | real
+.......kk....... *6
+......kyyk......
+.....kyyyyk..... *2
+......kyyk......
+................ *6
+
+[bed] 아이 침대 (32x16) | real
+kk............................kk *2
+kbkkkkkkkkkkkkkkkkkkkkkkkkkkkkbk
+kbwwwwwwkmmmmmmmmmmmmmmmmmmmmkbk *4
+kbmmmmmmmmmmmmmmmmmmmmmmmmmmmkbk *3
+kbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbk *2
+kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
+kk............................kk *2
+................................
+
+[rug] 낡은 깔개 (32x16) | real
+................................ *4
+......kkkkkkkkkkkkkkkkkkkk......
+....kkrrrrrrrrrrrrrrrrrrrrkk....
+...krrrmmmmmmmmmmmmmmmmmmrrrk...
+...krrmrrrrrrrrrrrrrrrrrrmrrk... *4
+...krrrmmmmmmmmmmmmmmmmmmrrrk...
+....kkrrrrrrrrrrrrrrrrrrrrkk....
+......kkkkkkkkkkkkkkkkkkkk......
+................................ *2
+
+[coats] 벽에 걸린 어른 외투 두 벌 (부모님 것) | real
+kkkkkkkkkkkkkkkk
+...kk......kk...
+..kddk....kmmk.. *2
+.kddddk..kmmmmk. *16
+.kkkkkk..kkkkkk.
+................ *3
+
+[coats_dream] 바닥까지 늘어져 손이 나온 외투 | dream
+kkkkkkkkkkkkkkkk
+...kk......kk...
+..kddk....kmmk.. *2
+.kddddk..kmmmmk. *25
+.kwkwkk..kkwkwk. *2
+.k.k.k....k.k.k.
+
+[shoes] 현관의 신발 (어른 두 켤레, 아이 한 켤레) | real
+................ *11
+.kkk.kkk....kk..
+kdddkdddk..kppk. *2
+kkkkkkkkk..kkkk.
+................
+
+[bottles] 빈 병들 | real
+................ *8
+..kk....kk......
+..kk....kk..kk..
+.kmmk..kmmk.kk..
+.kmmk..kmmkkmmk. *3
+.kkkk..kkkkkkkk.
+................
+
+[fridge] 냉장고 | real
+kkkkkkkkkkkkkkkk
+kllllllllllllwlk *8
+klllllllllllldlk *2
+kkkkkkkkkkkkkkkk
+klllllllllllldlk *3
+kllllllllllllwlk *16
+kkkkkkkkkkkkkkkk
+
+[tv] 지직거리는 텔레비전 | real
+................ *3
+.kkkkkkkkkkkkkk.
+.kddddddddddddk.
+.kdmdmdmdmdmddk.
+.kddmdmdmdmdmdk.
+.kdmdmdmdmdmddk.
+.kddmdmdmdmdmdk.
+.kddddddddddddk.
+.kkkkkkkkkkkkkk.
+....kbbbbbbk....
+...kbbbbbbbbk...
+...kkkkkkkkkk...
+................ *2
+
+[tv_eye] 화면에 눈이 떠 있는 텔레비전 | dream
+................ *3
+.kkkkkkkkkkkkkk.
+.kddddddddddddk.
+.kddwwwwwwwwddk.
+.kdwwwkvvkwwwdk. *2
+.kddwwwwwwwwddk.
+.kddddddddddddk.
+.kkkkkkkkkkkkkk.
+....kbbbbbbk....
+...kbbbbbbbbk...
+...kkkkkkkkkk...
+................ *2
+
+[drawing] 아이가 그린 가족 그림 | real
+................ *3
+..kkkkkkkkkkkk..
+..kwwwwwwwwwwk..
+..kwrwwwtwwwwk..
+..kwrwwwtwwowk.. *2
+..kwwwwwwwwwwk..
+..kkkkkkkkkkkk..
+................ *6
+
+[moon] 달 | real
+................ *2
+......wwww......
+....wwwwwwww....
+...wwwwwwwwww...
+..wwwwwwwwwwww.. *6
+...wwwwwwwwww...
+....wwwwwwww....
+......wwww......
+................ *2
+
+[hands] 바닥에서 솟은 창백한 팔 | dream
+....k.k.k.k.....
+...kwkwkwkwk.... *3
+...kwwwwwwwkk...
+...kwwwwwwwwwk.. *2
+...kwwwwwwwkk...
+....kwwwwwk.....
+.....kwwwk...... *23
+
+[door_mouth] 이빨이 난 문 | dream
+kkkkkkkkkkkkkkkk
+kbbbbbbbbbbbbbbk
+kbnnnnnnnnnnnnbk
+kbnkkkkkkkkkknbk
+kbnkwkwkwkwkknbk *2
+kbnkrrrrrrrrknbk *4
+kbnkwkwkwkwkknbk *2
+kbnkkkkkkkkkknbk
+kbnnnnnnnnnnnnbk
+kbnyynnnnnnyynbk *2
+kbnnnnnnnnnnnnbk
+kbnkkkkkkkkkknbk
+kbnknnnnnnnnknbk *10
+kbnkkkkkkkkkknbk
+kbnnnnnnnnnnnnbk
+kbbbbbbbbbbbbbbk
+kkkkkkkkkkkkkkkk
+
+[shadow_adult] 얼굴 없는 그림자 어른 (16x48) | dream
+......kkkk......
+.....kddddk..... *4
+......kddk......
+...kkkkddkkkk...
+..kddddddddddk.. *2
+.kdkkddddddkkdk. *13
+.kdk.kdkkdk.kdk. *16
+.kkk.kdkkdk.kkk.
+.....kdkkdk..... *8
+....kkkkkkkk....
+
+[cup_tower] 물기둥이 천장까지 솟는 컵 (16x48) | dream
+......cc........ *8
+.....cccc.......
+......cc........ *10
+.....c..c.......
+......cc........ *15
+...kkkcckkk.....
+..kcccccccck....
+..kttttttttkkk..
+..ktwttttttk..k. *3
+..kttttttttk..k.
+..kttttttttkkk..
+..kttttttttk.... *2
+...kkkkkkkk.....
+................ *2

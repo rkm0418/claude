@@ -1,8 +1,9 @@
 title: 프롤로그 - 베란다 (옆에서 본 고정 화면)
-dream:
+ambient: 0.45
 legend:
 S void
 * sky_star
+O void moon
 F facade
 G facade_window
 f balcony_floor
@@ -12,8 +13,8 @@ D facade door
 c facade chair
 map:
 FFGFFFGFFFGFFFSS*SSS
+FFFFFFFFFFFFFFSSSOSS
 FFFFFFFFFFFFFFSSSSSS
-FFFFFFFFFFFFFFSSSS*S
 FFFFFFFFFFFFFSSSSSSS
 FFFFFGFFFFFFFS*SSSSS
 FFFFFFFFFFFFFMSSSSSS

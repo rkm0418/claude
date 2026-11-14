@@ -51,7 +51,7 @@ def main():
     os.makedirs(os.path.join(ROOT, 'out', 'sprites'), exist_ok=True)
     for path in sorted(glob.glob(os.path.join(ROOT, '*.txt'))):
         base = os.path.splitext(os.path.basename(path))[0]
-        if base == 'palette':
+        if base in ('palette', 'lights'):
             continue
         items = [(sp, to_image(sp, pal, path)) for sp in load_sprites(path)]
         for sp, img in items:

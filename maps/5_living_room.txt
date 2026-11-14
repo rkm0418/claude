@@ -1,26 +1,32 @@
 title: 5장 - 거실의 시계와 베란다 문 (결말)
-dream: clock=clock_bird frame=frame_hole
+ambient: 0.3
+dream: clock=clock_bird frame=frame_hole tv=tv_eye door=door_mouth window=window_eye
+dream_add: eye_wall@6,2 eye_wall@9,2 hands@5,9 hands@13,8 shadow_adult@9,6
 legend:
 # void
+t wall_top
 w wall
 b wall_base
 W window
+K wall clock
+P wall drawing
 D wall_base door
-K wall_base clock^12
 . floor_wood
-T floor_wood table
 c floor_wood chair
 R floor_wood dresser frame^10
+V floor_wood tv
+Q floor_wood rug
+o floor_wood bottles
 map:
 ####################
-#wwwwwwwwwwwWWwwwww#
-#bbbbKbbbbbbbbbbbDb#
-#................c.#
-#..R...............#
-#..................#
-#......TT..........#
-#..................#
-#..................#
-#..................#
-#..................#
+###tttttttttttttt###
+###wwKwwwwPwwWWww###
+###bbbbbbbbbbbbDb###
+###.R....V.....c.###
+###..............###
+###....Q....o....###
+###..............###
+###..............###
+###..............###
+####################
 ####################

@@ -1,5 +1,7 @@
 title: 4장 - 골목 (밖으로 나간 밤)
-dream: streetlamp=lamp_giant
+ambient: 0.25
+dream: streetlamp=lamp_giant brick_lit=watcher puddle=puddle_eye
+dream_add: lamp_giant@3,8 lamp_giant@16,7 hands@12,8 hands@6,6
 legend:
 B brick
 L brick_lit

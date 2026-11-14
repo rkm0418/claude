@@ -1,0 +1,14 @@
+# 빛을 내는 타일/사물: 이름 반경(점) 세기 색
+flashlight 46 1.0 e09a4a
+closet 30 0.6 e09a4a
+bulb 84 1.0 e8cf6a
+streetlamp 72 1.0 c77a9a
+lamp_giant 72 1.0 c77a9a
+brick_lit 26 0.7 e8cf6a
+watcher 26 0.7 e8cf6a
+facade_window 26 0.7 e8cf6a
+tv 42 0.7 7fb5c9
+tv_eye 46 0.9 c77a9a
+window 30 0.35 7fb5c9
+window_eye 36 0.6 6a4c93
+moon 64 0.5 d8cfc0

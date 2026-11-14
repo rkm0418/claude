@@ -1,27 +1,33 @@
 title: 1장 - 식탁 방 (부모님이 떠난 직후)
-dream: cup=cup_rising frame_down=frame_hole clock=clock_bird
+ambient: 0.4
+dream: cup=cup_tower frame_down=frame_hole clock=clock_bird chair=chair_long window=window_eye
+dream_add: eye_wall@5,2 eye_wall@12,2 hands@4,8 hands@14,9 hands@11,9 shadow_adult@13,6
 legend:
 # void
+t wall_top
 w wall
 b wall_base
 W window
+K wall clock
+l wall bulb
 D wall_base door
-K wall_base clock^12
+F wall_base fridge
 , floor_kitchen
 T floor_kitchen table
 U floor_kitchen table cup^9
 c floor_kitchen chair
 R floor_kitchen dresser frame_down^10
+o floor_kitchen bottles
 map:
 ####################
-#wwwwwWWwwwwwwWWwww#
-#bbDbbbbbbKbbbbbbbb#
-#,,,,,,,,,,,,,,,,R,#
-#,,,,,,,,,,,,,,,,,,#
-#,,,,,,c,c,,,,,,,,,#
-#,,,,,TTUT,,,,,,,,,#
-#,,,,,,,c,,,,,,,,,,#
-#,,,,,,,,,,,,,,,,,,#
-#,,,,,,,,,,,,,,,,,,#
-#,,,,,,,,,,,,,,,,,,#
+###tttttttttttttt###
+###wwwWwKwwlwWwww###
+###bDbbbbbbbbbFbb###
+###,,,,R,,,,,,,,,###
+###,,,,,c,c,,,,,,###
+###,,,,TTUT,,,,o,###
+###,,,,,,c,,,,,,,###
+###,,,,,,,,,,,,,,###
+###,,,,,,,,,,,,,,###
+####################
 ####################
