@@ -98,7 +98,7 @@ def figure(seed):
     import gen_shadow as G
     G.W, G.H = 48, 104
     c = C(); rng = random.Random(seed)
-    tube(c, [(24, 50), (24, 78)], 8, 5.5, .04); c.ell(24, 52, 11, 3.6, 's'); tube(c, [(24, 44), (24, 53)], 7, 10)
+    tube(c, [(24, 50), (24, 78)], 15, 9, .03); c.ell(24, 52, 11, 3.6, 's'); tube(c, [(24, 44), (24, 53)], 7, 10)
     tube(c, [(21, 76), (19, 90), (21, 103)], 3.4, 2); tube(c, [(27, 76), (29, 90), (27, 103)], 3.4, 2)
     r2 = random.Random(seed + 100); tmp = C()
     for sx, a0 in [(20, 105), (28, 75), (16, 115), (32, 65), (24, 90), (22, 98)]:
@@ -106,6 +106,15 @@ def figure(seed):
     for y in range(104):
         for x in range(48):
             if tmp.g[y][x] != '.' and c.g[y][x] != '.' and 14 <= x <= 34 and y >= 49: c.g[y][x] = tmp.g[y][x]
+    hx, hy = 25.5, 64                                                  # 심장 쪽(보는 사람 기준 오른쪽 가슴)이 뚫림
+    for y in range(104):
+        for x in range(48):
+            th = math.atan2(y - hy, x - hx); d = (((x - hx) / 3.0) ** 2 + ((y - hy) / 5.8) ** 2) / (1 + .28 * math.sin(3 * th + seed) + .15 * math.sin(5 * th)) ** 2
+            if d <= 1: c.g[y][x] = '.'
+            elif d <= 1.7 and c.g[y][x] != '.': c.g[y][x] = 'l' if d <= 1.35 else 'm'   # 구멍 가장자리 테두리
+    for a0 in (200, 340, 270):                              # 구멍 가장자리에서 안쪽으로 뻗은 뿌리 잔가지
+        a = math.radians(a0); sx, sy = hx + math.cos(a) * 3.6, hy + math.sin(a) * 4.6
+        c.line(sx, sy, sx - math.cos(a) * r2.uniform(1.5, 3), sy - math.sin(a) * r2.uniform(1.5, 3.5), 1, ch='m')
     L = chain(c, [(13, 53), (8, 72), (8, 94)])
     tube(c, [(34, 53), (37, 70), (36, 90)], 4.2, 3.4); c.ell(36, 93, 2.6, 3.4, "s")
     trunk2(c, 5, 51, 31)
