@@ -214,4 +214,5 @@ def main():
             lines.append(f'[shadow_{v}] {desc} | {v}')
             lines += c.finish(); lines.append('')
         open(os.path.join(root, f'{batch}_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
-main()
+if __name__ == "__main__":
+    main()
