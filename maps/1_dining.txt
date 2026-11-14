@@ -12,7 +12,7 @@ D wall_base door
 F wall_base fridge
 , floor_kitchen
 T floor_kitchen table
-U floor_kitchen table cup^9
+U floor_kitchen table cup^13
 c floor_kitchen chair
 R floor_kitchen dresser frame_down^10
 o floor_kitchen bottles

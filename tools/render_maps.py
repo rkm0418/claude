@@ -18,6 +18,8 @@ def load_library():
         path = os.path.join(render.ROOT, name + '.txt')
         for sp in render.load_sprites(path):
             lib[sp['name']] = render.to_image(sp, pal, path)
+    import boxes
+    lib.update(boxes.load_all(render.ROOT))      # 입체 가구가 같은 이름의 평면 스프라이트를 대체
     return lib
 
 def load_lights():
