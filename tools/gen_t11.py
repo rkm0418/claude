@@ -147,9 +147,9 @@ def joint_fade(c):
             ch = c.g[y][x]
             if ch not in 'lmd': continue
             w = 0.0
-            if (x <= 16 or x >= 32) and 50 <= y <= 64: w = max(w, 1 - (y - 50) / 14)       # 어깨에서 팔로
-            if 14 <= x <= 34 and 62 <= y <= 82: w = max(w, 1 - abs(y - 72) / 10)           # 골반에서 다리로
-            if 44 <= y <= 54 and 14 <= x <= 34: w = max(w, 1 - abs(y - 50) / 6)            # 목에서 어깨로
+            if (x <= 16 or x >= 32) and 50 <= y <= 78: w = max(w, 1 - (y - 50) / 28)       # 어깨에서 팔로
+            if 14 <= x <= 34 and 58 <= y <= 88: w = max(w, 1 - abs(y - 73) / 15)           # 골반에서 다리로
+            if 42 <= y <= 62 and 14 <= x <= 34: w = max(w, 1 - abs(y - 50) / 12)            # 목에서 어깨로
             v = w + .14 * (((x + y) % 2) - .5)
             c.g[y][x] = 's' if v > .8 else 'd' if v > .55 else 'm' if v > .3 else ch
 
