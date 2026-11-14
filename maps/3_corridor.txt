@@ -1,0 +1,23 @@
+title: 3장 - 복도 (문을 막은 밤)
+dream: door=door_two_knobs chair=chair_long
+legend:
+# void
+w wall
+b wall_base
+D wall_base door
+. floor_wood
+c floor_wood chair
+r floor_wood dresser
+map:
+####################
+####################
+####################
+wwwwwwwwwwwwwwwwwwww
+bbDbbbbbbDbbbbbbbDbb
+.....r...........c..
+....................
+....................
+####################
+####################
+####################
+####################

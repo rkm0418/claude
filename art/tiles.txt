@@ -1,0 +1,96 @@
+# 맵 타일 (16x16). 형식은 objects.txt 와 같다.
+
+[void] 벽 바깥, 밤하늘 | real
+kkkkkkkkkkkkkkkk *16
+
+[sky_star] 별이 하나 있는 밤하늘 | real
+kkkkkkkkkkkkkkkk *5
+kkkkkkkkkkwkkkkk
+kkkkkkkkkkkkkkkk *6
+kkkdkkkkkkkkkkkk
+kkkkkkkkkkkkkkkk *3
+
+[floor_wood] 마루 바닥 | real
+nnnnnnnnbnnnnnnn *7
+bbbbbbbbbbbbbbbb
+nnnbnnnnnnnnnnnn *7
+bbbbbbbbbbbbbbbb
+
+[floor_kitchen] 식탁 방 바닥 | real
+llllllllmmmmmmmm *8
+mmmmmmmmllllllll *8
+
+[wall] 벽지 | real
+lllmlllllllmllll *16
+
+[wall_base] 벽 아랫단 (걸레받이) | real
+lllmlllllllmllll *12
+bbbbbbbbbbbbbbbb
+nnnnnnnnnnnnnnnn *2
+kkkkkkkkkkkkkkkk
+
+[window] 밤 창문 | real
+lllmlllllllmllll *2
+lkkkkkkkkkkkkkkl
+lkddddddkdddddkl *5
+lkkkkkkkkkkkkkkl
+lkddddddkdddddkl *5
+lkkkkkkkkkkkkkkl
+lllmlllllllmllll
+
+[pavement] 골목 바닥 | real
+dddddddddddddddd *7
+dddddddkdddddddd
+dddddddddddddddd *7
+kkkkkkkkkkkkkkkk
+
+[puddle] 물웅덩이 | real
+dddddddddddddddd *4
+ddddcccccccddddd
+dddccccccccccddd *3
+ddddccccccccdddd
+dddddddddddddddd *6
+kkkkkkkkkkkkkkkk
+
+[brick] 골목 벽돌 | real
+bbbbbbbkbbbbbbbk *3
+kkkkkkkkkkkkkkkk
+bbbkbbbbbbbkbbbb *3
+kkkkkkkkkkkkkkkk
+bbbbbbbkbbbbbbbk *3
+kkkkkkkkkkkkkkkk
+bbbkbbbbbbbkbbbb *3
+kkkkkkkkkkkkkkkk
+
+[brick_lit] 불 켜진 남의 집 창문 | real
+bbbbbbbkbbbbbbbk *2
+bkkkkkkkkkkkkkkb
+bkyyyyyykyyyyykb *5
+bkkkkkkkkkkkkkkb
+bkyyyyyykyyyyykb *4
+bkkkkkkkkkkkkkkb
+bbbkbbbbbbbkbbbb *2
+
+[facade] 아파트 외벽 | real
+mmmmmmmmmmmmmmmm *15
+dddddddddddddddd
+
+[facade_window] 불 켜진 아파트 창문 | real
+mmmmmmmmmmmmmmmm *2
+mkkkkkkkkkkkkkkm
+mkyyyyyyyyyyyykm *10
+mkkkkkkkkkkkkkkm
+mmmmmmmmmmmmmmmm
+dddddddddddddddd
+
+[balcony_floor] 베란다 바닥 | real
+wwwwwwwwwwwwwwww
+llllllllllllllll *14
+dddddddddddddddd
+
+[balcony_cap] 베란다 담 윗부분 | real
+wwwwwwwwwwwwwwww *3
+llllllllllllllld *13
+
+[balcony_body] 베란다 담 | real
+llllllllllllllld *16

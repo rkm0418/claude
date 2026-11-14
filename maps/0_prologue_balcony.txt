@@ -1,0 +1,25 @@
+title: 프롤로그 - 베란다 (옆에서 본 고정 화면)
+dream:
+legend:
+S void
+* sky_star
+F facade
+G facade_window
+f balcony_floor
+M balcony_cap
+N balcony_body
+D facade door
+c facade chair
+map:
+FFGFFFGFFFGFFFSS*SSS
+FFFFFFFFFFFFFFSSSSSS
+FFFFFFFFFFFFFFSSSS*S
+FFFFFFFFFFFFFSSSSSSS
+FFFFFGFFFFFFFS*SSSSS
+FFFFFFFFFFFFFMSSSSSS
+FFDFFFFFFFFcFNSSS*SS
+ffffffffffffffSSSSSS
+FFGFFFGFFFGFFFSSSSSS
+FFFFFFFFFFFFFFS*SSSS
+FFGFFFGFFFGFFFSSSSSS
+FFFFFFFFFFFFFFSSSS*S

@@ -1,0 +1,21 @@
+title: 4장 - 골목 (밖으로 나간 밤)
+dream: streetlamp=lamp_giant
+legend:
+B brick
+L brick_lit
+p pavement
+u puddle
+A pavement streetlamp
+map:
+BBLBBBLBBBBLBBBLBBBB
+BBBBBBBBBBBBBBBBBBBB
+BBBBBBBBBBBBBBBBBBBB
+pppppppppppppppppppp
+ppppuppppppppppppupp
+pppppppppAppppppuppp
+pppppppppppppppppppp
+pppuppppppppppuppppp
+pppppppppppppppppppp
+BBBBBBBBBBBBBBBBBBBB
+BBLBBBBBLBBBBBLBBBBB
+BBBBBBBBBBBBBBBBBBBB

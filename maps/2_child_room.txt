@@ -1,0 +1,26 @@
+title: 2장 - 아이 방과 옷장 (숨기 시작)
+dream: door=door_two_knobs
+legend:
+# void
+w wall
+b wall_base
+W window
+H wall shelf toy_broken^6
+O wall_base closet
+D wall_base door
+. floor_wood
+B floor_wood blanket
+f floor_wood flashlight
+map:
+####################
+####wwwwwwHwwwWW####
+####bbObbbbbbbbbD###
+####............####
+####.....B......####
+####....f.......####
+####............####
+####............####
+####################
+####################
+####################
+####################

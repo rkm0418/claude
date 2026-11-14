@@ -270,3 +270,11 @@ kkkkkkkkkkkkkkkk
 .....kddddk.....
 ....kddddddk....
 ....kkkkkkkk....
+
+[shelf] 높은 선반 | real
+................ *9
+kkkkkkkkkkkkkkkk
+knnnnnnnnnnnnnnk
+kkkkkkkkkkkkkkkk
+.kb..........bk.
+................ *3
