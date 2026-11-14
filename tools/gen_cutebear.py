@@ -4,6 +4,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 import gen_shadow as G
 from gen_shadow import C
+from gen_creep import tube
 G.W, G.H = 24, 32
 
 def rect(c, x0, y0, x1, y1, ch):
@@ -100,14 +101,14 @@ def rabbit_char(expr):
     c.put(12, 13, 'k')                                                                                     # 작은 코
     c.ell(9.6, 34.4, 2.4, 1.0, 'd'); c.ell(14.4, 34.4, 2.4, 1.0, 'd')                                       # 짧은 부츠
     c.ell(9.8, 32.2, 1.1, 2.6, 'W'); c.ell(14.2, 32.2, 1.1, 2.6, 'W')                                       # 가늘고 하얀 다리
-    for sx, sgn in ((6.0, -1), (18.0, 1)):                                                                 # 가는 소매, 하얀 손, 소매 끈
-        c.ell(sx, 23.2, 1.9, 5.0, 'R'); c.ell(sx + sgn * .2, 28.2, 1.7, 1.5, 'W'); c.line(sx - 1.6, 26.4, sx + 1.6, 26.4, 1, ch='Q')
-    for y in range(18, 31):                                                                                # 코트 몸통: 얇고 길게, 허리가 들어가고 아래로 살짝만 퍼짐
-        half = 4.2 + (y - 18) * .22 - (.8 if 22 <= y <= 24 else 0)
-        for x in range(int(12 - half + .5), int(12 + half + .5) + 1): c.put(x, y, 'R')
+    for sgn in (-1, 1):                                                                                    # 소매: 어깨에서 비스듬히 내려오는 가는 팔
+        sh, wr = (12 + sgn * 4.0, 20.2), (12 + sgn * 5.9, 27.0)
+        tube(c, [sh, ((sh[0] + wr[0]) / 2 + sgn * .4, 24), wr], 3.8, 2.6, 0, 0, 'R'); c.ell(wr[0] + sgn * .1, 28.2, 1.7, 1.5, 'W'); c.line(wr[0] - 1.4, 26.4, wr[0] + 1.4, 26.4, 1, ch='Q')
+    def half(y): return min(4.2 + (y - 18) * .22 - (.8 if 22 <= y <= 24 else 0), 2.6 + (y - 18) * 1.0)   # 위쪽은 어깨가 비스듬히 벌어짐
+    for y in range(18, 31):                                                                                # 코트 몸통: 둥근 어깨, 허리, 살짝 퍼지는 자락
+        for x in range(int(12 - half(y) + .5), int(12 + half(y) + .5) + 1): c.put(x, y, 'R')
     for y in range(20, 31):                                                                                # 오른쪽 그늘
-        half = 4.2 + (y - 18) * .22 - (.8 if 22 <= y <= 24 else 0)
-        for x in range(int(12 + half - 1.6), int(12 + half + .5) + 1): c.put(x, y, 'Q')
+        for x in range(int(12 + half(y) - 1.6), int(12 + half(y) + .5) + 1): c.put(x, y, 'Q')
     rect(c, 9, 31, 15, 31, 'j')                                                                            # 코트 아래로 보이는 짙은 원피스 자락
     c.line(8.6, 23.4, 15.4, 23.4, 1, ch='Q'); c.put(12, 23, 'y')                                           # 허리 벨트와 버클
     c.line(10, 19, 12, 24, 1, ch='Q'); c.line(14, 19, 12, 24, 1, ch='Q'); c.ell(9.8, 20.3, 1.4, 1.4, 'R'); c.ell(14.2, 20.3, 1.4, 1.4, 'R')    # 옷깃(라펠)
