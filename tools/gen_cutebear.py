@@ -110,8 +110,8 @@ def rabbit_char(expr):
         for x in range(int(12 - half(y) + .5), int(12 + half(y) + .5) + 1): c.put(x, y, 'R')
     for y in range(19, 31):                                                                                # 오른쪽 그늘
         for x in range(int(12 + half(y) - 1.6), int(12 + half(y) + .5) + 1): c.put(x, y, 'Q')
-    for y in range(20, 29):                                                                                # 팔 경계: 소매와 몸통 사이에 짙은 붉은 선
-        for sgn in (-1, 1): c.put(int(12 + sgn * half(y) + (.5 if sgn < 0 else -.5)), y, 'Q')
+    for y in range(20, 29):                                                                                # 팔 경계: 소매와 몸통 사이를 검은 윤곽선으로
+        for sgn in (-1, 1): c.put(int(12 + sgn * half(y) + (.5 if sgn < 0 else -.5)), y, 'k')
     rect(c, 9, 31, 15, 31, 'j')                                                                            # 코트 아래로 보이는 짙은 원피스 자락
     c.line(8.6, 23.4, 15.4, 23.4, 1, ch='Q'); c.put(12, 23, 'y')                                           # 허리 벨트와 버클
     c.line(10, 18, 12, 23, 1, ch='Q'); c.line(14, 18, 12, 23, 1, ch='Q'); c.ell(9.8, 19.3, 1.4, 1.4, 'R'); c.ell(14.2, 19.3, 1.4, 1.4, 'R')    # 옷깃(라펠)
