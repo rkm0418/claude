@@ -142,6 +142,7 @@ def dream_grade(img, emitters):
     return img
 
 OUTLINE = (26, 22, 32)
+FLAT = {'rug', 'blanket', 'slipper', 'frame_down', 'puddle', 'bottles', 'shoes'}
 WALL_MOUNTED = {'clock', 'clock_bird', 'bulb', 'drawing', 'shelf', 'coats', 'coats_dream', 'moon', 'window_eye'}
 WALLISH = {'wall_base', 'brick', 'brick_lit', 'facade', 'facade_window', 'balcony_body'}
 FLOORISH = {'floor_wood', 'floor_kitchen', 'carpet', 'pavement', 'puddle'}
@@ -176,18 +177,21 @@ def bevel(key, sp):
     return out
 
 def cast_shadow(img, sp, left, foot_y, light_x):
-    """바닥에 눕는 그림자: 빛에서 멀어지는 쪽으로 기울고, 화면 아래(관람자 쪽)로 납작하게 늘어진다."""
+    """발밑 접지 그림자: 사물 바닥(발자국) 폭에 딱 붙은 타원. 빛에서 멀어지는 쪽으로만 살짝 민다.
+    (사물을 눌러서 쏘는 방식은 반사처럼 보이고 사물이 떠 보여서 쓰지 않는다.)"""
     W, H, src = sp.width, sp.height, sp.load()
-    k = max(-0.8, min(0.8, (left + W / 2 - light_x) / 60))
-    layer, dst = Image.new('RGBA', img.size, (0, 0, 0, 0)), None
-    dst = layer.load()
-    for y in range(H):
-        d = H - 1 - y
-        for x in range(W):
-            if src[x, y][3]:
-                X, Y = left + x + int(round(k * d)), foot_y + int(d * 0.28)
-                if 0 <= X < img.width and 0 <= Y < img.height:
-                    dst[X, Y] = (0, 0, 0, 120)
+    rows = [y for y in range(H) if any(src[x, y][3] for x in range(W))]
+    if not rows:
+        return
+    last = rows[-1]
+    xs = [x for y in range(max(rows[0], last - 5), last + 1) for x in range(W) if src[x, y][3]]
+    x0, x1 = min(xs), max(xs)
+    off = int(round(max(-1.0, min(1.0, (left + W / 2 - light_x) / 48)) * 2))
+    cy = foot_y - (H - 1 - last)                       # 스프라이트의 실제 맨 아랫줄
+    layer = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    d.ellipse((left + x0 + off - 2, cy - 4, left + x1 + off + 3, cy + 3), fill=(0, 0, 0, 70))
+    d.ellipse((left + x0 + off, cy - 3, left + x1 + off + 1, cy + 1), fill=(0, 0, 0, 70))
     img.alpha_composite(layer)
 
 def grad_tile(kind):
@@ -221,7 +225,7 @@ def draw_map(m, lib, lights, path, dream):
         if not base:
             sp = bevel(name + str(flip), sp)
         top = y * T if base else max(0, (y + 1) * T - sp.height - lift)
-        if not base and lift == 0 and name not in WALL_MOUNTED and sp.height > 10:
+        if not base and lift == 0 and name not in WALL_MOUNTED and name not in FLAT and sp.height > 10:
             lx = min(light_xs, key=lambda e: abs(e - (x * T + 8)), default=len(rows[0]) * T / 2)
             cast_shadow(img, sp, x * T, top + sp.height, lx)
         img.alpha_composite(sp, (x * T, top))

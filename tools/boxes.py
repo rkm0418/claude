@@ -20,8 +20,8 @@ def load_boxes(path):
             items.append(cur)
             continue
         p = line.split()
-        if p[0] == 'box' and len(p) == 8:
-            cur['parts'].append(('box', *[float(v) for v in p[1:7]], p[7]))
+        if p[0] == 'box' and len(p) in (8, 9):
+            cur['parts'].append(('box', *[float(v) for v in p[1:7]], p[7], len(p) == 9 and p[8] == 'noside'))
         elif p[0] == 'decal' and len(p) == 7:
             cur['parts'].append(('decal', *[float(v) for v in p[1:6]], p[6]))
         else:
@@ -43,10 +43,11 @@ def build(item, pal):
     order = sorted(parts, key=lambda p: (-p[2] if p[0] == 'box' else -p[2] + 0.001, p[3] if p[0] == 'box' else p[3]))
     for p in order:
         if p[0] == 'box':
-            _, x, y, z, w, dd, h, col = p
+            _, x, y, z, w, dd, h, col, noside = p
             c = pal[col]
             d.polygon([pt(x, y, z + h), pt(x + w, y, z + h), pt(x + w, y + dd, z + h), pt(x, y + dd, z + h)], fill=shade(c, 1.28))   # 윗면
-            d.polygon([pt(x + w, y, z), pt(x + w, y + dd, z), pt(x + w, y + dd, z + h), pt(x + w, y, z + h)], fill=shade(c, 0.66))  # 옆면
+            if not noside:
+                d.polygon([pt(x + w, y, z), pt(x + w, y + dd, z), pt(x + w, y + dd, z + h), pt(x + w, y, z + h)], fill=shade(c, 0.66))  # 옆면
             d.polygon([pt(x, y, z), pt(x + w, y, z), pt(x + w, y, z + h), pt(x, y, z + h)], fill=shade(c, 1.0))                     # 앞면
         else:
             _, x, y, z, w, h, col = p

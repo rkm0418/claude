@@ -11,13 +11,13 @@ l wall bulb
 D wall_base door
 F wall_base fridge
 , floor_kitchen
-T floor_kitchen table
-U floor_kitchen table cup^13
+T floor_kitchen table4
+U floor_kitchen cup^13
 c floor_kitchen chair
 R floor_kitchen dresser frame_down^10
 o floor_kitchen bottles
 X floor_kitchen door
-Y floor_kitchen chair!^26
+Y floor_kitchen table3
 map:
 ####################
 ###tttttttttttttt###
@@ -25,7 +25,7 @@ map:
 ###bDbbbbbbbbbFbb###
 ###,,,,R,,,,,,,,,###
 ###,,,,,c,c,,,,,,###
-###,,,,TTUT,,,,o,###
+###,,,,T,U,,,,,o,###
 ###,,,,,,c,,,,,,,###
 ###,,,,,,,,,,,,,,###
 ###,,,,,,,,,,,,,,###
@@ -39,7 +39,7 @@ dream_map:
 ###,,,,,,,,,,,,,,###
 ###,,,,,,,,,,,,,,###
 ###,,,,,,,,,,,,,,###
-###,,,,,,TUT,,,,,###
+###,,,,,,YU,,,,,,###
 ###,,,,,,,,,,,,,,###
 ###,,,,,,,,,,,,,,###
 ####################
