@@ -248,7 +248,11 @@ def resample(rows, w, h, outline=False):
     for y in range(h if outline else 0):
         for x in range(w):
             if out[y][x] == '.' and any(0 <= y + dy < h and 0 <= x + dx < w and out[y + dy][x + dx] == 'l' for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))): res[y][x] = 'd'
-    return [''.join(r) for r in res]
+    edge = [r[:] for r in res]                                         # 캐릭터 안쪽의 가장자리 점을 검게 칠한다 (바깥에 따로 선을 두르지 않음)
+    for y in range(h):
+        for x in range(w):
+            if res[y][x] != '.' and any(not (0 <= y + dy < h and 0 <= x + dx < w) or res[y + dy][x + dx] == '.' for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))): edge[y][x] = 'k'
+    return [''.join(r) for r in edge]
 
 MAP_W, MAP_H = 30, 64   # (윤곽선은 resample(..., outline=True) 로 켠다)
 #         # 맵용 크기(약 4m): 문(32px)의 2배. 바꾸려면 여기만 고친다
