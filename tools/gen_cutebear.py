@@ -86,6 +86,11 @@ def export_final():
         if not skip: keep.append(line)
     open(path, 'w', encoding='utf-8').write('\n'.join(keep).rstrip('\n') + '\n\n' + '\n'.join(blocks))
 
+def round_eye(c, ex):
+    for dx in (0, 1):
+        for dy in (10.5, 11.5, 12.5): c.put(ex + dx, dy - .5, 'k')
+    c.put(ex, 10, 'W')                                                                                       # 하이라이트
+
 def rabbit_char(expr):
     """토끼(여자 캐릭터): 레퍼런스 도트화의 비율 + 붉은 더블 트렌치코트(넓은 옷깃, 검은 단추 두 줄, 소매 끈, 주머니 덮개), 줄무늬 스카프, 둥근 귀."""
     c = OffC(); c.oy = 8
@@ -95,28 +100,26 @@ def rabbit_char(expr):
     for sx in (-1, 1): c.ell(12 + sx * 6, 14.4, 1.9, 1.3, 'i')                                              # 옅은 볼터치
     c.put(12, 13, 'k')                                                                                     # 작은 코
     c.ell(6.2, 4.6, 2.2, 1.6, 'R'); c.ell(9.4, 5, 1.8, 1.4, 'R'); c.put(8, 5, 'Q'); c.put(7, 5, 'Q')       # 귀 밑 작은 빨간 리본
-    c.ell(9.2, 31.2, 2.5, 1.0, 'd'); c.ell(14.8, 31.2, 2.5, 1.0, 'd')                                       # 짧은 부츠
-    c.ell(9.2, 29.6, 1.2, 2.4, 'W'); c.ell(14.8, 29.6, 1.2, 2.4, 'W')                                           # 하얀 다리
-    for sx, sgn in ((4.6, -1), (19.4, 1)):                                                                 # 소매(둥글게)와 하얀 손, 소매 끈
-        c.ell(sx, 22.8, 2.6, 4.2, 'R'); c.ell(sx + sgn * .3, 26.4, 2.1, 1.7, 'W'); c.line(sx - 2.2, 24.6, sx + 2.2, 24.6, 1, ch='Q')
-    for y in range(18, 28):                                                                                # 코트 몸통: 허리가 들어가고 아래로 퍼지는 A라인
-        half = 5.0 + (y - 18) * .38 - (1.0 if 22 <= y <= 24 else 0)
+    c.ell(9.6, 34.4, 2.4, 1.0, 'd'); c.ell(14.4, 34.4, 2.4, 1.0, 'd')                                       # 짧은 부츠
+    c.ell(9.8, 32.2, 1.1, 2.6, 'W'); c.ell(14.2, 32.2, 1.1, 2.6, 'W')                                       # 가늘고 하얀 다리
+    for sx, sgn in ((6.0, -1), (18.0, 1)):                                                                 # 가는 소매, 하얀 손, 소매 끈
+        c.ell(sx, 23.2, 1.9, 5.0, 'R'); c.ell(sx + sgn * .2, 28.2, 1.7, 1.5, 'W'); c.line(sx - 1.6, 26.4, sx + 1.6, 26.4, 1, ch='Q')
+    for y in range(18, 31):                                                                                # 코트 몸통: 얇고 길게, 허리가 들어가고 아래로 살짝만 퍼짐
+        half = 4.2 + (y - 18) * .22 - (.8 if 22 <= y <= 24 else 0)
         for x in range(int(12 - half + .5), int(12 + half + .5) + 1): c.put(x, y, 'R')
-    for y in range(20, 28):                                                                                # 오른쪽 그늘
-        half = 5.0 + (y - 18) * .38 - (1.0 if 22 <= y <= 24 else 0)
-        for x in range(int(12 + half - 2.2), int(12 + half + .5) + 1): c.put(x, y, 'Q')
-    rect(c, 8, 28, 16, 28, 'j')                                                                            # 코트 아래로 보이는 짙은 원피스 자락
-    c.line(8.5, 23.4, 15.5, 23.4, 1, ch='Q'); c.put(12, 23, 'y')                                           # 허리 벨트와 버클
-    c.line(10, 19, 12, 24, 1, ch='Q'); c.line(14, 19, 12, 24, 1, ch='Q'); c.ell(9.3, 20.3, 1.7, 1.5, 'R'); c.ell(14.7, 20.3, 1.7, 1.5, 'R')    # 넓은 옷깃(라펠)
-    c.line(9, 20, 11, 22, 1, ch='Q'); c.line(15, 20, 13, 22, 1, ch='Q')
-    for y in (21.5, 25, 27): c.put(10, y, 'k'); c.put(14, y, 'k')                                        # 검은 더블 단추
-    c.line(12, 24, 12, 27, 1, ch='Q')                                                                      # 앞여밈
-    for sx in (-1, 1): c.line(12 + sx * 3.8, 26, 12 + sx * 6, 26, 1, ch='Q')                         # 주머니 덮개
-    c.ell(12, 19.4, 4.8, 1.7, 'W')                                                                         # 줄무늬 스카프
-    for x in (8, 10, 12, 14, 16): c.put(x, 19, 'k')
-    rect(c, 13, 20, 15, 23, 'W'); c.line(13, 21, 15, 21, 1, ch='k'); c.line(13, 23, 15, 23, 1, ch='k')   # 늘어진 스카프 끝
+    for y in range(20, 31):                                                                                # 오른쪽 그늘
+        half = 4.2 + (y - 18) * .22 - (.8 if 22 <= y <= 24 else 0)
+        for x in range(int(12 + half - 1.6), int(12 + half + .5) + 1): c.put(x, y, 'Q')
+    rect(c, 9, 31, 15, 31, 'j')                                                                            # 코트 아래로 보이는 짙은 원피스 자락
+    c.line(8.6, 23.4, 15.4, 23.4, 1, ch='Q'); c.put(12, 23, 'y')                                           # 허리 벨트와 버클
+    c.line(10, 19, 12, 24, 1, ch='Q'); c.line(14, 19, 12, 24, 1, ch='Q'); c.ell(9.8, 20.3, 1.4, 1.4, 'R'); c.ell(14.2, 20.3, 1.4, 1.4, 'R')    # 옷깃(라펠)
+    for y in (21.5, 25.5, 28.5): c.put(10, y, 'k'); c.put(14, y, 'k')                                      # 검은 더블 단추
+    c.line(12, 24, 12, 30, 1, ch='Q')                                                                      # 앞여밈
+    c.ell(12, 19.4, 4.2, 1.6, 'W')                                                                         # 줄무늬 스카프
+    for x in (9, 11, 13, 15): c.put(x, 19, 'k')
+    rect(c, 13, 20, 14, 23, 'W'); c.line(13, 21, 14, 21, 1, ch='k'); c.line(13, 23, 14, 23, 1, ch='k')   # 늘어진 스카프 끝
     if expr == 'A':
-        for ex in (7, 16): c.put(ex, 11, 'k'); c.put(ex, 12, 'k')
+        for ex in (7, 16): round_eye(c, ex)
         c.put(6, 10, 'k'); c.put(17, 10, 'k')                                                              # 속눈썹
         for x in range(11, 14): c.put(x, 15, 'k')
     if expr == 'B':
@@ -124,7 +127,7 @@ def rabbit_char(expr):
         for x in range(11, 14): c.put(x, 15, 'k')
         c.put(12, 16, 'r')
     if expr == 'C':
-        for ex in (7, 16): c.put(ex, 11, 'k'); c.put(ex, 12, 'k')
+        for ex in (7, 16): round_eye(c, ex)
         c.line(6, 8, 9, 9, 1, ch='k'); c.line(18, 8, 15, 9, 1, ch='k')
         for x in range(11, 14): c.put(x, 15, 'k')
         c.ell(20, 6, 1.2, 1.8, 'c'); c.put(20, 4, 'c')
@@ -133,14 +136,14 @@ def rabbit_char(expr):
         c.put(12, 15, 'k')
         for x, y in ((19, 1), (20, 1), (21, 1), (20, 2), (19, 3), (20, 3), (21, 3)): c.put(x, y, 'k')
     if expr == 'E':
-        for ex in (7, 16): c.put(ex, 11, 'k'); c.put(ex, 12, 'k')
+        for ex in (7, 16): round_eye(c, ex)
         c.line(5, 7, 9, 10, 1, ch='k'); c.line(19, 7, 15, 10, 1, ch='k'); c.line(5, 8, 9, 11, 1, ch='k'); c.line(19, 8, 15, 11, 1, ch='k')
         for x in range(11, 14): c.put(x, 15, 'k')
         for x, y in ((19, 3), (20, 3), (19, 4), (21, 4), (20, 5), (21, 5)): c.put(x, y, 'r')
     return c.finish()
 
 def draw(expr, kind):
-    G.W, G.H = 24, (40 if kind == 'rabbit' else 32)
+    G.W, G.H = 24, (44 if kind == 'rabbit' else 32)
     return rabbit_char(expr) if kind == 'rabbit' else character(expr, kind)
 
 def main():
