@@ -212,6 +212,25 @@ def figure(seed, phase=None):
         c.g = c.g[1:] + [['.'] * 48]
     return c
 
+def downscale(rows, f=2):
+    """문자 격자를 1/f 로 줄인다. 밝은 가지(l)는 한 점만 있어도 살리고, 마지막에 윤곽선(k)을 다시 두른다."""
+    H, W = len(rows), len(rows[0]); h, w = H // f, W // f; out = []
+    for by in range(h):
+        line = []
+        for bx in range(w):
+            cells = [rows[by * f + j][bx * f + i] for j in range(f) for i in range(f)]
+            solid = [ch for ch in cells if ch not in '.k']
+            if 'l' in solid: line.append('l')
+            elif len(solid) >= 2 or (solid and cells.count('k') == 0): line.append(max(set(solid), key=solid.count))
+            elif cells.count('k') >= 2: line.append('k')
+            else: line.append('.')
+        out.append(line)
+    res = [r[:] for r in out]
+    for y in range(h):
+        for x in range(w):
+            if out[y][x] == '.' and any(0 <= y + dy < h and 0 <= x + dx < w and out[y + dy][x + dx] not in '.k' for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))): res[y][x] = 'k'
+    return [''.join(r) for r in res]
+
 def export_final(seed=12):
     """확정안(2번, 시드 12): 정지 1장 + 걷기 4장을 art/objects.txt 에 넣는다."""
     import re
@@ -220,6 +239,9 @@ def export_final(seed=12):
     blocks = []
     for name, ph, desc in frames:
         blocks.append(f'[{name}] {desc}\n' + '\n'.join(''.join(r) for r in figure(seed, ph).finish()) + '\n')
+    for name, ph, desc in frames:                                      # 게임 크기(1/2, 24x52): 맵에 놓는 용
+        small = downscale(figure(seed, ph).finish(), 2)
+        blocks.append(f'[{name.replace("shadow_tree", "chaser")}] {desc.split(" | ")[0]} (맵 크기 24x52) | dream\n' + '\n'.join(small) + '\n')
     smear = ['.' * 40, '.' * 40]
     r = random.Random(7); row1 = ''.join('d' if (i % 7 < 5 and i > 3) else ('m' if i % 7 < 6 and i > 1 else '.') for i in range(40)); row2 = ''.join('k' if (i % 5 < 3 and r.random() < .8) else '.' for i in range(40))
     row0 = ''.join('m' if (i % 9 == 0 and 4 < i < 36) else '.' for i in range(40))
@@ -227,7 +249,7 @@ def export_final(seed=12):
     path = os.path.join(root, 'objects.txt'); txt = open(path, encoding='utf-8').read()
     keep, skip = [], False
     for line in txt.split('\n'):                                      # 기존 shadow_tree* 블록을 헤더부터 다음 헤더 전까지 지운다
-        if line.startswith('['): skip = line.startswith('[shadow_tree') or line.startswith('[drag_smear')
+        if line.startswith('['): skip = line.startswith('[shadow_tree') or line.startswith('[drag_smear') or line.startswith('[chaser')
         if not skip: keep.append(line)
     txt = '\n'.join(keep).rstrip('\n') + '\n\n' + '\n'.join(blocks)
     open(path, 'w', encoding='utf-8').write(txt)

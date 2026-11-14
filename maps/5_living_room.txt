@@ -1,6 +1,7 @@
 title: 5장 - 거실
 tone: 255 246 232
 ambient: 0.28
+dream_add: chaser@3,6
 legend:
 # void
 t wall_top_cozy

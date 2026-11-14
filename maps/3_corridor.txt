@@ -1,6 +1,7 @@
 title: 3장 - 복도
 tone: 255 246 232
 ambient: 0.24
+dream_add: chaser@11,5
 legend:
 # void
 t wall_top_cozy
