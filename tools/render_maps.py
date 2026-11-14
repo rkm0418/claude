@@ -144,7 +144,7 @@ def draw_map(m, lib, lights, path, dream):
         flip = name.endswith('!')
         name = name.rstrip('!')
         if dream:
-            name = m['dream'].get(name, 'void_dream' if name == 'void' else name)
+            name = m['dream'].get(name, name)
         if name not in lib:
             sys.exit(f'{path}: 없는 타일/사물 이름 {name!r}')
         sp = lib[name]
@@ -164,11 +164,7 @@ def draw_map(m, lib, lights, path, dream):
     for y, x, obj in sorted(things, key=lambda t: t[0]):     # 위쪽 줄부터 그려서 아래 사물이 앞에 온다
         name, _, lift = obj.partition('^')
         place(img, name, x, y, int(lift or 0))
-    if dream:
-        img = wobble(img)
-    if dream:
-        return dream_grade(img, emitters)
-    return shade(img, emitters, m['ambient'], False)
+    return shade(img, emitters, m['ambient'], False)   # 꿈도 현실과 같은 색. 달라지는 건 배치뿐
 
 def main():
     lib, lights, out = load_library(), load_lights(), os.path.join(BASE, 'maps', 'out')
