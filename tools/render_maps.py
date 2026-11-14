@@ -139,9 +139,73 @@ def dream_grade(img, emitters):
             px[x, y] = tuple(max(0, min(255, int(round((v * k + noise) / 6) * 6))) for v in c) + (255,)
     return img
 
+OUTLINE = (26, 22, 32)
+WALL_MOUNTED = {'clock', 'clock_bird', 'bulb', 'drawing', 'shelf', 'coats', 'coats_dream', 'moon', 'window_eye'}
+WALLISH = {'wall_base', 'brick', 'brick_lit', 'facade', 'facade_window', 'balcony_body'}
+FLOORISH = {'floor_wood', 'floor_kitchen', 'carpet', 'pavement', 'puddle'}
+_bevel_cache = {}
+
+def bevel(key, sp):
+    """입체감: 위는 밝게, 아래는 어둡게(세로 그라데이션) + 윗면 하이라이트, 아랫면 그늘. 모든 사물에 자동 적용."""
+    if key in _bevel_cache:
+        return _bevel_cache[key]
+    W, H, src = sp.width, sp.height, sp.load()
+    ys = [y for y in range(H) for x in range(W) if src[x, y][3]]
+    top, bot = (min(ys), max(ys)) if ys else (0, 0)
+    out, dst = sp.copy(), None
+    dst = out.load()
+    def edge(x, y):
+        if not (0 <= x < W and 0 <= y < H):
+            return True
+        c = src[x, y]
+        return c[3] == 0 or c[:3] == OUTLINE
+    for y in range(H):
+        for x in range(W):
+            r, g, b, a = src[x, y]
+            if not a or (r, g, b) == OUTLINE:
+                continue
+            f = 1.10 - 0.30 * (y - top) / max(1, bot - top)
+            if edge(x, y - 1): f *= 1.14
+            if edge(x - 1, y): f *= 1.06
+            if edge(x, y + 1): f *= 0.86
+            if edge(x + 1, y): f *= 0.90
+            dst[x, y] = (min(255, int(r * f)), min(255, int(g * f)), min(255, int(b * f)), a)
+    _bevel_cache[key] = out
+    return out
+
+def cast_shadow(img, sp, left, foot_y, light_x):
+    """바닥에 눕는 그림자: 빛에서 멀어지는 쪽으로 기울고, 화면 아래(관람자 쪽)로 납작하게 늘어진다."""
+    W, H, src = sp.width, sp.height, sp.load()
+    k = max(-0.8, min(0.8, (left + W / 2 - light_x) / 60))
+    layer, dst = Image.new('RGBA', img.size, (0, 0, 0, 0)), None
+    dst = layer.load()
+    for y in range(H):
+        d = H - 1 - y
+        for x in range(W):
+            if src[x, y][3]:
+                X, Y = left + x + int(round(k * d)), foot_y + int(d * 0.28)
+                if 0 <= X < img.width and 0 <= Y < img.height:
+                    dst[X, Y] = (0, 0, 0, 120)
+    img.alpha_composite(layer)
+
+def grad_tile(kind):
+    t = Image.new('RGBA', (T, T), (0, 0, 0, 0))
+    for y in range(T):
+        a = int(110 * max(0, 1 - y / 9)) if kind == 'ao' else int(70 * (1 - y / T))
+        for x in range(T):
+            t.putpixel((x, y), (0, 0, 0, a))
+    return t
+GRAD_AO, GRAD_WALL = grad_tile('ao'), grad_tile('wall')
+
 def draw_map(m, lib, lights, path, dream):
     emitters = []
     rows = m['dream_rows'] if dream and m['dream_rows'] else m['rows']
+    light_xs = []
+    for yy, row in enumerate(rows):
+        for xx, ch in enumerate(row):
+            for nm in [m['legend'][ch][0]] + [o.partition('^')[0].rstrip('!') for o in m['legend'][ch][1]]:
+                if (m['dream'].get(nm, nm) if dream else nm) in lights:
+                    light_xs.append(xx * T + 8)
     def place(img, name, x, y, lift=0, base=False):
         flip = name.endswith('!')
         name = name.rstrip('!')
@@ -152,8 +216,17 @@ def draw_map(m, lib, lights, path, dream):
         sp = lib[name]
         if flip:
             sp = sp.transpose(Image.FLIP_TOP_BOTTOM)
+        if not base:
+            sp = bevel(name + str(flip), sp)
         top = y * T if base else max(0, (y + 1) * T - sp.height - lift)
+        if not base and lift == 0 and name not in WALL_MOUNTED and sp.height > 10:
+            lx = min(light_xs, key=lambda e: abs(e - (x * T + 8)), default=len(rows[0]) * T / 2)
+            cast_shadow(img, sp, x * T, top + sp.height, lx)
         img.alpha_composite(sp, (x * T, top))
+        if base and name == 'wall':
+            img.alpha_composite(GRAD_WALL, (x * T, y * T))
+        if base and name in FLOORISH and y > 0 and m['legend'][rows[y - 1][x]][0] in WALLISH:
+            img.alpha_composite(GRAD_AO, (x * T, y * T))
         if name in lights:
             emitters.append((x * T + sp.width / 2, top + min(8, sp.height / 2)) + lights[name])
     img = Image.new('RGBA', (len(rows[0]) * T, len(rows) * T))
