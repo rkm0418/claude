@@ -52,3 +52,9 @@
 - 사물마다 스프라이트 자체의 1점 외곽선(`k`)에 더해, **조명 계산이 끝난 뒤** 사물 바깥으로 검은 외곽선 1점을 한 겹 더 그린다. 어두운 장면에서도 사물이 바닥과 분리되어 보인다.
 - 끄거나 켜려면 `tools/render_maps.py` 의 `OUTER_OUTLINE` 를 `False` / `True` 로 바꾼다. 색은 같은 파일의 `img.paste((4, 3, 8, 255), ...)` 줄이다.
 - 바닥과 벽 같은 타일에는 이 외곽선을 그리지 않는다(타일 무늬가 지저분해지기 때문).
+
+## 사물 시안 승인 흐름 (tools/variants.py)
+
+- 새 사물은 `art/variants/<묶음>_boxes.txt` (입체 상자) 또는 `<묶음>_pixels.txt` (픽셀 격자)에 `이름_A/B/C` 로 시안을 만든다.
+- `python3 tools/variants.py batch1` 로 사물별 A/B/C 비교 이미지(`art/out/variants_batch1.png`)를 만든다.
+- 사용자가 고른 시안만 `art/boxes.txt` / `art/objects.txt` 에 정식 이름(`chair` 등)으로 옮긴다.
