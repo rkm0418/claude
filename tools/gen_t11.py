@@ -116,6 +116,27 @@ def fill_eye_holes(c, ymax=44):
                     for x, y in comp: c.g[y][x] = 'l'
                 for p in comp: seen.add(p)
 
+def carve_holes(c, rng, n=16):
+    # 가지 사이 구멍: 크기와 기울기를 제각각으로, 좌우 대칭 쌍과 줄기 중앙부(눈처럼 보임)는 피한다
+    holes = []
+    for _ in range(3000):
+        if len(holes) >= n: break
+        x, y = rng.uniform(8, 40), rng.uniform(5, 30)
+        if abs(x - 24) < 6 and y > 12: continue
+        rx = rng.choice((1.0, 1.4, 1.8, 2.2)); ry = rx * rng.uniform(2.0, 3.6); th = rng.uniform(0, 3.14)
+        R = max(rx, ry) + 1
+        ok = all(c.g[yy][xx] != '.' for yy in range(int(y - R), int(y + R) + 1) for xx in range(int(x - R), int(x + R) + 1) if 0 <= yy < 104 and 0 <= xx < 48 and (xx - x) ** 2 + (yy - y) ** 2 <= R * R)
+        if not ok: continue
+        if any(abs((48 - x) - hx) < 4 and abs(y - hy) < 3 for hx, hy, *_ in holes): continue      # 좌우 대칭 쌍 금지
+        if any(math.hypot(x - hx, y - hy) < 7 for hx, hy, *_ in holes): continue
+        holes.append((x, y, rx, ry, th))
+    for x, y, rx, ry, th in holes:
+        ct, st = math.cos(th), math.sin(th)
+        for yy in range(int(y - 5), int(y + 6)):
+            for xx in range(int(x - 5), int(x + 6)):
+                u, v = (xx - x) * ct + (yy - y) * st, -(xx - x) * st + (yy - y) * ct
+                if (u / rx) ** 2 + (v / ry) ** 2 <= 1 and 0 <= yy < 104 and 0 <= xx < 48: c.g[yy][xx] = '.'
+
 def figure(seed):
     import gen_shadow as G
     G.W, G.H = 48, 104
@@ -157,6 +178,7 @@ def figure(seed):
     for i in range(4):
         dome(c, 24 + (i - 1.5) * 1.6, 31, math.radians(-90 + (i - 1.5) * rng.uniform(32, 40)), 7.5, 5, rng)
     fill_eye_holes(c)
+    carve_holes(c, random.Random(seed + 500), 20)
     return c
 
 def main():
