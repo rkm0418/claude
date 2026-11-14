@@ -1,5 +1,5 @@
-title: 1장 - 식탁 방 (아늑한데 섬뜩한 집)
-tone: 255 236 205
+title: 1장 - 식탁 방
+tone: 255 246 232
 ambient: 0.3
 legend:
 # void
@@ -8,48 +8,44 @@ w wall_cozy
 b wall_base_cozy
 W window_l
 V window_r
-F wall_cozy frame_back
-G wall_cozy frame
-K wall_cozy clock
-N wall_cozy calendar
+G wall_cozy frame_a^3
+F wall_cozy frame_back^3
+K wall_cozy clock^3
 D wall_base_cozy door
 Q wall_base_cozy doorway_dark
 . floor_cozy
-S floor_cozy sideboard
-P floor_cozy plant
-B floor_cozy bookshelf
-A floor_cozy armchair
-M floor_cozy floor_lamp
-H floor_cozy shoes
-Z floor_cozy rug_big
-T floor_cozy table_cloth4 cup^13
-p floor_cozy plate^13
+C floor_cozy ceiling_light^4
 c floor_cozy chair
-Y floor_cozy chair
-L floor_cozy pendant^12
+s floor_cozy sideboard table_lamp^14
+Y floor_cozy plant
+B floor_cozy bookshelf
+H floor_cozy shoes
+Z floor_cozy rug_big chair
+z floor_cozy rug_big
+T floor_cozy table plates3^15
 map:
 ####################
-#tttttttttttttttttt#
-#wWVwGwKwNwGwWVwwww#
-#bbbbbbbbbbbbbbbDbb#
-#.S.........P..H.B.#
-#..................#
-#.......L.......M..#
-#.......c.......A..#
-#...cZTppp.c.......#
-#..................#
-#..................#
+###tttttttttttttt###
+###wWVwwGwKwwWVww###
+###bbbbbbbbbbbbDb###
+###s.....Y..B.H..###
+###..............###
+###.....cC.......###
+###....ZT.c......###
+###..............###
+###..............###
+####################
 ####################
 dream_map:
 ####################
-#tttttttttttttttttt#
-#wWVwGwKwNwFwWVwwww#
-#bbbbbbbbbbbbbbbQbb#
-#.S.........P..H.B.#
-#..................#
-#.......L.......M..#
-#..................#
-#...cZTppp.c.......#
-#................Y.#
-#..................#
+###tttttttttttttt###
+###wWVwwFwKFwWVww###
+###bbbbbbbbbbbbQb###
+###s.....Y..B.H..###
+###..............###
+###......C.......###
+###....zT.c......###
+###..............###
+###.............c###
+####################
 ####################

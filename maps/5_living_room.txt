@@ -1,5 +1,5 @@
-title: 5장 - 거실과 베란다 문 (아늑한데 섬뜩한)
-tone: 255 232 205
+title: 5장 - 거실
+tone: 255 246 232
 ambient: 0.28
 legend:
 # void
@@ -8,52 +8,48 @@ w wall_cozy
 b wall_base_cozy
 W window_l
 V window_r
-F wall_cozy frame_back
-G wall_cozy frame
-K wall_cozy clock
-N wall_cozy calendar
-P wall_cozy drawing
-H wall_cozy shelf toy_broken^6
-S wall_cozy sconce
+G wall_cozy frame_a^3
+F wall_cozy frame_back^3
+K wall_cozy clock^3
 D wall_base_cozy door
 Q wall_base_cozy doorway_dark
-O wall_base_cozy closet
-C wall_base_cozy coats^4
+. floor_cozy
+C floor_cozy ceiling_light^4
+c floor_cozy chair
 X wall_base_cozy balcony_door_closed
 Q wall_base_cozy balcony_door
-. floor_cozy
-O floor_cozy sofa
-v floor_cozy tv
-T floor_cozy table3 cup^13
-q floor_cozy cup^13
-x floor_cozy table3
 Y floor_cozy plant
-c floor_cozy chair
-L floor_cozy pendant^12
+B floor_cozy bookshelf
+M floor_cozy floor_lamp
+O floor_cozy sofa
+A floor_cozy armchair
 Z floor_cozy rug_big
+T floor_cozy coffee_table cup^7
+q floor_cozy cup^7
+v floor_cozy tv
 map:
 ####################
-#tttttttttttttttttt#
-#wWVwGwGwKwGwGwGwww#
-#bbbbbbbbbbbbbXbbbb#
-#........v..Y......#
-#..O...............#
-#........L.........#
-#.ZTqq.............#
-#..................#
-#..................#
-#..................#
+###tttttttttttttt###
+###wWVwwKwwGwwwww###
+###bbbbbbbbbbbbXb###
+###..........B..Y###
+###..M.O...A.....###
+###......C.......###
+###...ZTq........###
+###..............###
+###..............###
+####################
 ####################
 dream_map:
 ####################
-#tttttttttttttttttt#
-#wWVwGwFwKwGwFwGwww#
-#bbbbbbbbbbbbbQbbbb#
-#........v..Y.c....#
-#..O...............#
-#........L.........#
-#.ZTqq.............#
-#..................#
-#..................#
-#..................#
+###tttttttttttttt###
+###wWVwwKwwFwwwww###
+###bbbbbbbbbbbbQb###
+###.............c###
+###..............###
+###......v.......###
+###..............###
+###..............###
+###..............###
+####################
 ####################

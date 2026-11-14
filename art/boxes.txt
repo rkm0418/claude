@@ -1,204 +1,194 @@
-# 입체(3/4 시점) 가구. 상자 부품으로 정의한다. 같은 이름의 평면 스프라이트(objects.txt)를 대체한다.
-# box   x y z w d h 색   : x=가로 위치, y=앞에서 뒤로의 깊이 위치, z=바닥에서의 높이, w=가로, d=깊이, h=높이
-# 박스 끝에 noside 를 붙이면 오른쪽 옆면을 그리지 않는다(칸을 이어 붙일 때).
-# decal x y z w h 색     : y 위치의 앞면에 붙이는 납작한 무늬(서랍, 손잡이, 화면 등)
-# 색은 palette.txt 글자. 윗면은 밝게, 옆면은 어둡게 자동으로 칠한다.
+# 입체(3/4 시점) 가구. 현실 비율: 16px = 1m (문 16x32 = 1m x 2m).
+# box   x y z w d h 색   : x=가로 위치, y=앞에서 뒤로의 깊이 위치, z=바닥에서의 높이, w=가로, d=깊이, h=높이 (px)
+# 박스 끝에 noside 를 붙이면 오른쪽 옆면을 그리지 않는다.
+# decal x y z w h 색     : y 위치의 앞면에 붙이는 납작한 무늬
+# 색은 palette.txt 글자. 윗면은 밝게, 옆면은 어둡게 자동으로 칠한다. (w=0 이면 가는 선 하나)
 
-[table] 식탁 한 칸 (16폭) | real
-box 0 1 0 2 2 9 b
-box 14 1 0 2 2 9 b
-box 0 9 0 2 2 9 b
-box 14 9 0 2 2 9 b
-box 0 0 9 16 12 2 n
+[table] 식탁보 덮인 2m 식탁 | real
+box 2 1 0 1 1 8 b
+box 29 1 0 1 1 8 b
+box 2 12 0 1 1 8 b
+box 29 12 0 1 1 8 b
+box 0 0 8 32 14 4 q
+decal 0 0 8 32 1 a
 
-[table3] 긴 식탁 3칸 (48폭) | real
-box 0 1 0 2 2 9 b
-box 46 1 0 2 2 9 b
-box 0 9 0 2 2 9 b
-box 46 9 0 2 2 9 b
-box 0 0 9 48 12 2 n
+[chair] 뚫린 등받이 의자 (좌판 높이 0.45m, 등받이 0.9m) | real
+box 0 1 0 0 0 6 b
+box 7 1 0 0 0 6 b
+box 0 6 0 0 0 6 b
+box 7 6 0 0 0 6 b
+box 0 0 6 8 8 1 n
+box 1 7 7 0 0 5 n
+box 4 7 7 0 0 5 n
+box 7 7 7 0 0 5 n
+box 0 7 12 8 1 2 n
 
-[table4] 긴 식탁 4칸 (64폭) | real
-box 0 1 0 2 2 9 b
-box 62 1 0 2 2 9 b
-box 0 9 0 2 2 9 b
-box 62 9 0 2 2 9 b
-box 0 0 9 64 12 2 n
+[cup] 컵 | real
+box 0 0 0 3 3 3 t
+box 4 1 1 0 1 1 t
 
-[chair] 뚫린 등받이 빈티지 나무 의자 (옆기둥 없이 가는 살 5개, H자 가로대) | real
-box 1 8 0 1 2 8 b
-box 16 8 0 1 2 8 b
-box 1 1 0 1 2 8 b
-box 16 1 0 1 2 8 b
-box 1 3 3 0 6 1 b
-box 17 3 3 0 6 1 b
-box 2 5 3 15 1 1 b
-box 0 0 8 18 11 2 n
-box 1 9 10 0 1 13 n
-box 5 9 10 0 1 13 n
-box 9 9 10 0 1 13 n
-box 13 9 10 0 1 13 n
-box 17 9 10 0 1 13 n
-box 0 8 23 18 3 3 n
-box 2 8 26 14 3 1 n
+[sideboard] 찬장 (1.2m) | real
+box 0 0 0 19 7 14 u
+decal 1 0 1 8 11 n
+decal 10 0 1 8 11 n
+decal 4 0 6 2 1 y
+decal 13 0 6 2 1 y
 
-[cup] 큰 컵 (식탁 위) | real
-box 3 1 0 6 6 6 t
-decal 4 1 3 2 2 w
-box 9 2 1 3 3 3 t
+[bookshelf] 책장 (0.9m x 1.8m) | real
+box 0 0 0 14 5 29 n
+decal 1 0 2 2 7 a
+decal 3 0 2 3 7 h
+decal 6 0 2 2 7 y
+decal 8 0 2 3 7 i
+decal 11 0 2 2 7 j
+decal 1 0 11 2 7 a
+decal 3 0 11 2 7 h
+decal 5 0 11 2 7 y
+decal 7 0 11 2 7 i
+decal 9 0 11 3 7 j
+decal 1 0 21 2 7 a
+decal 3 0 21 2 7 h
+decal 5 0 21 2 7 y
+decal 7 0 21 2 7 i
+decal 9 0 21 3 7 j
+decal 0 0 9 14 1 b
+decal 0 0 19 14 1 b
 
-[bed] 아이 침대 | real
-box 0 0 0 32 18 4 b
-box 1 1 4 30 16 3 w
-box 1 1 7 30 10 2 m
-box 3 11 7 10 5 3 w
-box 0 17 0 32 1 12 n
+[armchair] 안락의자 | real
+box 0 1 2 14 11 5 a
+box 0 9 7 14 3 8 a
+box 0 1 7 3 9 4 a
+box 11 1 7 3 9 4 a
+box 3 1 7 8 8 2 i
 
-[closet] 옷장 (문틈으로 빛이 샌다) | real
-box 0 0 0 16 6 32 b
-decal 1 0 2 14 28 n
-decal 7 0 2 2 28 o
-decal 4 0 14 2 4 y
-decal 10 0 14 2 4 y
+[sofa] 3인용 소파 (2m) | real
+box 0 1 1 32 12 6 a
+box 0 10 7 32 4 8 a
+box 0 1 7 4 10 4 a
+box 28 1 7 4 10 4 a
+box 4 1 7 11 9 2 i
+box 17 1 7 11 9 2 i
 
-[dresser] 서랍장 | real
-box 0 0 0 16 8 14 b
-decal 1 0 1 14 5 n
-decal 1 0 7 14 5 n
-decal 7 0 3 2 1 y
-decal 7 0 9 2 1 y
+[coffee_table] 커피 탁자 | real
+box 1 1 0 1 1 5 b
+box 17 1 0 1 1 5 b
+box 1 8 0 1 1 5 b
+box 17 8 0 1 1 5 b
+box 0 0 5 19 10 2 n
 
-[fridge] 냉장고 | real
-box 1 0 0 14 10 30 l
-decal 1 0 18 14 1 k
-decal 3 0 20 1 6 w
-decal 3 0 8 1 6 w
+[bed] 아이 침대 (2m) | real
+box 0 0 0 32 17 4 b
+box 1 1 4 30 15 3 w
+box 1 1 7 30 9 1 m
+box 3 11 7 9 5 1 w
+box 0 16 0 32 1 11 n
 
-[tv] 지직거리는 텔레비전 | real
-box 3 3 0 10 5 2 b
-box 0 0 2 16 8 11 d
-decal 2 0 4 12 7 m
-decal 3 0 6 2 2 l
-decal 8 0 8 3 2 l
-
-[streetlamp] 가로등 (16x48 크기) | real
-box 5 2 0 6 6 3 d
-box 7 4 3 2 2 36 d
-box 3 1 39 10 8 6 p
-decal 4 1 41 8 3 w
-
-[flashlight] 손전등 | real
-box 3 3 0 7 4 4 y
-box 10 3 1 3 4 2 o
-
-[plate] 접시 | real
-box 1 0 0 6 6 1 w
-
-[frame_back] 뒤집어 건 액자 (뒷면) | real
-box 1 0 0 14 3 11 b
-decal 2 0 1 12 9 n
-decal 7 0 8 2 1 d
-decal 6 0 2 4 5 b
-
-[sideboard] 유리 찬장 (접시가 보임) | real
-box 0 0 0 16 8 12 u
-decal 1 0 1 14 10 n
-decal 7 0 1 2 10 b
-decal 4 0 5 2 2 y
-decal 10 0 5 2 2 y
-box 1 1 12 14 6 12 u
-decal 2 1 13 12 10 c
-decal 3 1 17 3 3 w
-decal 7 1 17 3 3 w
-decal 11 1 17 3 3 w
-
-[table_cloth4] 식탁보 덮인 긴 식탁 (4칸) | real
-box 2 1 0 2 2 4 b
-box 60 1 0 2 2 4 b
-box 2 9 0 2 2 4 b
-box 60 9 0 2 2 4 b
-box 0 0 4 64 12 7 q
-decal 0 0 4 64 1 a
-
-[armchair] 테라코타 안락의자 | real
-box 0 2 0 16 10 6 a
-box 0 8 6 16 4 10 a
-box 0 0 6 3 10 6 a
-box 13 0 6 3 10 6 a
-box 3 2 6 10 8 3 i
-
-[bookshelf] 책장 (색색의 책) | real
-box 0 0 0 16 6 32 n
-decal 1 0 2 2 6 a
-decal 3 0 2 2 6 h
-decal 5 0 2 3 6 y
-decal 8 0 2 2 6 i
-decal 10 0 2 2 6 j
-decal 12 0 2 3 6 u
-decal 0 0 9 16 1 b
-decal 1 0 12 3 6 h
-decal 4 0 12 2 6 a
-decal 6 0 12 2 6 w
-decal 8 0 12 3 6 j
-decal 11 0 12 2 6 i
-decal 13 0 12 2 6 y
-decal 0 0 19 16 1 b
-decal 1 0 22 2 6 j
-decal 3 0 22 3 6 y
-decal 6 0 22 2 6 a
-decal 9 0 22 2 6 u
-decal 11 0 22 3 6 h
-decal 0 0 29 16 1 b
-
-[floor_lamp] 따뜻한 스탠드 | real
-box 5 3 0 6 6 2 b
-box 7 5 2 1 1 22 b
-box 3 2 24 10 8 7 y
-
-[sofa] 테라코타 3인용 소파 (48폭) | real
-box 0 2 0 48 12 7 a
-box 0 10 7 48 4 12 a
-box 0 2 7 4 10 6 a
-box 44 2 7 4 10 6 a
-box 4 2 7 13 9 3 i
-box 18 2 7 13 9 3 i
-box 31 2 7 13 9 3 i
-
-[desk] 아이 책상 | real
-box 0 1 0 2 2 10 b
-box 22 1 0 2 2 10 b
-box 0 8 0 2 2 10 b
-box 22 8 0 2 2 10 b
-box 0 0 10 24 11 2 n
-
-[toybox] 장난감 상자 | real
-box 0 1 0 16 9 9 a
-decal 1 1 7 14 1 u
-box 4 2 9 4 4 5 y
-box 9 3 9 3 3 4 p
-
-[bench] 놀이터 벤치 (32폭) | real
-box 0 1 0 2 3 6 b
-box 30 1 0 2 3 6 b
-box 0 0 6 32 6 2 n
-box 0 6 8 32 1 8 n
-
-[shoe_rack] 신발장 | real
-box 0 0 0 16 7 10 n
-decal 1 0 1 14 3 b
-decal 1 0 5 14 3 b
-
-[slide] 미끄럼틀 (놀이대) | real
-box 0 2 0 12 10 22 r
-box 0 2 22 12 10 3 y
-box 12 3 12 4 6 3 w
-box 16 3 9 4 6 3 w
-box 20 3 6 4 6 3 w
-box 24 3 3 4 6 3 w
+[desk] 책상 | real
+box 0 1 0 1 1 11 b
+box 17 1 0 1 1 11 b
+box 0 7 0 1 1 11 b
+box 17 7 0 1 1 11 b
+box 0 0 11 19 9 1 n
 
 [wardrobe] 평범한 옷장 | real
-box 0 0 0 16 6 32 b
-decal 1 0 2 14 28 n
-decal 7 0 2 2 28 k
-decal 4 0 14 2 4 y
-decal 10 0 14 2 4 y
+box 0 0 0 16 7 31 b
+decal 1 0 2 14 27 n
+decal 7 0 2 2 27 k
+decal 4 0 14 2 3 y
+decal 10 0 14 2 3 y
+
+[closet] 옷장 (문틈으로 빛이 샌다) | real
+box 0 0 0 16 7 31 b
+decal 1 0 2 14 27 n
+decal 7 0 2 2 27 o
+decal 4 0 14 2 3 y
+decal 10 0 14 2 3 y
+
+[fridge] 냉장고 | real
+box 0 0 0 11 10 29 l
+decal 0 0 17 11 1 k
+decal 2 0 19 1 5 w
+decal 2 0 8 1 5 w
+
+[tv] 텔레비전 (받침대 위) | real
+box 3 2 0 6 3 4 b
+box 0 1 4 12 5 8 d
+decal 1 1 5 10 6 m
+decal 2 1 6 2 1 l
+decal 7 1 8 2 1 l
+
+[floor_lamp] 스탠드 (흰 갓) | real
+box 1 1 0 4 4 1 b
+box 3 3 1 0 0 20 b
+box 0 0 21 6 6 5 w
+
+[table_lamp] 탁상등 (흰 갓) | real
+box 1 1 0 3 3 1 b
+box 2 2 1 0 0 4 b
+box 0 0 5 5 5 4 w
+
+[shoe_rack] 신발장 | real
+box 0 0 0 12 6 8 n
+decal 1 0 1 10 2 b
+decal 1 0 5 10 2 b
+
+[toybox] 장난감 상자 | real
+box 0 0 0 12 7 7 a
+decal 1 0 5 10 1 u
+box 3 1 7 3 3 3 y
+
+[bench] 놀이터 벤치 (1.8m) | real
+box 1 1 0 1 1 4 b
+box 26 1 0 1 1 4 b
+box 0 0 4 28 6 2 n
+box 0 5 6 28 1 6 n
+
+[slide] 미끄럼틀 | real
+box 0 2 0 8 8 14 r
+box 0 2 14 8 8 2 y
+box 8 3 8 3 6 2 w
+box 11 3 6 3 6 2 w
+box 14 3 4 3 6 2 w
+box 17 3 2 3 6 2 w
+
+[streetlamp] 가로등 (어두운 기둥, 흰 등) | real
+box 2 2 0 4 4 2 d
+box 3 3 2 0 0 44 d
+box 0 0 46 6 6 3 w
+
+[frame_a] 가족사진 액자 | real
+box 0 0 0 8 1 10 n
+decal 1 0 1 6 8 w
+decal 2 0 2 1 4 d
+decal 4 0 2 1 5 d
+decal 6 0 2 1 3 m
+decal 2 0 6 1 1 g
+decal 4 0 7 1 1 g
+decal 6 0 5 1 1 g
+
+[frame_back] 뒤집어 건 액자 (뒷면) | real
+box 0 0 0 8 1 10 b
+decal 1 0 1 6 8 n
+decal 3 0 7 2 1 d
+
+[drawing] 아이가 그린 그림 | real
+box 0 0 0 7 1 9 w
+decal 1 0 1 2 3 r
+decal 1 0 4 2 1 o
+decal 4 0 5 2 2 y
+decal 0 0 1 7 1 h
+
+[calendar] 달력 | real
+box 0 0 0 6 1 8 w
+decal 0 0 6 6 2 a
+decal 1 0 2 1 1 m
+decal 3 0 2 1 1 m
+decal 1 0 4 1 1 m
+decal 3 0 4 1 1 m
+
+[plate] 접시 | real
+box 0 0 0 5 5 0 w
+
+[flashlight] 손전등 (회색) | real
+box 0 0 0 6 2 2 l
+box 6 0 0 2 2 2 w

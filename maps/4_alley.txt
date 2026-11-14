@@ -1,6 +1,6 @@
-title: 4장 - 골목과 놀이터 (아늑한데 섬뜩한)
-tone: 235 235 255
-ambient: 0.26
+title: 4장 - 골목과 놀이터
+tone: 225 232 255
+ambient: 0.0
 legend:
 B brick
 L brick_lit
@@ -17,11 +17,11 @@ BBBBBBBBBBBBBBBBBBBB
 pppppppppppppppppppp
 pppuppppppppppppuppp
 ppppppppAppppppppppp
-pppppppppppppYpppppp
-pppppppppppNpppppppp
+ppppppppppppYppppppp
+ppppppppppNppppppppp
 pppppppppppppppppppp
 BBBBBBBBBBBBBBBBBBBB
-BBLBBBBBLBBBBBLBBBBB
+BBBBBBBBBBBBBBBBBBBB
 BBBBBBBBBBBBBBBBBBBB
 dream_map:
 BBLBBBLBBBLBBBBLBBBB
@@ -30,9 +30,9 @@ BBBBBBBBBBBBBBBBBBBB
 pppppppppppppppppppp
 pppuppppppppppppuppp
 ppppppppAppppppppppp
-ppplpppppppppYpppppp
-pppppppppppNpppppppp
-ppppppplpppppppppppp
+ppplpppppppYpppppppp
+ppppppplpppNpppppppp
+pppppppppplppppppppp
 BBBBBBBBBBBBBBBBBBBB
-BBLBBBBBLBBBBBLBBBBB
+BBBBBBBBBBBBBBBBBBBB
 BBBBBBBBBBBBBBBBBBBB
