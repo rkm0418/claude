@@ -38,19 +38,24 @@ def bear(expr):
     if expr == 'C':
         for ex in (7, 16): c.put(ex, 12, 'k'); c.put(ex + 1, 12, 'k'); c.put(ex, 13, 'k'); c.put(ex + 1, 13, 'k')
         c.line(6, 9, 9, 10, 1, ch='k'); c.line(18, 9, 15, 10, 1, ch='k')
-        for x, y in ((10, 16), (11, 15), (12, 16), (13, 15), (14, 16)): c.put(x, y, 'k')
+        for x in range(10, 15): c.put(x, 16, 'k')
         c.ell(20, 6, 1.2, 1.8, 'c'); c.put(20, 4, 'c')
     if expr == 'D':
         for ex in (6, 15): c.line(ex, 12, ex + 3, 12, 1, ch='k')
         c.put(11, 15, 'k'); c.put(12, 16, 'k'); c.put(13, 15, 'k'); c.ell(12, 16.5, 1, 1, 'r')
         for x, y in ((19, 1), (20, 1), (21, 1), (20, 2), (19, 3), (20, 3), (21, 3)): c.put(x, y, 'w')
+    if expr == 'E':                                                                                         # 화남: 가는 눈, 가파른 눈썹, 이마의 핏대, 입은 일자
+        for ex in (7, 16): c.put(ex, 12, 'k'); c.put(ex + 1, 12, 'k')
+        c.line(5, 8, 9, 11, 1, ch='k'); c.line(19, 8, 15, 11, 1, ch='k'); c.line(5, 9, 9, 12, 1, ch='k'); c.line(19, 9, 15, 12, 1, ch='k')
+        for x in range(10, 15): c.put(x, 16, 'k')
+        for x, y in ((19, 3), (20, 3), (19, 4), (21, 4), (20, 5), (21, 5)): c.put(x, y, 'r')
     return c
 
 def main():
     root = os.path.join(os.path.dirname(__file__), '..', 'art', 'variants')
-    notes = {'A': '기본 표정', 'B': '웃는 표정', 'C': '걱정(땀방울)', 'D': '졸림'}
+    notes = {'A': '기본 표정(입 일자)', 'B': '웃는 표정', 'C': '걱정(땀방울, 입 일자)', 'D': '졸림', 'E': '화남(입 일자)'}
     lines = ['# 말랑한 곰(초록 후드) 표정 4종 (tools/gen_cutebear.py 가 생성함)', '']
-    for v in 'ABCD':
+    for v in 'ABCDE':
         lines.append(f'[bear_{v}] {notes[v]} | {v}'); lines += bear(v).finish(); lines.append('')
     open(os.path.join(root, 'cutebear_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
 if __name__ == '__main__': main()

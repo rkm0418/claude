@@ -1,6 +1,6 @@
 # 말랑한 곰(초록 후드) 표정 4종 (tools/gen_cutebear.py 가 생성함)
 
-[bear_A] 기본 표정 | A
+[bear_A] 기본 표정(입 일자) | A
 ........................
 ...kkkkk.........kkkkk..
 ..kuuuuuk.kkkkk.kuuuuuk.
@@ -68,7 +68,7 @@
 .....kzzzxxxxzzzxxxk....
 .....kuzzxxxkzzzxxuk....
 
-[bear_C] 걱정(땀방울) | C
+[bear_C] 걱정(땀방울, 입 일자) | C
 ........................
 ...kkkkk.........kkkkk..
 ..kuuuuuk.kkkkk.kuuuuuk.
@@ -84,8 +84,8 @@
 ..kuuuukkqqqqqqqkkuuuuk.
 ..kuuiikkqqbbbqqkkiiuuk.
 ...kiiiiqqqqqqqqqiiiik..
-...kuiiiqqqkqkqqqiiiuk..
-....kuuuqqkqkqkqquuuk...
+...kuiiiqqqqqqqqqiiiuk..
+....kuuuqqkkkkkqquuuk...
 ....kkuuuuqqqqquuuukk...
 ...kfffzuuuuuuuuuzfffk..
 ...kfffzzzuuuuuzzzfffk..
@@ -121,6 +121,40 @@
 ...kuiiiqqqkqkqqqiiiuk..
 ....kuuuqqqqrqqqquuuk...
 ....kkuuuuqqrqquuuukk...
+...kfffzuuuuuuuuuzfffk..
+...kfffzzzuuuuuzzzfffk..
+..khhfffffqqzqqfffffhhk.
+..khhhhfffqqfqqffhhhhhk.
+..khhhhfffqfhhqhhhhhhhk.
+..khhhhhffqhhhqhhhhhhhk.
+..khuhhhzzzzzzzzzhhhuhk.
+..kzzzzzhhhhhhhhhzzzzzk.
+..kuuuuhhhhhhhhhhhuuuuk.
+...kuuuxxxxxxxxxxxuuuk..
+....kkzhzxhhhhhzxxzkk...
+.....kzzzxxxxzzzxxxk....
+.....kzzzxxxxzzzxxxk....
+.....kuzzxxxkzzzxxuk....
+
+[bear_E] 화남(입 일자) | E
+........................
+...kkkkk.........kkkkk..
+..kuuuuuk.kkkkk.kuuuuuk.
+.kuuuuuuukuuuuukuuurruuk
+.kuuiiiuuuuuuuuuuuiriruk
+.kuuiiuuuuuuuuuuuuuirruk
+.kuuiuuuuuuuuuuuuuuuiuuk
+..kuuuuuuuuuuuuuuuuuuuk.
+...kukkuuuuuuuuuuukkuk..
+..kuukkkuuuuuuuuukkkuuk.
+..kuuukkkuuuuuuukkkuuuk.
+..kuuuukkkqqqqqkkkuuuuk.
+..kuuuukkkqqqqqkkkuuuuk.
+..kuuiiiqqqbbbqqqiiiuuk.
+...kiiiiqqqqqqqqqiiiik..
+...kuiiiqqqqqqqqqiiiuk..
+....kuuuqqkkkkkqquuuk...
+....kkuuuuqqqqquuuukk...
 ...kfffzuuuuuuuuuzfffk..
 ...kfffzzzuuuuuzzzfffk..
 ..khhfffffqqzqqfffffhhk.
