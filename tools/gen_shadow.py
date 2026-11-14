@@ -41,9 +41,9 @@ class C:
         return [''.join(r) for r in out]
 
 def hand(c, x, y, ang=90):  # 가늘고 긴 손가락 4개
-    for k in range(-2, 2):
-        a = math.radians(ang + k * 22 + 11)
-        c.line(x, y, x + math.cos(a) * 5, y + math.sin(a) * 5, 1)
+    for k in (-1, 0, 1):
+        a = math.radians(ang + k * 38)
+        c.line(x, y, x + math.cos(a) * 7, y + math.sin(a) * 7, 1)
 
 def teeth(c, x0, x1, y, h=2):  # 이빨 줄
     for x in range(x0, x1 + 1):
@@ -115,12 +115,103 @@ def F():
     teeth(c, 13, 19, 17, 2); c.put(14, 13, 'w'); c.put(18, 13, 'w'); c.put(16, 12, 'w')
     return c, '기는 형상: 관절이 반대로 꺾인 긴 팔다리, 몸은 낮게'
 
+def G():
+    c = C()
+    c.ell(16, 9, 4.5, 4.8); c.line(16, 13, 15, 20, 2); c.path([(15, 19), (17, 30), (14, 40)], 5, 3)
+    c.line(13, 40, 11, 55, 2.2, 1.4); c.line(16, 40, 18, 55, 2.2, 1.4)
+    c.path([(12, 21), (5, 40), (3, 55)], 2, 1.2); c.path([(19, 21), (27, 40), (29, 55)], 2, 1.2)
+    hand(c, 3, 55, 100); hand(c, 29, 55, 80)
+    c.ell(16, 9, 2.6, 2.6, 'w'); c.ell(16, 9, 1.2, 1.8, 'k'); c.put(16, 8, 'r')
+    return c, '외눈: 얼굴 한가운데 큰 눈 하나, 팔이 바닥에 끌림'
+
+def Hh():
+    c = C()
+    c.ell(16, 12, 9, 9); c.line(16, 20, 16, 26, 2); c.line(16, 25, 16, 38, 4, 3)
+    c.line(15, 38, 13, 55, 1.8, 1.2); c.line(17, 38, 19, 55, 1.8, 1.2)
+    c.path([(14, 26), (6, 40), (5, 54)], 1.6, 1); c.path([(18, 26), (26, 40), (27, 54)], 1.6, 1)
+    hand(c, 5, 54); hand(c, 27, 54)
+    for x in (11, 21):
+        for y in (8, 9, 10, 11): c.put(x, y, 'w')
+    for x in range(8, 25): c.put(x, 16, 'k'); c.put(x, 17, 'w' if x % 2 == 0 else 'k')
+    for x in range(9, 24, 2): c.put(x, 15, 'w')
+    return c, '거대한 머리: 머리가 몸의 3분의 1, 입이 얼굴 가로로 찢어짐'
+
+def I():
+    c = C()
+    c.ell(16, 7, 3, 4.6); c.line(16, 11, 16, 17, 2)
+    c.path([(16, 17), (16, 28)], 6, 5)
+    for y in range(28, 55):
+        w = 3 + (y - 28) * 0.5
+        for x in range(int(16 - w), int(16 + w) + 1): c.put(x, y, 's')
+    c.path([(12, 19), (7, 34), (8, 50)], 2, 1.2); c.path([(20, 19), (25, 34), (24, 50)], 2, 1.2)
+    hand(c, 8, 50); hand(c, 24, 50)
+    return c, '치마 실루엣: 종 모양 하체, 얼굴 없음, 몸은 한 덩어리로 땅에 끌림'
+
+def J():
+    c = C()
+    c.line(16, 14, 16, 36, 7, 5); c.ell(16, 24, 5, 3, 's')
+    c.line(14, 36, 12, 55, 2.2, 1.4); c.line(18, 36, 20, 55, 2.2, 1.4)
+    c.path([(11, 16), (5, 36), (6, 52)], 2.2, 1.2); c.path([(21, 16), (27, 36), (26, 52)], 2.2, 1.2)
+    hand(c, 6, 52); hand(c, 26, 52)
+    c.ell(16, 20, 5, 4, 's')
+    for x, y in [(14, 18), (18, 18)]: c.put(x, y, 'w')
+    for x in range(12, 21): c.put(x, 22, 'w' if x % 2 == 0 else 'k'); c.put(x, 23, 'k')
+    return c, '목이 없다: 머리가 가슴에 파묻혀 있고 어깨가 귀 위로 솟음'
+
+def K():
+    c = C()
+    c.path([(16, -2), (16, 34)], 8, 5)
+    c.line(14, 34, 12, 55, 2.4, 1.5); c.line(18, 34, 20, 55, 2.4, 1.5)
+    for sx in (-1, 1):
+        c.path([(16 + sx * 4, 4), (16 + sx * 10, 28), (16 + sx * 9, 50)], 2.4, 1.2)
+        c.path([(16 + sx * 4, 10), (16 + sx * 13, 30), (16 + sx * 14, 46)], 1.8, 1.0)
+        hand(c, 16 + sx * 9, 50); hand(c, 16 + sx * 14, 46)
+    return c, '머리가 화면 밖: 키가 프레임을 넘어 머리가 보이지 않음 (올려다보는 구도)'
+
+def L():
+    c = C()
+    c.ell(16, 8, 4, 5); c.line(16, 12, 16, 20, 3); c.line(16, 19, 16, 36, 6, 4)
+    c.line(14, 36, 13, 55, 2.2, 1.4); c.line(18, 36, 19, 55, 2.2, 1.4)
+    c.path([(13, 21), (8, 38), (9, 52)], 2, 1.2); c.path([(19, 21), (24, 38), (23, 52)], 2, 1.2)
+    hand(c, 9, 52); hand(c, 23, 52)
+    for x, y0, y1 in [(13, 12, 24), (16, 13, 30), (19, 12, 20)]: c.line(x, y0, x, y1, 1.4, 0.8)
+    for x in (13, 19): c.ell(x, 7, 1.6, 2, 'w'); c.put(x, 8, 'k')
+    c.line(16, 11, 16, 15, 1.2, ch='k')
+    return c, '흘러내리는 얼굴: 눈과 입이 아래로 녹아 길게 늘어짐'
+
+def M():
+    c = C()
+    c.ell(16, 8, 3, 4.5); c.line(16, 12, 16, 19, 2); c.line(16, 18, 16, 36, 5, 3.5)
+    c.line(14, 36, 13, 55, 2, 1.3); c.line(18, 36, 19, 55, 2, 1.3)
+    c.path([(14, 20), (7, 36), (8, 52)], 1.8, 1); c.path([(18, 20), (25, 36), (24, 52)], 1.8, 1)
+    hand(c, 8, 52); hand(c, 24, 52)
+    for pts in ([(14, 5), (9, 1), (6, -2)], [(11, 3), (9, -1)], [(18, 5), (23, 1), (26, -2)], [(21, 3), (23, -1)]):
+        c.path(pts, 1.2, 0.8)
+    for y in range(22, 34, 2):
+        for x in range(13, 20): c.put(x, y, 'w' if x in (13, 15, 17, 19) else 'k')
+    c.put(15, 8, 'w'); c.put(17, 8, 'w')
+    return c, '뿔과 갈비뼈: 가지 뿔이 난 얼굴 없는 머리, 가슴에 드러난 갈비뼈'
+
+def N():
+    c = C()
+    c.ell(16, 9, 3.2, 4.8); c.line(16, 13, 16, 19, 2); c.line(16, 18, 16, 36, 6, 4)
+    c.line(14, 36, 13, 55, 2, 1.3); c.line(18, 36, 19, 55, 2, 1.3)
+    for i, ex in enumerate((2, 7, 12)):
+        for sx in (-1, 1):
+            x = 16 + sx * (3 + i * 0)
+            c.path([(x, 20 + i * 3), (16 + sx * (9 + i * 2), 30 + i * 4), (16 + sx * (11 + ex), 44 + i * 4)], 1.6, 0.9)
+            hand(c, 16 + sx * (11 + ex), 44 + i * 4)
+    for x in range(13, 20): c.put(x, 25, 'w' if x % 2 == 0 else 'k')
+    for x, y in [(15, 8), (17, 8)]: c.put(x, y, 'w')
+    return c, '팔이 여섯: 어깨에서 부채처럼 펼쳐진 가는 팔, 입만 있는 얼굴'
+
 def main():
     root = os.path.join(os.path.dirname(__file__), '..', 'art', 'variants')
-    lines = ['# 검은 인간 시안 (tools/gen_shadow.py 가 생성함. 직접 고치려면 이 파일을 편집)', '']
-    for v, fn in zip('ABCDEF', (A, B, Cc, D, E, F)):
-        c, desc = fn()
-        lines.append(f'[shadow_{v}] {desc} | {v}')
-        lines += c.finish(); lines.append('')
-    open(os.path.join(root, 'shadow_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
+    for batch, names, fns in (('shadow', 'ABCDEF', (A, B, Cc, D, E, F)), ('shadow2', 'GHIJKLMN', (G, Hh, I, J, K, L, M, N))):
+        lines = ['# 검은 인간 시안 (tools/gen_shadow.py 가 생성함)', '']
+        for v, fn in zip(names, fns):
+            c, desc = fn()
+            lines.append(f'[shadow_{v}] {desc} | {v}')
+            lines += c.finish(); lines.append('')
+        open(os.path.join(root, f'{batch}_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
 main()
