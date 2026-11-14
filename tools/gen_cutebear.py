@@ -10,13 +10,33 @@ def rect(c, x0, y0, x1, y1, ch):
     for y in range(y0, y1 + 1):
         for x in range(x0, x1 + 1): c.put(x, y, ch)
 
-def bear(expr):
-    c = C()
-    for sx in (5, 19): c.ell(sx, 4.5, 3.4, 3.2, 'u'); c.ell(sx, 4.8, 1.7, 1.5, 'i')                        # 귀
+class OffC(C):
+    """y 를 oy 만큼 내려 그리는 캔버스(긴 귀 때문에 위쪽 여백이 필요한 토끼용). ell/line 이 내부에서 put 을 부르므로 이중 이동을 막는다."""
+    oy = 0; _in = False
+    def put(s, x, y, ch): super().put(x, y + (0 if s._in else s.oy), ch)
+    def _wrap(s, fn, *a, **k):
+        s._in = True
+        try: fn(*a, **k)
+        finally: s._in = False
+    def ell(s, cx, cy, rx, ry, ch='s'): s._wrap(super().ell, cx, cy + s.oy, rx, ry, ch)
+    def line(s, x0, y0, x1, y1, w=1.0, w1=None, ch='s'): s._wrap(super().line, x0, y0 + s.oy, x1, y1 + s.oy, w, w1, ch)
+
+KINDS = {   # 글자 바꾸기: 곰은 그대로, 토끼는 흰 털 + 붉은 후드티 + 짙은 회색 바지
+    'bear': {'Z': 'z', 'X': 'x', 'H': 'h'},
+    'rabbit': {'u': 'w', 'h': 'a', 'f': 'o', 'z': 'r', 'x': 'r', 'Z': 'd', 'X': 's', 'H': 'm', 'b': 'p'},
+}
+
+def character(expr, kind='bear'):
+    c = OffC(); c.oy = 8 if kind == 'rabbit' else 0
+    if kind == 'bear':
+        for sx in (5, 19): c.ell(sx, 4.5, 3.4, 3.2, 'u'); c.ell(sx, 4.8, 1.7, 1.5, 'i')                    # 귀
+    else:
+        for sx, tilt in ((7.5, -.6), (16.5, .6)):                                                           # 길고 둥근 귀 (살짝 벌어짐)
+            c.ell(sx + tilt, -3, 2.9, 7.2, 'u'); c.ell(sx + tilt, -2.4, 1.4, 5.4, 'i')
     c.ell(8.2, 31.2, 3.2, 1.0, 'u'); c.ell(15.8, 31.2, 3.2, 1.0, 'u')                                       # 발
     for cx, sx in ((8.8, 10.0), (15.2, 16.6)):                                                             # 바지: 크림색, 다리마다 오른쪽 안쪽에 그늘
-        c.ell(cx, 29.2, 3.5, 2.6, 'z'); c.ell(sx, 29.6, 1.5, 2.2, 'x'); c.put(cx - 2, 28, 'h')
-    c.line(12, 27, 12, 30, 1, ch='x')                                                                       # 두 다리 사이 선
+        c.ell(cx, 29.2, 3.5, 2.6, 'Z'); c.ell(sx, 29.6, 1.5, 2.2, 'X'); c.put(cx - 2, 28, 'H')
+    c.line(12, 27, 12, 30, 1, ch='X')                                                                       # 두 다리 사이 선
     for sx, sgn in ((5.2, -1), (18.8, 1)):                                                                 # 팔
         c.ell(sx, 22, 2.9, 3.7, 'h'); c.ell(sx + sgn * .3, 25.6, 2.2, 1.9, 'u')
     c.ell(12, 22.2, 7.4, 6.2, 'h'); c.ell(8.8, 20.5, 2.6, 3.0, 'f')                                         # 둥근 후드티 몸과 하이라이트
@@ -49,13 +69,36 @@ def bear(expr):
         c.line(5, 8, 9, 11, 1, ch='k'); c.line(19, 8, 15, 11, 1, ch='k'); c.line(5, 9, 9, 12, 1, ch='k'); c.line(19, 9, 15, 12, 1, ch='k')
         for x in range(10, 15): c.put(x, 16, 'k')
         for x, y in ((19, 3), (20, 3), (19, 4), (21, 4), (20, 5), (21, 5)): c.put(x, y, 'r')
-    return c
+    rows = c.finish(); m = KINDS[kind]
+    return [''.join(m.get(ch, ch) for ch in r) for r in rows]
+
+def export_final():
+    """확정안을 art/objects.txt 에 넣는다: bear_green_A..E, rabbit_red_A..E (표정 5종)."""
+    root = os.path.join(os.path.dirname(__file__), '..', 'art'); path = os.path.join(root, 'objects.txt')
+    notes = {'A': '기본(입 일자)', 'B': '웃음', 'C': '걱정(입 일자)', 'D': '졸림', 'E': '화남(입 일자)'}
+    blocks = []
+    for kind, pre, desc in (('bear', 'bear_green', '말랑한 곰(초록 후드, 짙은 초록 바지)'), ('rabbit', 'rabbit_red', '말랑한 토끼(붉은 후드, 짙은 회색 바지)')):
+        for v in 'ABCDE':
+            blocks.append(f'[{pre}_{v}] {desc} {notes[v]} | dream\n' + '\n'.join(draw(v, kind)) + '\n')
+    keep, skip = [], False
+    for line in open(path, encoding='utf-8').read().split('\n'):
+        if line.startswith('['): skip = line.startswith('[bear_green') or line.startswith('[rabbit_red')
+        if not skip: keep.append(line)
+    open(path, 'w', encoding='utf-8').write('\n'.join(keep).rstrip('\n') + '\n\n' + '\n'.join(blocks))
+
+def draw(expr, kind):
+    G.W, G.H = 24, (40 if kind == 'rabbit' else 32)
+    return character(expr, kind)
 
 def main():
     root = os.path.join(os.path.dirname(__file__), '..', 'art', 'variants')
     notes = {'A': '기본 표정(입 일자)', 'B': '웃는 표정', 'C': '걱정(땀방울, 입 일자)', 'D': '졸림', 'E': '화남(입 일자)'}
-    lines = ['# 말랑한 곰(초록 후드) 표정 4종 (tools/gen_cutebear.py 가 생성함)', '']
-    for v in 'ABCDE':
-        lines.append(f'[bear_{v}] {notes[v]} | {v}'); lines += bear(v).finish(); lines.append('')
-    open(os.path.join(root, 'cutebear_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
-if __name__ == '__main__': main()
+    for kind, batch in (('bear', 'cutebear'), ('rabbit', 'cuterabbit')):
+        lines = [f'# 말랑한 {kind} 표정 5종 (tools/gen_cutebear.py 가 생성함)', '']
+        for v in 'ABCDE':
+            lines.append(f'[{kind}_{v}] {notes[v]} | {v}'); lines += draw(v, kind); lines.append('')
+        open(os.path.join(root, batch + '_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == 'final': export_final()
+    else: main()

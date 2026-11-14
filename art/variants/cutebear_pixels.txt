@@ -1,4 +1,4 @@
-# 말랑한 곰(초록 후드) 표정 4종 (tools/gen_cutebear.py 가 생성함)
+# 말랑한 bear 표정 5종 (tools/gen_cutebear.py 가 생성함)
 
 [bear_A] 기본 표정(입 일자) | A
 ........................

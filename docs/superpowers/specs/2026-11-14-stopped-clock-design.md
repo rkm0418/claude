@@ -262,3 +262,9 @@
 - 크기 48x104(아이의 약 5배). 원본 생성기: `tools/gen_t11.py`(`python3 tools/gen_t11.py final` 으로 art/objects.txt 의 `shadow_tree`, `shadow_tree_w1..w4` 를 다시 만든다. 시드 12).
 - 부모를 둘로 나눌지(아빠/엄마 별도 디자인)는 미정. 평범한 어른의 모습(복귀 공간용)은 `art/variants/parents_pixels.txt` 시안에서 고름.
 - 맵용 크기 확정: 30x64(약 4m, 문의 2배), 윤곽선 있는 버전(밝은 부분 주위에 얇은 선 + 렌더러 외곽선). 가장자리 검게 처리·윤곽선 없음 버전은 `resample(..., outline=False, edge_dark=True)` 와 `NO_OUTLINE_PREFIX` 로 되살릴 수 있다. 맵 배치: 3장 복도, 5장 거실의 `dream_add`.
+
+## 12. 확정: 말랑한 곰 조력자 (사용자 확정)
+- 곰: 둥근 몸, 초록 후드티(말린 후드, 끈, 앞주머니, 소매·밑단 밴드), 짙은 초록 바지, 입은 일자(ㅡ). 표정 5종(기본 A, 웃음 B, 걱정 C, 졸림 D, 화남 E; 기본/걱정/화남은 입이 일자). 24x32.
+- `art/objects.txt` 에 `bear_green_A..E` 로 저장됨. 생성기: `python3 tools/gen_cutebear.py final` (곰과 토끼를 함께 다시 만든다).
+- 레퍼런스 이미지(상업 캐릭터)를 직접 도트로 옮긴 것은 `art/out/pixelize/` 에 참고용으로만 두고, 게임에 쓰는 것은 오리지널 디자인.
+- 토끼는 같은 과정(도트화 → 오리지널 캐릭터화 → 후드티·일자 입)으로 `rabbit_red_A..E`(붉은 후드, 짙은 회색 바지, 24x40) 시안을 만든 상태. 확정 대기.
