@@ -153,12 +153,13 @@ def joint_fade(c):
             v = w + .14 * (((x + y) % 2) - .5)
             c.g[y][x] = 's' if v > .8 else 'd' if v > .55 else 'm' if v > .3 else ch
 
-def figure(seed):
+def figure(seed, phase=None):
+    sw = math.sin(phase) if phase is not None else 0.0                # 걷기 동작 위상 (None 이면 정지 자세)
     import gen_shadow as G
     G.W, G.H = 48, 104
     c = C(); rng = random.Random(seed)
     tube(c, [(24, 50), (24, 74)], 15, 8, .03); c.ell(24, 52, 9, 3.2, 's'); tube(c, [(24, 47), (13, 54)], 6, 5); tube(c, [(24, 47), (35, 54)], 6, 5); tube(c, [(24, 44), (24, 53)], 7, 10)
-    tube(c, [(22, 66), (20, 88), (21, 103)], 6, 2.4); tube(c, [(26, 66), (28, 88), (27, 103)], 6, 2.4)
+    tube(c, [(22, 66), (20 + 2 * sw, 88), (21 + 4 * sw, 103)], 6, 2.4); tube(c, [(26, 66), (28 - 2 * sw, 88), (27 - 4 * sw, 103)], 6, 2.4)
     r2 = random.Random(seed + 100); tmp = C()
     for sx, a0 in [(20, 105), (28, 75), (16, 115), (32, 65), (24, 90), (22, 98), (30, 80)]:
         root2(tmp, sx, 54, math.radians(a0), 9, 5, r2)
@@ -176,8 +177,8 @@ def figure(seed):
     for a0 in (200, 340, 270):                              # 구멍 가장자리에서 안쪽으로 뻗은 뿌리 잔가지
         a = math.radians(a0); sx, sy = hx + math.cos(a) * 3.6, hy + math.sin(a) * 4.6
         c.line(sx, sy, sx - math.cos(a) * r2.uniform(1.5, 3), sy - math.sin(a) * r2.uniform(1.5, 3.5), 1, ch='m')
-    L = chain(c, [(12, 53), (10, 72), (10, 94)])
-    tube(c, [(36, 53), (37, 70), (37, 90)], 4.2, 3.4); c.ell(37, 93, 2.6, 3.4, "s")
+    L = chain(c, [(12, 53), (10 - sw, 72), (10 - 2 * sw, 94)])
+    tube(c, [(36, 53), (37 + sw, 70), (37 + 2 * sw, 90)], 4.2, 3.4); c.ell(37 + 2 * sw, 93, 2.6, 3.4, "s")
     tmp3 = C()                                                         # 어깨선을 따라 바깥으로 뻗는 회색 뿌리
     for sx, a0 in [(21, 160), (27, 20), (22, 140), (26, 40), (20, 175), (28, 5)]:
         root2(tmp3, sx, 49, math.radians(a0), 7, 4, r2)
@@ -195,7 +196,24 @@ def figure(seed):
         dome(c, 24 + (i - 3) * 1.2, 31, math.radians(-90 + (i - 3) * rng.uniform(21, 27)), 8, 6, rng)
     fill_eye_holes(c)
     joint_fade(c)
+    if sw:                                                             # 수관과 목이 걸음에 따라 흔들림(위쪽일수록 크게)
+        for y in range(46):
+            sh = int(round(1.8 * sw * (46 - y) / 46)); row = c.g[y]
+            if sh > 0: c.g[y] = ['.'] * sh + row[:-sh]
+            elif sh < 0: c.g[y] = row[-sh:] + ['.'] * (-sh)
     return c
+
+def export_final(seed=12):
+    """확정안(2번, 시드 12): 정지 1장 + 걷기 4장을 art/objects.txt 에 넣는다."""
+    import re
+    root = os.path.join(os.path.dirname(__file__), '..', 'art')
+    frames = [('shadow_tree', None, '검은 사람(나무 머리) 정지 | dream')] + [(f'shadow_tree_w{i + 1}', p, f'검은 사람(나무 머리) 걷기 {i + 1}/4 | dream') for i, p in enumerate((0.0, 1.57, 3.14, 4.71))]
+    blocks = []
+    for name, ph, desc in frames:
+        blocks.append(f'[{name}] {desc}\n' + '\n'.join(''.join(r) for r in figure(seed, ph).finish()) + '\n')
+    path = os.path.join(root, 'objects.txt'); txt = open(path, encoding='utf-8').read()
+    txt = re.sub(r'\n\[shadow_tree[^\]]*\][^\n]*\n(?:(?!\[)[^\n]*\n?)*', '\n', txt).rstrip('\n') + '\n\n' + '\n'.join(blocks)
+    open(path, 'w', encoding='utf-8').write(txt)
 
 def main():
     root = os.path.join(os.path.dirname(__file__), '..', 'art', 'variants')
@@ -203,4 +221,6 @@ def main():
     for i, seed in enumerate((11, 12, 13, 14)):
         lines.append(f'[a_{i + 1:02d}] 가시 가지 수정판 시드 {seed} | {i + 1}'); lines += figure(seed).finish(); lines.append('')
     open(os.path.join(root, 't11_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == 'final': export_final()
+    else: main()
