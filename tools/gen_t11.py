@@ -140,6 +140,19 @@ def carve_holes(c, rng, n=16):
                 u, v = (xx - x) * ct + (yy - y) * st, -(xx - x) * st + (yy - y) * ct
                 if (u / rx) ** 2 + (v / ry) ** 2 <= 1 and 0 <= yy < 104 and 0 <= xx < 48: c.g[yy][xx] = '.'
 
+def joint_fade(c):
+    # 몸 연결부위(어깨-팔, 골반-다리)의 회색을 검은색으로 서서히 어둡게 한다 (디더링으로 계단 없이)
+    for y in range(104):
+        for x in range(48):
+            ch = c.g[y][x]
+            if ch not in 'lmd': continue
+            w = 0.0
+            if (x <= 16 or x >= 32) and 50 <= y <= 64: w = max(w, 1 - (y - 50) / 14)       # 어깨에서 팔로
+            if 14 <= x <= 34 and 62 <= y <= 82: w = max(w, 1 - abs(y - 72) / 10)           # 골반에서 다리로
+            if 44 <= y <= 54 and 14 <= x <= 34: w = max(w, 1 - abs(y - 50) / 6)            # 목에서 어깨로
+            v = w + .14 * (((x + y) % 2) - .5)
+            c.g[y][x] = 's' if v > .8 else 'd' if v > .55 else 'm' if v > .3 else ch
+
 def figure(seed):
     import gen_shadow as G
     G.W, G.H = 48, 104
@@ -181,6 +194,7 @@ def figure(seed):
     for i in range(7):
         dome(c, 24 + (i - 3) * 1.2, 31, math.radians(-90 + (i - 3) * rng.uniform(21, 27)), 8, 6, rng)
     fill_eye_holes(c)
+    joint_fade(c)
     return c
 
 def main():
