@@ -1,46 +1,54 @@
-title: 1장 - 식탁 방 (부모님이 떠난 직후)
-ambient: 0.4
+title: 1장 - 식탁 방 (아늑한데 섬뜩한 집)
+tone: 255 236 205
+ambient: 0.3
 legend:
 # void
-t wall_top
-w wall
-b wall_base
-W window
-K wall clock
-l wall bulb
-D wall_base door
-F wall_base fridge
-, floor_kitchen
-T floor_kitchen table4
-U floor_kitchen cup^13
-c floor_kitchen chair
-R floor_kitchen dresser frame_down^10
-o floor_kitchen bottles
-X floor_kitchen door
-Y floor_kitchen table3
+t wall_top_cozy
+w wall_cozy
+b wall_base_cozy
+W window_l
+V window_r
+F wall_cozy frame_back
+G wall_cozy frame
+K wall_cozy clock
+N wall_cozy calendar
+D wall_base_cozy doorway_dark
+. floor_cozy
+S floor_cozy sideboard
+P floor_cozy plant
+B floor_cozy bookshelf
+A floor_cozy armchair
+M floor_cozy floor_lamp
+H floor_cozy shoes
+Z floor_cozy rug_big
+T floor_cozy table_cloth4 cup^13
+p floor_cozy plate^13
+c floor_cozy chair
+Y floor_cozy chair
+L floor_cozy pendant^12
 map:
 ####################
-###tttttttttttttt###
-###wwwWwKwwlwWwww###
-###bDbbbbbbbbbFbb###
-###,,,,R,,,,,,,,,###
-###,,,,,,,,,,,,,,###
-###,,c,T,U,,c,,o,###
-###,,,,,,,,,,,,,,###
-###,,,,,,,,,,,,,,###
-###,,,,,,,,,,,,,,###
-####################
+#tttttttttttttttttt#
+#wWVGwKwNwFwWVFwwww#
+#bbbbbbbbbbbbbbbDbb#
+#.S.........B.PH...#
+#..............M...#
+#.......L......A...#
+#..................#
+#...cZTppp.c.......#
+#................Y.#
+#..................#
 ####################
 dream_map:
 ####################
-###tttttttttttttt###
-###wwwwwwwwwwwwww###
-###bbbbbbbbbbbbbb###
-###,,,,,,,,,,,,,,###
-###,,,,,,,,,,,,,,###
-###,,,,,,,,,,,,,,###
-###,,,,,,YU,,,,,,###
-###,,,,,,,,,,,,,,###
-###,,,,,,,,,,,,,,###
-####################
+#tttttttttttttttttt#
+#wWVwwKwNwwwWVwwwww#
+#bbbbbbbbbbbbbbbDbb#
+#.S.........B.PH...#
+#..............M...#
+#.......L......A...#
+#..................#
+#....ZT..p.........#
+#..................#
+#..................#
 ####################

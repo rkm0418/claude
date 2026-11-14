@@ -90,3 +90,67 @@ decal 4 1 41 8 3 w
 [flashlight] 손전등 | real
 box 3 3 0 7 4 4 y
 box 10 3 1 3 4 2 o
+
+[plate] 접시 | real
+box 1 0 0 6 6 1 w
+
+[frame_back] 뒤집어 건 액자 (뒷면) | real
+box 1 0 0 14 3 11 b
+decal 2 0 1 12 9 n
+decal 7 0 8 2 1 d
+decal 6 0 2 4 5 b
+
+[sideboard] 유리 찬장 (접시가 보임) | real
+box 0 0 0 16 8 12 u
+decal 1 0 1 14 10 n
+decal 7 0 1 2 10 b
+decal 4 0 5 2 2 y
+decal 10 0 5 2 2 y
+box 1 1 12 14 6 12 u
+decal 2 1 13 12 10 c
+decal 3 1 17 3 3 w
+decal 7 1 17 3 3 w
+decal 11 1 17 3 3 w
+
+[table_cloth4] 식탁보 덮인 긴 식탁 (4칸) | real
+box 2 1 0 2 2 4 b
+box 60 1 0 2 2 4 b
+box 2 9 0 2 2 4 b
+box 60 9 0 2 2 4 b
+box 0 0 4 64 12 7 q
+decal 0 0 4 64 1 a
+
+[armchair] 테라코타 안락의자 | real
+box 0 2 0 16 10 6 a
+box 0 8 6 16 4 10 a
+box 0 0 6 3 10 6 a
+box 13 0 6 3 10 6 a
+box 3 2 6 10 8 3 i
+
+[bookshelf] 책장 (색색의 책) | real
+box 0 0 0 16 6 32 n
+decal 1 0 2 2 6 a
+decal 3 0 2 2 6 h
+decal 5 0 2 3 6 y
+decal 8 0 2 2 6 i
+decal 10 0 2 2 6 j
+decal 12 0 2 3 6 u
+decal 0 0 9 16 1 b
+decal 1 0 12 3 6 h
+decal 4 0 12 2 6 a
+decal 6 0 12 2 6 w
+decal 8 0 12 3 6 j
+decal 11 0 12 2 6 i
+decal 13 0 12 2 6 y
+decal 0 0 19 16 1 b
+decal 1 0 22 2 6 j
+decal 3 0 22 3 6 y
+decal 6 0 22 2 6 a
+decal 9 0 22 2 6 u
+decal 11 0 22 3 6 h
+decal 0 0 29 16 1 b
+
+[floor_lamp] 따뜻한 스탠드 | real
+box 5 3 0 6 6 2 b
+box 7 5 2 1 1 22 b
+box 3 2 24 10 8 7 y

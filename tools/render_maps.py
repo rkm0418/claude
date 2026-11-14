@@ -93,7 +93,7 @@ def shade(img, emitters, ambient, dream):
                     f = (1 - d / rad) * power
                     level += f
                     tr += col[0] * f; tg += col[1] * f; tb += col[2] * f
-            level = round(min(1.0, level) * 6) / 6
+            level = round(min(1.0, level) * 9) / 9
             r, g, b, _ = px[x, y]
             c = [v * level + n * (1 - level) * 0.5 + t * 0.12 for v, n, t in zip((r, g, b), NIGHT, (tr, tg, tb))]
             if dream:
@@ -259,7 +259,7 @@ def draw_map(m, lib, lights, path, dream):
     things = [(y, x, obj) for y, row in enumerate(rows) for x, ch in enumerate(row) for obj in m['legend'][ch][1]]
     if dream:
         things += [(y, x, f'{name}^{lift}') for name, x, y, lift in m['dream_add']]
-    for y, x, obj in sorted(things, key=lambda t: t[0]):     # 위쪽 줄부터 그려서 아래 사물이 앞에 온다
+    for y, x, obj in sorted(things, key=lambda t: (t[0], 0 if t[2].split('^')[0] in ('rug', 'rug_big', 'blanket') else 1)):     # 위쪽 줄부터 그려서 아래 사물이 앞에 온다
         name, _, lift = obj.partition('^')
         place(img, name, x, y, int(lift or 0))
     img = shade(img, emitters, m['ambient'], False)   # 꿈도 현실과 같은 색. 달라지는 건 배치뿐
