@@ -68,6 +68,15 @@ def root(c, x, y, ang, L, depth, rng):
     for _ in range(rng.choice((1, 1, 2))):
         root(c, ex, ey, ang + rng.uniform(-.8, .8), L * rng.uniform(.65, .95), depth - 1, rng)
 
+def root2(c, x, y, ang, L, depth, rng):
+    # 몸 윤곽에 맞춘 뿌리: 척추 쪽으로 모이며 세로로 흐르고, 끝으로 갈수록 몸색에 묻힌다
+    if depth <= 0 or L < 1.5: return
+    ang += (math.pi / 2 - ang) * .45 + rng.uniform(-.28, .28)
+    ex, ey = x + math.cos(ang) * L, y + math.sin(ang) * L
+    c.line(x, y, ex, ey, 1, 1, ch='l' if depth >= 5 else 'm' if depth >= 3 else 'd')
+    for _ in range(rng.choice((1, 1, 2))):
+        root2(c, ex, ey, ang + rng.uniform(-.55, .55), L * rng.uniform(.75, 1.0), depth - 1, rng)
+
 def chain(c, pts, gap=4.2, ry=3.4, rx=2.5):
     """사슬 팔: 고리가 번갈아 세로/가로로 꿰어진 모양. 고리 안쪽은 비워 둔다."""
     P = chaikin(pts, 3); acc = 0.0; i = 0; last = P[0]
@@ -91,14 +100,15 @@ def figure(seed):
     c = C(); rng = random.Random(seed)
     tube(c, [(24, 50), (24, 78)], 8, 5.5, .04); c.ell(24, 52, 11, 3.6, 's'); tube(c, [(24, 44), (24, 53)], 7, 10)
     tube(c, [(21, 76), (19, 90), (21, 103)], 3.4, 2); tube(c, [(27, 76), (29, 90), (27, 103)], 3.4, 2)
+    r2 = random.Random(seed + 100); tmp = C()
+    for sx, a0 in [(20, 105), (28, 75), (16, 115), (32, 65), (24, 90), (22, 98)]:
+        root2(tmp, sx, 54, math.radians(a0), 9, 5, r2)
+    for y in range(104):
+        for x in range(48):
+            if tmp.g[y][x] != '.' and c.g[y][x] != '.' and 14 <= x <= 34 and y >= 49: c.g[y][x] = tmp.g[y][x]
     L = chain(c, [(13, 53), (8, 72), (8, 94)])
     tube(c, [(34, 53), (37, 70), (36, 90)], 4.2, 3.4); c.ell(36, 93, 2.6, 3.4, "s")
     trunk2(c, 5, 51, 31)
-    r2 = random.Random(seed + 100)
-    for sx, sy, a0, L0 in [(21, 52, 120, 8), (27, 52, 60, 8), (17, 53, 150, 6), (31, 53, 30, 6), (24, 54, 90, 9), (22, 56, 105, 7)]:
-        root(c, sx, sy, math.radians(a0), L0, 5, r2)
-    for sx, a0 in ((20, 100), (28, 80)):
-        root(c, sx, 74, math.radians(a0), 6, 3, r2)
     for i in range(4):
         dome(c, 24 + (i - 1.5) * 1.6, 31, math.radians(-90 + (i - 1.5) * rng.uniform(32, 40)), 7.5, 5, rng)
     return c
