@@ -231,6 +231,27 @@ def downscale(rows, f=2):
             if out[y][x] == '.' and any(0 <= y + dy < h and 0 <= x + dx < w and out[y + dy][x + dx] not in '.k' for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))): res[y][x] = 'k'
     return [''.join(r) for r in res]
 
+def resample(rows, w, h):
+    """임의 크기로 줄인다(맵용). 윤곽선(k)은 몸색(s)으로 바꿔 지우고, 밝은 부분(l) 주위에만 얇은 어두운 선(d)을 두른다."""
+    rows = [r.replace('k', 's') for r in rows]; H, W = len(rows), len(rows[0]); out = []
+    for y in range(h):
+        y0 = int(y * H / h); y1 = max(y0 + 1, int((y + 1) * H / h)); line = []
+        for x in range(w):
+            x0 = int(x * W / w); x1 = max(x0 + 1, int((x + 1) * W / w))
+            cells = [rows[j][i] for j in range(y0, y1) for i in range(x0, x1)]
+            solid = [c for c in cells if c != '.']
+            if 'l' in solid: line.append('l')
+            elif len(solid) * 2 >= len(cells): line.append(max(set(solid), key=solid.count))
+            else: line.append('.')
+        out.append(line)
+    res = [r[:] for r in out]
+    for y in range(h):
+        for x in range(w):
+            if out[y][x] == '.' and any(0 <= y + dy < h and 0 <= x + dx < w and out[y + dy][x + dx] == 'l' for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))): res[y][x] = 'd'
+    return [''.join(r) for r in res]
+
+MAP_W, MAP_H = 30, 64          # 맵용 크기(약 4m): 문(32px)의 2배. 바꾸려면 여기만 고친다
+
 def export_final(seed=12):
     """확정안(2번, 시드 12): 정지 1장 + 걷기 4장을 art/objects.txt 에 넣는다."""
     import re
@@ -240,8 +261,8 @@ def export_final(seed=12):
     for name, ph, desc in frames:
         blocks.append(f'[{name}] {desc}\n' + '\n'.join(''.join(r) for r in figure(seed, ph).finish()) + '\n')
     for name, ph, desc in frames:                                      # 게임 크기(1/2, 24x52): 맵에 놓는 용
-        small = downscale(figure(seed, ph).finish(), 2)
-        blocks.append(f'[{name.replace("shadow_tree", "chaser")}] {desc.split(" | ")[0]} (맵 크기 24x52) | dream\n' + '\n'.join(small) + '\n')
+        small = resample(figure(seed, ph).finish(), MAP_W, MAP_H)
+        blocks.append(f'[{name.replace("shadow_tree", "chaser")}] {desc.split(" | ")[0]} (맵 크기 30x64) | dream\n' + '\n'.join(small) + '\n')
     smear = ['.' * 40, '.' * 40]
     r = random.Random(7); row1 = ''.join('d' if (i % 7 < 5 and i > 3) else ('m' if i % 7 < 6 and i > 1 else '.') for i in range(40)); row2 = ''.join('k' if (i % 5 < 3 and r.random() < .8) else '.' for i in range(40))
     row0 = ''.join('m' if (i % 9 == 0 and 4 < i < 36) else '.' for i in range(40))
