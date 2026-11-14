@@ -77,7 +77,7 @@ def export_final():
     root = os.path.join(os.path.dirname(__file__), '..', 'art'); path = os.path.join(root, 'objects.txt')
     notes = {'A': '기본(입 일자)', 'B': '웃음', 'C': '걱정(입 일자)', 'D': '졸림', 'E': '화남(입 일자)'}
     blocks = []
-    for kind, pre, desc in (('bear', 'bear_green', '말랑한 곰(초록 후드, 짙은 초록 바지)'), ('rabbit', 'rabbit_red', '말랑한 토끼(흰 피부, 빨간 단추 셔츠, 짙은 회색 바지)')):
+    for kind, pre, desc in (('bear', 'bear_green', '말랑한 곰(초록 후드, 짙은 초록 바지)'), ('rabbit', 'rabbit_red', '말랑한 토끼(여자, 흰 피부, 붉은 더블 트렌치코트, 줄무늬 스카프)')):
         for v in 'ABCDE':
             blocks.append(f'[{pre}_{v}] {desc} {notes[v]} | dream\n' + '\n'.join(draw(v, kind)) + '\n')
     keep, skip = [], False
@@ -87,24 +87,37 @@ def export_final():
     open(path, 'w', encoding='utf-8').write('\n'.join(keep).rstrip('\n') + '\n\n' + '\n'.join(blocks))
 
 def rabbit_char(expr):
-    """토끼: 레퍼런스 도트화에서 가져온 비율(큰 둥근 머리, 길고 하얀 귀, 점 눈, 작은 흰 발)에 흰 피부와 빨간 단추 셔츠."""
+    """토끼(여자 캐릭터): 레퍼런스 도트화의 비율 + 붉은 더블 트렌치코트(넓은 옷깃, 검은 단추 두 줄, 소매 끈, 주머니 덮개), 줄무늬 스카프, 둥근 귀."""
     c = OffC(); c.oy = 8
-    for sx, tilt in ((7.5, -.6), (16.5, .6)):                                                               # 길고 하얀 귀 (안쪽은 아주 옅은 그림자)
-        c.ell(sx + tilt, -3, 2.9, 7.2, 'W'); c.ell(sx + tilt + .5, -2.4, 1.2, 5.4, 'w')
-    c.ell(8.2, 31.2, 3.2, 1.0, 'W'); c.ell(15.8, 31.2, 3.2, 1.0, 'W')                                       # 하얀 발
-    for cx, sx in ((8.8, 10.0), (15.2, 16.6)): c.ell(cx, 29.2, 3.5, 2.6, 'd'); c.ell(sx, 29.6, 1.5, 2.2, 's')   # 짙은 회색 바지
-    c.line(12, 27, 12, 30, 1, ch='s')
-    for sx, sgn in ((5.2, -1), (18.8, 1)): c.ell(sx, 22, 2.9, 3.7, 'R'); c.ell(sx + sgn * .3, 25.6, 2.2, 1.9, 'W')     # 소매와 하얀 손
-    c.ell(12, 22.2, 7.4, 6.2, 'R'); c.ell(15.8, 24, 2.8, 4.4, 'Q'); c.ell(12, 21, 6.2, 4.8, 'R')           # 셔츠 몸과 오른쪽 그늘
-    c.line(12, 19.5, 12, 27, 1, ch='Q')                                                                    # 단춧골(앞여밈)
-    for y in (21.5, 24, 26.5): c.put(11, y, 'q'); c.put(13, y, 'q')                                        # 단추
-    c.ell(10, 19, 1.9, 1.3, 'W'); c.ell(14, 19, 1.9, 1.3, 'W')                                             # 흰 옷깃은 아니고 목선(피부)
-    rect(c, 7, 27, 17, 27, 'Q')                                                                            # 밑단
-    c.ell(12, 11, 9.6, 8.2, 'W'); c.ell(15.5, 14, 4.6, 4.2, 'w')                                           # 하얀 머리와 오른쪽 아래 옅은 그늘
-    c.ell(12, 11, 9.0, 7.6, 'W'); c.ell(10.2, 9, 3.2, 2.4, 'W')
+    for sx, tilt in ((7.2, -.7), (16.8, .7)):                                                               # 둥글고 부드러운 귀(끝이 각지지 않게 두 타원을 겹침)
+        c.ell(sx + tilt, -2.6, 3.3, 6.4, 'W'); c.ell(sx + tilt * 1.4, -7.4, 2.5, 2.6, 'W'); c.ell(sx + tilt + .4, -2.2, 1.5, 4.8, 'i')
+    c.ell(12, 11, 9.8, 8.1, 'W'); c.ell(15.8, 14.2, 4.2, 3.6, 'w'); c.ell(12, 11, 9.2, 7.5, 'W')            # 둥근 하얀 머리, 오른쪽 아래 옅은 그늘
+    for sx in (-1, 1): c.ell(12 + sx * 6, 14.4, 1.9, 1.3, 'i')                                              # 옅은 볼터치
     c.put(12, 13, 'k')                                                                                     # 작은 코
+    c.ell(6.2, 4.6, 2.2, 1.6, 'R'); c.ell(9.4, 5, 1.8, 1.4, 'R'); c.put(8, 5, 'Q'); c.put(7, 5, 'Q')       # 귀 밑 작은 빨간 리본
+    c.ell(9.2, 31.2, 2.5, 1.0, 'd'); c.ell(14.8, 31.2, 2.5, 1.0, 'd')                                       # 짧은 부츠
+    c.ell(9.2, 29.6, 1.2, 2.4, 'W'); c.ell(14.8, 29.6, 1.2, 2.4, 'W')                                           # 하얀 다리
+    for sx, sgn in ((4.6, -1), (19.4, 1)):                                                                 # 소매(둥글게)와 하얀 손, 소매 끈
+        c.ell(sx, 22.8, 2.6, 4.2, 'R'); c.ell(sx + sgn * .3, 26.4, 2.1, 1.7, 'W'); c.line(sx - 2.2, 24.6, sx + 2.2, 24.6, 1, ch='Q')
+    for y in range(18, 28):                                                                                # 코트 몸통: 허리가 들어가고 아래로 퍼지는 A라인
+        half = 5.0 + (y - 18) * .38 - (1.0 if 22 <= y <= 24 else 0)
+        for x in range(int(12 - half + .5), int(12 + half + .5) + 1): c.put(x, y, 'R')
+    for y in range(20, 28):                                                                                # 오른쪽 그늘
+        half = 5.0 + (y - 18) * .38 - (1.0 if 22 <= y <= 24 else 0)
+        for x in range(int(12 + half - 2.2), int(12 + half + .5) + 1): c.put(x, y, 'Q')
+    rect(c, 8, 28, 16, 28, 'j')                                                                            # 코트 아래로 보이는 짙은 원피스 자락
+    c.line(8.5, 23.4, 15.5, 23.4, 1, ch='Q'); c.put(12, 23, 'y')                                           # 허리 벨트와 버클
+    c.line(10, 19, 12, 24, 1, ch='Q'); c.line(14, 19, 12, 24, 1, ch='Q'); c.ell(9.3, 20.3, 1.7, 1.5, 'R'); c.ell(14.7, 20.3, 1.7, 1.5, 'R')    # 넓은 옷깃(라펠)
+    c.line(9, 20, 11, 22, 1, ch='Q'); c.line(15, 20, 13, 22, 1, ch='Q')
+    for y in (21.5, 25, 27): c.put(10, y, 'k'); c.put(14, y, 'k')                                        # 검은 더블 단추
+    c.line(12, 24, 12, 27, 1, ch='Q')                                                                      # 앞여밈
+    for sx in (-1, 1): c.line(12 + sx * 3.8, 26, 12 + sx * 6, 26, 1, ch='Q')                         # 주머니 덮개
+    c.ell(12, 19.4, 4.8, 1.7, 'W')                                                                         # 줄무늬 스카프
+    for x in (8, 10, 12, 14, 16): c.put(x, 19, 'k')
+    rect(c, 13, 20, 15, 23, 'W'); c.line(13, 21, 15, 21, 1, ch='k'); c.line(13, 23, 15, 23, 1, ch='k')   # 늘어진 스카프 끝
     if expr == 'A':
         for ex in (7, 16): c.put(ex, 11, 'k'); c.put(ex, 12, 'k')
+        c.put(6, 10, 'k'); c.put(17, 10, 'k')                                                              # 속눈썹
         for x in range(11, 14): c.put(x, 15, 'k')
     if expr == 'B':
         for ex in (7, 16): c.put(ex, 12, 'k'); c.put(ex + 1, 11, 'k'); c.put(ex + 2, 12, 'k')
