@@ -30,17 +30,18 @@ def dome(c, x, y, ang, L, depth, rng):
     if depth <= 0 or L < 1.4: return
     k = rng.uniform(-.15, .15)
     ex, ey = x + math.cos(ang + k) * L, y + math.sin(ang + k) * L
-    c.line(x, y, ex, ey, 2 if depth >= 5 else 1, 1, ch='l')
+    col = 'l' if depth >= 4 else 'm'                              # 바깥 가지일수록 어두운 회색: 색의 조화
+    c.line(x, y, ex, ey, 2 if depth >= 6 else 1, 1, ch=col)
     if depth == 1:
         for _ in range(rng.randint(1, 3)):                       # 끝 가시: 길이와 방향이 제각각
             a = ang + rng.uniform(-1.3, 1.3); l = rng.uniform(1.5, 4.5)
-            c.line(ex, ey, ex + math.cos(a) * l, ey + math.sin(a) * l, 1, ch='l')
+            c.line(ex, ey, ex + math.cos(a) * l, ey + math.sin(a) * l, 1, ch='d' if rng.random() < .4 else 'm')
         return
     if depth <= 2 and rng.random() < .12: return
-    n = rng.choice((2, 2, 2, 3))
+    n = rng.choice((1, 2, 2, 2))
     for i in range(n):
         off = math.radians(rng.uniform(-1, 1) * 30 + (i - (n - 1) / 2) * 34)
-        dome(c, ex, ey, ang + off, L * rng.uniform(.6, .8), depth - 1, rng)
+        dome(c, ex, ey, ang + off, L * rng.uniform(.55, .8), depth - 1, rng)
 
 def trunk2(c, n=5, y0=49, y1=34):
     # 줄기 가닥: 아래(어깨)에서 넓게 벌어져 박히고, 몸으로 들어갈수록 색이 어두워진다
@@ -48,7 +49,7 @@ def trunk2(c, n=5, y0=49, y1=34):
         off = k - (n - 1) / 2
         for t in range(0, 31):
             f = t / 30; y = y0 + (y1 - y0) * f
-            x = 24 + off * (1.45 + 1.4 * max(0, (f_lo := (1 - f) - .55)) * 2.2) * 1.0
+            x = 24 + off * (1.0 + 1.4 * max(0, (1 - f) - .55) * 2.2)
             ch = 'l' if y < y0 - 7 else 'm' if y < y0 - 4 else 'd' if y < y0 - 2 else 's'
             c.put(x, y, ch)
             if t % 2 == 0: c.put(x, y + .5, ch)
@@ -174,11 +175,10 @@ def figure(seed):
     for y in range(54, 85):
         for x in range(48):
             if tmp2.g[y][x] != '.' and c.g[y][x] != '.' and (x <= 16 or x >= 33): c.g[y][x] = tmp2.g[y][x]
-    trunk2(c, 5, 51, 31)
-    for i in range(4):
-        dome(c, 24 + (i - 1.5) * 1.6, 31, math.radians(-90 + (i - 1.5) * rng.uniform(32, 40)), 7.5, 5, rng)
+    trunk2(c, 7, 51, 31)
+    for i in range(7):
+        dome(c, 24 + (i - 3) * 1.2, 31, math.radians(-90 + (i - 3) * rng.uniform(21, 27)), 7.5, 6, rng)
     fill_eye_holes(c)
-    carve_holes(c, random.Random(seed + 500), 20)
     return c
 
 def main():
