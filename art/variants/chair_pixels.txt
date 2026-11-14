@@ -1,0 +1,20 @@
+[chair_E] 정면 스핀들백 의자 (레퍼런스 사진처럼) | E
+....kkkkkkkkkkkkkkk....
+..kknnnnnnnnnnnnnnnkk..
+.knnnnnnnnnnnnnnnnnnnk.
+.kkbbbbbbbbbbbbbbbbbkk.
+..knbk.b.b.b.b.b.kbnk.. *2
+..knnk.b.b.b.b.b.knnk..
+..knbk.b.b.b.b.b.kbnk.. *3
+..knnk.b.b.b.b.b.knnk..
+..knbk.b.b.b.b.b.kbnk.. *3
+.kkkkkkkkkkkkkkkkkkkkk.
+.knnnnnnnnnnnnnnnnnnnk.
+.kbbbbbbbbbbbbbbbbbbbk.
+..kkkkkkkkkkkkkkkkkkk..
+....kbbk.b...b.kbbk.... *2
+....knnk.b...b.knnk....
+....kbbk.b...b.kbbk.... *2
+....kbbkbbbbbbbkbbk....
+....kbbk.b...b.kbbk.... *3
+....kkkk.......kkkk....
