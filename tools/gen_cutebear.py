@@ -4,7 +4,7 @@ import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 import gen_shadow as G
 from gen_shadow import C
-G.W, G.H = 24, 36
+G.W, G.H = 24, 32
 
 def rect(c, x0, y0, x1, y1, ch):
     for y in range(y0, y1 + 1):
@@ -13,11 +13,10 @@ def rect(c, x0, y0, x1, y1, ch):
 def bear(expr):
     c = C()
     for sx in (5, 19): c.ell(sx, 4.5, 3.4, 3.2, 'u'); c.ell(sx, 4.8, 1.7, 1.5, 'i')                        # 귀
-    c.ell(9, 34.6, 2.9, 1.2, 'u'); c.ell(15, 34.6, 2.9, 1.2, 'u')                                           # 발이 바짓단 아래로 살짝 보임
-    for x0 in (7, 13):                                                                                     # 평소에 입는 일자 바지: 위아래 폭이 같은 곧은 다리
-        rect(c, x0, 27, x0 + 4, 33, 'z'); rect(c, x0 + 4, 27, x0 + 4, 33, 'x'); rect(c, x0, 28, x0, 31, 'h')    # 오른쪽 그늘, 왼쪽 빛
-        rect(c, x0, 33, x0 + 4, 33, 'x'); c.put(x0 + 2, 30, 'x')                                            # 바짓단과 무릎 주름
-    c.line(12, 27, 12, 33, 1, ch='x')                                                                       # 두 다리 사이
+    c.ell(8.2, 31.2, 3.2, 1.0, 'u'); c.ell(15.8, 31.2, 3.2, 1.0, 'u')                                       # 발
+    for cx, sx in ((8.8, 10.0), (15.2, 16.6)):                                                             # 바지: 크림색, 다리마다 오른쪽 안쪽에 그늘
+        c.ell(cx, 29.2, 3.5, 2.6, 'z'); c.ell(sx, 29.6, 1.5, 2.2, 'x'); c.put(cx - 2, 28, 'h')
+    c.line(12, 27, 12, 30, 1, ch='x')                                                                       # 두 다리 사이 선
     for sx, sgn in ((5.2, -1), (18.8, 1)):                                                                 # 팔
         c.ell(sx, 22, 2.9, 3.7, 'h'); c.ell(sx + sgn * .3, 25.6, 2.2, 1.9, 'u')
     c.ell(12, 22.2, 7.4, 6.2, 'h'); c.ell(8.8, 20.5, 2.6, 3.0, 'f')                                         # 둥근 후드티 몸과 하이라이트
@@ -31,7 +30,7 @@ def bear(expr):
     c.put(12, 13, 'b'); c.put(11, 13, 'b'); c.put(13, 13, 'b')                                              # 코
     if expr == 'A':
         for ex in (7, 16): c.put(ex, 11, 'k'); c.put(ex + 1, 11, 'k'); c.put(ex, 12, 'k'); c.put(ex + 1, 12, 'k')
-        for x, y in ((10, 15), (11, 16), (12, 15), (13, 16), (14, 15)): c.put(x, y, 'k')
+        for x in range(10, 15): c.put(x, 16, 'k')                            # 평소 표정: 입은 일자(ㅡ)
     if expr == 'B':
         for ex in (7, 16): c.put(ex, 12, 'k'); c.put(ex + 1, 11, 'k'); c.put(ex + 2, 12, 'k')
         for x in range(10, 15): c.put(x, 15, 'k')
