@@ -179,9 +179,13 @@ def figure(seed, phase=None):
         a = math.radians(a0); sx, sy = hx + math.cos(a) * 3.6, hy + math.sin(a) * 4.6
         c.line(sx, sy, sx - math.cos(a) * r2.uniform(1.5, 3), sy - math.sin(a) * r2.uniform(1.5, 3.5), 1, ch='m')
     L = chain(c, [(12, 53), (9 - sw, 78), (8 - 3 * sw, 102)])
-    for k in range(1, 7): c.put(8 - 3 * sw + (k if sw <= 0 else -k) * 1, 103, 'd' if k < 5 else 'm')   # 끌린 자국
+    for k in range(1, 14):                                             # 끌린 자국: 길게, 위줄은 듬성듬성
+        xx = 8 - 3 * sw + (k if sw <= 0 else -k)
+        c.put(xx, 103, 'd' if k < 9 else 'm'); c.put(xx, 102, 'd' if k % 3 == 1 and k < 8 else '.')
     tube(c, [(36, 53), (38 - sw, 78), (38 - 3 * sw, 99)], 4.2, 3.4); c.ell(38 - 3 * sw, 101, 2.8, 3, "s")
-    for k in range(1, 7): c.put(38 - 3 * sw + (k if sw <= 0 else -k) * 1, 103, 'd' if k < 5 else 'm')
+    for k in range(1, 10):
+        xx = 38 - 3 * sw + (k if sw <= 0 else -k)
+        c.put(xx, 103, 'd' if k < 7 else 'm'); c.put(xx, 102, 'd' if k % 3 == 1 and k < 7 else '.')
     tmp3 = C()                                                         # 어깨선을 따라 바깥으로 뻗는 회색 뿌리
     for sx, a0 in [(21, 160), (27, 20), (22, 140), (26, 40), (20, 175), (28, 5)]:
         root2(tmp3, sx, 49, math.radians(a0), 7, 4, r2)
@@ -216,10 +220,14 @@ def export_final(seed=12):
     blocks = []
     for name, ph, desc in frames:
         blocks.append(f'[{name}] {desc}\n' + '\n'.join(''.join(r) for r in figure(seed, ph).finish()) + '\n')
+    smear = ['.' * 40, '.' * 40]
+    r = random.Random(7); row1 = ''.join('d' if (i % 7 < 5 and i > 3) else ('m' if i % 7 < 6 and i > 1 else '.') for i in range(40)); row2 = ''.join('k' if (i % 5 < 3 and r.random() < .8) else '.' for i in range(40))
+    row0 = ''.join('m' if (i % 9 == 0 and 4 < i < 36) else '.' for i in range(40))
+    blocks.append('[drag_smear] 바닥에 끌린 자국(추격자 뒤에 깐다) | dream\n' + '\n'.join([row0, row1, row2]) + '\n')
     path = os.path.join(root, 'objects.txt'); txt = open(path, encoding='utf-8').read()
     keep, skip = [], False
     for line in txt.split('\n'):                                      # 기존 shadow_tree* 블록을 헤더부터 다음 헤더 전까지 지운다
-        if line.startswith('['): skip = line.startswith('[shadow_tree')
+        if line.startswith('['): skip = line.startswith('[shadow_tree') or line.startswith('[drag_smear')
         if not skip: keep.append(line)
     txt = '\n'.join(keep).rstrip('\n') + '\n\n' + '\n'.join(blocks)
     open(path, 'w', encoding='utf-8').write(txt)
