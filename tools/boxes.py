@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw
 import render
 
 OUTLINE = (26, 22, 32, 255)
-SK, SS = 0.5, 0.5   # 깊이 1당 화면에서 (오른쪽 SK, 위쪽 SS)만큼 이동 = 비스듬한 시점
+SK, SS = 0.0, 0.5   # 깊이 1당 화면에서 (오른쪽 SK, 위쪽 SS)만큼 이동. SK=0 이면 옆면 없이 앞면+윗면만 보인다(0.5 로 바꾸면 옆면이 다시 나옴)
 
 def load_boxes(path):
     items, cur = [], None
@@ -46,7 +46,7 @@ def build(item, pal):
             _, x, y, z, w, dd, h, col, noside = p
             c = pal[col]
             d.polygon([pt(x, y, z + h), pt(x + w, y, z + h), pt(x + w, y + dd, z + h), pt(x, y + dd, z + h)], fill=shade(c, 1.28))   # 윗면
-            if not noside:
+            if not noside and SK:
                 d.polygon([pt(x + w, y, z), pt(x + w, y + dd, z), pt(x + w, y + dd, z + h), pt(x + w, y, z + h)], fill=shade(c, 0.66))  # 옆면
             d.polygon([pt(x, y, z), pt(x + w, y, z), pt(x + w, y, z + h), pt(x, y, z + h)], fill=shade(c, 1.0))                     # 앞면
         else:

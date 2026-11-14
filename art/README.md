@@ -58,3 +58,8 @@
 - 새 사물은 `art/variants/<묶음>_boxes.txt` (입체 상자) 또는 `<묶음>_pixels.txt` (픽셀 격자)에 `이름_A/B/C` 로 시안을 만든다.
 - `python3 tools/variants.py batch1` 로 사물별 A/B/C 비교 이미지(`art/out/variants_batch1.png`)를 만든다.
 - 사용자가 고른 시안만 `art/boxes.txt` / `art/objects.txt` 에 정식 이름(`chair` 등)으로 옮긴다.
+
+## 옆면 없애기
+
+- 입체 가구는 이제 **앞면 + 윗면만** 보인다(오른쪽 어두운 옆면 없음). `tools/boxes.py` 의 `SK = 0.0` 때문이며, `0.5` 로 바꾸면 옆면이 다시 나온다.
+- 의자는 뚫린 등받이(살 3개) 빈티지 나무 의자로 교체했다(`art/boxes.txt` 의 `chair`).

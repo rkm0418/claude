@@ -33,7 +33,7 @@ dream_map:
 tttttttttttttttttttt
 wlwlwlwlwlwlwlwlwlwl
 DbCbDbCbDbCbDbCbDbCb
-.c.c.c.c.c.c.c.c.c.c
+c..c..c..c..c..c..c.
 ....................
 ..X...X...X...X...X.
 ####################

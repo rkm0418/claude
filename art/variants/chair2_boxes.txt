@@ -1,0 +1,46 @@
+# 뚫린 등받이 의자 시안
+
+[chair_F] 살 5개, 간격 좁음 | F
+box 1 8 0 1 2 8 b
+box 16 8 0 1 2 8 b
+box 1 1 0 1 2 8 b
+box 16 1 0 1 2 8 b
+box 1 3 3 0 6 1 b
+box 17 3 3 0 6 1 b
+box 2 5 3 15 1 1 b
+box 0 0 8 18 11 2 n
+box 0 8 10 1 2 15 b
+box 17 8 10 1 2 15 b
+box 3 9 10 0 1 13 n
+box 6 9 10 0 1 13 n
+box 9 9 10 0 1 13 n
+box 12 9 10 0 1 13 n
+box 15 9 10 0 1 13 n
+box 0 8 23 18 3 3 n
+box 2 8 26 14 3 1 n
+decal 0 8 15 2 1 n
+decal 0 8 19 2 1 n
+decal 16 8 15 2 1 n
+decal 16 8 19 2 1 n
+
+[chair_G] 살 3개, 간격 넓음 (뚫린 느낌 강조) | G
+box 1 8 0 1 2 8 b
+box 16 8 0 1 2 8 b
+box 1 1 0 1 2 8 b
+box 16 1 0 1 2 8 b
+box 1 3 3 0 6 1 b
+box 17 3 3 0 6 1 b
+box 2 5 3 15 1 1 b
+box 0 0 8 18 11 2 n
+box 0 8 10 1 2 15 b
+box 17 8 10 1 2 15 b
+box 5 9 10 0 1 13 n
+box 9 9 10 0 1 13 n
+box 13 9 10 0 1 13 n
+box 0 8 23 18 3 3 n
+box 2 8 26 14 3 1 n
+decal 0 8 15 2 1 n
+decal 0 8 19 2 1 n
+decal 16 8 15 2 1 n
+decal 16 8 19 2 1 n
+
