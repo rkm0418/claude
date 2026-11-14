@@ -157,3 +157,12 @@ vvvwvvvvvvvvvvvv
 vvvvvvvvvvvvvvvv *5
 vvvvvvvvvvvvwvvv
 vvvvvvvvvvvvvvvv *5
+
+[carpet] 카펫 바닥 | real
+gggggggggggggggg *3
+ggggmgggggggggmg
+gggggggggggggggg *4
+gggmgggggggmgggg
+gggggggggggggggg *3
+ggmggggggggggggg
+gggggggggggggggg *3

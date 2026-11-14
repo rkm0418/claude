@@ -29,7 +29,7 @@ def load_lights():
     return lights
 
 def load_map(path):
-    m = {'title': '', 'ambient': 1.0, 'dream': {}, 'dream_add': [], 'legend': {}, 'rows': [], 'dream_rows': []}
+    m = {'title': '', 'tone': None, 'ambient': 1.0, 'dream': {}, 'dream_add': [], 'legend': {}, 'rows': [], 'dream_rows': []}
     section = None
     for n, raw in enumerate(open(path, encoding='utf-8'), 1):
         line = raw.rstrip('\n')
@@ -37,6 +37,8 @@ def load_map(path):
             continue
         if line.startswith('title:'):
             m['title'] = line[6:].strip()
+        elif line.startswith('tone:'):
+            m['tone'] = tuple(int(v) for v in line[5:].split())
         elif line.startswith('ambient:'):
             m['ambient'] = float(line[8:])
         elif line.startswith('dream:'):
@@ -164,7 +166,14 @@ def draw_map(m, lib, lights, path, dream):
     for y, x, obj in sorted(things, key=lambda t: t[0]):     # 위쪽 줄부터 그려서 아래 사물이 앞에 온다
         name, _, lift = obj.partition('^')
         place(img, name, x, y, int(lift or 0))
-    return shade(img, emitters, m['ambient'], False)   # 꿈도 현실과 같은 색. 달라지는 건 배치뿐
+    img = shade(img, emitters, m['ambient'], False)   # 꿈도 현실과 같은 색. 달라지는 건 배치뿐
+    if m['tone']:                                      # tone: R G B -> 장소의 지배색(리미널 톤)
+        px = img.load()
+        for y in range(img.height):
+            for x in range(img.width):
+                r, g, b, a = px[x, y]
+                px[x, y] = (r * m['tone'][0] // 255, g * m['tone'][1] // 255, b * m['tone'][2] // 255, a)
+    return img
 
 def main():
     lib, lights, out = load_library(), load_lights(), os.path.join(BASE, 'maps', 'out')
