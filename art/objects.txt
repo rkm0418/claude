@@ -2046,21 +2046,19 @@ kkk..kkk..kkk..kkk..k.k..kk...kk...k.k..
 .....kuzzxxxkzzzxxuk....
 
 [rabbit_red_A] 말랑한 토끼(여자, 흰 피부, 붉은 더블 트렌치코트, 줄무늬 스카프) 기본(입 일자) | dream
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-....kWWiWk.kkk.kWWiWk...
-....kWWWWkkWWWkkWWWWk...
-....kRRRRRRWWWWWWkkk....
-....kRRQQRRRWWWWWWWk....
-....kWRRWRRWWWWWWWWWk...
+...kWWiiiWkkkkkWWiiiWk..
+...kWWiiWWkWWWkWWiiWWk..
+....kWWWWWWWWWWWWWWWk...
+.....kWWWWWWWWWWWWWk....
+....kWWWWWWWWWWWWWWWk...
 ...kWWWWWWWWWWWWWWWWWk..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.
@@ -2092,21 +2090,19 @@ kkk..kkk..kkk..kkk..k.k..kk...kk...k.k..
 .......kddddkddddk......
 
 [rabbit_red_B] 말랑한 토끼(여자, 흰 피부, 붉은 더블 트렌치코트, 줄무늬 스카프) 웃음 | dream
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-....kWWiWk.kkk.kWWiWk...
-....kWWWWkkWWWkkWWWWk...
-....kRRRRRRWWWWWWkkk....
-....kRRQQRRRWWWWWWWk....
-....kWRRWRRWWWWWWWWWk...
+...kWWiiiWkkkkkWWiiiWk..
+...kWWiiWWkWWWkWWiiWWk..
+....kWWWWWWWWWWWWWWWk...
+.....kWWWWWWWWWWWWWk....
+....kWWWWWWWWWWWWWWWk...
 ...kWWWWWWWWWWWWWWWWWk..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.
@@ -2138,21 +2134,19 @@ kkk..kkk..kkk..kkk..k.k..kk...kk...k.k..
 .......kddddkddddk......
 
 [rabbit_red_C] 말랑한 토끼(여자, 흰 피부, 붉은 더블 트렌치코트, 줄무늬 스카프) 걱정(입 일자) | dream
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-....kWWiWk.kkk.kWWiWk...
-....kWWWWkkWWWkkWWWWk...
-....kRRRRRRWWWWWWkkkck..
-....kRRQQRRRWWWWWWWkck..
-....kWRRWRRWWWWWWWWccck.
+...kWWiiiWkkkkkWWiiiWk..
+...kWWiiWWkWWWkWWiiWWk..
+....kWWWWWWWWWWWWWWWck..
+.....kWWWWWWWWWWWWWkck..
+....kWWWWWWWWWWWWWWccck.
 ...kWWWWWWWWWWWWWWWWck..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.
@@ -2184,21 +2178,19 @@ kkk..kkk..kkk..kkk..k.k..kk...kk...k.k..
 .......kddddkddddk......
 
 [rabbit_red_D] 말랑한 토끼(여자, 흰 피부, 붉은 더블 트렌치코트, 줄무늬 스카프) 졸림 | dream
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiikkkk.
-....kWWiWk.kkk.kWWiWkk..
-....kWWWWkkWWWkkWWWkkkk.
-....kRRRRRRWWWWWWkkkkk..
-....kRRQQRRRWWWWWWWk....
-....kWRRWRRWWWWWWWWWk...
+...kWWiiiWkkkkkWWiiikk..
+...kWWiiWWkWWWkWWiikkkk.
+....kWWWWWWWWWWWWWWWkk..
+.....kWWWWWWWWWWWWWk....
+....kWWWWWWWWWWWWWWWk...
 ...kWWWWWWWWWWWWWWWWWk..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.
@@ -2230,21 +2222,19 @@ kkk..kkk..kkk..kkk..k.k..kk...kk...k.k..
 .......kddddkddddk......
 
 [rabbit_red_E] 말랑한 토끼(여자, 흰 피부, 붉은 더블 트렌치코트, 줄무늬 스카프) 화남(입 일자) | dream
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-....kWWiWk.kkk.kWWiWk...
-....kWWWWkkWWWkkWWWrrk..
-....kRRRRRRWWWWWWkkrkrk.
-....kRRQQRRRWWWWWWWkrrk.
-....kWRRWRRWWWWWWWWWkk..
+...kWWiiiWkkkkkWWiiiWk..
+...kWWiiWWkWWWkWWiirrk..
+....kWWWWWWWWWWWWWWrkrk.
+.....kWWWWWWWWWWWWWkrrk.
+....kWWWWWWWWWWWWWWWkk..
 ...kWWWWWWWWWWWWWWWWWk..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.

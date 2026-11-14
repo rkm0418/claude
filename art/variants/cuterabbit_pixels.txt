@@ -1,21 +1,19 @@
 # 말랑한 rabbit 표정 5종 (tools/gen_cutebear.py 가 생성함)
 
 [rabbit_A] 기본 표정(입 일자) | A
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-....kWWiWk.kkk.kWWiWk...
-....kWWWWkkWWWkkWWWWk...
-....kRRRRRRWWWWWWkkk....
-....kRRQQRRRWWWWWWWk....
-....kWRRWRRWWWWWWWWWk...
+...kWWiiiWkkkkkWWiiiWk..
+...kWWiiWWkWWWkWWiiWWk..
+....kWWWWWWWWWWWWWWWk...
+.....kWWWWWWWWWWWWWk....
+....kWWWWWWWWWWWWWWWk...
 ...kWWWWWWWWWWWWWWWWWk..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.
@@ -47,21 +45,19 @@
 .......kddddkddddk......
 
 [rabbit_B] 웃는 표정 | B
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-....kWWiWk.kkk.kWWiWk...
-....kWWWWkkWWWkkWWWWk...
-....kRRRRRRWWWWWWkkk....
-....kRRQQRRRWWWWWWWk....
-....kWRRWRRWWWWWWWWWk...
+...kWWiiiWkkkkkWWiiiWk..
+...kWWiiWWkWWWkWWiiWWk..
+....kWWWWWWWWWWWWWWWk...
+.....kWWWWWWWWWWWWWk....
+....kWWWWWWWWWWWWWWWk...
 ...kWWWWWWWWWWWWWWWWWk..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.
@@ -93,21 +89,19 @@
 .......kddddkddddk......
 
 [rabbit_C] 걱정(땀방울, 입 일자) | C
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-....kWWiWk.kkk.kWWiWk...
-....kWWWWkkWWWkkWWWWk...
-....kRRRRRRWWWWWWkkkck..
-....kRRQQRRRWWWWWWWkck..
-....kWRRWRRWWWWWWWWccck.
+...kWWiiiWkkkkkWWiiiWk..
+...kWWiiWWkWWWkWWiiWWk..
+....kWWWWWWWWWWWWWWWck..
+.....kWWWWWWWWWWWWWkck..
+....kWWWWWWWWWWWWWWccck.
 ...kWWWWWWWWWWWWWWWWck..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.
@@ -139,21 +133,19 @@
 .......kddddkddddk......
 
 [rabbit_D] 졸림 | D
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiikkkk.
-....kWWiWk.kkk.kWWiWkk..
-....kWWWWkkWWWkkWWWkkkk.
-....kRRRRRRWWWWWWkkkkk..
-....kRRQQRRRWWWWWWWk....
-....kWRRWRRWWWWWWWWWk...
+...kWWiiiWkkkkkWWiiikk..
+...kWWiiWWkWWWkWWiikkkk.
+....kWWWWWWWWWWWWWWWkk..
+.....kWWWWWWWWWWWWWk....
+....kWWWWWWWWWWWWWWWk...
 ...kWWWWWWWWWWWWWWWWWk..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.
@@ -185,21 +177,19 @@
 .......kddddkddddk......
 
 [rabbit_E] 화남(입 일자) | E
+.....kkkk.......kkkk....
+....kWWWWk.....kWWWWk...
 ...kWWWWWk.....kWWWWWk..
 ...kWWWWWk.....kWWWWWk..
-...kWWiiWWk...kWWiiWWk..
+...kWWWiWWk...kWWWiWWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
 ...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-...kWWiiiWk...kWWiiiWk..
-....kWWiWk.kkk.kWWiWk...
-....kWWWWkkWWWkkWWWrrk..
-....kRRRRRRWWWWWWkkrkrk.
-....kRRQQRRRWWWWWWWkrrk.
-....kWRRWRRWWWWWWWWWkk..
+...kWWiiiWkkkkkWWiiiWk..
+...kWWiiWWkWWWkWWiirrk..
+....kWWWWWWWWWWWWWWrkrk.
+.....kWWWWWWWWWWWWWkrrk.
+....kWWWWWWWWWWWWWWWkk..
 ...kWWWWWWWWWWWWWWWWWk..
 ..kWWWWWWWWWWWWWWWWWWWk.
 ..kWWWWWWWWWWWWWWWWWWWk.

@@ -92,13 +92,12 @@ def round_eye(c, ex):
 
 def rabbit_char(expr):
     """토끼(여자 캐릭터): 레퍼런스 도트화의 비율 + 붉은 더블 트렌치코트(넓은 옷깃, 검은 단추 두 줄, 소매 끈, 주머니 덮개), 줄무늬 스카프, 둥근 귀."""
-    c = OffC(); c.oy = 8
+    c = OffC(); c.oy = 6
     for sx, tilt in ((7.2, -.7), (16.8, .7)):                                                               # 둥글고 부드러운 귀(끝이 각지지 않게 두 타원을 겹침)
-        c.ell(sx + tilt, -2.6, 3.3, 6.4, 'W'); c.ell(sx + tilt * 1.4, -7.4, 2.5, 2.6, 'W'); c.ell(sx + tilt + .4, -2.2, 1.5, 4.8, 'i')
+        c.ell(sx + tilt, 0.2, 3.3, 4.6, 'W'); c.ell(sx + tilt * 1.4, -3.6, 2.5, 2.2, 'W'); c.ell(sx + tilt + .4, 0.6, 1.5, 3.2, 'i')
     c.ell(12, 11, 9.8, 8.1, 'W'); c.ell(15.8, 14.2, 4.2, 3.6, 'w'); c.ell(12, 11, 9.2, 7.5, 'W')            # 둥근 하얀 머리, 오른쪽 아래 옅은 그늘
     for sx in (-1, 1): c.ell(12 + sx * 6, 14.4, 1.9, 1.3, 'i')                                              # 옅은 볼터치
     c.put(12, 13, 'k')                                                                                     # 작은 코
-    c.ell(6.2, 4.6, 2.2, 1.6, 'R'); c.ell(9.4, 5, 1.8, 1.4, 'R'); c.put(8, 5, 'Q'); c.put(7, 5, 'Q')       # 귀 밑 작은 빨간 리본
     c.ell(9.6, 34.4, 2.4, 1.0, 'd'); c.ell(14.4, 34.4, 2.4, 1.0, 'd')                                       # 짧은 부츠
     c.ell(9.8, 32.2, 1.1, 2.6, 'W'); c.ell(14.2, 32.2, 1.1, 2.6, 'W')                                       # 가늘고 하얀 다리
     for sx, sgn in ((6.0, -1), (18.0, 1)):                                                                 # 가는 소매, 하얀 손, 소매 끈
@@ -139,7 +138,7 @@ def rabbit_char(expr):
     return c.finish()
 
 def draw(expr, kind):
-    G.W, G.H = 24, (44 if kind == 'rabbit' else 32)
+    G.W, G.H = 24, (42 if kind == 'rabbit' else 32)
     return rabbit_char(expr) if kind == 'rabbit' else character(expr, kind)
 
 def main():
