@@ -5,11 +5,11 @@
 # 색은 palette.txt 글자. 윗면은 밝게, 옆면은 어둡게 자동으로 칠한다. (w=0 이면 가는 선 하나)
 
 [table] 식탁보 덮인 2m 식탁 | real
-box 2 1 0 1 1 8 b
-box 29 1 0 1 1 8 b
-box 2 12 0 1 1 8 b
-box 29 12 0 1 1 8 b
-box 0 0 8 32 14 4 q
+box 10 1 0 1 1 8 b
+box 37 1 0 1 1 8 b
+box 10 12 0 1 1 8 b
+box 37 12 0 1 1 8 b
+box 8 0 8 32 14 4 q
 decal 0 0 8 32 1 a
 
 [chair] 뚫린 등받이 의자 (좌판 높이 0.45m, 등받이 0.9m) | real
@@ -69,12 +69,14 @@ box 28 1 7 4 10 4 a
 box 4 1 7 11 9 2 i
 box 17 1 7 11 9 2 i
 
-[coffee_table] 커피 탁자 | real
-box 1 1 0 1 1 5 b
-box 17 1 0 1 1 5 b
-box 1 8 0 1 1 5 b
-box 17 8 0 1 1 5 b
-box 0 0 5 19 10 2 n
+[coffee_table] 커피 탁자 (깔개 중앙 정렬 +12, 컵 둘 포함) | real
+box 13 1 0 1 1 5 b
+box 29 1 0 1 1 5 b
+box 13 8 0 1 1 5 b
+box 29 8 0 1 1 5 b
+box 12 0 5 19 10 2 n
+box 15 2 7 3 3 3 t
+box 22 5 7 3 3 3 t
 
 [bed] 아이 침대 (2m) | real
 box 0 0 0 32 17 4 b

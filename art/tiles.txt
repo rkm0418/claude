@@ -71,12 +71,23 @@ lkwwwwkvvkwwwwkl
 llkkwwwwwwwwkkll
 llllkkkkkkkkllll
 lllglllllllgllll *4
-
-[pavement] 골목 바닥 | real
-dddddddddddddddd *7
-dddddddkdddddddd
-dddddddddddddddd *7
-kkkkkkkkkkkkkkkk
+[pavement] 대각선 포장(마름모 격자) | real
+kdddddddkddddddd
+dkdddddkdkdddddk
+ddkddmkdddkdddkd
+dddkdkdddddkdkdd
+ddddkdddddmdkddd
+dddkdkdddddkdkdd
+ddkdddkdddkdddkm
+dkdmdddkdkdddddk
+kdddddddkddddddd
+dkdddddkmkdddddk
+ddkdddkdddkdddkd
+dddkdkdddddkdkdd
+dmddkdddddddkddd
+dddkdkdddddkdkdd
+ddkdddkdddkdddkd
+dkdddddkdkdddddk
 
 [puddle] 물웅덩이 | real
 dddddddddddddddd *4
@@ -238,23 +249,23 @@ qquaijjjjjjiauqq
 qquuuuuuuuuuuuhq
 quuuuuuuuuuuuuuq
 qqqqqqqqqqqqqqqq
-[floor_cozy] 따뜻한 마루 바닥 (긴 판자) | real
-nnnnnbnnnnnnnnnn
-nnunnnnnnnnnnnnn
-nnnnnnnnnnunnnnn
-nnnnnnnnnnnnnnnn
-eeeeeeeeeeeeeeee
-nnnnnnnnnnnnbnnn
-nnnnnnunnnnnnnnn
-nnnnnnnnnnnnnunn
-nbnnnnnnnnnnnnnn
-eeeeeeeeeeeeeeee
-nnnnnnnnnbnnnnnn
-nnnnunnnnnnnnnnn
-nnnnnnnnnnnunnnn
-nnnnnnnnnnnnnnbn
-eeeeeeeeeeeeeeee
-nnnnnnnnunnnnnnn
+[floor_cozy] 대각선 마루 판자(깊이 방향) | real
+bnnennnennnennne
+nnennnebnnennnen
+nennnennnennnebn
+ennnennnennnennn
+nnnenbnennnennne
+nuennnennnenbnen
+nennnennnennnenn
+ennbennnennnennn
+nnnennuennbennne
+nnenunennnennnen
+neunnennnennnenn
+ennnennnennuennn
+nnnennnenunennne
+nnennneunnennnen
+nennnebnnennnenn
+ennnennnennnebun
 
 [window_l] 넓은 창 왼쪽(커튼) | real
 qqqqqqqqqqqqqqqq

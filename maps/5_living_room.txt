@@ -18,38 +18,32 @@ C floor_cozy ceiling_light^4
 c floor_cozy chair
 X wall_base_cozy balcony_door_closed
 Q wall_base_cozy balcony_door
-Y floor_cozy plant
 B floor_cozy bookshelf
 M floor_cozy floor_lamp
 O floor_cozy sofa
 A floor_cozy armchair
-Z floor_cozy rug_big
-T floor_cozy coffee_table cup^7
-q floor_cozy cup^7
+Z floor_cozy rug_living^-7
+T floor_cozy coffee_table
 v floor_cozy tv
 map:
-####################
-###tttttttttttttt###
-###wWVwwKwwGwwwww###
-###bbbbbbbbbbbbXb###
-###..........B..Y###
-###..M.O...A.....###
-###......C.......###
-###...ZTq........###
-###..............###
-###..............###
-####################
-####################
+#############
+##ttttttttt##
+##wWVwwKwGw##
+##bbbbbbbbX##
+##M.O...B..##
+##.....A...##
+##..ZT.....##
+##....C....##
+#############
+#############
 dream_map:
-####################
-###tttttttttttttt###
-###wWVwwKwwFwwwww###
-###bbbbbbbbbbbbQb###
-###.............c###
-###..............###
-###......v.......###
-###..............###
-###..............###
-###..............###
-####################
-####################
+#############
+##ttttttttt##
+##wWVwwKwFw##
+##bbbbbbbbQ##
+##........c##
+##.........##
+##....v....##
+##.........##
+#############
+#############

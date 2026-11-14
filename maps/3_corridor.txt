@@ -17,30 +17,22 @@ L floor_cozy ceiling_light^4
 R floor_cozy shoe_rack shoes^6
 c floor_cozy chair
 l floor_cozy slipper
-U floor_cozy runner
+U floor_cozy runner^-2
 map:
-####################
-####################
-tttttttttttttttttttt
-wwwwSwGwwwwwGwSwwwww
-bDbbbbbbbDbbCbbbbDbb
-.............R......
-.....L........L.....
-........U...........
-....................
-####################
-####################
-####################
+###############
+ttttttttttttttt
+wwSwGwwwwGwSwww
+bDbbbbbDbbCbbDb
+...........R...
+....L.....L....
+.....U.........
+###############
 dream_map:
-####################
-####################
-tttttttttttttttttttt
-wwwwSwFwFwwwGwSwwwww
-bDbbbbbbbDbbCbbbbQbb
-.........c...R......
-..l..L........L.....
-........U...........
-....................
-####################
-####################
-####################
+###############
+ttttttttttttttt
+wwSwFwwwwFwSwww
+bDbbbbbDbbCbbQb
+.......c...R...
+..l.L.....L....
+.....U.........
+###############

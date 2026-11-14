@@ -20,32 +20,28 @@ s floor_cozy sideboard table_lamp^14
 Y floor_cozy plant
 B floor_cozy bookshelf
 H floor_cozy shoes
-Z floor_cozy rug_big chair
-z floor_cozy rug_big
+Z floor_cozy rug_big^-7 chair
+z floor_cozy rug_big^-7
 T floor_cozy table plates3^15
 map:
-####################
-###tttttttttttttt###
-###wWVwwGwKwwWVww###
-###bbbbbbbbbbbbDb###
-###s.....Y..B.H..###
-###..............###
-###.....cC.......###
-###....ZT.c......###
-###..............###
-###..............###
-####################
-####################
+#############
+##ttttttttt##
+##wWVwGwKww##
+##bbbbbbbbD##
+##s.Y...B.H##
+##....c....##
+##..ZT..c..##
+##...C.....##
+#############
+#############
 dream_map:
-####################
-###tttttttttttttt###
-###wWVwwFwKFwWVww###
-###bbbbbbbbbbbbQb###
-###s.....Y..B.H..###
-###..............###
-###......C.......###
-###....zT.c......###
-###..............###
-###.............c###
-####################
-####################
+#############
+##ttttttttt##
+##wWVwFwKFw##
+##bbbbbbbbQ##
+##s.Y...B.H##
+##.........##
+##..zT..c.c##
+##...C.....##
+#############
+#############
