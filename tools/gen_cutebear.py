@@ -77,7 +77,7 @@ def export_final():
     root = os.path.join(os.path.dirname(__file__), '..', 'art'); path = os.path.join(root, 'objects.txt')
     notes = {'A': '기본(입 일자)', 'B': '웃음', 'C': '걱정(입 일자)', 'D': '졸림', 'E': '화남(입 일자)'}
     blocks = []
-    for kind, pre, desc in (('bear', 'bear_green', '말랑한 곰(초록 후드, 짙은 초록 바지)'), ('rabbit', 'rabbit_red', '말랑한 토끼(붉은 후드, 짙은 회색 바지)')):
+    for kind, pre, desc in (('bear', 'bear_green', '말랑한 곰(초록 후드, 짙은 초록 바지)'), ('rabbit', 'rabbit_red', '말랑한 토끼(흰 피부, 빨간 단추 셔츠, 짙은 회색 바지)')):
         for v in 'ABCDE':
             blocks.append(f'[{pre}_{v}] {desc} {notes[v]} | dream\n' + '\n'.join(draw(v, kind)) + '\n')
     keep, skip = [], False
@@ -86,9 +86,49 @@ def export_final():
         if not skip: keep.append(line)
     open(path, 'w', encoding='utf-8').write('\n'.join(keep).rstrip('\n') + '\n\n' + '\n'.join(blocks))
 
+def rabbit_char(expr):
+    """토끼: 레퍼런스 도트화에서 가져온 비율(큰 둥근 머리, 길고 하얀 귀, 점 눈, 작은 흰 발)에 흰 피부와 빨간 단추 셔츠."""
+    c = OffC(); c.oy = 8
+    for sx, tilt in ((7.5, -.6), (16.5, .6)):                                                               # 길고 하얀 귀 (안쪽은 아주 옅은 그림자)
+        c.ell(sx + tilt, -3, 2.9, 7.2, 'W'); c.ell(sx + tilt + .5, -2.4, 1.2, 5.4, 'w')
+    c.ell(8.2, 31.2, 3.2, 1.0, 'W'); c.ell(15.8, 31.2, 3.2, 1.0, 'W')                                       # 하얀 발
+    for cx, sx in ((8.8, 10.0), (15.2, 16.6)): c.ell(cx, 29.2, 3.5, 2.6, 'd'); c.ell(sx, 29.6, 1.5, 2.2, 's')   # 짙은 회색 바지
+    c.line(12, 27, 12, 30, 1, ch='s')
+    for sx, sgn in ((5.2, -1), (18.8, 1)): c.ell(sx, 22, 2.9, 3.7, 'R'); c.ell(sx + sgn * .3, 25.6, 2.2, 1.9, 'W')     # 소매와 하얀 손
+    c.ell(12, 22.2, 7.4, 6.2, 'R'); c.ell(15.8, 24, 2.8, 4.4, 'Q'); c.ell(12, 21, 6.2, 4.8, 'R')           # 셔츠 몸과 오른쪽 그늘
+    c.line(12, 19.5, 12, 27, 1, ch='Q')                                                                    # 단춧골(앞여밈)
+    for y in (21.5, 24, 26.5): c.put(11, y, 'q'); c.put(13, y, 'q')                                        # 단추
+    c.ell(10, 19, 1.9, 1.3, 'W'); c.ell(14, 19, 1.9, 1.3, 'W')                                             # 흰 옷깃은 아니고 목선(피부)
+    rect(c, 7, 27, 17, 27, 'Q')                                                                            # 밑단
+    c.ell(12, 11, 9.6, 8.2, 'W'); c.ell(15.5, 14, 4.6, 4.2, 'w')                                           # 하얀 머리와 오른쪽 아래 옅은 그늘
+    c.ell(12, 11, 9.0, 7.6, 'W'); c.ell(10.2, 9, 3.2, 2.4, 'W')
+    c.put(12, 13, 'k')                                                                                     # 작은 코
+    if expr == 'A':
+        for ex in (7, 16): c.put(ex, 11, 'k'); c.put(ex, 12, 'k')
+        for x in range(11, 14): c.put(x, 15, 'k')
+    if expr == 'B':
+        for ex in (7, 16): c.put(ex, 12, 'k'); c.put(ex + 1, 11, 'k'); c.put(ex + 2, 12, 'k')
+        for x in range(11, 14): c.put(x, 15, 'k')
+        c.put(12, 16, 'r')
+    if expr == 'C':
+        for ex in (7, 16): c.put(ex, 11, 'k'); c.put(ex, 12, 'k')
+        c.line(6, 8, 9, 9, 1, ch='k'); c.line(18, 8, 15, 9, 1, ch='k')
+        for x in range(11, 14): c.put(x, 15, 'k')
+        c.ell(20, 6, 1.2, 1.8, 'c'); c.put(20, 4, 'c')
+    if expr == 'D':
+        for ex in (6, 15): c.line(ex, 12, ex + 2, 12, 1, ch='k')
+        c.put(12, 15, 'k')
+        for x, y in ((19, 1), (20, 1), (21, 1), (20, 2), (19, 3), (20, 3), (21, 3)): c.put(x, y, 'k')
+    if expr == 'E':
+        for ex in (7, 16): c.put(ex, 11, 'k'); c.put(ex, 12, 'k')
+        c.line(5, 7, 9, 10, 1, ch='k'); c.line(19, 7, 15, 10, 1, ch='k'); c.line(5, 8, 9, 11, 1, ch='k'); c.line(19, 8, 15, 11, 1, ch='k')
+        for x in range(11, 14): c.put(x, 15, 'k')
+        for x, y in ((19, 3), (20, 3), (19, 4), (21, 4), (20, 5), (21, 5)): c.put(x, y, 'r')
+    return c.finish()
+
 def draw(expr, kind):
     G.W, G.H = 24, (40 if kind == 'rabbit' else 32)
-    return character(expr, kind)
+    return rabbit_char(expr) if kind == 'rabbit' else character(expr, kind)
 
 def main():
     root = os.path.join(os.path.dirname(__file__), '..', 'art', 'variants')
