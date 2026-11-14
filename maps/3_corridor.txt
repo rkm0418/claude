@@ -1,7 +1,7 @@
 title: 3장 - 복도 (문을 막은 밤)
 ambient: 0.22
 dream: door=door_mouth chair=chair_long coats=coats_dream
-dream_add: eye_wall@7,4 eye_wall@12,4 eye_wall@15,4 hands@6,8 hands@8,8 hands@10,8 shadow_adult@13,7
+dream_add: eye_wall@7,4 eye_wall@12,4 eye_wall@15,4 balloon@6,8 balloon@10,8 balloon@14,8 cloud@8,7^20 shadow_adult@13,7
 legend:
 # void
 t wall_top

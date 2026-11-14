@@ -1,7 +1,7 @@
 title: 1장 - 식탁 방 (부모님이 떠난 직후)
 ambient: 0.4
 dream: cup=cup_tower frame_down=frame_hole clock=clock_bird chair=chair_long window=window_eye
-dream_add: eye_wall@5,2 eye_wall@12,2 hands@4,8 hands@14,9 hands@11,9 shadow_adult@13,6
+dream_add: eye_wall@5,2 eye_wall@12,2 cloud@4,5^40 cloud@12,4^60 balloon@3,8 balloon@15,7^6 toy_broken@8,9^30 shadow_adult@13,6
 legend:
 # void
 t wall_top

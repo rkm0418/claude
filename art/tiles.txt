@@ -149,3 +149,11 @@ llllllllllllllld *13
 
 [balcony_body] 베란다 담 | real
 llllllllllllllld *16
+
+[void_dream] 꿈의 바깥: 연보라 허공에 별이 떠 있음 | dream
+vvvvvvvvvvvvvvvv *3
+vvvvvvvvvvvvvvvv
+vvvwvvvvvvvvvvvv
+vvvvvvvvvvvvvvvv *5
+vvvvvvvvvvvvwvvv
+vvvvvvvvvvvvvvvv *4

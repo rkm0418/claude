@@ -43,10 +43,10 @@ def load_map(path):
             m['dream'] = dict(p.split('=') for p in line[6:].split())
         elif line.startswith('dream_add:'):
             for p in line[10:].split():
-                mm = re.match(r'^(\w+)@(\d+),(\d+)$', p)
+                mm = re.match(r'^(\w+)@(\d+),(\d+)(?:\^(\d+))?$', p)
                 if not mm:
                     sys.exit(f'{path}:{n}: dream_add 형식은 이름@x,y: {p!r}')
-                m['dream_add'].append((mm.group(1), int(mm.group(2)), int(mm.group(3))))
+                m['dream_add'].append((mm.group(1), int(mm.group(2)), int(mm.group(3)), int(mm.group(4) or 0)))
         elif line.strip() in ('legend:', 'map:'):
             section = line.strip()[:-1]
         elif section == 'legend':
@@ -95,11 +95,36 @@ def shade(img, emitters, ambient, dream):
             px[x, y] = tuple(min(255, int(v)) for v in c) + (255,)
     return img
 
+PINK, MINT, LILAC = (255, 196, 224), (190, 236, 226), (206, 190, 245)
+
+def dream_grade(img, emitters):
+    """드림코어: 바랜 파스텔, 번지는 빛(bloom), 스캔라인과 필름 노이즈."""
+    px, W, H = img.load(), img.width, img.height
+    for y in range(H):
+        t = y / H
+        tint = tuple(PINK[i] * (1 - t) + MINT[i] * t for i in range(3))
+        for x in range(W):
+            r, g, b, _ = px[x, y]
+            glow = 0.0
+            for ex, ey, rad, power, col in emitters:
+                d = math.hypot(x - ex, y - ey)
+                if d < rad * 1.6:
+                    glow += (1 - d / (rad * 1.6)) ** 2 * power * 0.55
+            c = [v * 0.62 + 255 * 0.22 + tt * 0.16 for v, tt in zip((r, g, b), tint)]
+            c = [v + (255 - v) * min(0.6, glow) * 0.8 + LILAC[i] * min(0.6, glow) * 0.1 for i, v in enumerate(c)]
+            edge = min(x, y, W - 1 - x, H - 1 - y)
+            k = 0.88 + 0.12 * min(1.0, edge / 24)
+            if y % 3 == 0:
+                k *= 0.93
+            noise = ((x * 73856093) ^ (y * 19349663)) % 15 - 7
+            px[x, y] = tuple(max(0, min(255, int(round((v * k + noise) / 12) * 12))) for v in c) + (255,)
+    return img
+
 def draw_map(m, lib, lights, path, dream):
     emitters = []
     def place(img, name, x, y, lift=0, base=False):
         if dream:
-            name = m['dream'].get(name, name)
+            name = m['dream'].get(name, 'void_dream' if name == 'void' else name)
         if name not in lib:
             sys.exit(f'{path}: 없는 타일/사물 이름 {name!r}')
         sp = lib[name]
@@ -113,13 +138,15 @@ def draw_map(m, lib, lights, path, dream):
             place(img, m['legend'][ch][0], x, y, base=True)
     things = [(y, x, obj) for y, row in enumerate(m['rows']) for x, ch in enumerate(row) for obj in m['legend'][ch][1]]
     if dream:
-        things += [(y, x, name) for name, x, y in m['dream_add']]
+        things += [(y, x, f'{name}^{lift}') for name, x, y, lift in m['dream_add']]
     for y, x, obj in sorted(things, key=lambda t: t[0]):     # 위쪽 줄부터 그려서 아래 사물이 앞에 온다
         name, _, lift = obj.partition('^')
         place(img, name, x, y, int(lift or 0))
     if dream:
         img = wobble(img)
-    return shade(img, emitters, m['ambient'] * (0.85 if dream else 1), dream)
+    if dream:
+        return dream_grade(img, emitters)
+    return shade(img, emitters, m['ambient'], False)
 
 def main():
     lib, lights, out = load_library(), load_lights(), os.path.join(BASE, 'maps', 'out')

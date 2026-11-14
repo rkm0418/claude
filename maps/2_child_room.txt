@@ -1,7 +1,7 @@
 title: 2장 - 아이 방과 옷장 (숨기 시작)
 ambient: 0.28
 dream: door=door_mouth window=window_eye
-dream_add: eye_wall@7,2 eye_wall@12,2 hands@5,5 hands@8,8 hands@14,8 shadow_adult@10,5
+dream_add: eye_wall@7,2 eye_wall@12,2 balloon@6,6 balloon@14,6 cloud@9,4^56 toy_broken@10,7^26 shadow_adult@10,5
 legend:
 # void
 t wall_top

@@ -1,7 +1,7 @@
 title: 5장 - 거실의 시계와 베란다 문 (결말)
 ambient: 0.3
 dream: clock=clock_bird frame=frame_hole tv=tv_eye door=door_mouth window=window_eye
-dream_add: eye_wall@6,2 eye_wall@9,2 hands@5,9 hands@13,8 shadow_adult@9,6
+dream_add: eye_wall@6,2 eye_wall@9,2 cloud@5,6^46 cloud@12,5^58 balloon@5,9 balloon@13,8 shadow_adult@9,6
 legend:
 # void
 t wall_top
