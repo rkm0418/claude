@@ -8,6 +8,8 @@ G.W, G.H = 24, 38
 from gen_shadow import C
 from gen_creep import tube
 
+ODD = False   # True 면 '언캐니' 버전: 눈 크기가 다르고 너무 벌어짐, 고정된 큰 웃음, 팔이 너무 긺
+
 def rect(c, x0, y0, x1, y1, ch):
     for y in range(y0, y1 + 1):
         for x in range(x0, x1 + 1): c.put(x, y, ch)
@@ -20,10 +22,22 @@ def tri(c, cx, top, w, h, ch):
 def base(c, fur, cloth, pants, shoe='k', hy=12):
     rect(c, 9, 31, 11, 36, pants); rect(c, 13, 31, 15, 36, pants); rect(c, 8, 36, 11, 37, shoe); rect(c, 13, 36, 16, 37, shoe)
     rect(c, 7, 18, 16, 31, cloth); rect(c, 8, 17, 15, 17, cloth)
-    for sx in (4, 17): rect(c, sx, 19, sx + 2, 28, cloth); c.ell(sx + 1, 29, 1.8, 1.8, fur)
+    al = 33 if ODD else 28                                             # 언캐니: 팔이 허리 아래까지 길다
+    for sx in (4, 17): rect(c, sx, 19, sx + 2, al, cloth); c.ell(sx + 1, al + 1, 1.8, 2.4 if ODD else 1.8, fur)
     rect(c, 10, 16, 13, 18, fur); c.ell(12, hy, 5.8, 5.2, fur)
 
+def face_odd(c, hy, nose, snout):
+    if snout: c.ell(12, hy + 2.5, 2.8, 2, snout)
+    for ex, rx, ry in ((9, 1.6, 2.0), (15, 2.1, 2.6)):                  # 크기가 다른 사람 같은 눈(흰자 + 작은 눈동자)
+        c.ell(ex, hy - 1, rx, ry, 'w'); c.put(ex, hy, 'k'); c.put(ex, hy - 1, 'k')
+        for i in range(int(-rx), int(rx) + 1): c.put(ex + i, hy - 1 - ry - 1, 'k')
+    c.put(12, hy + 1, nose)
+    for x in range(8, 17): c.put(x, hy + 3, 'k')                         # 얼굴 폭만큼 고정된 큰 웃음
+    for x in range(9, 16): c.put(x, hy + 4, 'w' if x % 2 else 'k')
+    c.put(7, hy + 2, 'k'); c.put(17, hy + 2, 'k')
+
 def face(c, hy=12, eye=10, gap=4, nose='p', mouth=True, snout=None):
+    if ODD: return face_odd(c, hy, nose, snout)
     if snout: c.ell(12, hy + 2.5, 2.8, 2, snout)
     for ex in (eye, eye + gap): c.put(ex, hy - 1, 'k'); c.put(ex, hy - 2, 'k'); c.put(ex + 1, hy - 1, 'k'); c.put(ex + 1, hy - 2, 'k')
     c.put(12, hy + 1, nose)
@@ -98,4 +112,11 @@ def main():
         for v in 'ABCD':
             lines.append(f'[{animal}_{v}] {notes[animal][v]} | {v}'); lines += fn(v).finish(); lines.append('')
     open(os.path.join(root, 'helpers_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
+    global ODD
+    ODD = True
+    lines = ['# 조력자 언캐니 시안 (tools/gen_helpers.py 가 생성함)', '']
+    for animal, fn in (('rabbit', rabbit), ('cat', cat), ('bear', bear)):
+        for v in 'ABCD':
+            lines.append(f'[{animal}_{v}] {notes[animal][v]} + 어긋난 눈, 굳은 웃음, 긴 팔 | {v}'); lines += fn(v).finish(); lines.append('')
+    open(os.path.join(root, 'helpers_odd_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
 if __name__ == '__main__': main()
