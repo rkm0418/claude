@@ -41,7 +41,9 @@ def dome(c, x, y, ang, L, depth, rng):
     n = rng.choice((1, 2, 2, 2))
     for i in range(n):
         off = math.radians(rng.uniform(-1, 1) * 30 + (i - (n - 1) / 2) * 34)
-        dome(c, ex, ey, ang + off, L * rng.uniform(.55, .8), depth - 1, rng)
+        a2 = ang + off
+        a2 += (1 if math.cos(a2) >= 0 else -1) * (0.22 + (0.18 if depth <= 4 else 0)) * (1 if abs(math.cos(a2)) > .15 else 0)   # 축 처짐: 아래로 휜다
+        dome(c, ex, ey, a2, L * rng.uniform(.58, .85), depth - 1, rng)
 
 def trunk2(c, n=5, y0=49, y1=34):
     # 줄기 가닥: 아래(어깨)에서 넓게 벌어져 박히고, 몸으로 들어갈수록 색이 어두워진다
@@ -177,7 +179,7 @@ def figure(seed):
             if tmp2.g[y][x] != '.' and c.g[y][x] != '.' and (x <= 16 or x >= 33): c.g[y][x] = tmp2.g[y][x]
     trunk2(c, 7, 51, 31)
     for i in range(7):
-        dome(c, 24 + (i - 3) * 1.2, 31, math.radians(-90 + (i - 3) * rng.uniform(21, 27)), 7.5, 6, rng)
+        dome(c, 24 + (i - 3) * 1.2, 31, math.radians(-90 + (i - 3) * rng.uniform(21, 27)), 8, 6, rng)
     fill_eye_holes(c)
     return c
 
