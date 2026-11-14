@@ -26,21 +26,67 @@ def branch(c, x, y, ang, L, depth, rng, spread=1.0):
     if rng.random() < .15:                           # 몸통에서 곁가지
         branch(c, mx, my, ang + rng.choice((-1, 1)) * rng.uniform(.6, 1.3), L * rng.uniform(.3, .6), depth - 2, rng, spread)
 
+def dome(c, x, y, ang, L, depth, rng):
+    if depth <= 0 or L < 1.4: return
+    k = rng.uniform(-.15, .15)
+    ex, ey = x + math.cos(ang + k) * L, y + math.sin(ang + k) * L
+    c.line(x, y, ex, ey, 2 if depth >= 5 else 1, 1, ch='l')
+    if depth == 1:
+        for _ in range(rng.randint(1, 3)):                       # 끝 가시: 길이와 방향이 제각각
+            a = ang + rng.uniform(-1.3, 1.3); l = rng.uniform(1.5, 4.5)
+            c.line(ex, ey, ex + math.cos(a) * l, ey + math.sin(a) * l, 1, ch='l')
+        return
+    if depth <= 2 and rng.random() < .12: return
+    n = rng.choice((2, 2, 2, 3))
+    for i in range(n):
+        off = math.radians(rng.uniform(-1, 1) * 30 + (i - (n - 1) / 2) * 34)
+        dome(c, ex, ey, ang + off, L * rng.uniform(.6, .8), depth - 1, rng)
+
+def trunk2(c, n=5, y0=49, y1=34):
+    # 줄기 가닥: 아래(어깨)에서 넓게 벌어져 박히고, 몸으로 들어갈수록 색이 어두워진다
+    for k in range(n):
+        off = k - (n - 1) / 2
+        for t in range(0, 31):
+            f = t / 30; y = y0 + (y1 - y0) * f
+            x = 24 + off * (1.45 + 1.4 * max(0, (f_lo := (1 - f) - .55)) * 2.2) * 1.0
+            ch = 'l' if y < y0 - 7 else 'm' if y < y0 - 4 else 'd' if y < y0 - 2 else 's'
+            c.put(x, y, ch)
+            if t % 2 == 0: c.put(x, y + .5, ch)
+
 def beaded(c, pts, wmin=0.4, wmax=4.2, period=7):
     P = chaikin(pts, 3)
     for i, (x, y) in enumerate(P):
         w = wmin + (wmax - wmin) * (.5 + .5 * math.sin(i * 6.28 / period))
         c.disc(x, y, w / 2, 's')
 
+def chain(c, pts, gap=4.2, ry=3.4, rx=2.5):
+    """사슬 팔: 고리가 번갈아 세로/가로로 꿰어진 모양. 고리 안쪽은 비워 둔다."""
+    P = chaikin(pts, 3); acc = 0.0; i = 0; last = P[0]
+    links = [P[0]]
+    for p in P[1:]:
+        acc += math.hypot(p[0] - last[0], p[1] - last[1]); last = p
+        if acc >= gap: links.append(p); acc = 0.0
+    for i, (x, y) in enumerate(links):
+        a, b = (rx, ry) if i % 2 == 0 else (ry * .78, rx * .8)
+        c.ell(x, y, a, b, 's')
+    for i, (x, y) in enumerate(links):
+        a, b = (rx, ry) if i % 2 == 0 else (ry * .78, rx * .8)
+        for yy in range(int(y - b), int(y + b) + 1):
+            for xx in range(int(x - a), int(x + a) + 1):
+                if ((xx - x) / max(.1, a - 1.3)) ** 2 + ((yy - y) / max(.1, b - 1.3)) ** 2 <= 1: c.g[yy][xx] = '.'
+    return links
+
 def figure(seed):
+    import gen_shadow as G
+    G.W, G.H = 48, 104
     c = C(); rng = random.Random(seed)
-    tube(c, [(24, 46), (24, 66)], 11, 7, .04); tube(c, [(24, 44), (24, 50)], 7)
-    tube(c, [(20, 64), (18, 74), (20, 83)], 4, 2.4); tube(c, [(28, 64), (30, 74), (28, 83)], 4, 2.4)
-    beaded(c, [(17, 49), (9, 60), (8, 74)])                                   # 왼팔: 드문드문, 이어짐
-    tube(c, [(31, 49), (37, 60), (36, 72)], 3.4, 2.6); c.ell(36, 74.5, 2.3, 3, 's')   # 오른팔: 정상, 끝은 어두운 손
-    trunk(c, 5)
-    for i in range(3):
-        branch(c, 24 + (i - 1) * 2, 34, math.radians(-90 + (i - 1) * rng.uniform(26, 42)), 9, 5, rng, .75)
+    tube(c, [(24, 50), (24, 78)], 8, 5.5, .04); c.ell(24, 52, 11, 3.6, 's'); tube(c, [(24, 44), (24, 53)], 7, 10)
+    tube(c, [(21, 76), (19, 90), (21, 103)], 3.4, 2); tube(c, [(27, 76), (29, 90), (27, 103)], 3.4, 2)
+    L = chain(c, [(13, 53), (8, 72), (8, 94)])
+    tube(c, [(34, 53), (37, 70), (36, 90)], 4.2, 3.4); c.ell(36, 93, 2.6, 3.4, "s")
+    trunk2(c, 5, 51, 31)
+    for i in range(4):
+        dome(c, 24 + (i - 1.5) * 1.6, 31, math.radians(-90 + (i - 1.5) * rng.uniform(32, 40)), 7.5, 5, rng)
     return c
 
 def main():
