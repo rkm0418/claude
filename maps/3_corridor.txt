@@ -1,27 +1,40 @@
-title: 3장 - 복도 (문을 막은 밤)
-ambient: 0.22
+title: 3장 - 복도 (아늑한데 섬뜩한)
+tone: 255 226 190
+ambient: 0.24
 legend:
 # void
-t wall_top
-w wall
-b wall_base
-l wall bulb
-D wall_base door
-C wall_base coats^5
-. floor_wood
-c floor_wood chair
-r floor_wood dresser bottles^13
-s floor_wood shoes
-X floor_wood door
+t wall_top_cozy
+w wall_cozy
+b wall_base_cozy
+W window_l
+V window_r
+F wall_cozy frame_back
+G wall_cozy frame
+K wall_cozy clock
+N wall_cozy calendar
+P wall_cozy drawing
+H wall_cozy shelf toy_broken^6
+S wall_cozy sconce
+D wall_base_cozy door
+Q wall_base_cozy doorway_dark
+O wall_base_cozy closet
+C wall_base_cozy coats^4
+X wall_base_cozy balcony_door
+. floor_cozy
+R floor_cozy shoe_rack shoes^6
+c floor_cozy chair
+l floor_cozy slipper
+U floor_cozy runner
+L floor_cozy pendant^12
 map:
 ####################
 ####################
-####################
 tttttttttttttttttttt
-wwwlwwwwwwwwwwwwwwww
-bDbbCbbbbDbbbbbbbDbb
-..s...r..........c..
-....................
+wwSwGwFwGwFwwSwwwwww
+bDbbbCbbbDbbbbbbbQbb
+......R..c..........
+..l.........L.......
+...U...U...U...U....
 ....................
 ####################
 ####################
@@ -29,13 +42,13 @@ bDbbCbbbbDbbbbbbbDbb
 dream_map:
 ####################
 ####################
-####################
 tttttttttttttttttttt
-wlwlwlwlwlwlwlwlwlwl
-DbCbDbCbDbCbDbCbDbCb
-c..c..c..c..c..c..c.
+wwSwwwwwwwwwwSwwwwww
+bDbbbbbbbDbbbbbbbQbb
 ....................
-..X...X...X...X...X.
+............L.......
+...U...U...U...U....
+....................
 ####################
 ####################
 ####################

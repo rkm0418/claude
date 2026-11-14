@@ -142,6 +142,7 @@ def dream_grade(img, emitters):
     return img
 
 OUTLINE = (26, 22, 32)
+OUTER_STRENGTH = 0.45   # 바깥 외곽선 진하기(0~1). 1이면 완전한 검정, 0이면 없음
 OUTER_OUTLINE = True   # 사물 바깥 1점 외곽선(조명 뒤에 그림). 끄려면 False
 FLAT = {'rug', 'blanket', 'slipper', 'frame_down', 'puddle', 'bottles', 'shoes'}
 WALL_MOUNTED = {'clock', 'clock_bird', 'bulb', 'drawing', 'shelf', 'coats', 'coats_dream', 'moon', 'window_eye'}
@@ -271,7 +272,7 @@ def draw_map(m, lib, lights, path, dream):
                 px[x, y] = (r * m['tone'][0] // 255, g * m['tone'][1] // 255, b * m['tone'][2] // 255, a)
     if OUTER_OUTLINE:                                  # 조명 처리 뒤에 그려서 어두운 곳에서도 또렷한 바깥 외곽선
         ring = ImageChops.subtract(sil.filter(ImageFilter.MaxFilter(3)), sil)
-        img.paste((4, 3, 8, 255), mask=ring)
+        img.paste((16, 10, 14, 255), mask=ring.point(lambda v: int(v * OUTER_STRENGTH)))
     return img
 
 def main():

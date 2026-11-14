@@ -14,3 +14,4 @@ window_eye 36 0.6 6a4c93
 moon 64 0.5 d8cfc0
 pendant 120 1.0 f2d28a
 floor_lamp 80 0.9 f2d28a
+sconce 60 0.8 f2d28a

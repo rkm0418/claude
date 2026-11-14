@@ -1,45 +1,57 @@
-title: 2장 - 아이 방과 옷장 (숨기 시작)
+title: 2장 - 아이 방 (아늑한데 섬뜩한)
+tone: 255 232 200
 ambient: 0.28
 legend:
 # void
-t wall_top
-w wall
-b wall_base
-W window
-H wall shelf toy_broken^6
-P wall drawing
-O wall_base closet
-D wall_base door
-. floor_wood
-E floor_wood bed
-Q floor_wood rug
-B floor_wood blanket
-f floor_wood flashlight
-X floor_wood door
-V floor_wood tv
+t wall_top_cozy
+w wall_cozy
+b wall_base_cozy
+W window_l
+V window_r
+F wall_cozy frame_back
+G wall_cozy frame
+K wall_cozy clock
+N wall_cozy calendar
+P wall_cozy drawing
+H wall_cozy shelf toy_broken^6
+S wall_cozy sconce
+D wall_base_cozy door
+Q wall_base_cozy doorway_dark
+O wall_base_cozy closet
+C wall_base_cozy coats^4
+X wall_base_cozy balcony_door
+. floor_cozy
+E floor_cozy bed
+x floor_cozy desk
+J floor_cozy toybox
+B floor_cozy blanket
+f floor_cozy flashlight
+M floor_cozy floor_lamp
+Z floor_cozy rug_big
+c floor_cozy chair
 map:
 ####################
-####tttttttttttt####
-####wwwHwwwwwPWw####
-####bObbbbDbbbbb####
-####.........E..####
-####..B.........####
-####...f..Q.....####
-####............####
-####............####
-####################
-####################
+#tttttttttttttttttt#
+#wWVwwHwwPwPwPwwwww#
+#bbObbbbbbbbbbDbbbb#
+#...B.x..E..M.c....#
+#.J................#
+#..................#
+#..................#
+#.....Z.f..........#
+#..................#
+#..................#
 ####################
 dream_map:
 ####################
-####tttttttttttt####
-####wwwwwwwwwwww####
-####bbbbbbbbbbbb####
-####............####
-####............####
-####.....V......####
-####............####
-####............####
-####################
-####################
+#tttttttttttttttttt#
+#wWVwwHwwwwwwwwwwww#
+#bbObbbbbbbbbbDbbbb#
+#...B.x..E..M......#
+#.J................#
+#..................#
+#..................#
+#.....Z.f..........#
+#..................#
+#..................#
 ####################

@@ -1,34 +1,38 @@
-title: 4장 - 골목 (밖으로 나간 밤)
-ambient: 0.25
+title: 4장 - 골목과 놀이터 (아늑한데 섬뜩한)
+tone: 235 235 255
+ambient: 0.26
 legend:
 B brick
 L brick_lit
 p pavement
 u puddle
 A pavement streetlamp
+Y pavement slide
+N pavement bench
+l pavement slipper
 map:
-BBLBBBLBBBBLBBBLBBBB
+BBLBBBLBBBLBBBBLBBBB
 BBBBBBBBBBBBBBBBBBBB
 BBBBBBBBBBBBBBBBBBBB
 pppppppppppppppppppp
-ppppuppppppppppppupp
-pppppppppAppppppuppp
-pppppppppppppppppppp
-pppuppppppppppuppppp
-pppppppppppppppppppp
+pppuppppppppppppuppp
+ppppppppAppppppppppp
+ppplpppppppppYpppppp
+pppppppppppNpppppppp
+ppppppplpppppppppppp
 BBBBBBBBBBBBBBBBBBBB
 BBLBBBBBLBBBBBLBBBBB
 BBBBBBBBBBBBBBBBBBBB
 dream_map:
-BBLBBLBBLBBLBBLBBLBB
+BBLBBBLBBBLBBBBLBBBB
 BBBBBBBBBBBBBBBBBBBB
 BBBBBBBBBBBBBBBBBBBB
 pppppppppppppppppppp
-pupupupupupupupupupu
-ApppApppApppApppAppp
+pppuppppppppppppuppp
+ppppppppAppppppppppp
+pppppppppppppYpppppp
 pppppppppppppppppppp
-upupupupupupupupupup
 pppppppppppppppppppp
 BBBBBBBBBBBBBBBBBBBB
-BBLBBLBBLBBLBBLBBLBB
+BBLBBBBBLBBBBBLBBBBB
 BBBBBBBBBBBBBBBBBBBB

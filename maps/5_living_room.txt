@@ -1,44 +1,58 @@
-title: 5장 - 거실의 시계와 베란다 문 (결말)
-ambient: 0.3
+title: 5장 - 거실과 베란다 문 (아늑한데 섬뜩한)
+tone: 255 232 205
+ambient: 0.28
 legend:
 # void
-t wall_top
-w wall
-b wall_base
-W window
-K wall clock
-P wall drawing
-D wall_base door
-. floor_wood
-c floor_wood chair
-R floor_wood dresser frame^10
-V floor_wood tv
-Q floor_wood rug
-o floor_wood bottles
-X floor_wood door
+t wall_top_cozy
+w wall_cozy
+b wall_base_cozy
+W window_l
+V window_r
+F wall_cozy frame_back
+G wall_cozy frame
+K wall_cozy clock
+N wall_cozy calendar
+P wall_cozy drawing
+H wall_cozy shelf toy_broken^6
+S wall_cozy sconce
+D wall_base_cozy door
+Q wall_base_cozy doorway_dark
+O wall_base_cozy closet
+C wall_base_cozy coats^4
+X wall_base_cozy balcony_door
+. floor_cozy
+O floor_cozy sofa
+v floor_cozy tv
+T floor_cozy table3 cup^13
+q floor_cozy cup^13
+x floor_cozy table3
+Y floor_cozy plant
+c floor_cozy chair
+L floor_cozy pendant^12
+Z floor_cozy rug_big
 map:
 ####################
-###tttttttttttttt###
-###wwKwwwwPwwWWww###
-###bbbbbbbbbbbbDb###
-###.R....V.....c.###
-###..............###
-###....Q....o....###
-###..............###
-###..............###
-###..............###
-####################
+#tttttttttttttttttt#
+#wWVwGwGwKwFwFwGwww#
+#bbbbbbbbbbbbbXbbbb#
+#..O.....v..Yc.....#
+#..................#
+#....L.............#
+#..................#
+#..ZTqq............#
+#..................#
+#..................#
 ####################
 dream_map:
 ####################
-###tttttttttttttt###
-###KKKKKKKKKKKKKK###
-###bbbbbbbbbbbbbb###
-###..............###
-###..............###
-###..............###
-###.......c......###
-###..............###
-###..............###
-####################
+#tttttttttttttttttt#
+#wWVwwwwwKwwwwwwwww#
+#bbbbbbbbbbbbbXbbbb#
+#..O.....v..Y......#
+#..................#
+#....L.............#
+#...x..............#
+#..Z...............#
+#..................#
+#..................#
 ####################

@@ -154,3 +154,44 @@ decal 0 0 29 16 1 b
 box 5 3 0 6 6 2 b
 box 7 5 2 1 1 22 b
 box 3 2 24 10 8 7 y
+
+[sofa] 테라코타 3인용 소파 (48폭) | real
+box 0 2 0 48 12 7 a
+box 0 10 7 48 4 12 a
+box 0 2 7 4 10 6 a
+box 44 2 7 4 10 6 a
+box 4 2 7 13 9 3 i
+box 18 2 7 13 9 3 i
+box 31 2 7 13 9 3 i
+
+[desk] 아이 책상 | real
+box 0 1 0 2 2 10 b
+box 22 1 0 2 2 10 b
+box 0 8 0 2 2 10 b
+box 22 8 0 2 2 10 b
+box 0 0 10 24 11 2 n
+
+[toybox] 장난감 상자 | real
+box 0 1 0 16 9 9 a
+decal 1 1 7 14 1 u
+box 4 2 9 4 4 5 y
+box 9 3 9 3 3 4 p
+
+[bench] 놀이터 벤치 (32폭) | real
+box 0 1 0 2 3 6 b
+box 30 1 0 2 3 6 b
+box 0 0 6 32 6 2 n
+box 0 6 8 32 1 8 n
+
+[shoe_rack] 신발장 | real
+box 0 0 0 16 7 10 n
+decal 1 0 1 14 3 b
+decal 1 0 5 14 3 b
+
+[slide] 미끄럼틀 (놀이대) | real
+box 0 2 0 12 10 22 r
+box 0 2 22 12 10 3 y
+box 12 3 12 4 6 3 w
+box 16 3 9 4 6 3 w
+box 20 3 6 4 6 3 w
+box 24 3 3 4 6 3 w
