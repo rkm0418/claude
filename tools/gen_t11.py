@@ -94,6 +94,28 @@ def chain(c, pts, gap=4.2, ry=3.4, rx=2.5):
                 if ((xx - x) / max(.1, a - 1.3)) ** 2 + ((yy - y) / max(.1, b - 1.3)) ** 2 <= 1: c.g[yy][xx] = '.'
     return links
 
+def fill_eye_holes(c, ymax=44):
+    # 줄기 쪽에 좌우로 나란한 큰 구멍은 눈처럼 보이므로 메운다 (가장자리 쪽 작은 틈은 뇌 질감으로 남긴다)
+    W, H = 48, 104; seen = set(); st = [(0, 0)]
+    while st:
+        x, y = st.pop()
+        if (x, y) in seen or not (0 <= x < W and 0 <= y < ymax) or c.g[y][x] != '.': continue
+        seen.add((x, y)); st += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+    for x0 in range(W):
+        for y0 in range(ymax):
+            if c.g[y0][x0] == '.' and (x0, y0) not in seen and (x0, y0) not in seen:
+                comp, st = [], [(x0, y0)]; seen2 = {(x0, y0)}
+                while st:
+                    x, y = st.pop(); comp.append((x, y))
+                    for n in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                        if n not in seen2 and 0 <= n[0] < W and 0 <= n[1] < ymax and c.g[n[1]][n[0]] == '.' and n not in seen:
+                            seen2.add(n); st.append(n)
+                cx = sum(p[0] for p in comp) / len(comp); cy = sum(p[1] for p in comp) / len(comp)
+                bw = max(p[0] for p in comp) - min(p[0] for p in comp) + 1; bh = max(p[1] for p in comp) - min(p[1] for p in comp) + 1
+                if len(comp) >= 8 and bw >= 2 and bh >= 3 and abs(cx - 24) <= 11 and 12 <= cy <= 30:
+                    for x, y in comp: c.g[y][x] = 'l'
+                for p in comp: seen.add(p)
+
 def figure(seed):
     import gen_shadow as G
     G.W, G.H = 48, 104
@@ -134,6 +156,7 @@ def figure(seed):
     trunk2(c, 5, 51, 31)
     for i in range(4):
         dome(c, 24 + (i - 1.5) * 1.6, 31, math.radians(-90 + (i - 1.5) * rng.uniform(32, 40)), 7.5, 5, rng)
+    fill_eye_holes(c)
     return c
 
 def main():
