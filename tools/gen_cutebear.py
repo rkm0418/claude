@@ -89,7 +89,6 @@ def export_final():
 def round_eye(c, ex):
     for dx in (0, 1):
         for dy in (10.5, 11.5, 12.5): c.put(ex + dx, dy - .5, 'k')
-    c.put(ex, 10, 'W')                                                                                       # 하이라이트
 
 def rabbit_char(expr):
     """토끼(여자 캐릭터): 레퍼런스 도트화의 비율 + 붉은 더블 트렌치코트(넓은 옷깃, 검은 단추 두 줄, 소매 끈, 주머니 덮개), 줄무늬 스카프, 둥근 귀."""
@@ -120,7 +119,6 @@ def rabbit_char(expr):
     rect(c, 13, 20, 14, 23, 'W'); c.line(13, 21, 14, 21, 1, ch='k'); c.line(13, 23, 14, 23, 1, ch='k')   # 늘어진 스카프 끝
     if expr == 'A':
         for ex in (7, 16): round_eye(c, ex)
-        c.put(6, 10, 'k'); c.put(17, 10, 'k')                                                              # 속눈썹
         for x in range(11, 14): c.put(x, 15, 'k')
     if expr == 'B':
         for ex in (7, 16): c.put(ex, 12, 'k'); c.put(ex + 1, 11, 'k'); c.put(ex + 2, 12, 'k')
@@ -128,7 +126,6 @@ def rabbit_char(expr):
         c.put(12, 16, 'r')
     if expr == 'C':
         for ex in (7, 16): round_eye(c, ex)
-        c.line(6, 8, 9, 9, 1, ch='k'); c.line(18, 8, 15, 9, 1, ch='k')
         for x in range(11, 14): c.put(x, 15, 'k')
         c.ell(20, 6, 1.2, 1.8, 'c'); c.put(20, 4, 'c')
     if expr == 'D':
@@ -136,8 +133,7 @@ def rabbit_char(expr):
         c.put(12, 15, 'k')
         for x, y in ((19, 1), (20, 1), (21, 1), (20, 2), (19, 3), (20, 3), (21, 3)): c.put(x, y, 'k')
     if expr == 'E':
-        for ex in (7, 16): round_eye(c, ex)
-        c.line(5, 7, 9, 10, 1, ch='k'); c.line(19, 7, 15, 10, 1, ch='k'); c.line(5, 8, 9, 11, 1, ch='k'); c.line(19, 8, 15, 11, 1, ch='k')
+        for ex in (6, 15): c.line(ex, 11, ex + 3, 12, 1, ch='k') if ex < 10 else c.line(ex + 3, 11, ex, 12, 1, ch='k'); c.put(ex + 1, 12, 'k'); c.put(ex + 2, 12, 'k')   # 눈썹 없이 사선으로 가늘게 뜬 눈
         for x in range(11, 14): c.put(x, 15, 'k')
         for x, y in ((19, 3), (20, 3), (19, 4), (21, 4), (20, 5), (21, 5)): c.put(x, y, 'r')
     return c.finish()
