@@ -27,9 +27,9 @@ Z floor_cozy rug_small^-4
 map:
 #############
 ##ttttttttt##
-##wWVwHwPww##
-##bbbobbbbD##
-##....x.E..##
+##wwHwWVPww##
+##obbbbbbbD##
+##..x..E...##
 ##J........##
 ##...Z.....##
 ##....C....##
@@ -38,9 +38,9 @@ map:
 dream_map:
 #############
 ##ttttttttt##
-##wWVwHPwPP##
-##bbbObbbbD##
-##....x.E.c##
+##wwHPWVPPw##
+##ObbbbbbbD##
+##..x..E..c##
 ##J........##
 ##...Z.....##
 ##....C....##

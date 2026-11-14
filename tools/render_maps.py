@@ -144,10 +144,11 @@ def dream_grade(img, emitters):
 OUTLINE = (26, 22, 32)
 OUTER_STRENGTH = 0.45   # 바깥 외곽선 진하기(0~1). 1이면 완전한 검정, 0이면 없음
 OUTER_OUTLINE = True   # 사물 바깥 1점 외곽선(조명 뒤에 그림). 끄려면 False
+RUGS = {'rug', 'rug_big', 'rug_small', 'rug_living', 'runner', 'blanket'}   # 바닥 타일 밖에는 그리지 않는다
 FLAT = {'rug', 'blanket', 'slipper', 'frame_down', 'puddle', 'bottles', 'shoes'}
 WALL_MOUNTED = {'clock', 'clock_bird', 'bulb', 'drawing', 'shelf', 'coats', 'coats_dream', 'moon', 'window_eye'}
-WALLISH = {'wall_base', 'brick', 'brick_lit', 'facade', 'facade_window', 'balcony_body'}
-FLOORISH = {'floor_wood', 'floor_kitchen', 'carpet', 'pavement', 'puddle', 'balcony_floor'}
+WALLISH = {'wall_base_cozy', 'wall_base', 'brick', 'brick_lit', 'facade', 'facade_window', 'balcony_body'}
+FLOORISH = {'floor_cozy', 'floor_wood', 'floor_kitchen', 'carpet', 'pavement', 'puddle', 'balcony_floor'}
 _bevel_cache = {}
 
 def bevel(key, sp):
@@ -240,12 +241,16 @@ def draw_map(m, lib, lights, path, dream):
         top = y * T if base else max(0, (y + 1) * T - sp.height - lift)
         if not base and lift == 0 and name not in WALL_MOUNTED and name not in FLAT and sp.height > 10:
             cast_shadow(img, sp, x * T, top + sp.height, light_pts, floor_mask)
+        if not base and name in RUGS:
+            rug_clip = floor_mask.crop((x * T, top, x * T + sp.width, top + sp.height))
+            sp = sp.copy()
+            sp.putalpha(ImageChops.multiply(sp.getchannel('A'), rug_clip))
         img.alpha_composite(sp, (x * T, top))
         if not base:
             sil.paste(255, (x * T, top), sp.getchannel('A').point(lambda v: 255 if v else 0))
         if base and name in FLOORISH:
             floor_mask.paste(255, (x * T, y * T, x * T + T, y * T + T))
-        if base and name == 'wall':
+        if base and name in ('wall', 'wall_cozy'):
             img.alpha_composite(GRAD_WALL, (x * T, y * T))
         if base and name in FLOORISH and y > 0 and m['legend'][rows[y - 1][x]][0] in WALLISH:
             img.alpha_composite(GRAD_AO, (x * T, y * T))

@@ -249,23 +249,23 @@ qquaijjjjjjiauqq
 qquuuuuuuuuuuuhq
 quuuuuuuuuuuuuuq
 qqqqqqqqqqqqqqqq
-[floor_cozy] 대각선 마루 판자(깊이 방향) | real
-bnnennnennnennne
-nnennnebnnennnen
-nennnennnennnebn
+[floor_cozy] 대각선 마루 판자(점 거의 없음) | real
+nnnennnennnennne
+nnennnennnennnen
+nenunennnennnenn
 ennnennnennnennn
-nnnenbnennnennne
-nuennnennnenbnen
+nnnennnennnennne
+nnennnennnennnen
 nennnennnennnenn
-ennbennnennnennn
-nnnennuennbennne
-nnenunennnennnen
-neunnennnennnenn
-ennnennnennuennn
-nnnennnenunennne
-nnennneunnennnen
-nennnebnnennnenn
-ennnennnennnebun
+ennnennnennnennn
+nnnennnennnennne
+nnennnennneunnen
+nennnennnennnenn
+ennnennnennnennn
+nnnennnennnennne
+nnennnennnennnen
+nennnennnennnenn
+ennnennnennnennn
 
 [window_l] 넓은 창 왼쪽(커튼) | real
 qqqqqqqqqqqqqqqq
