@@ -103,13 +103,14 @@ def rabbit_char(expr):
     c.ell(9.8, 32.2, 1.1, 2.6, 'W'); c.ell(14.2, 32.2, 1.1, 2.6, 'W')                                       # 가늘고 하얀 다리
     for sx, sgn in ((6.0, -1), (18.0, 1)):                                                                 # 소매(원래대로): 가는 타원 소매, 하얀 손, 소매 끈
         c.ell(sx, 24.0, 1.9, 4.6, 'R'); c.ell(sx + sgn * .2, 28.2, 1.7, 1.5, 'W'); c.line(sx - 1.6, 26.4, sx + 1.6, 26.4, 1, ch='Q')
-    def half(y):                                                                                           # 어깨는 원래대로 평평하게, 몸통은 둥근 달걀형
-        belly = 5.2 * max(0.0, 1 - ((y - 25.6) / 6.4) ** 2) ** .5 + .3
-        return 3.0 if y < 18 else 4.4 if y < 21 else belly
+    def half(y):                                                                                           # 평소 A라인 코트(허리가 들어가고 아래로 퍼짐) + 어깨만 비스듬히
+        body = 4.2 + (y - 18) * .22 - (.8 if 22 <= y <= 24 else 0)
+        return min(body, 3.0 + (y - 18) * 1.0) if y < 21 else body
     for y in range(17, 31):                                                                                # 코트 몸통: 둥근 어깨, 허리, 살짝 퍼지는 자락
         for x in range(int(12 - half(y) + .5), int(12 + half(y) + .5) + 1): c.put(x, y, 'R')
     for y in range(19, 31):                                                                                # 오른쪽 그늘
         for x in range(int(12 + half(y) - 1.6), int(12 + half(y) + .5) + 1): c.put(x, y, 'Q')
+    rect(c, 9, 31, 15, 31, 'j')                                                                            # 코트 아래로 보이는 짙은 원피스 자락
     c.line(8.6, 23.4, 15.4, 23.4, 1, ch='Q'); c.put(12, 23, 'y')                                           # 허리 벨트와 버클
     c.line(10, 18, 12, 23, 1, ch='Q'); c.line(14, 18, 12, 23, 1, ch='Q'); c.ell(9.8, 19.3, 1.4, 1.4, 'R'); c.ell(14.2, 19.3, 1.4, 1.4, 'R')    # 옷깃(라펠)
     for y in (21.5, 25.5, 28.5): c.put(10, y, 'k'); c.put(14, y, 'k')                                      # 검은 더블 단추
