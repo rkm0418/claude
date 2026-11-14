@@ -73,7 +73,7 @@ def root2(c, x, y, ang, L, depth, rng):
     if depth <= 0 or L < 1.5: return
     ang += (math.pi / 2 - ang) * .45 + rng.uniform(-.28, .28)
     ex, ey = x + math.cos(ang) * L, y + math.sin(ang) * L
-    c.line(x, y, ex, ey, 1, 1, ch='l' if depth >= 5 else 'm' if depth >= 3 else 'd')
+    c.line(x, y, ex, ey, 2 if depth >= 6 else 1, 1, ch='l' if depth >= 3 else 'm')
     for _ in range(rng.choice((1, 1, 2))):
         root2(c, ex, ey, ang + rng.uniform(-.55, .55), L * rng.uniform(.75, 1.0), depth - 1, rng)
 
@@ -101,11 +101,13 @@ def figure(seed):
     tube(c, [(24, 50), (24, 78)], 15, 9, .03); c.ell(24, 52, 11, 3.6, 's'); tube(c, [(24, 44), (24, 53)], 7, 10)
     tube(c, [(21, 76), (19, 90), (21, 103)], 3.4, 2); tube(c, [(27, 76), (29, 90), (27, 103)], 3.4, 2)
     r2 = random.Random(seed + 100); tmp = C()
-    for sx, a0 in [(20, 105), (28, 75), (16, 115), (32, 65), (24, 90), (22, 98)]:
+    for sx, a0 in [(20, 105), (28, 75), (16, 115), (32, 65), (24, 90), (22, 98), (30, 80)]:
         root2(tmp, sx, 54, math.radians(a0), 9, 5, r2)
+    for sx, a0 in [(21, 95), (28, 80)]:
+        root2(tmp, sx, 74, math.radians(a0), 7, 3, r2)
     for y in range(104):
         for x in range(48):
-            if tmp.g[y][x] != '.' and c.g[y][x] != '.' and 14 <= x <= 34 and y >= 49: c.g[y][x] = tmp.g[y][x]
+            if tmp.g[y][x] != '.' and c.g[y][x] != '.' and 14 <= x <= 34 and y >= 49 and y <= 98: c.g[y][x] = tmp.g[y][x]
     hx, hy = 25.5, 64                                                  # 심장 쪽(보는 사람 기준 오른쪽 가슴)이 뚫림
     for y in range(104):
         for x in range(48):
