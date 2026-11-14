@@ -29,7 +29,7 @@ def load_lights():
     return lights
 
 def load_map(path):
-    m = {'title': '', 'ambient': 1.0, 'dream': {}, 'dream_add': [], 'legend': {}, 'rows': []}
+    m = {'title': '', 'ambient': 1.0, 'dream': {}, 'dream_add': [], 'legend': {}, 'rows': [], 'dream_rows': []}
     section = None
     for n, raw in enumerate(open(path, encoding='utf-8'), 1):
         line = raw.rstrip('\n')
@@ -47,19 +47,21 @@ def load_map(path):
                 if not mm:
                     sys.exit(f'{path}:{n}: dream_add 형식은 이름@x,y: {p!r}')
                 m['dream_add'].append((mm.group(1), int(mm.group(2)), int(mm.group(3)), int(mm.group(4) or 0)))
-        elif line.strip() in ('legend:', 'map:'):
+        elif line.strip() in ('legend:', 'map:', 'dream_map:'):
             section = line.strip()[:-1]
         elif section == 'legend':
             parts = line.split()
             m['legend'][parts[0]] = (parts[1], parts[2:])
         elif section == 'map':
             m['rows'].append(line)
+        elif section == 'dream_map':
+            m['dream_rows'].append(line)
         else:
             sys.exit(f'{path}:{n}: 읽을 수 없는 줄: {line!r}')
     w = len(m['rows'][0])
-    for y, row in enumerate(m['rows']):
+    for y, row in enumerate(m['rows'] + m['dream_rows']):
         if len(row) != w:
-            sys.exit(f'{path}: 맵 {y+1}번째 줄 폭이 {len(row)} (기대값 {w})')
+            sys.exit(f'{path}: 맵 {y+1}번째 줄(dream_map 포함 순서) 폭이 {len(row)} (기대값 {w})')
         for ch in row:
             if ch not in m['legend']:
                 sys.exit(f'{path}: legend 에 없는 글자 {ch!r} (맵 {y+1}번째 줄)')
@@ -122,21 +124,26 @@ def dream_grade(img, emitters):
 
 def draw_map(m, lib, lights, path, dream):
     emitters = []
+    rows = m['dream_rows'] if dream and m['dream_rows'] else m['rows']
     def place(img, name, x, y, lift=0, base=False):
+        flip = name.endswith('!')
+        name = name.rstrip('!')
         if dream:
             name = m['dream'].get(name, 'void_dream' if name == 'void' else name)
         if name not in lib:
             sys.exit(f'{path}: 없는 타일/사물 이름 {name!r}')
         sp = lib[name]
+        if flip:
+            sp = sp.transpose(Image.FLIP_TOP_BOTTOM)
         top = y * T if base else max(0, (y + 1) * T - sp.height - lift)
         img.alpha_composite(sp, (x * T, top))
         if name in lights:
             emitters.append((x * T + sp.width / 2, top + min(8, sp.height / 2)) + lights[name])
-    img = Image.new('RGBA', (len(m['rows'][0]) * T, len(m['rows']) * T))
-    for y, row in enumerate(m['rows']):
+    img = Image.new('RGBA', (len(rows[0]) * T, len(rows) * T))
+    for y, row in enumerate(rows):
         for x, ch in enumerate(row):
             place(img, m['legend'][ch][0], x, y, base=True)
-    things = [(y, x, obj) for y, row in enumerate(m['rows']) for x, ch in enumerate(row) for obj in m['legend'][ch][1]]
+    things = [(y, x, obj) for y, row in enumerate(rows) for x, ch in enumerate(row) for obj in m['legend'][ch][1]]
     if dream:
         things += [(y, x, f'{name}^{lift}') for name, x, y, lift in m['dream_add']]
     for y, x, obj in sorted(things, key=lambda t: t[0]):     # 위쪽 줄부터 그려서 아래 사물이 앞에 온다
@@ -158,7 +165,7 @@ def main():
         real = draw_map(m, lib, lights, path, False)
         real.save(os.path.join(out, base + '.png'))
         dream = None
-        if m['dream'] or m['dream_add']:
+        if m['dream'] or m['dream_add'] or m['dream_rows']:
             dream = draw_map(m, lib, lights, path, True)
             dream.save(os.path.join(out, base + '_dream.png'))
         pairs.append((real, dream))

@@ -1,7 +1,5 @@
 title: 1장 - 식탁 방 (부모님이 떠난 직후)
 ambient: 0.4
-dream: cup=cup_tower frame_down=frame_hole clock=clock_bird chair=chair_long window=window_eye
-dream_add: eye_wall@5,2 eye_wall@12,2 cloud@4,5^40 cloud@12,4^60 balloon@3,8 balloon@15,7^6 toy_broken@8,9^30 shadow_adult@13,6
 legend:
 # void
 t wall_top
@@ -18,6 +16,8 @@ U floor_kitchen table cup^9
 c floor_kitchen chair
 R floor_kitchen dresser frame_down^10
 o floor_kitchen bottles
+X floor_kitchen door
+Y floor_kitchen chair!^26
 map:
 ####################
 ###tttttttttttttt###
@@ -27,6 +27,19 @@ map:
 ###,,,,,c,c,,,,,,###
 ###,,,,TTUT,,,,o,###
 ###,,,,,,c,,,,,,,###
+###,,,,,,,,,,,,,,###
+###,,,,,,,,,,,,,,###
+####################
+####################
+dream_map:
+####################
+###tttttttttttttt###
+###wwwwwwwwwwwwww###
+###bbbbbbbbbbbbbb###
+###,,,,,,,,,,,,,,###
+###,,,,,,,,,,,,,,###
+###,,,,,,,,,,,,,,###
+###,,,,,,TUT,,,,,###
 ###,,,,,,,,,,,,,,###
 ###,,,,,,,,,,,,,,###
 ####################

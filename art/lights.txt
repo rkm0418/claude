@@ -7,7 +7,7 @@ lamp_giant 72 1.0 c77a9a
 brick_lit 26 0.7 e8cf6a
 watcher 26 0.7 e8cf6a
 facade_window 26 0.7 e8cf6a
-tv 42 0.7 7fb5c9
+tv 90 1.0 7fb5c9
 tv_eye 46 0.9 c77a9a
 window 30 0.35 7fb5c9
 window_eye 36 0.6 6a4c93

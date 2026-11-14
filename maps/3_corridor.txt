@@ -1,7 +1,5 @@
 title: 3장 - 복도 (문을 막은 밤)
 ambient: 0.22
-dream: door=door_mouth chair=chair_long coats=coats_dream
-dream_add: eye_wall@7,4 eye_wall@12,4 eye_wall@15,4 balloon@6,8 balloon@10,8 balloon@14,8 cloud@8,7^20 shadow_adult@13,7
 legend:
 # void
 t wall_top
@@ -14,6 +12,7 @@ C wall_base coats^5
 c floor_wood chair
 r floor_wood dresser bottles^13
 s floor_wood shoes
+X floor_wood door
 map:
 ####################
 ####################
@@ -24,6 +23,19 @@ bDbbCbbbbDbbbbbbbDbb
 ..s...r..........c..
 ....................
 ....................
+####################
+####################
+####################
+dream_map:
+####################
+####################
+####################
+tttttttttttttttttttt
+wlwlwlwlwlwlwlwlwlwl
+DbCbDbCbDbCbDbCbDbCb
+.c.c.c.c.c.c.c.c.c.c
+....................
+..X...X...X...X...X.
 ####################
 ####################
 ####################
