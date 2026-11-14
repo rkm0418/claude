@@ -155,4 +155,5 @@ def main():
         c, desc = fn()
         lines.append(f'[{"ab"[i // 5]}_{i + 1:02d}] {desc} | {i + 1}'); lines += c.finish(); lines.append('')
     open(os.path.join(root, 'creep_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
-main()
+if __name__ == "__main__":
+    main()
