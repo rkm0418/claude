@@ -2,7 +2,7 @@
 """maps/*.txt 배치도를 PNG로 바꾼다.  사용: python3 tools/render_maps.py
 출력: maps/out/<이름>.png, <이름>_dream.png (원본 크기), maps/out/preview_all.png (전체 미리보기)"""
 import glob, math, os, re, sys
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw
 import render
 
 BASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
@@ -145,7 +145,7 @@ OUTLINE = (26, 22, 32)
 FLAT = {'rug', 'blanket', 'slipper', 'frame_down', 'puddle', 'bottles', 'shoes'}
 WALL_MOUNTED = {'clock', 'clock_bird', 'bulb', 'drawing', 'shelf', 'coats', 'coats_dream', 'moon', 'window_eye'}
 WALLISH = {'wall_base', 'brick', 'brick_lit', 'facade', 'facade_window', 'balcony_body'}
-FLOORISH = {'floor_wood', 'floor_kitchen', 'carpet', 'pavement', 'puddle'}
+FLOORISH = {'floor_wood', 'floor_kitchen', 'carpet', 'pavement', 'puddle', 'balcony_floor'}
 _bevel_cache = {}
 
 def bevel(key, sp):
@@ -176,9 +176,9 @@ def bevel(key, sp):
     _bevel_cache[key] = out
     return out
 
-def cast_shadow(img, sp, left, foot_y, light_x):
-    """발밑 접지 그림자: 사물 바닥(발자국) 폭에 딱 붙은 타원. 빛에서 멀어지는 쪽으로만 살짝 민다.
-    (사물을 눌러서 쏘는 방식은 반사처럼 보이고 사물이 떠 보여서 쓰지 않는다.)"""
+def cast_shadow(img, sp, left, foot_y, lights, floor_mask):
+    """바닥에 눕는 방향성 그림자: 가장 가까운 '다른' 광원에서 멀어지는 방향으로, 발자국 모양이 사물 높이에 비례해 늘어난다.
+    광원에서 가까울수록 짧고, 멀수록 길다. 광원이 없으면 바로 아래로 짧게."""
     W, H, src = sp.width, sp.height, sp.load()
     rows = [y for y in range(H) if any(src[x, y][3] for x in range(W))]
     if not rows:
@@ -186,12 +186,23 @@ def cast_shadow(img, sp, left, foot_y, light_x):
     last = rows[-1]
     xs = [x for y in range(max(rows[0], last - 5), last + 1) for x in range(W) if src[x, y][3]]
     x0, x1 = min(xs), max(xs)
-    off = int(round(max(-1.0, min(1.0, (left + W / 2 - light_x) / 48)) * 2))
-    cy = foot_y - (H - 1 - last)                       # 스프라이트의 실제 맨 아랫줄
+    cx, cy = left + (x0 + x1) / 2, foot_y - (H - 1 - last) - 2
+    height = last - rows[0]
+    near = [l for l in lights if math.hypot(l[0] - cx, l[1] - cy) > 10]   # 사물 자신이 광원이면 제외
+    if near:
+        lx, ly = min(near, key=lambda l: math.hypot(l[0] - cx, l[1] - cy))
+        dist = max(1.0, math.hypot(cx - lx, cy - ly))
+        nx, ny = (cx - lx) / dist, (cy - ly) / dist
+    else:
+        dist, nx, ny = 40.0, 0.0, 1.0
+    length = min(34, height * 0.6 * max(0.25, min(1.0, dist / 60)))
+    ax, ay = (x1 - x0) / 2 + 2, 3
     layer = Image.new('RGBA', img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
-    d.ellipse((left + x0 + off - 2, cy - 4, left + x1 + off + 3, cy + 3), fill=(0, 0, 0, 70))
-    d.ellipse((left + x0 + off, cy - 3, left + x1 + off + 1, cy + 1), fill=(0, 0, 0, 70))
+    for t in range(int(length) + 1):
+        ex, ey = cx + nx * t, cy + ny * t * 0.6
+        d.ellipse((ex - ax, ey - ay, ex + ax, ey + ay), fill=(0, 0, 0, 72))
+    layer.putalpha(ImageChops.multiply(layer.getchannel('A'), floor_mask))   # 그림자는 바닥에만
     img.alpha_composite(layer)
 
 def grad_tile(kind):
@@ -206,12 +217,12 @@ GRAD_AO, GRAD_WALL = grad_tile('ao'), grad_tile('wall')
 def draw_map(m, lib, lights, path, dream):
     emitters = []
     rows = m['dream_rows'] if dream and m['dream_rows'] else m['rows']
-    light_xs = []
+    light_pts = []
     for yy, row in enumerate(rows):
         for xx, ch in enumerate(row):
             for nm in [m['legend'][ch][0]] + [o.partition('^')[0].rstrip('!') for o in m['legend'][ch][1]]:
                 if (m['dream'].get(nm, nm) if dream else nm) in lights:
-                    light_xs.append(xx * T + 8)
+                    light_pts.append((xx * T + 8, (yy + 1) * T))
     def place(img, name, x, y, lift=0, base=False):
         flip = name.endswith('!')
         name = name.rstrip('!')
@@ -226,9 +237,10 @@ def draw_map(m, lib, lights, path, dream):
             sp = bevel(name + str(flip), sp)
         top = y * T if base else max(0, (y + 1) * T - sp.height - lift)
         if not base and lift == 0 and name not in WALL_MOUNTED and name not in FLAT and sp.height > 10:
-            lx = min(light_xs, key=lambda e: abs(e - (x * T + 8)), default=len(rows[0]) * T / 2)
-            cast_shadow(img, sp, x * T, top + sp.height, lx)
+            cast_shadow(img, sp, x * T, top + sp.height, light_pts, floor_mask)
         img.alpha_composite(sp, (x * T, top))
+        if base and name in FLOORISH:
+            floor_mask.paste(255, (x * T, y * T, x * T + T, y * T + T))
         if base and name == 'wall':
             img.alpha_composite(GRAD_WALL, (x * T, y * T))
         if base and name in FLOORISH and y > 0 and m['legend'][rows[y - 1][x]][0] in WALLISH:
@@ -236,6 +248,7 @@ def draw_map(m, lib, lights, path, dream):
         if name in lights:
             emitters.append((x * T + sp.width / 2, top + min(8, sp.height / 2)) + lights[name])
     img = Image.new('RGBA', (len(rows[0]) * T, len(rows) * T))
+    floor_mask = Image.new('L', img.size, 0)
     for y, row in enumerate(rows):
         for x, ch in enumerate(row):
             place(img, m['legend'][ch][0], x, y, base=True)
