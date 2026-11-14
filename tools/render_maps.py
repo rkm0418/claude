@@ -97,29 +97,44 @@ def shade(img, emitters, ambient, dream):
             px[x, y] = tuple(min(255, int(v)) for v in c) + (255,)
     return img
 
-PINK, MINT, LILAC = (255, 196, 224), (190, 236, 226), (206, 190, 245)
+# 드림코어 파스텔 램프: 어두운 곳은 연보라, 중간은 분홍, 밝은 곳은 복숭아와 크림.
+RAMP = [(0.0, (150, 128, 200)), (0.35, (226, 160, 214)), (0.65, (255, 200, 190)), (1.0, (255, 248, 235))]
+SKY_TOP, SKY_BOTTOM = (176, 205, 255), (255, 205, 225)
+
+def ramp(l):
+    for (l0, c0), (l1, c1) in zip(RAMP, RAMP[1:]):
+        if l <= l1:
+            f = (l - l0) / (l1 - l0)
+            return tuple(c0[i] * (1 - f) + c1[i] * f for i in range(3))
+    return RAMP[-1][1]
 
 def dream_grade(img, emitters):
-    """드림코어: 바랜 파스텔, 번지는 빛(bloom), 스캔라인과 필름 노이즈."""
+    """드림코어: 밝기를 파스텔 램프에 대응시키고, 번지는 빛, 약한 스캔라인과 노이즈를 얹는다."""
     px, W, H = img.load(), img.width, img.height
     for y in range(H):
         t = y / H
-        tint = tuple(PINK[i] * (1 - t) + MINT[i] * t for i in range(3))
+        sky = tuple(SKY_TOP[i] * (1 - t) + SKY_BOTTOM[i] * t for i in range(3))
         for x in range(W):
             r, g, b, _ = px[x, y]
+            if (r, g, b) == (106, 76, 147):          # void_dream 하늘 칸
+                c = list(sky)
+            else:
+                lum = (0.3 * r + 0.59 * g + 0.11 * b) / 255
+                lum = 0.18 + lum * 0.95
+                c = [ramp(min(1.0, lum))[i] * 0.72 + (r, g, b)[i] * 0.28 for i in range(3)]
             glow = 0.0
             for ex, ey, rad, power, col in emitters:
                 d = math.hypot(x - ex, y - ey)
                 if d < rad * 1.6:
                     glow += (1 - d / (rad * 1.6)) ** 2 * power * 0.55
-            c = [v * 0.62 + 255 * 0.22 + tt * 0.16 for v, tt in zip((r, g, b), tint)]
-            c = [v + (255 - v) * min(0.6, glow) * 0.8 + LILAC[i] * min(0.6, glow) * 0.1 for i, v in enumerate(c)]
+            glow = min(0.6, glow)
+            c = [v + (255 - v) * glow * 0.8 for v in c]
             edge = min(x, y, W - 1 - x, H - 1 - y)
-            k = 0.88 + 0.12 * min(1.0, edge / 24)
+            k = 0.92 + 0.08 * min(1.0, edge / 24)
             if y % 3 == 0:
-                k *= 0.93
-            noise = ((x * 73856093) ^ (y * 19349663)) % 15 - 7
-            px[x, y] = tuple(max(0, min(255, int(round((v * k + noise) / 12) * 12))) for v in c) + (255,)
+                k *= 0.97
+            noise = (((x * 73856093) ^ (y * 19349663)) % 9 - 4)
+            px[x, y] = tuple(max(0, min(255, int(round((v * k + noise) / 6) * 6))) for v in c) + (255,)
     return img
 
 def draw_map(m, lib, lights, path, dream):
