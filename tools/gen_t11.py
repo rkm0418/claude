@@ -159,7 +159,8 @@ def figure(seed, phase=None):
     G.W, G.H = 48, 104
     c = C(); rng = random.Random(seed)
     tube(c, [(24, 50), (24, 74)], 15, 8, .03); c.ell(24, 52, 9, 3.2, 's'); tube(c, [(24, 47), (13, 54)], 6, 5); tube(c, [(24, 47), (35, 54)], 6, 5); tube(c, [(24, 44), (24, 53)], 7, 10)
-    tube(c, [(22, 66), (20 + 2 * sw, 88), (21 + 4 * sw, 103)], 6, 2.4); tube(c, [(26, 66), (28 - 2 * sw, 88), (27 - 4 * sw, 103)], 6, 2.4)
+    lift_l, lift_r = 3 * max(0, sw), 3 * max(0, -sw)                       # 발을 드는 쪽만 살짝 든다 (나머지는 바닥을 끈다)
+    tube(c, [(22, 66), (20 + 1.5 * sw, 88 - lift_l / 2), (21 + 2.5 * sw, 103 - lift_l)], 6, 2.4); tube(c, [(26, 66), (28 + 1.5 * sw, 88 - lift_r / 2), (27 + 2.5 * sw, 103 - lift_r)], 6, 2.4)
     r2 = random.Random(seed + 100); tmp = C()
     for sx, a0 in [(20, 105), (28, 75), (16, 115), (32, 65), (24, 90), (22, 98), (30, 80)]:
         root2(tmp, sx, 54, math.radians(a0), 9, 5, r2)
@@ -177,8 +178,10 @@ def figure(seed, phase=None):
     for a0 in (200, 340, 270):                              # 구멍 가장자리에서 안쪽으로 뻗은 뿌리 잔가지
         a = math.radians(a0); sx, sy = hx + math.cos(a) * 3.6, hy + math.sin(a) * 4.6
         c.line(sx, sy, sx - math.cos(a) * r2.uniform(1.5, 3), sy - math.sin(a) * r2.uniform(1.5, 3.5), 1, ch='m')
-    L = chain(c, [(12, 53), (10 - sw, 72), (10 - 2 * sw, 94)])
-    tube(c, [(36, 53), (37 + sw, 70), (37 + 2 * sw, 90)], 4.2, 3.4); c.ell(37 + 2 * sw, 93, 2.6, 3.4, "s")
+    L = chain(c, [(12, 53), (9 - sw, 78), (8 - 3 * sw, 102)])
+    for k in range(1, 7): c.put(8 - 3 * sw + (k if sw <= 0 else -k) * 1, 103, 'd' if k < 5 else 'm')   # 끌린 자국
+    tube(c, [(36, 53), (38 - sw, 78), (38 - 3 * sw, 99)], 4.2, 3.4); c.ell(38 - 3 * sw, 101, 2.8, 3, "s")
+    for k in range(1, 7): c.put(38 - 3 * sw + (k if sw <= 0 else -k) * 1, 103, 'd' if k < 5 else 'm')
     tmp3 = C()                                                         # 어깨선을 따라 바깥으로 뻗는 회색 뿌리
     for sx, a0 in [(21, 160), (27, 20), (22, 140), (26, 40), (20, 175), (28, 5)]:
         root2(tmp3, sx, 49, math.radians(a0), 7, 4, r2)
@@ -188,7 +191,7 @@ def figure(seed, phase=None):
     tmp2 = C()                                                         # 팔에도 회색 뿌리 (팔 끝 y>84 는 제외)
     for sx, a0 in [(12, 95), (10, 85), (14, 100), (36, 85), (37, 95), (35, 80)]:
         root2(tmp2, sx, 54, math.radians(a0), 10, 5, r2)
-    for y in range(54, 85):
+    for y in range(54, 90):
         for x in range(48):
             if tmp2.g[y][x] != '.' and c.g[y][x] != '.' and (x <= 16 or x >= 33): c.g[y][x] = tmp2.g[y][x]
     trunk2(c, 7, 51, 31)
@@ -198,9 +201,11 @@ def figure(seed, phase=None):
     joint_fade(c)
     if sw:                                                             # 수관과 목이 걸음에 따라 흔들림(위쪽일수록 크게)
         for y in range(46):
-            sh = int(round(1.8 * sw * (46 - y) / 46)); row = c.g[y]
+            sh = int(round(2.6 * sw * (46 - y) / 46)); row = c.g[y]
             if sh > 0: c.g[y] = ['.'] * sh + row[:-sh]
             elif sh < 0: c.g[y] = row[-sh:] + ['.'] * (-sh)
+    if phase is not None and abs(sw) < .5:                                # 발을 끌며 옮기는 사이 몸이 살짝 떠올랐다 내려앉음
+        c.g = c.g[1:] + [['.'] * 48]
     return c
 
 def export_final(seed=12):
@@ -212,7 +217,11 @@ def export_final(seed=12):
     for name, ph, desc in frames:
         blocks.append(f'[{name}] {desc}\n' + '\n'.join(''.join(r) for r in figure(seed, ph).finish()) + '\n')
     path = os.path.join(root, 'objects.txt'); txt = open(path, encoding='utf-8').read()
-    txt = re.sub(r'\n\[shadow_tree[^\]]*\][^\n]*\n(?:(?!\[)[^\n]*\n?)*', '\n', txt).rstrip('\n') + '\n\n' + '\n'.join(blocks)
+    keep, skip = [], False
+    for line in txt.split('\n'):                                      # 기존 shadow_tree* 블록을 헤더부터 다음 헤더 전까지 지운다
+        if line.startswith('['): skip = line.startswith('[shadow_tree')
+        if not skip: keep.append(line)
+    txt = '\n'.join(keep).rstrip('\n') + '\n\n' + '\n'.join(blocks)
     open(path, 'w', encoding='utf-8').write(txt)
 
 def main():
