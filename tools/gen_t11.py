@@ -231,7 +231,7 @@ def downscale(rows, f=2):
             if out[y][x] == '.' and any(0 <= y + dy < h and 0 <= x + dx < w and out[y + dy][x + dx] not in '.k' for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))): res[y][x] = 'k'
     return [''.join(r) for r in res]
 
-def resample(rows, w, h):
+def resample(rows, w, h, outline=False):
     """임의 크기로 줄인다(맵용). 윤곽선(k)은 몸색(s)으로 바꿔 지우고, 밝은 부분(l) 주위에만 얇은 어두운 선(d)을 두른다."""
     rows = [r.replace('k', 's') for r in rows]; H, W = len(rows), len(rows[0]); out = []
     for y in range(h):
@@ -245,12 +245,13 @@ def resample(rows, w, h):
             else: line.append('.')
         out.append(line)
     res = [r[:] for r in out]
-    for y in range(h):
+    for y in range(h if outline else 0):
         for x in range(w):
             if out[y][x] == '.' and any(0 <= y + dy < h and 0 <= x + dx < w and out[y + dy][x + dx] == 'l' for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))): res[y][x] = 'd'
     return [''.join(r) for r in res]
 
-MAP_W, MAP_H = 30, 64          # 맵용 크기(약 4m): 문(32px)의 2배. 바꾸려면 여기만 고친다
+MAP_W, MAP_H = 30, 64   # (윤곽선은 resample(..., outline=True) 로 켠다)
+#         # 맵용 크기(약 4m): 문(32px)의 2배. 바꾸려면 여기만 고친다
 
 def export_final(seed=12):
     """확정안(2번, 시드 12): 정지 1장 + 걷기 4장을 art/objects.txt 에 넣는다."""

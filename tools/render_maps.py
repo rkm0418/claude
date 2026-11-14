@@ -143,6 +143,7 @@ def dream_grade(img, emitters):
 
 OUTLINE = (26, 22, 32)
 OUTER_STRENGTH = 0.45   # 바깥 외곽선 진하기(0~1). 1이면 완전한 검정, 0이면 없음
+NO_OUTLINE_PREFIX = ('chaser',)   # 이 이름으로 시작하는 사물은 바깥 외곽선과 입체 음영을 넣지 않는다
 OUTER_OUTLINE = True   # 사물 바깥 1점 외곽선(조명 뒤에 그림). 끄려면 False
 RUGS = {'rug', 'rug_big', 'rug_small', 'rug_living', 'runner', 'blanket'}   # 바닥 타일 밖에는 그리지 않는다
 FLAT = {'rug', 'blanket', 'slipper', 'frame_down', 'puddle', 'bottles', 'shoes'}
@@ -236,7 +237,7 @@ def draw_map(m, lib, lights, path, dream):
         sp = lib[name]
         if flip:
             sp = sp.transpose(Image.FLIP_TOP_BOTTOM)
-        if not base:
+        if not base and not name.startswith(NO_OUTLINE_PREFIX):
             sp = bevel(name + str(flip), sp)
         top = y * T if base else max(0, (y + 1) * T - sp.height - lift)
         if not base and lift == 0 and name not in WALL_MOUNTED and name not in FLAT and sp.height > 10:
@@ -246,7 +247,7 @@ def draw_map(m, lib, lights, path, dream):
             sp = sp.copy()
             sp.putalpha(ImageChops.multiply(sp.getchannel('A'), rug_clip))
         img.alpha_composite(sp, (x * T, top))
-        if not base:
+        if not base and not name.startswith(NO_OUTLINE_PREFIX):
             sil.paste(255, (x * T, top), sp.getchannel('A').point(lambda v: 255 if v else 0))
         if base and name in FLOORISH:
             floor_mask.paste(255, (x * T, y * T, x * T + T, y * T + T))
