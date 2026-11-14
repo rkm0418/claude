@@ -231,7 +231,7 @@ def downscale(rows, f=2):
             if out[y][x] == '.' and any(0 <= y + dy < h and 0 <= x + dx < w and out[y + dy][x + dx] not in '.k' for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))): res[y][x] = 'k'
     return [''.join(r) for r in res]
 
-def resample(rows, w, h, outline=False):
+def resample(rows, w, h, outline=True, edge_dark=False):
     """임의 크기로 줄인다(맵용). 윤곽선(k)은 몸색(s)으로 바꿔 지우고, 밝은 부분(l) 주위에만 얇은 어두운 선(d)을 두른다."""
     rows = [r.replace('k', 's') for r in rows]; H, W = len(rows), len(rows[0]); out = []
     for y in range(h):
@@ -248,6 +248,7 @@ def resample(rows, w, h, outline=False):
     for y in range(h if outline else 0):
         for x in range(w):
             if out[y][x] == '.' and any(0 <= y + dy < h and 0 <= x + dx < w and out[y + dy][x + dx] == 'l' for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))): res[y][x] = 'd'
+    if not edge_dark: return [''.join(r) for r in res]
     edge = [r[:] for r in res]                                         # 캐릭터 안쪽의 가장자리 점을 검게 칠한다 (바깥에 따로 선을 두르지 않음)
     for y in range(h):
         for x in range(w):

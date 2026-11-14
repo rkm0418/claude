@@ -143,7 +143,7 @@ def dream_grade(img, emitters):
 
 OUTLINE = (26, 22, 32)
 OUTER_STRENGTH = 0.45   # 바깥 외곽선 진하기(0~1). 1이면 완전한 검정, 0이면 없음
-NO_OUTLINE_PREFIX = ('chaser',)   # 이 이름으로 시작하는 사물은 바깥 외곽선과 입체 음영을 넣지 않는다
+NO_OUTLINE_PREFIX = ()   # 이 이름으로 시작하는 사물은 바깥 외곽선과 입체 음영을 넣지 않는다
 OUTER_OUTLINE = True   # 사물 바깥 1점 외곽선(조명 뒤에 그림). 끄려면 False
 RUGS = {'rug', 'rug_big', 'rug_small', 'rug_living', 'runner', 'blanket'}   # 바닥 타일 밖에는 그리지 않는다
 FLAT = {'rug', 'blanket', 'slipper', 'frame_down', 'puddle', 'bottles', 'shoes'}

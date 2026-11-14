@@ -261,3 +261,4 @@
 - 형태: 로고 같은 줄기 다발 기둥 위에 축 처진 가지 수관(밝은 회색에서 어두운 끝으로 단계), 얼굴 없음. 가는 긴 몸, 가슴 오른쪽에 뚫린 구멍, 왼팔은 사슬, 오른팔은 정상, 몸 안쪽과 어깨에 회색 뿌리, 몸 연결부위는 검은 그라데이션.
 - 크기 48x104(아이의 약 5배). 원본 생성기: `tools/gen_t11.py`(`python3 tools/gen_t11.py final` 으로 art/objects.txt 의 `shadow_tree`, `shadow_tree_w1..w4` 를 다시 만든다. 시드 12).
 - 부모를 둘로 나눌지(아빠/엄마 별도 디자인)는 미정. 평범한 어른의 모습(복귀 공간용)은 `art/variants/parents_pixels.txt` 시안에서 고름.
+- 맵용 크기 확정: 30x64(약 4m, 문의 2배), 윤곽선 있는 버전(밝은 부분 주위에 얇은 선 + 렌더러 외곽선). 가장자리 검게 처리·윤곽선 없음 버전은 `resample(..., outline=False, edge_dark=True)` 와 `NO_OUTLINE_PREFIX` 로 되살릴 수 있다. 맵 배치: 3장 복도, 5장 거실의 `dream_add`.
