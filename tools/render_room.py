@@ -9,6 +9,18 @@ import render, boxes
 import render_maps as R
 
 SK, SS, T, WALLH, PAD = boxes.SK, boxes.SS, 16, 40, 12
+LIGHT_DY = {'wall_light_kr': 14}      # 아래로 빛을 쏘는 벽등은 빛의 중심을 등 아래로 내린다
+
+def cone(img, cx, y0, h=30):
+    """벽등 아래로 퍼지는 빛의 부채꼴: 벽 색을 따뜻하게 밝힌다."""
+    p = img.load()
+    for dy in range(h):
+        half = 3 + .5 * dy; a = .38 * (1 - dy / h)
+        for x in range(int(cx - half), int(cx + half) + 1):
+            y = y0 + dy
+            if 0 <= x < img.width and 0 <= y < img.height and p[x, y][3]:
+                r, g, b, al = p[x, y]; k = a * (1 - abs(x - cx) / (half + 1))
+                p[x, y] = (int(r + (255 - r) * k), int(g + (226 - g) * k), int(b + (160 - b) * k), al)
 
 def render_room(path, scale=1):
     m = R.load_map(path); lib = R.load_library(); lights = R.load_lights(); boxset = set(boxes.load_all(render.ROOT)); bdepth = {it['name']: max(p[2] + p[5] for p in it['parts'] if p[0] == 'box') for it in boxes.load_boxes(os.path.join(render.ROOT, 'boxes.txt'))}
@@ -60,13 +72,14 @@ def render_room(path, scale=1):
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)
         sp = lib[name]; img.alpha_composite(sp, (int(round(left)), int(round(bottom - sp.height))))
-        if name in lights: emitters.append((left + sp.width / 2, bottom - sp.height / 2) + lights[name])
+        if name in lights: emitters.append((left + sp.width / 2, bottom - sp.height / 2 + LIGHT_DY.get(name, 0)) + lights[name])
         return sp
     # 뒷벽의 사물
     for r_i, zb in ((base_row, 0), (mid_row, 16), (top_row, 32)):
         for c in range(c0, c1 + 1):
             for obj in leg[rows[r_i][c]][1]:
-                nm, _, lift = obj.partition('^'); stamp(nm, X0 + SK * D + (c - c0) * T, by - zb - int(lift or 0))
+                nm, _, lift = obj.partition('^'); sp_ = stamp(nm, X0 + SK * D + (c - c0) * T, by - zb - int(lift or 0))
+                if nm == 'wall_light_kr': cone(img, X0 + SK * D + (c - c0) * T + 10, by - zb - int(lift or 0), 30)
     # 왼쪽 벽의 사물: 세로 선은 그대로, 깊이 방향은 SK 배로 눌리고 SS 만큼 올라가는 기울임
     for tok in extra.get('left_add', '').split():
         nm, at = tok.split('@'); dc, _, lift = at.partition('^'); d0 = int(float(dc) * T); sp = lib[nm]

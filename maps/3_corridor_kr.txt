@@ -15,7 +15,7 @@ e floor_kr_entry
 E floor_kr_entry shoes
 R floor_kr_entry shoe_rack
 B wall_base_kr balcony_slide
-S wall_kr wall_light_kr^14
+S wall_kr wall_light_kr^8
 U floor_kr runner
 map:
 ##############
