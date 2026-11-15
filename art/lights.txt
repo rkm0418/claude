@@ -19,3 +19,4 @@ streetlamp 100 1.0 f0f4ff
 tv 60 0.8 cfe4ff
 radio_on 64 0.8 f2d28a
 desk_set 70 1.0 ffd890
+wall_light_kr 90 1.0 ffe0a0

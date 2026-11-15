@@ -14,16 +14,15 @@ D wall_base_kr door_kr
 e floor_kr_entry
 E floor_kr_entry shoes
 R floor_kr_entry shoe_rack
-F floor_kr floor_lamp
-B wall_base_kr balcony_door
-c floor_kr chair
+B wall_base_kr balcony_slide
+S wall_kr wall_light_kr^14
 U floor_kr runner
 map:
 ##############
 ##tttttttttt##
-##wGwwwwwwww##
-##bbDbbDbDbB##
-##Rec.....F.##
-##Ee..U.....##
+##wGwwwwwSww##
+##bbDbDbDbBb##
+##Re......ee##
+##Ee..U...ee##
 ##############
 ##############
