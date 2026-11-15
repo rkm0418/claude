@@ -119,7 +119,8 @@ def render_room(path, scale=1):
                     if 0 <= X < CW:
                         r_, g_, b_, a_ = px[X, Y]
                         if a_: px[X, Y] = (int(r_ * kk), int(g_ * kk), int(b_ * kk), a_)
-        if rc:                                                              # ㄴ 자 벽: 바깥 벽의 왼쪽 끝면(두께)을 안쪽 검은 면 오른쪽에 보이게 한다
+        strip_px = []
+    if rc:                                                              # ㄴ 자 벽: 바깥 벽의 왼쪽 끝면(두께)을 안쪽 검은 면 오른쪽에 보이게 한다
             xm = int(X0 + SK * D + (rb + 1) * T); base_y = int(Y0 - SS * D); top_y = int(by - wallh)
             for off in range(int(SK * RD)):
                 X = xm - int(SK * RD) + off; sh = 0                                  # 원래 벽 왼쪽에 붙이고, 원래 벽이 이 면보다 앞(위)에 있다
@@ -128,7 +129,7 @@ def render_room(path, scale=1):
                     if z < 16: nm, ty = names['base'], 15 - int(z)
                     elif z < 32: nm, ty = names['mid'], 15 - int(z - 16)
                     else: nm, ty = names['top'], int(wallh - 1 - z)
-                    r_, g_, b_, a_ = get(nm, int(off + 5), ty); px[X, Y] = (int(r_ * .5), int(g_ * .5), int(b_ * .55), a_)
+                    r_, g_, b_, a_ = get(nm, int(off + 5), ty); px[X, Y] = (int(r_ * .34), int(g_ * .34), int(b_ * .38), a_); strip_px.append((X, Y))                       # 조명 뒤에 한 번 더 어둡게 눌러 준다
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)
         sp = lib[name]; img.alpha_composite(sp, (int(round(left)), int(round(bottom - sp.height))))
@@ -209,6 +210,9 @@ def render_room(path, scale=1):
             emitters.append((X0 + dx0 + dw / 2, Y0 - 8, 54, float(glow), (232, 207, 106)))
     # 조명과 톤
     bg = Image.new('RGBA', img.size, (8, 6, 12, 255)); bg.alpha_composite(img); img = R.shade(bg, emitters, m['ambient'], False)
+    p3 = img.load()
+    for (X, Y) in strip_px:
+        r_, g_, b_, a_ = p3[X, Y]; p3[X, Y] = (int(r_ * .3), int(g_ * .3), int(b_ * .36), a_)
     if m['tone']:
         p2 = img.load()
         for y in range(img.height):
