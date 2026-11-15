@@ -9,7 +9,8 @@ import render, render_maps as R
 W, H = 96, 136
 def rgb(pal, ch): return pal[ch][:3] + (255,) if len(pal[ch]) >= 3 else pal[ch]
 
-def main():
+def scene(chair_pos=(48, 105), actors=None):
+    """장면 한 장(RGBA 96x136). actors(im, 'behind'|'front') 가 있으면 철창 뒤(바깥)와 맨 앞에 배우를 그리게 한다(컷신용)."""
     pal = render.load_palette(); lib = R.load_library(); rng = random.Random(8)
     im = Image.new('RGBA', (W, H), (0, 0, 0, 255)); _px = im.load()
     class _P:
@@ -72,6 +73,7 @@ def main():
         for i in range(n + 1): px[round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)] = col
     def band(p0, p1, th, col0, col=MR, dy=0):             # 두께 th칸의 선(가로/45도 공통)
         for k in range(th): seg((p0[0], p0[1] + dy + k), (p1[0], p1[1] + dy + k), col0 if k == 0 else col)
+    if actors: actors(im, 'behind')
     band((L, top_y), (Rr, top_y), TT, ML); band((L, base_y), (Rr, base_y), TB, MR)
     for x in range(L + 4, Rr, 5):
         for w in range(TW): seg((x + w, top_y + TT), (x + w, base_y - 1), MR)
@@ -86,11 +88,16 @@ def main():
             for w in range(TW): seg((xx + w, top_y + d + ST), (xx + w, base_y + d - 1), MR)
     # 쇠 의자와 탁자: 땅 위
     t = lib['iron_table']; c = lib['iron_chair']
-    im.alpha_composite(t, (62, 95 - t.height)); im.alpha_composite(c, (48, 105 - c.height))
+    im.alpha_composite(t, (62, 95 - t.height)); im.alpha_composite(c, (chair_pos[0], chair_pos[1] - c.height))
+    if actors: actors(im, 'front')
     # 밤의 색조
     for y in range(H):
         for x in range(W):
             r, g, b, a = px[x, y]; px[x, y] = (int(r * .85), int(g * .92), min(255, int(b * 1.15)), a)
+    return im
+
+def main():
+    im = scene()
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'maps', 'out', '4_balcony_2d.png')
     im.save(out); im.resize((W * 5, H * 5), Image.NEAREST).save(out.replace('.png', '_big.png')); print(out)
 
