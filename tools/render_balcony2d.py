@@ -74,8 +74,7 @@ def main():
             for w in range(TW): seg((xx + w, top_y + d + ST), (xx + w, base_y + d - 1), MR)
     # 쇠 의자와 탁자: 땅 위
     t = lib['iron_table']; c = lib['iron_chair']
-    t = t.resize((t.width * 3 // 2 * 1, t.height * 3 // 2), Image.NEAREST)
-    im.alpha_composite(t, (56, 124 - t.height)); im.alpha_composite(c, (30, 118 - c.height))
+    im.alpha_composite(t, (56, 126 - t.height)); im.alpha_composite(c, (30, 118 - c.height))
     # 밤의 색조
     for y in range(H):
         for x in range(W):
