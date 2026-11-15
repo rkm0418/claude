@@ -210,3 +210,11 @@ decal 1 0 2 4 1 y
 decal 6 0 4 2 1 y
 decal 6 0 2 2 1 w
 box 8 3 6 0 0 6 l
+
+[sink] 싱크대 (주방 하부장 + 스테인리스 상판) | real
+box 0 0 0 19 7 14 W
+box 0 0 14 19 7 1 l
+decal 1 0 1 8 11 w
+decal 10 0 1 8 11 w
+decal 7 0 6 2 1 m
+decal 10 0 6 2 1 m
