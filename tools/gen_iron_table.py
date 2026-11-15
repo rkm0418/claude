@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """쇠 원탁(위에서 내려다보는 시점): 얇은 상판 + X자 다리. art/objects.txt 의 iron_table 을 다시 쓴다."""
 import re
-SC = 1.4
+import sys
+SC = float(sys.argv[1]) if len(sys.argv) > 1 else 1.4          # 크기 배율
+NAME = sys.argv[2] if len(sys.argv) > 2 else 'iron_table'
 LEG = 20                                                 # 다리 끝 높이(낮출수록 탁자가 낮아짐)
 W, H = int(30 * SC) + 1, int((LEG + 1) * SC) + 1
 g = [['.'] * W for _ in range(H)]
@@ -23,6 +25,10 @@ for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)): px(int(12 * SC) + dx, int(12 *
 px(int(12 * SC), int(12 * SC), 'l')
 grid = '\n'.join(''.join(r) for r in g)
 txt = open('art/objects.txt', encoding='utf-8').read()
-blk = '[iron_table] 고풍스러운 쇠 원탁: 얇은 상판 + X자 다리(42x30) | real\n' + grid + '\n\n'
-txt = re.sub(r'\[iron_table\][^\n]*\n(?:[.\w]+\n)+\n', blk, txt, count=1)
+blk = '[' + NAME + '] 고풍스러운 쇠 원탁: 얇은 상판 + X자 다리(배율 %s) | real\n' % SC + grid + '\n\n'
+pat = r'\[' + NAME + r'\][^\n]*\n(?:[.\w]+\n)+\n'
+if re.search(pat, txt):
+    txt = re.sub(pat, lambda m: blk, txt, count=1)
+else:
+    txt = txt.replace('[iron_table]', blk + '[iron_table]', 1)
 open('art/objects.txt', 'w', encoding='utf-8').write(txt)

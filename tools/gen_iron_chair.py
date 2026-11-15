@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """사진(검은 철제 망 등받이 팔걸이 의자, art/ref/iron_chair_ref.jpg)과 같은 의자를 뒤에서 본 모습(하늘/난간 쪽을 향해 놓임)으로 art/objects.txt 에 iron_chair 로 쓴다."""
 import re
-SC = 1.4                                                 # 크기 배율
+import sys
+SC = float(sys.argv[1]) if len(sys.argv) > 1 else 1.4          # 크기 배율
+NAME = sys.argv[2] if len(sys.argv) > 2 else 'iron_chair'                                                 # 크기 배율
 W, H = int(27 * SC) + 1, int(28 * SC) + 1
 g = [['.'] * W for _ in range(H)]
 def px(x, y, c):
@@ -26,9 +28,10 @@ poly([(4, 16), (18, 16)], 'c'); poly([(5, 17), (18, 17)], 'd')               # �
 poly([(4, 17), (3, 27)], 'l'); poly([(18, 17), (19, 27)], 'l')               # 뒷다리(가까움)
 grid = '\n'.join(''.join(r) for r in g)
 txt = open('art/objects.txt', encoding='utf-8').read()
-blk = '[iron_chair] 사진 속 검은 철제 망 등받이 팔걸이 의자(28x34 사진 트레이스, 3/4 시점, 좌우 반전) | real\n' + grid + '\n\n'
-if '[iron_chair]' in txt:
-    txt = re.sub(r'\[iron_chair\][^\n]*\n(?:[.\w]+\n)+\n', blk, txt, count=1)
+blk = '[' + NAME + '] 사진 속 검은 철제 망 등받이 팔걸이 의자(뒤에서 본 모습, 오른쪽으로 살짝 돌림, 배율 %s) | real\n' % SC + grid + '\n\n'
+pat = r'\[' + NAME + r'\][^\n]*\n(?:[.\w]+\n)+\n'
+if re.search(pat, txt):
+    txt = re.sub(pat, lambda m: blk, txt, count=1)
 else:
     txt = txt.replace('[iron_table]', blk + '[iron_table]', 1)
 open('art/objects.txt', 'w', encoding='utf-8').write(txt)
