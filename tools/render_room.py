@@ -34,6 +34,7 @@ def render_room(path, scale=1):
     ncols, nrows = c1 - c0 + 1, len(floor_rows)
     W, D = ncols * T, nrows * T
     sky = int(m.get('extra', {}).get('sky_rows', '0')); wallh = WALLH + 16 * sky      # 방지대 위에 하늘 줄을 더 쌓는다
+    extra_dark = m.get('extra', {}).get('recess_dark') == '1'
     rc = m.get('extra', {}).get('recess'); RD = T if rc else 0                  # 뒷벽이 한 칸 안쪽으로 패인 부분(알코브): `recess: 시작열 끝열`
     ra, rb = [int(v) for v in rc.split()] if rc else (0, -1)
     CW, CH = int(PAD * 2 + W + SK * (D + RD)), int(PAD * 2 + wallh + SS * (D + RD))
@@ -53,7 +54,10 @@ def render_room(path, scale=1):
             if d >= D and not (ra * T <= x < (rb + 1) * T): continue                # 알코브 바닥만 더 안쪽까지
             fr = max(0, nrows - 1 - int(d // T)); ch = rows[floor_rows[fr]][c0 + int(x // T)]
             if not tile(ch).startswith('floor'): continue
-            px[X, Y] = get(tile(ch), int(x), 15 - int(d % T))
+            col = get(tile(ch), int(x), 15 - int(d % T))
+            if d >= D - 4 and rc and ra * T <= x < (rb + 1) * T and extra_dark:           # 알코브 바닥: 안쪽으로 갈수록 검게 사라진다
+                k = max(.06, .55 - (d - (D - 4)) / (RD + 4) * .5); col = (int(col[0] * k), int(col[1] * k), int(col[2] * k), col[3])
+            px[X, Y] = col
     # 왼쪽 벽
     for X in range(int(X0), int(X0 + SK * D) + 1):
         d = (X + .5 - X0) / SK
@@ -84,7 +88,7 @@ def render_room(path, scale=1):
                 if z < 16: nm, ty = tile(rows[base_row][c]), 15 - int(z)
                 elif z < 32: nm, ty = tile(rows[mid_row][c]), 15 - int(z - 16)
                 else: nm, ty = tile(rows[top_row][c]), int(wallh - 1 - z)
-                r_, g_, b_, a_ = get(nm, int(x), ty); px[X, Y] = (int(r_ * .9), int(g_ * .9), int(b_ * .92), a_)       # 안쪽이라 조금 어둡게
+                r_, g_, b_, a_ = get(nm, int(x), ty); px[X, Y] = ((int(r_ * .05), int(g_ * .05), int(b_ * .07), a_) if extra_dark else (int(r_ * .9), int(g_ * .9), int(b_ * .92), a_))       # 안쪽은 어둡게(recess_dark면 거의 검정)
         for X in range(int(X0 + ra * T + SK * D), int(X0 + ra * T + SK * (D + RD)) + 1):
             d = (X + .5 - X0 - ra * T) / SK
             if not (D <= d < D + RD): continue
@@ -92,7 +96,7 @@ def render_room(path, scale=1):
                 z = (Y0 - SS * d) - (Y + .5)
                 if not (0 <= z < wallh): continue
                 nm, ty = (names['base'], 15 - int(z)) if z < 16 else (names['mid'], 15 - int(z - 16)) if z < 32 else (names['top'], int(wallh - 1 - z))
-                r_, g_, b_, a_ = get(nm, int(d), ty); px[X, Y] = (int(r_ * .72), int(g_ * .72), int(b_ * .78), a_)
+                r_, g_, b_, a_ = get(nm, int(d), ty); px[X, Y] = (int(r_ * (.25 if extra_dark else .72)), int(g_ * (.25 if extra_dark else .72)), int(b_ * (.28 if extra_dark else .78)), a_)
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)
         sp = lib[name]; img.alpha_composite(sp, (int(round(left)), int(round(bottom - sp.height))))

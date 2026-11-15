@@ -3,6 +3,7 @@ tone: 255 246 232
 ambient: 0.1
 left_wall: kr
 recess: 4 5
+recess_dark: 1
 left_add: door_entry_ls@0.2^0
 legend:
 # void
@@ -23,7 +24,7 @@ map:
 ##############
 ##tttttttttt##
 ##wGwwwwwSww##
-##bbObDbDbBb##
+##bbbbbbDbBb##
 ##Re......ee##
 ##Ee......ee##
 ##############
