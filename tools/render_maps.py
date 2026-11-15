@@ -148,8 +148,8 @@ OUTER_OUTLINE = True   # 사물 바깥 1점 외곽선(조명 뒤에 그림). 끄
 RUGS = {'rug', 'rug_big', 'rug_small', 'rug_living', 'runner', 'blanket'}   # 바닥 타일 밖에는 그리지 않는다
 FLAT = {'rug', 'blanket', 'slipper', 'frame_down', 'puddle', 'bottles', 'shoes'}
 WALL_MOUNTED = {'clock', 'clock_bird', 'bulb', 'drawing', 'shelf', 'coats', 'coats_dream', 'moon', 'window_eye'}
-WALLISH = {'wall_base_cozy', 'wall_base', 'brick', 'brick_lit', 'facade', 'facade_window', 'balcony_body'}
-FLOORISH = {'floor_cozy', 'floor_wood', 'floor_kitchen', 'carpet', 'pavement', 'puddle', 'balcony_floor'}
+WALLISH = {'wall_base_kr', 'wall_base_cozy', 'wall_base', 'brick', 'brick_lit', 'facade', 'facade_window', 'balcony_body'}
+FLOORISH = {'floor_kr', 'floor_cozy', 'floor_wood', 'floor_kitchen', 'carpet', 'pavement', 'puddle', 'balcony_floor'}
 _bevel_cache = {}
 
 def bevel(key, sp):
@@ -251,7 +251,7 @@ def draw_map(m, lib, lights, path, dream):
             sil.paste(255, (x * T, top), sp.getchannel('A').point(lambda v: 255 if v else 0))
         if base and name in FLOORISH:
             floor_mask.paste(255, (x * T, y * T, x * T + T, y * T + T))
-        if base and name in ('wall', 'wall_cozy'):
+        if base and name in ('wall', 'wall_cozy', 'wall_kr'):
             img.alpha_composite(GRAD_WALL, (x * T, y * T))
         if base and name in FLOORISH and y > 0 and m['legend'][rows[y - 1][x]][0] in WALLISH:
             img.alpha_composite(GRAD_AO, (x * T, y * T))
