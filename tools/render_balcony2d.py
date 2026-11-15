@@ -12,7 +12,7 @@ def rgb(pal, ch): return pal[ch][:3] + (255,) if len(pal[ch]) >= 3 else pal[ch]
 def main():
     pal = render.load_palette(); lib = R.load_library(); rng = random.Random(8)
     im = Image.new('RGBA', (W, H), (0, 0, 0, 255)); px = im.load()
-    top, rail_y, rail_b, floor_y = 10, 86, 112, 112
+    top, rail_y, rail_b, floor_y = 10, 62, 88, 88
     # 하늘: 한 가지 짙은 새벽색(층 없음), 양옆은 뚫려 있음
     for y in range(0, floor_y):
         for x in range(W): px[x, y] = rgb(pal, 'X')
@@ -22,23 +22,23 @@ def main():
     for x in range(L, Rr):
         for dy in range(2): px[x, rail_y + dy] = rgb(pal, 'l' if dy == 0 else 'm')
         px[x, rail_b - 1] = rgb(pal, 'm')
-    for k in range(bend):                                  # 꺾인 부분: 위·아래 가로대가 함께 위로 비스듬히
-        for sx, ex in ((L - 1 - k, 1), (Rr + k, 1)):
-            px[sx, rail_y - k * 1 // 1 + 0] = rgb(pal, 'l'); px[sx, rail_y - k + 1] = rgb(pal, 'm')
-            px[sx, rail_b - 1 - k] = rgb(pal, 'm')
+    for k in range(bend):                                  # 꺾인 부분: 앞(보는 쪽)으로 비스듬히 내려오며 벌어짐
+        for sx in (L - 1 - k, Rr + k):
+            px[sx, rail_y + k] = rgb(pal, 'l'); px[sx, rail_y + k + 1] = rgb(pal, 'm')
+            px[sx, rail_b - 1 + k] = rgb(pal, 'm')
     for x in range(L, Rr, 5):
         for y in range(rail_y + 2, rail_b - 1): px[x, y] = rgb(pal, 'm')
-    for k in range(1, bend, 3):                            # 꺾인 부분 창살(점점 짧아짐)
+    for k in range(1, bend, 3):                            # 꺾인 부분 창살(점점 길어짐)
         for sx in (L - 1 - k, Rr + k):
-            for y in range(rail_y - k + 2, rail_b - 1 - k): px[sx, y] = rgb(pal, 'm')
+            for y in range(rail_y + k + 2, rail_b - 1 + k): px[sx, y] = rgb(pal, 'm')
     # 바닥: 한 가지 어두운 색 + 가로 이음선만 (깔끔하게)
     for y in range(floor_y, H):
         for x in range(W): px[x, y] = rgb(pal, 'd')
-    for y in (floor_y + 6, floor_y + 14):
+    for y in (floor_y + 14, floor_y + 30):
         for x in range(W): px[x, y] = rgb(pal, 'k')
     # 쇠 의자와 탁자: 오른쪽, 방지대 앞
     t = lib['iron_table']; c = lib['iron_chair']
-    im.alpha_composite(t, (62, floor_y + 14 - t.height + 6)); im.alpha_composite(c, (46, floor_y + 14 - c.height + 8))
+    im.alpha_composite(t, (62, floor_y + 34 - t.height + 6)); im.alpha_composite(c, (46, floor_y + 34 - c.height + 8))
     # 밤의 색조
     for y in range(H):
         for x in range(W):
