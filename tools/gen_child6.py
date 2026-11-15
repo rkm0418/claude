@@ -6,19 +6,24 @@ sys.path.insert(0, os.path.dirname(__file__))
 import gen_child as K
 from gen_shadow import C
 
+PTS = [(4.6, 13.0), (10.4, 10.6), (12.4, 10.8), (16.4, 8.2), (19.5, 10.4), (19.6, 13.4)]   # 앞머리선의 큰 흐름(조절점)
+
+def bump(x, c, w, h):
+    return h * max(0.0, 1 - ((x - c) / w) ** 2) ** .5                                    # 가닥 끝을 둥글게(반타원)
+
 def lim(x):
-    if x < 4.6 or x > 19.5: return 13.4                                  # 귀 위에서 멈추는 옆머리
-    if x < 10.4: return 13.0 - (x - 4.6) * 0.42                         # 왼쪽: 앞머리선이 완만히 올라감
-    if x < 12.4: return 12.8                                             # 중앙 왼쪽에서 뾰족하게 내려오는 가닥
-    if x < 16.2: return 11.2 - (x - 12.4) * 0.75                         # 오른쪽: 이마가 넓게 드러나도록 높이 올라감
-    if x < 18.4: return 12.2                                             # 오른쪽에도 삐져나온 뾰족한 가닥
-    return 9.4 + (x - 18.4) * 0.8                                        # 다시 귀 쪽으로 내려감
+    if x < 4.6 or x > 19.6: return 13.4                                                  # 귀 위에서 멈추는 옆머리
+    for (x0, y0), (x1, y1) in zip(PTS, PTS[1:]):
+        if x0 <= x <= x1: base = y0 + (y1 - y0) * (x - x0) / (x1 - x0); break
+    return base + bump(x, 11.4, 1.6, 2.2) + bump(x, 17.6, 1.5, 2.6)                      # 왼쪽 중앙과 오른쪽의 삐져나온 가닥(끝이 둥근 곡선)
 
 def hair_ref2(c):
     c.ell(12, 8.6, 10.6, 8.2, 'b')
     for y in range(20):
         for x in range(24):
-            if c.g[y][x] == 'b' and y > lim(x): c.g[y][x] = K.SKIN
+            if c.g[y][x] != 'b': continue
+            if y > lim(x): c.g[y][x] = K.SKIN
+            elif y > lim(x) - 1.0 and (x + y) % 2 == 0: c.g[y][x] = 'n'                  # 끝이 부드럽게 번지도록 한 줄 옅은 갈색을 섞음
     c.line(5, 4.6, 6.6, 2.6, 1, ch='n'); c.put(6, 3, 'n'); c.put(7, 2, 'n')                                # 왼쪽 위의 옅은 윤기
 
 def build(shirt, shorts, hands_covered=False):
