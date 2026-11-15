@@ -129,7 +129,8 @@ def render_room(path, scale=1):
                     if z < 16: nm, ty = names['base'], 15 - int(z)
                     elif z < 32: nm, ty = names['mid'], 15 - int(z - 16)
                     else: nm, ty = names['mid'], 15 - int(z - 32) % 16
-                    r_, g_, b_, a_ = get(nm, int(off + 5), ty); gk = .1 + .9 * (off / max(1, int(SK * RD) - 1)) ** 1.1; px[X, Y] = (r_, g_, b_, a_); strip_px.append((X, Y, gk))       # 왼쪽(검은 곳 쪽)은 어둡고 오른쪽 벽에 닿을수록 원래 색으로 돌아가는 그라데이션
+                    r_, g_, b_, a_ = get(nm, int((rb + 1) * T - int(SK * RD) + off), ty); gk = .1 + .9 * (off / max(1, int(SK * RD) - 1)) ** 1.1; px[X, Y] = (r_, g_, b_, a_); strip_px.append((X, Y, gk))
+                    if Y < top_y: px[X, Y] = (7, 5, 10, 255); strip_px.pop()                      # 벽 윗선 위로 솟은 삼각형 부분은 검게       # 왼쪽(검은 곳 쪽)은 어둡고 오른쪽 벽에 닿을수록 원래 색으로 돌아가는 그라데이션
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)
         sp = lib[name]; img.alpha_composite(sp, (int(round(left)), int(round(bottom - sp.height))))
