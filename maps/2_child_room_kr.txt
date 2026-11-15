@@ -22,13 +22,13 @@ E floor_kr bed_kr
 J floor_kr toybox
 Z floor_kr rug_small
 map:
-##########
-##tttttt##
-##wHwKww##
-##bbbbbb##
-##x.E...##
-##......##
-##..Z...##
-##......##
-##########
-##########
+########
+##tttt##
+##wHwK##
+##bbbb##
+##x.E.##
+##....##
+##.Z..##
+##....##
+########
+########
