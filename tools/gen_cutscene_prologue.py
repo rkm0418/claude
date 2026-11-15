@@ -78,7 +78,7 @@ for k in range(3):
     add(dict(S, child=kid(*SPOT, REACH)), 3, '3 매달려 보며 낑낑' if k == 0 else '')
     for i in range(8): add(dict(S, child=kid(SPOT[0] + (1 if i % 2 else -1) * (i % 4 < 2), SPOT[1] - 5, HANG[(i // 2) % 2])))
     for i in range(3): add(dict(S, child=kid(SPOT[0], SPOT[1] - 5 + (i + 1) * 5 / 3, REACH)))
-    add(dict(S, child=kid(*SPOT, IDLE)), 3)
+    add(dict(S, child=kid(*SPOT, REACH)), 3)                 # 사이에 팔을 내리지 않고 잡은 채로 숨을 고른다
 add(dict(S, child=kid(*SPOT, IDLE)), 6)
 # 4. 옆의 의자를 발견
 add(dict(S, child=kid(*SPOT, IDLE), bang=True), 8, '4 옆의 의자를 발견')
@@ -98,7 +98,9 @@ for k in range(3):                                              # 세 번에 나
     cur = nxt; add(dict(chair=cur, child=kid(*behind(cur), PUSH[0])), 5)
 CH = cur; cx = CH[0] + 14; seat_y = CH[1] - 12
 # 6. 올라가기: 의자 옆(오른쪽)으로 돌아가 → 잡고 → 한 발을 올리고 → 몸을 끌어올려 선다. 그다음 철창도 같은 순서
-side = behind(CH); TOPY = RAIL_TOP                              # 끌고 온 자리(의자 오른쪽 옆)에서 바로 오른다. TOPY: 철창 윗줄 위에 완전히 올라선 발 높이
+side = (behind(CH)[0] + 7, behind(CH)[1]); TOPY = RAIL_TOP     # 오를 때는 한 걸음 오른쪽으로 다가서서 등받이를 더 안쪽(오른쪽)에서 잡는다
+add(dict(chair=CH, child=kid(behind(CH)[0] + 4, behind(CH)[1], WALK[0])), 3)
+#                             # 끌고 온 자리(의자 오른쪽 옆)에서 바로 오른다. TOPY: 철창 윗줄 위에 완전히 올라선 발 높이
 add(dict(chair=CH, child=kid(*side, PUSH[0])), 4, '6 잡고 발을 올려 올라감')      # 팔걸이를 잡음
 add(dict(chair=CH, child=kid(*side, FOOT[0])), 6)               # 한 발을 앉는 판에 올림
 add(dict(chair=CH, child=kid((side[0] + cx) / 2, seat_y + 5, HANG[0])), 3)       # 힘줘서 몸을 끌어올림(끊어서)
