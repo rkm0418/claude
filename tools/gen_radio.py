@@ -90,7 +90,7 @@ def wow(x, depth=.004):
     idx = np.arange(len(x)) + SR * (depth * np.sin(2 * np.pi * .55 * t) + .0012 * np.sin(2 * np.pi * 6.2 * t) + .002 * np.sin(2 * np.pi * .13 * t + 1))
     return np.interp(idx, np.arange(len(x)), x)
 
-def build(noise=1.0):
+def build_layered(noise=1.0):
     V = {'a': (800, 1200, 2500), 'i': (300, 2300, 3000), 'u': (320, 800, 2500), 'e': (500, 1800, 2500), 'o': (500, 900, 2400)}
     vs = lambda s: [V[c] for c in s]
     mix = np.zeros(N)
@@ -125,6 +125,56 @@ def build(noise=1.0):
     out = np.tanh(out * 1.6) * .8                                          # 살짝 찌그러뜨림
     out = wow(out)
     out = fft_filter(out, 150, 11000)
+    return out / (np.abs(out).max() + 1e-9) * .9
+
+
+def tune(start, dur, gain=.5):
+    """채널을 돌리는 소리: 오르내리는 휘파람 + 노이즈 덩어리."""
+    n = int(dur * SR); tt = np.arange(n) / SR; f = 400 + 3500 * np.abs(np.sin(2 * np.pi * (.7 + rng.random()) * tt + rng.random() * 6))
+    y = np.sin(2 * np.pi * np.cumsum(f) / SR) * .4 + fft_filter(rng.standard_normal(n), 1500, 9000) * .8
+    return place(y * np.clip(np.minimum(tt, dur - tt) * 30, 0, 1) * gain, start)
+
+def band(y, lo, hi): return fft_filter(y, lo, hi)
+
+def cut(y, a, b):
+    """a~b초만 남기고 나머지는 0 (갑자기 시작하고 갑자기 끊김)."""
+    z = np.zeros_like(y); z[int(a * SR):int(b * SR)] = y[int(a * SR):int(b * SR)]; return z
+
+def stutter(y, a, seg, times):
+    """a초부터 seg초 길이를 times번 반복(테이프가 걸린 느낌)."""
+    z = y.copy(); i0 = int(a * SR); n = int(seg * SR); piece = y[i0:i0 + n]
+    for k in range(1, times): z[i0 + k * n:i0 + (k + 1) * n] = piece
+    z[i0 + times * n:] = 0; return z
+
+def build(noise=1.0):
+    """한 소리에 다 섞지 않고, 서로 다른 출처의 짧은 조각을 이어 붙인 짜깁기. 조각 사이는 채널 돌리는 잡음과 정적."""
+    V = {'a': (800, 1200, 2500), 'i': (300, 2300, 3000), 'u': (320, 800, 2500), 'e': (500, 1800, 2500), 'o': (500, 900, 2400)}
+    vs = lambda s: [V[c] for c in s]
+    lull = [440, 523, 659, 587, 523, 440, 392, 440]
+    m = np.zeros(N)
+    m += tune(0.0, 1.2)
+    m += band(voice(1.2, 2.3, 210, vs('aeiouao'), 5.5, .8), 300, 3400)                       # 보호자 말소리(전화처럼 대역이 좁음)
+    m += tune(3.5, .7)
+    m += cut(sing(4.2, lull, 1.2, .5), 4.2, 7.2) * .9                                          # 허밍 한 소절
+    m += tune(7.2, .5, .3)
+    m += tone(7.7, 1.6, 880, .45) + tone(7.7, 1.6, 660, .35)                                   # 학교 종
+    for k, f in enumerate((300, 250, 340)): m += cut(voice(7.7 + k * .2, 1.6, f, vs('oaiue'), 7.0 + k, .3), 7.7, 9.3)   # 복도 웅성거림
+    m += tune(9.3, .6)
+    m += phone(10.0, 3, .5) * 1.0                                                              # 전화벨
+    m += band(voice(13.0, 1.9, 270, vs('eiaouei'), 6.5, .75), 400, 3000) + tone(14.9, .5, 1320, .3, 6)   # 병원 호출 + 땡
+    m += tune(15.5, .5)
+    m += knock(16.0) + knock(16.45) + knock(16.9) + breath(17.4, 1.8, .5)                       # 문 두드림 + 숨
+    m += tune(19.2, .6)
+    m += place(voice(0.0, 2.2, 190, vs('uoaieo'), 5.0, .8)[:int(2.2 * SR)][::-1], 19.8)         # 거꾸로 돌린 말소리
+    m += tune(22.0, .5)
+    m += stutter(band(voice(22.5, 1.5, 320, vs('iaeiu'), 6, .8), 300, 3400), 22.5, .22, 5)      # 말이 걸려 반복
+    m += horn(24.2, 1.2, .6) + screech(24.9, 1.1, .6) + crash(25.9)                            # 교통사고
+    m += cut(sing(28.0, lull[:3], 1.2, .25, detune=.9), 28.0, 29.6)                            # 정적 뒤 낮은 허밍 한 조각
+    t_ = t; noise_bed = fft_filter(rng.standard_normal(N), 2000, 9000) * (.05 + .03 * np.sin(2 * np.pi * .3 * t_))
+    quiet = np.ones(N); quiet[int(26.2 * SR):int(27.8 * SR)] = .0          # 충돌 뒤 소리가 끊기는 정적(노이즈만)
+    out = m * quiet + noise * (noise_bed + (rng.random(N) < 1.5e-4) * rng.standard_normal(N) * .8)
+    out = out + (np.sin(2 * np.pi * 60 * t) * .02) * noise
+    out = np.tanh(out * 1.5) * .8; out = wow(out); out = fft_filter(out, 150, 11000)
     return out / (np.abs(out).max() + 1e-9) * .9
 
 if __name__ == '__main__':
