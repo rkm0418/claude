@@ -80,10 +80,14 @@ def render_room(path, scale=1):
             else: nm, ty = tile(rows[top_row][c]), int(wallh - 1 - z)
             if nm in lib: px[X, Y] = get(nm, int(x), ty)
     if rc:
+        top_line = int(Y0 - SS * D - wallh)
+        def fade_to_bg(c, t):
+            t = max(0, min(1, t)); bgc = (8, 6, 12)
+            return (int(c[0] * (1 - t) + bgc[0] * t), int(c[1] * (1 - t) + bgc[1] * t), int(c[2] * (1 - t) + bgc[2] * t), c[3])
         by2 = Y0 - SS * (D + RD)                                         # 알코브: 한 칸 안쪽의 뒷벽 + 왼쪽 옆벽
         for X in range(int(X0 + SK * (D + RD) + ra * T), int(min(X0 + SK * (D + RD) + (rb + 1) * T, X0 + SK * D + (rb + 1) * T))):    # 오른쪽은 앞에 있는 바깥 벽이 가리므로 그 왼쪽 끝에서 자른다
             x = X + .5 - X0 - SK * (D + RD); c = c0 + int(x // T)
-            for Y in range(int(by2 - wallh) + int(SS * RD), int(by2)):        # 윗부분은 바깥 벽의 윗선에서 자른다(튀어나와 보이지 않게)
+            for Y in range(int(by2 - wallh), int(by2)):                       # 윗선 위쪽은 배경으로 서서히 사라진다
                 z = by2 - (Y + .5)
                 if z < 16: nm, ty = tile(rows[base_row][c]), 15 - int(z)
                 elif z < 32: nm, ty = tile(rows[mid_row][c]), 15 - int(z - 16)
@@ -94,12 +98,13 @@ def render_room(path, scale=1):
         for X in range(int(X0 + ra * T + SK * D), int(X0 + ra * T + SK * (D + RD)) + 1) if extra.get('recess_side') != 'none' else []:     # none: 옆벽은 시점에서 보이지 않으므로 그리지 않는다
             d = (X + .5 - X0 - ra * T) / SK
             if not (D <= d < D + RD): continue
-            for Y in range(int(Y0 - SS * D - wallh), int(Y0 - SS * D) + 1):
+            for Y in range(int(Y0 - SS * (D + RD) - wallh), int(Y0 - SS * D) + 1):
                 z = (Y0 - SS * d) - (Y + .5)
                 if not (0 <= z < wallh): continue
                 nm, ty = (names['base'], 15 - int(z)) if z < 16 else (names['mid'], 15 - int(z - 16)) if z < 32 else (names['top'], int(wallh - 1 - z))
                 r_, g_, b_, a_ = get(nm, int(d), ty); fk_ = .04 if extra.get('recess_side') == 'hidden' else (.38 if extra.get('recess_side') == 'dark' else (.25 if extra_dark else .72))
                 px[X, Y] = (int(r_ * fk_), int(g_ * fk_), int(b_ * fk_ * 1.1), a_)
+                if Y < top_line: px[X, Y] = fade_to_bg(px[X, Y], (top_line - Y) / (SS * RD + 1))
         if rc:                                                              # 검은 안쪽 면과 밝은 벽이 만나는 오른쪽 가장자리를 부드럽게
             xe = int(X0 + SK * D + (rb + 1) * T)
             for dx in range(10):
