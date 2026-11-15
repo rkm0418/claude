@@ -226,3 +226,14 @@ decal 1 0 18 9 7 w
 decal 1 0 2 9 14 w
 decal 8 0 20 1 4 m
 decal 8 0 10 1 4 m
+
+[desk_set] 책상 + 스탠드 + 종이 (스케치 구도) | real
+box 0 1 0 1 1 11 b
+box 17 1 0 1 1 11 b
+box 0 7 0 1 1 11 b
+box 17 7 0 1 1 11 b
+box 0 0 11 19 9 1 n
+box 2 5 12 6 5 1 m
+box 4 6.5 13 2 2 9 m
+box 1.5 5 22 9 7 4 w
+box 12 2 12 5 3 1 w
