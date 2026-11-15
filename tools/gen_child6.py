@@ -29,13 +29,13 @@ def hair_ref2(c):
 
 def base_round(c, shirt, shorts, covered=False):
     """둥근 몸: 어깨는 둥근 덮개, 목과 어깨 연결은 넓은 타원으로 이음, 팔은 어깨에서 부드럽게 이어짐."""
-    c.ell(9.2, 32.6, 3.0, 4.6, shorts); c.ell(14.8, 32.6, 3.0, 4.6, shorts)                              # 긴바지(발목까지)
-    c.line(12, 30, 12, 36.4, 1, ch='k')                                                                   # 두 다리 사이 선
+    c.ell(9.2, 32.0, 3.0, 5.2, shorts); c.ell(14.8, 32.0, 3.0, 5.2, shorts)                              # 긴바지(발목까지)
+    c.line(12, 28.6, 12, 36.4, 1, ch='k')                                                                   # 두 다리 사이 선
     for sgn in (-1, 1):
-        K.tube(c, [(12 + sgn * 6.4, 24.4), (12 + sgn * 7.6, 29.4)], 3.0, 2.6, 0, 0, shirt)                    # 팔
-        if not covered: c.ell(12 + sgn * 7.8, 30.8, 1.5, 1.6, K.SKIN)
+        K.tube(c, [(12 + sgn * 6.4, 24.4), (12 + sgn * 7.6, 28.2)], 3.0, 2.6, 0, 0, shirt)                    # 팔
+        if not covered: c.ell(12 + sgn * 7.8, 29.6, 1.5, 1.6, K.SKIN)
         c.ell(12 + sgn * 5.6, 23.6, 2.7, 2.7, shirt)                                                      # 둥근 어깨
-    c.ell(12, 26.4, 6.8, 5.8, shirt); c.ell(12, 22.6, 6.4, 2.8, shirt)                                       # 몸통과 어깨 윗선
+    c.ell(12, 25.2, 6.8, 4.8, shirt); c.ell(12, 22.6, 6.4, 2.8, shirt)                                       # 몸통과 어깨 윗선
     c.ell(12, 20.8, 3.4, 1.9, K.SKIN); c.ell(12, 21.8, 4.2, 1.4, shirt)                                       # 목과 둥근 목선
 
 def build(shirt, shorts, hands_covered=False):
@@ -49,7 +49,7 @@ def Cc():
     c = build('y', 'a'); c.ell(9.2, 36.0, 2.0, 1.3, 'W'); c.ell(9.2, 37.3, 2.2, .8, 'd'); c.ell(14.8, 37.3, 2.2, .8, 'd'); return c.finish()   # 한쪽 바짓단만 접혀 양말이 보임
 def D():
     c = build('l', 'd', True)
-    for sgn in (-1, 1): c.ell(12 + sgn * 7.8, 30.8, 1.9, 1.7, 'l')
+    for sgn in (-1, 1): c.ell(12 + sgn * 7.8, 29.6, 1.9, 1.7, 'l')
     c.ell(9.2, 37.2, 1.8, .9, K.SKIN); c.ell(14.8, 37.2, 1.8, .9, K.SKIN); return c.finish()
 
 def main():
