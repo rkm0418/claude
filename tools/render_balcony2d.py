@@ -24,7 +24,7 @@ def main():
     for _ in range(5): px[rng.randrange(8, W - 8), rng.randrange(6, rail_y - 14)] = rgb(pal, rng.choice('WwWq'))
     # 철창(뒤쪽 한 줄): 위 가로대 y=62, 아래 가로대 y=79. 양 끝은 앞쪽으로 비스듬히 벌어져 화면 밖까지 잘린다. 철창 아래는 전부 땅.
     ML, MR = (112, 114, 128, 255), (82, 84, 98, 255)
-    L, Rr, top_y, base_y = 12, W - 12, 62, 79
+    L, Rr, top_y, base_y = 12, W - 12, 50, 79
     TT, TB, TW = 2, 1, 1                                   # 철창 두께: 윗줄, 아랫줄, 창살(칸)
     ST, SB = 3, 2                                                 # 양옆 꺾인 부분 윗줄만 한 칸 더 굵게
     def base_at(x):                                        # 아래 가로대(땅 경계)의 높이
