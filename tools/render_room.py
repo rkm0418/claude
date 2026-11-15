@@ -129,7 +129,7 @@ def render_room(path, scale=1):
                     if z < 16: nm, ty = names['base'], 15 - int(z)
                     elif z < 32: nm, ty = names['mid'], 15 - int(z - 16)
                     else: nm, ty = names['mid'], 15 - int(z - 32) % 16
-                    r_, g_, b_, a_ = get(nm, int(off + 5), ty); px[X, Y] = (int(r_ * .34), int(g_ * .34), int(b_ * .38), a_); strip_px.append((X, Y))                       # 조명 뒤에 한 번 더 어둡게 눌러 준다
+                    r_, g_, b_, a_ = get(nm, int(off + 5), ty); gk = .1 + .9 * (off / max(1, int(SK * RD) - 1)) ** 1.1; px[X, Y] = (r_, g_, b_, a_); strip_px.append((X, Y, gk))       # 왼쪽(검은 곳 쪽)은 어둡고 오른쪽 벽에 닿을수록 원래 색으로 돌아가는 그라데이션
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)
         sp = lib[name]; img.alpha_composite(sp, (int(round(left)), int(round(bottom - sp.height))))
@@ -211,8 +211,8 @@ def render_room(path, scale=1):
     # 조명과 톤
     bg = Image.new('RGBA', img.size, (8, 6, 12, 255)); bg.alpha_composite(img); img = R.shade(bg, emitters, m['ambient'], False)
     p3 = img.load()
-    for (X, Y) in strip_px:
-        r_, g_, b_, a_ = p3[X, Y]; p3[X, Y] = (int(r_ * .4), int(g_ * .4), int(b_ * .46), a_)
+    for (X, Y, gk) in strip_px:                                          # 조명 뒤에 그라데이션을 곱한다(조명에 씻기지 않게)
+        r_, g_, b_, a_ = p3[X, Y]; p3[X, Y] = (int(r_ * gk), int(g_ * gk), int(b_ * gk * 1.05), a_)
     if m['tone']:
         p2 = img.load()
         for y in range(img.height):

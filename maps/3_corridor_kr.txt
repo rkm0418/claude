@@ -7,7 +7,7 @@ recess_depth: 1
 recess_side: dark
 recess_panel: black
 recess_endface: on
-recess_feather: 1
+recess_feather: 0
 left_add: door_entry_ls@0.2^0
 legend:
 # void
