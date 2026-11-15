@@ -7,14 +7,14 @@ import gen_child as K
 from gen_shadow import C
 
 def hair_black(c):
-    c.ell(12, 8.2, 10.4, 7.8, 's')
+    c.ell(12, 8.6, 10.6, 8.2, 's')
     for y in range(18):
         for x in range(24):
             if c.g[y][x] != 's': continue
-            lim = 13.0 if (x < 4.6 or x > 19.4) else 10.6 - abs(x - 12) * 0.05
+            lim = 14.0 if (x < 4.8 or x > 19.2) else 11.8 - abs(x - 12) * 0.04
             if y > lim: c.g[y][x] = K.SKIN
     for y in range(2, 11):                                                                                 # 가운데 가르마
-        half = 0.4 + (y - 2) * 0.22
+        half = 0.3 + (y - 2) * 0.1
         for x in range(24):
             if abs(x - 12) <= half and c.g[y][x] == 's': c.g[y][x] = K.SKIN
     for x0, y0, x1, y1 in ((11.4, 5.6, 12.0, 9.0),): c.line(x0, y0, x1, y1, 1, ch='s')   # 가르마 사이로 내려온 잔머리

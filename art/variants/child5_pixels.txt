@@ -1,18 +1,18 @@
 # 주인공 5차 시안: 가운데 가르마 검은 단발 + 얼굴 없음 (tools/gen_child5.py 가 생성함)
 
 [child_A] 하늘색 긴소매, 올리브 반바지, 무릎 밴드, 슬리퍼 한 짝 | A
-........kkkkkkkkk.......
-......kkdddddddddkk.....
-.....kdsssssqssssddk....
+.........kkkkkkk........
+......kkkdddddddkkk.....
+.....kddssssqsssdddk....
 ....kssmsddsqssdsssdk...
 ...kssmdsdssqssdsmdsdk..
-..ksssddsdssqqsddsdssdk.
-..ksssdsddsssqssdsdssdk.
-.ksssddsdssssqssddddssdk
-.ksssddsdssqsqssddsdssdk
+..ksssddsdssqssddsdssdk.
+.kssssdsddssssssdsdsssdk
+.ksssddsdsssssssddddssdk
+.ksssddsdsssssssddsdssdk
 .ksssdsssssqsqsssssdssdk
-.kssssssssqqqqqsssssssdk
-..kssqqqqqqqqqqqqqqqsdk.
+.ksssssssssqqqssssssssdk
+.kssssssssssssssssssssdk
 ..kssqqqqqqqqqqqqqqqsdk.
 .kqqsqqqqqqqqqqqqqqqsqqk
 .kqqqqqqqqqqqqqqqqqqqqqk
@@ -41,18 +41,18 @@
 .......kppppkkqqqk......
 
 [child_B] 민트 후드티, 검은 반바지, 운동화 | B
-........kkkkkkkkk.......
-......kkdddddddddkk.....
-.....kdsssssqssssddk....
+.........kkkkkkk........
+......kkkdddddddkkk.....
+.....kddssssqsssdddk....
 ....kssmsddsqssdsssdk...
 ...kssmdsdssqssdsmdsdk..
-..ksssddsdssqqsddsdssdk.
-..ksssdsddsssqssdsdssdk.
-.ksssddsdssssqssddddssdk
-.ksssddsdssqsqssddsdssdk
+..ksssddsdssqssddsdssdk.
+.kssssdsddssssssdsdsssdk
+.ksssddsdsssssssddddssdk
+.ksssddsdsssssssddsdssdk
 .ksssdsssssqsqsssssdssdk
-.kssssssssqqqqqsssssssdk
-..kssqqqqqqqqqqqqqqqsdk.
+.ksssssssssqqqssssssssdk
+.kssssssssssssssssssssdk
 ..kssqqqqqqqqqqqqqqqsdk.
 .kqqsqqqqqqqqqqqqqqqsqqk
 .kqqqqqqqqqqqqqqqqqqqqqk
@@ -81,18 +81,18 @@
 .......kkkkkkkkkkk......
 
 [child_C] 노란 긴소매, 한쪽만 내려간 양말 | C
-........kkkkkkkkk.......
-......kkdddddddddkk.....
-.....kdsssssqssssddk....
+.........kkkkkkk........
+......kkkdddddddkkk.....
+.....kddssssqsssdddk....
 ....kssmsddsqssdsssdk...
 ...kssmdsdssqssdsmdsdk..
-..ksssddsdssqqsddsdssdk.
-..ksssdsddsssqssdsdssdk.
-.ksssddsdssssqssddddssdk
-.ksssddsdssqsqssddsdssdk
+..ksssddsdssqssddsdssdk.
+.kssssdsddssssssdsdsssdk
+.ksssddsdsssssssddddssdk
+.ksssddsdsssssssddsdssdk
 .ksssdsssssqsqsssssdssdk
-.kssssssssqqqqqsssssssdk
-..kssqqqqqqqqqqqqqqqsdk.
+.ksssssssssqqqssssssssdk
+.kssssssssssssssssssssdk
 ..kssqqqqqqqqqqqqqqqsdk.
 .kqqsqqqqqqqqqqqqqqqsqqk
 .kqqqqqqqqqqqqqqqqqqqqqk
@@ -121,18 +121,18 @@
 .......kddddkddddk......
 
 [child_D] 손을 덮은 큰 회색 후드, 맨발 | D
-........kkkkkkkkk.......
-......kkdddddddddkk.....
-.....kdsssssqssssddk....
+.........kkkkkkk........
+......kkkdddddddkkk.....
+.....kddssssqsssdddk....
 ....kssmsddsqssdsssdk...
 ...kssmdsdssqssdsmdsdk..
-..ksssddsdssqqsddsdssdk.
-..ksssdsddsssqssdsdssdk.
-.ksssddsdssssqssddddssdk
-.ksssddsdssqsqssddsdssdk
+..ksssddsdssqssddsdssdk.
+.kssssdsddssssssdsdsssdk
+.ksssddsdsssssssddddssdk
+.ksssddsdsssssssddsdssdk
 .ksssdsssssqsqsssssdssdk
-.kssssssssqqqqqsssssssdk
-..kssqqqqqqqqqqqqqqqsdk.
+.ksssssssssqqqssssssssdk
+.kssssssssssssssssssssdk
 ..kssqqqqqqqqqqqqqqqsdk.
 .kqqsqqqqqqqqqqqqqqqsqqk
 .kqqqqqqqqqqqqqqqqqqqqqk
