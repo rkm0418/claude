@@ -91,7 +91,7 @@ def render_room(path, scale=1):
                 glass = extra_dark and 16 <= z < 32 and c - c0 in (ra, ra + 1)                          # 안쪽 벽에 희미한 푸른 창: 방이 더 이어진다는 단서
                 if glass: nm = 'window_kr_l' if c - c0 == ra else 'window_kr_r'
                 r_, g_, b_, a_ = get(nm, int(x), ty); px[X, Y] = ((int(r_ * .38), int(g_ * .42), int(b_ * .55), a_) if glass else (int(r_ * .06), int(g_ * .06), int(b_ * .08), a_)) if extra_dark else (int(r_ * .9), int(g_ * .9), int(b_ * .92), a_)       # 안쪽은 어둡게(recess_dark면 거의 검정)
-        for X in range(int(X0 + ra * T + SK * D), int(X0 + ra * T + SK * (D + RD)) + 1):
+        for X in range(int(X0 + ra * T + SK * D), int(X0 + ra * T + SK * (D + RD)) + 1) if extra.get('recess_side') != 'none' else []:     # none: 옆벽은 시점에서 보이지 않으므로 그리지 않는다
             d = (X + .5 - X0 - ra * T) / SK
             if not (D <= d < D + RD): continue
             for Y in range(int(Y0 - SS * (D + RD) - wallh), int(Y0 - SS * D) + 1):

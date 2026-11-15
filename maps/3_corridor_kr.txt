@@ -4,7 +4,7 @@ ambient: 0.1
 left_wall: kr
 recess: 3 5
 recess_depth: 1
-recess_side: hidden
+recess_side: none
 left_add: door_entry_ls@0.2^0
 legend:
 # void
@@ -25,7 +25,7 @@ map:
 ##############
 ##tttttttttt##
 ##wGwwwwwSww##
-##bbbbbDbbBb##
+##bbbbbbbbBb##
 ##Re......ee##
 ##Ee......ee##
 ##############
