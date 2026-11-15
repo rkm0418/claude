@@ -146,7 +146,7 @@ def stutter(y, a, seg, times):
     for k in range(1, times): z[i0 + k * n:i0 + (k + 1) * n] = piece
     z[i0 + times * n:] = 0; return z
 
-def build(noise=1.0):
+def build_patch(noise=1.0):
     """한 소리에 다 섞지 않고, 서로 다른 출처의 짧은 조각을 이어 붙인 짜깁기. 조각 사이는 채널 돌리는 잡음과 정적."""
     V = {'a': (800, 1200, 2500), 'i': (300, 2300, 3000), 'u': (320, 800, 2500), 'e': (500, 1800, 2500), 'o': (500, 900, 2400)}
     vs = lambda s: [V[c] for c in s]
@@ -177,7 +177,83 @@ def build(noise=1.0):
     out = np.tanh(out * 1.5) * .8; out = wow(out); out = fft_filter(out, 150, 11000)
     return out / (np.abs(out).max() + 1e-9) * .9
 
+
+# ---- 불규칙하고 불쾌한 조각 ----
+def slow(y, f):                      # 재생 속도를 f배로(0.5면 한 옥타브 아래로 늘어진 소리)
+    return np.interp(np.arange(0, len(y) - 1, f), np.arange(len(y)), y)
+def ringmod(y, f): return y * np.sin(2 * np.pi * f * np.arange(len(y)) / SR)
+def bitcrush(y, hold=12, levels=7): y = np.repeat(y[::hold], hold)[:len(y)]; return np.round(y * levels) / levels
+def norm(y, g): return y / (np.abs(y).max() + 1e-9) * g
+def fade(y): return y * np.clip(np.minimum(np.arange(len(y)), len(y) - np.arange(len(y))) / (.004 * SR), 0, 1)
+def vv(dur, pitch, vow, g=.8, sp=6.0):
+    V = {'a': (800, 1200, 2500), 'i': (300, 2300, 3000), 'u': (320, 800, 2500), 'e': (500, 1800, 2500), 'o': (500, 900, 2400)}
+    return voice(0, dur, pitch, [V[c] for c in vow], sp, g)[:int(dur * SR)]
+def cluster(dur, g=.5):               # 반음이 부딪히는 불협화음 허밍
+    n = int(dur * SR); tt = np.arange(n) / SR; y = sum(np.sin(2 * np.pi * 330 * 2 ** (k / 12) * tt * (1 + .01 * np.sin(2 * np.pi * (3 + k) * tt))) for k in (0, 1, 6, 11))
+    return norm(y * (.6 + .4 * np.sin(2 * np.pi * 7 * tt)), g)
+def pierce(dur, g=.45):               # 귀를 찌르는 두 음(맥놀이)
+    n = int(dur * SR); tt = np.arange(n) / SR; return norm(np.sin(2 * np.pi * 3100 * tt) + np.sin(2 * np.pi * 3127 * tt), g) * np.clip(tt * 200, 0, 1)
+def scrape(dur, g=.5):                # 긁는 소리
+    n = int(dur * SR); w = np.cumsum(rng.standard_normal(n)) * .0; f = 40 + 260 * np.abs(np.sin(2 * np.pi * (.9 + rng.random()) * np.arange(n) / SR))
+    return norm(rng.standard_normal(n) * (np.sin(2 * np.pi * np.cumsum(f) / SR) > -.2), g)
+def heart(dur, g=.7):                 # 박자가 흐트러진 심장 소리
+    z = np.zeros(int(dur * SR)); tm = .05
+    while tm < dur - .3:
+        for d in (0, .17):
+            k = int((tm + d) * SR); n = int(.14 * SR); tt = np.arange(n) / SR; z[k:k + n] += (np.sin(2 * np.pi * 58 * tt) * np.exp(-26 * tt))[:len(z) - k]
+        tm += rng.uniform(.35, 1.0)
+    return norm(z, g)
+def burst(dur=.18, g=1.0): n = int(dur * SR); return norm(fft_filter(rng.standard_normal(n), 100, 10000) * np.exp(-12 * np.arange(n) / SR), g)
+def whisper(dur, g=.5): n = int(dur * SR); tt = np.arange(n) / SR; return norm(fft_filter(rng.standard_normal(n), 2500, 8000) * np.clip(np.sin(2 * np.pi * 5 * tt + rng.random() * 6), 0, 1) ** 2, g)
+def crash_f(dur, g=1.0): return crash(0, 1.0)[:int(2.5 * SR)] * g
+
+FRAGS = {   # 이름: (생성 함수(dur) -> 배열, 최소 길이, 최대 길이)
+    'voice': (lambda d: band(vv(d, rng.choice([180, 220, 300]), ''.join(rng.choice(list('aeiou'), 7))), 300, 3400), .5, 3.0),
+    'voice_slow': (lambda d: norm(slow(vv(d * 1.7, 200, ''.join(rng.choice(list('aeiou'), 6))), .55), .85), .8, 3.0),
+    'voice_ring': (lambda d: norm(ringmod(vv(d, 230, ''.join(rng.choice(list('aeiou'), 6))), 55), .8), .5, 2.2),
+    'voice_crush': (lambda d: norm(bitcrush(vv(d, 260, 'aeiuo'), 18), .8), .4, 2.0),
+    'voice_rev': (lambda d: vv(d, 210, 'uoaie')[::-1], .6, 2.4),
+    'sing_off': (lambda d: sing_arr(d), 1.2, 3.5),
+    'cluster': (cluster, .8, 3.0),
+    'pierce': (pierce, .15, .9),
+    'scrape': (scrape, .3, 1.4),
+    'heart': (heart, 1.0, 3.5),
+    'whisper': (whisper, .6, 2.5),
+    'knock': (lambda d: sum(place_at(knock(0), k) for k in np.cumsum(rng.uniform(.15, .6, 3)))[:int(d * SR)], .8, 2.0),
+    'phone': (lambda d: phone(0, 2, .6)[:int(d * SR)], 1.0, 3.0),
+    'bell': (lambda d: (tone(0, d, 880, .5) + tone(0, d, 660, .4))[:int(d * SR)], .8, 2.0),
+    'burst': (lambda d: burst(.2), .2, .2),
+}
+def place_at(y, k): z = np.zeros(N); i = int(k * SR); z[i:i + len(y)] = y[:N - i]; return z
+def sing_arr(d):
+    notes = [440, 523, 659, 587, 523, 440, 392, 440][:max(2, int(d / 1.0))]; return sing(0, notes, 1.0, .5, detune=rng.choice([.9, .944, 1.06]))[:int(d * SR)]
+
+def build(noise=1.0, seed=3):
+    """불규칙 짜깁기: 조각의 종류, 길이, 간격이 모두 제멋대로이고, 갑자기 큰 소리가 터지고 정적이 길게 끼어든다."""
+    global rng
+    rng = np.random.default_rng(seed); m = np.zeros(N); cur = .0; names = list(FRAGS); last = None; crashed = False
+    while cur < DUR - 1.0:
+        if not crashed and cur > 20 and rng.random() < .5:            # 교통사고는 후반 어딘가에 한 번(위치는 매번 다름)
+            m += horn(cur, rng.uniform(.6, 1.4), .6); m += screech(cur + .7, rng.uniform(.6, 1.2), .6); m += crash(cur + 1.6); cur += 2.6; crashed = True; cur += rng.uniform(1.0, 2.2); continue
+        nm = rng.choice([x for x in names if x != last]); fn, lo, hi = FRAGS[nm]; d = rng.uniform(lo, hi) if hi > lo else lo; last = nm
+        y = fade(fn(d)); k = int(cur * SR); n = min(len(y), N - k)
+        if rng.random() < .25 and len(y) > .5 * SR:                   # 가끔 걸려서 일부가 반복됨
+            a = int(len(y) * rng.uniform(.2, .6)); sg = int(rng.uniform(.08, .25) * SR); y = np.concatenate([y[:a]] + [y[a:a + sg]] * rng.integers(3, 7))
+        n = min(len(y), N - k); m[k:k + n] += y[:n] * rng.uniform(.6, 1.2)
+        cur += len(y) / SR
+        r = rng.random()                                              # 간격도 불규칙: 겹치기, 거의 없음, 짧은 채널잡음, 긴 정적
+        if r < .15: cur -= min(.5, len(y) / SR * .4)
+        elif r < .5: cur += rng.uniform(.03, .2)
+        elif r < .8: m += tune(cur, (g := rng.uniform(.2, .8)), rng.uniform(.3, .7)); cur += g
+        else: cur += rng.uniform(1.0, 2.4)
+    bed = fft_filter(rng.standard_normal(N), 2000, 9000) * (.04 + .04 * np.abs(np.sin(2 * np.pi * rng.uniform(.1, .5) * t)))
+    pops = (rng.random(N) < 2.5e-4) * rng.standard_normal(N) * .9
+    out = m + noise * (bed + pops + np.sin(2 * np.pi * 60 * t) * .02)
+    out = np.tanh(out * 1.7) * .8; out = wow(out, .006); out = fft_filter(out, 150, 11000)
+    return out / (np.abs(out).max() + 1e-9) * .9
+
 if __name__ == '__main__':
     nz = float(sys.argv[1]) if len(sys.argv) > 1 else 1.0
-    y = build(nz); pcm = (y * 32767).astype('<i2')
+    sd = int(sys.argv[2]) if len(sys.argv) > 2 else 3
+    y = build(nz, sd); pcm = (y * 32767).astype('<i2')
     with wave.open('audio/radio_draft.wav', 'wb') as w: w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())
