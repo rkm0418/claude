@@ -70,12 +70,18 @@ def render_room(path, scale=1):
     # 왼쪽 벽의 사물: 세로 선은 그대로, 깊이 방향은 SK 배로 눌리고 SS 만큼 올라가는 기울임
     for tok in extra.get('left_add', '').split():
         nm, at = tok.split('@'); dc, _, lift = at.partition('^'); d0 = int(float(dc) * T); sp = lib[nm]
+        painted = {}
         for u in range(sp.width):
             for v in range(sp.height):
                 p = sp.getpixel((u, v))
                 if p[3] == 0: continue
                 d = d0 + u; X = int(X0 + SK * d); Y = int(Y0 - SS * d - int(lift or 0) - (sp.height - 1 - v)) - 1
-                if 0 <= X < CW and 0 <= Y < CH: px[X, Y] = (int(p[0] * .82), int(p[1] * .82), int(p[2] * .86), 255)
+                if 0 <= X < CW and 0 <= Y < CH: painted[(X, Y)] = (int(p[0] * .82), int(p[1] * .82), int(p[2] * .86), 255)   # 가로로 눌릴 때 같은 점에 겹치면 나중 것이 남는다
+        for (X, Y), col in painted.items(): px[X, Y] = col
+        for (X, Y) in list(painted):                        # 눌리면서 사라진 테두리를 바깥에 다시 둘러 준다
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                q = (X + dx, Y + dy)
+                if q not in painted and 0 <= q[0] < CW and 0 <= q[1] < CH: px[q] = (26, 22, 32, 255)
     # 바닥의 사물: 뒤(깊이가 큰 쪽)부터 앞으로
     things = []
     for fr, ri in enumerate(floor_rows):
