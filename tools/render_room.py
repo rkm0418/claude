@@ -34,21 +34,24 @@ def render_room(path, scale=1):
     ncols, nrows = c1 - c0 + 1, len(floor_rows)
     W, D = ncols * T, nrows * T
     sky = int(m.get('extra', {}).get('sky_rows', '0')); wallh = WALLH + 16 * sky      # 방지대 위에 하늘 줄을 더 쌓는다
-    CW, CH = int(PAD * 2 + W + SK * D), int(PAD * 2 + wallh + SS * D)
-    X0, Y0 = PAD, PAD + wallh + SS * D
+    rc = m.get('extra', {}).get('recess'); RD = T if rc else 0                  # 뒷벽이 한 칸 안쪽으로 패인 부분(알코브): `recess: 시작열 끝열`
+    ra, rb = [int(v) for v in rc.split()] if rc else (0, -1)
+    CW, CH = int(PAD * 2 + W + SK * (D + RD)), int(PAD * 2 + wallh + SS * (D + RD))
+    X0, Y0 = PAD, PAD + wallh + SS * (D + RD)
     img = Image.new('RGBA', (CW, CH), (0, 0, 0, 0)); px = img.load()
     tex = lambda name: lib[name].load()
     def get(name, x, y): return tex(name)[x % 16, y % 16]
     extra = m.get('extra', {}); kind = extra.get('left_wall', 'kr')
     names = {'top': f'wall_top_{kind}', 'mid': f'wall_{kind}', 'base': f'wall_base_{kind}'}
     # 바닥: 화면 한 점마다 (x, 깊이 d)를 거꾸로 계산해 타일 무늬를 찍는다
-    for Y in range(int(Y0 - SS * D), int(Y0) + 1):
+    for Y in range(int(Y0 - SS * (D + RD)), int(Y0) + 1):
         d = (Y0 - Y - .5) / SS
-        if not (0 <= d < D): continue
-        for X in range(int(X0), int(X0 + W + SK * D) + 1):
+        if not (0 <= d < D + RD): continue
+        for X in range(int(X0), int(X0 + W + SK * (D + RD)) + 1):
             x = X + .5 - X0 - SK * d
             if not (0 <= x < W): continue
-            fr = nrows - 1 - int(d // T); ch = rows[floor_rows[fr]][c0 + int(x // T)]
+            if d >= D and not (ra * T <= x < (rb + 1) * T): continue                # 알코브 바닥만 더 안쪽까지
+            fr = max(0, nrows - 1 - int(d // T)); ch = rows[floor_rows[fr]][c0 + int(x // T)]
             if not tile(ch).startswith('floor'): continue
             px[X, Y] = get(tile(ch), int(x), 15 - int(d % T))
     # 왼쪽 벽
@@ -62,8 +65,9 @@ def render_room(path, scale=1):
             r, g, b, a = get(nm, int(d), ty); px[X, Y] = (int(r * .82), int(g * .82), int(b * .86), a)
     # 뒷벽
     by = Y0 - SS * D
-    for X in range(int(X0 + SK * D), int(X0 + SK * D + W)):
+    for X in range(int(X0 + SK * D), int(X0 + SK * D + W + 1)):
         x = X + .5 - X0 - SK * D; c = c0 + int(x // T)
+        if ra <= c - c0 <= rb: continue                                   # 알코브 열은 아래에서 더 안쪽에 그린다
         for Y in range(int(by - wallh), int(by)):
             z = by - (Y + .5)
             if z < 16: nm, ty = tile(rows[base_row][c]), 15 - int(z)
@@ -71,6 +75,24 @@ def render_room(path, scale=1):
             elif sky and tile(rows[top_row][c]).startswith('wall_rail_top_'): nm, ty = 'wall_rail_top_' + 'abcdef'[(c + 2 * int((z - 32) // 16)) % 6], 15 - int((z - 32) % 16)
             else: nm, ty = tile(rows[top_row][c]), int(wallh - 1 - z)
             if nm in lib: px[X, Y] = get(nm, int(x), ty)
+    if rc:
+        by2 = Y0 - SS * (D + RD)                                         # 알코브: 한 칸 안쪽의 뒷벽 + 왼쪽 옆벽
+        for X in range(int(X0 + SK * (D + RD) + ra * T), int(X0 + SK * (D + RD) + (rb + 1) * T)):
+            x = X + .5 - X0 - SK * (D + RD); c = c0 + int(x // T)
+            for Y in range(int(by2 - wallh), int(by2)):
+                z = by2 - (Y + .5)
+                if z < 16: nm, ty = tile(rows[base_row][c]), 15 - int(z)
+                elif z < 32: nm, ty = tile(rows[mid_row][c]), 15 - int(z - 16)
+                else: nm, ty = tile(rows[top_row][c]), int(wallh - 1 - z)
+                r_, g_, b_, a_ = get(nm, int(x), ty); px[X, Y] = (int(r_ * .9), int(g_ * .9), int(b_ * .92), a_)       # 안쪽이라 조금 어둡게
+        for X in range(int(X0 + ra * T + SK * D), int(X0 + ra * T + SK * (D + RD)) + 1):
+            d = (X + .5 - X0 - ra * T) / SK
+            if not (D <= d < D + RD): continue
+            for Y in range(int(Y0 - SS * (D + RD) - wallh), int(Y0 - SS * D) + 1):
+                z = (Y0 - SS * d) - (Y + .5)
+                if not (0 <= z < wallh): continue
+                nm, ty = (names['base'], 15 - int(z)) if z < 16 else (names['mid'], 15 - int(z - 16)) if z < 32 else (names['top'], int(wallh - 1 - z))
+                r_, g_, b_, a_ = get(nm, int(d), ty); px[X, Y] = (int(r_ * .72), int(g_ * .72), int(b_ * .78), a_)
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)
         sp = lib[name]; img.alpha_composite(sp, (int(round(left)), int(round(bottom - sp.height))))
@@ -80,8 +102,9 @@ def render_room(path, scale=1):
     for r_i, zb in ((base_row, 0), (mid_row, 16), (top_row, 32)):
         for c in range(c0, c1 + 1):
             for obj in leg[rows[r_i][c]][1]:
-                nm, _, lift = obj.partition('^'); sp_ = stamp(nm, X0 + SK * D + (c - c0) * T, by - zb - int(lift or 0))
-                if nm == 'wall_light_kr': cone(img, X0 + SK * D + (c - c0) * T + 10, by - zb - int(lift or 0), 30)
+                inr = ra <= c - c0 <= rb; dd = D + RD if inr else D
+                nm, _, lift = obj.partition('^'); sp_ = stamp(nm, X0 + SK * dd + (c - c0) * T, Y0 - SS * dd - zb - int(lift or 0))
+                if nm == 'wall_light_kr': cone(img, X0 + SK * dd + (c - c0) * T + 10, Y0 - SS * dd - zb - int(lift or 0), 30)
     # 왼쪽 벽의 사물: 세로 선은 그대로, 깊이 방향은 SK 배로 눌리고 SS 만큼 올라가는 기울임
     for tok in extra.get('left_add', '').split():
         nm, at = tok.split('@'); dc, _, lift = at.partition('^'); d0 = int(float(dc) * T); sp = lib[nm]
@@ -131,6 +154,7 @@ def render_room(path, scale=1):
             X = int(X0 + xx)
             in_door = dx0 <= xx < dx0 + dw
             post = dx0 <= xx < dx0 + 2 or dx0 + dw - 2 <= xx < dx0 + dw
+            lintel = dx0 <= xx < dx0 + dw and not post
             top = POST if post else (0 if in_door else LOW)
             for z in range(top):
                 Y = int(Y0 + 1 - 1 - z) - 0
@@ -138,6 +162,8 @@ def render_room(path, scale=1):
                 elif z == top - 1: col = (156, 143, 138, 255)
                 else: col = get(f'wall_base_{fk}', xx, 15 - z)
                 px[X, Y] = col
+            if lintel:
+                for z in range(POST - 3, POST): px[X, int(Y0) - z] = (247, 245, 240, 255) if z < POST - 1 else (26, 22, 32, 255)       # 문틀 윗가로대
             if in_door and not post:                        # 문턱과 발판
                 for z in range(2): px[X, int(Y0) - z] = (115, 86, 62, 255) if z == 0 else (156, 143, 138, 255)
         glow = extra.get('front_glow')

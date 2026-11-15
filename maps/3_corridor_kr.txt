@@ -2,6 +2,7 @@ title: 3장 - 복도와 현관 (한국 아파트, 사선 시점, 현실 버전)
 tone: 255 246 232
 ambient: 0.1
 left_wall: kr
+recess: 4 5
 left_add: door_entry_ls@0.2^0
 legend:
 # void
