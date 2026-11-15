@@ -16,17 +16,17 @@ D wall_base_kr door
 C floor_kr ceiling_light
 c floor_kr chair
 x floor_kr desk_set
-E floor_kr bed
+E floor_kr bed_kr
 J floor_kr toybox
 Z floor_kr rug_small
 map:
 ##########
 ##tttttt##
-##wKWVww##
+##wwwwKw##
 ##bbbbbD##
 ##x.E...##
-##c.....##
+##......##
 ##..Z.C.##
-##J.....##
+##......##
 ##########
 ##########
