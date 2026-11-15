@@ -110,8 +110,17 @@ def render_room(path, scale=1):
                 r_, g_, b_, a_ = get(nm, int(d), ty); fk_ = .04 if extra.get('recess_side') == 'hidden' else (.38 if extra.get('recess_side') == 'dark' else (.25 if extra_dark else .72))
                 px[X, Y] = (int(r_ * fk_), int(g_ * fk_), int(b_ * fk_ * 1.1), a_)
                 if Y < top_line: px[X, Y] = fade_to_bg(px[X, Y], (top_line - Y) / (SS * RD + 1))
+    if rc and extra.get('recess_feather', '1') == '1':                  # 검은 안쪽 면과 밝은 벽이 만나는 가장자리를 부드럽게(바깥 벽 왼쪽 끝이 서서히 어두워짐)
+        xe = int(X0 + SK * D + (rb + 1) * T)
+        for dx in range(10):
+            kk = .45 + .55 * (dx / 10) ** 1.2
+            for Y in range(int(by - wallh), int(by)):
+                X = xe + dx
+                if 0 <= X < CW:
+                    r_, g_, b_, a_ = px[X, Y]
+                    if a_: px[X, Y] = (int(r_ * kk), int(g_ * kk), int(b_ * kk), a_)
     strip_px = []
-    if rc:                                                              # ㄴ 자 벽: 바깥 벽의 왼쪽 끝면(두께)을 안쪽 검은 면 오른쪽에 보이게 한다
+    if rc and extra.get('recess_endface', 'on') != 'off':               # ㄴ 자 벽: 바깥 벽의 왼쪽 끝면(두께)을 안쪽 검은 면 오른쪽에 보이게 한다
             xm = int(X0 + SK * D + (rb + 1) * T); base_y = int(Y0 - SS * D); top_y = int(by - wallh)
             for off in range(int(SK * RD)):
                 X = xm - int(SK * RD) + off; sh = 0                                  # 원래 벽 왼쪽에 붙이고, 원래 벽이 이 면보다 앞(위)에 있다

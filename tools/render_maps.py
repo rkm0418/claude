@@ -43,7 +43,7 @@ def load_map(path):
             m['tone'] = tuple(int(v) for v in line[5:].split())
         elif line.startswith('ambient:'):
             m['ambient'] = float(line[8:])
-        elif line.startswith(('view:', 'left_wall:', 'left_add:', 'sky_rows:', 'front_wall:', 'front_door:', 'front_glow:', 'recess:', 'recess_dark:', 'recess_depth:', 'recess_side:', 'recess_panel:')) and section is None:
+        elif line.startswith(('view:', 'left_wall:', 'left_add:', 'sky_rows:', 'front_wall:', 'front_door:', 'front_glow:', 'recess:', 'recess_dark:', 'recess_depth:', 'recess_side:', 'recess_panel:', 'recess_endface:', 'recess_feather:')) and section is None:
             m.setdefault('extra', {})[line.split(':')[0]] = line.split(':', 1)[1].strip()      # 사선 시점 방(render_room.py)용 추가 줄
         elif line.startswith('dream:'):
             m['dream'] = dict(p.split('=') for p in line[6:].split())
