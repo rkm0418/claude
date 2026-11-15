@@ -122,7 +122,7 @@ def render_room(path, scale=1):
         if rc:                                                              # ㄴ 자 벽: 바깥 벽의 왼쪽 끝면(두께)을 안쪽 검은 면 오른쪽에 보이게 한다
             xm = int(X0 + SK * D + (rb + 1) * T); base_y = int(Y0 - SS * D); top_y = int(by - wallh)
             for off in range(int(SK * RD)):
-                X = xm - int(SK * RD) + off; sh = off + 1                                  # 원래 벽 왼쪽에 붙이고, 원래 벽이 이 면보다 앞(위)에 있다
+                X = xm - int(SK * RD) + off; sh = 0                                  # 원래 벽 왼쪽에 붙이고, 원래 벽이 이 면보다 앞(위)에 있다
                 for Y in range(top_y - sh, base_y - sh):
                     z = (base_y - sh) - (Y + .5)
                     if z < 16: nm, ty = names['base'], 15 - int(z)
