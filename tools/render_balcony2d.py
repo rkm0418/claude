@@ -44,8 +44,8 @@ def main():
     for y in (floor_y + 3, floor_y + 8, floor_y + 15):
         for x in range(0, W): px[x, y] = rgb(pal, 'k')
     # 쇠 의자와 탁자: 오른쪽, 방지대 앞
-    t = lib['iron_table']; c = lib['iron_chair_side']
-    im.alpha_composite(t, (62, floor_y + 14 - t.height + 6)); im.alpha_composite(c, (45, floor_y + 14 - c.height + 6))
+    t = lib['iron_table']; c = lib['iron_chair']
+    im.alpha_composite(t, (62, floor_y + 14 - t.height + 6)); im.alpha_composite(c, (44, floor_y + 14 - c.height + 8))
     # 밤의 색조
     for y in range(H):
         for x in range(W):
