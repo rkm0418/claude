@@ -45,22 +45,28 @@ def shade_on(c, base, shade, cx, cy, rx, ry):
         for x in range(24):
             if c.g[y][x] == base and ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1: c.g[y][x] = shade
 
+def crescent(c, base, shade, cx, cy, rx, ry, dx, dy):
+    """둥근 명암: 타원 안에서, 빛 쪽(왼쪽 위)으로 dx,dy 옮긴 같은 타원 밖의 초승달 부분만 그늘색으로 칠한다."""
+    for y in range(38):
+        for x in range(24):
+            if c.g[y][x] != base: continue
+            if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1 and ((x - cx + dx) / rx) ** 2 + ((y - cy + dy) / ry) ** 2 > 1: c.g[y][x] = shade
+
 def shade_clothes(c, shirt, pants):
-    """빛은 왼쪽 위. 그늘: 턱 밑 목, 목선 안쪽, 오른쪽 옆구리와 오른팔, 겨드랑이, 상의 밑단 아래, 바지 오른쪽."""
+    """빛은 왼쪽 위. 몸의 둥근 형태를 따라 오른쪽 아래에 초승달 모양 그늘."""
     sh, ps = SHADE[shirt], SHADE[pants]
-    shade_on(c, K.SKIN, 'u', 12, 18.8, 4.4, 0.7)                    # 턱 밑 목 그늘(얇게)
+    shade_on(c, K.SKIN, 'u', 12, 18.8, 4.4, 0.7)                                    # 턱 밑의 가는 그늘
+    crescent(c, shirt, sh, 12, 25.2, 6.8, 4.8, 2.6, 1.9)                           # 몸통
+    crescent(c, shirt, sh, 17.6, 23.6, 2.7, 2.7, 1.4, 1.1)                         # 오른쪽 어깨 덮개
+    crescent(c, shirt, sh, 6.4, 23.6, 2.7, 2.7, 1.2, .9)                           # 왼쪽 어깨 덮개(약하게)
+    for sgn in (-1, 1): crescent(c, shirt, sh, 12 + sgn * 7.0, 26.2, 1.6, 3.4, 1.1, .8)   # 팔
+    for cx in (9.2, 14.8): crescent(c, pants, ps, cx, 32.0, 3.0, 5.2, 1.5, .8)         # 다리(오른쪽 아래가 어두움)
     for y in range(19, 26):                                                                                # 둥근 목선(U자): 안쪽은 살색, 바깥은 옷 그늘색 테두리
         for x in range(24):
             d_out = ((x - 12) / 4.6) ** 2 + ((y - 21.4) / 3.2) ** 2
             d_in = ((x - 12) / 3.2) ** 2 + ((y - 21.2) / 2.4) ** 2
             if d_in <= 1 and y >= 20 and c.g[y][x] in (shirt, sh, K.SKIN, 'u'): c.g[y][x] = K.SKIN
             elif d_out <= 1 and y >= 20 and c.g[y][x] in (shirt, sh): c.g[y][x] = sh
-    shade_on(c, shirt, sh, 17.6, 25.6, 3.0, 4.6)                    # 오른쪽 몸통 그늘
-    shade_on(c, shirt, sh, 19.4, 26.0, 1.6, 3.4)                    # 오른팔 안쪽 그늘
-    shade_on(c, shirt, sh, 12, 29.2, 6.0, 0.9)                      # 상의 밑단 아래 그늘
-    shade_on(c, shirt, sh, 7.0, 25.4, 1.0, 2.0); shade_on(c, shirt, sh, 17.0, 25.4, 1.0, 2.0)     # 겨드랑이
-    shade_on(c, pants, ps, 11.2, 33, 1.4, 4.4); shade_on(c, pants, ps, 17.0, 33, 1.5, 4.4)        # 바지 오른쪽 면
-    shade_on(c, pants, ps, 12, 28.6, 5.6, 0.9)                      # 허리 아래 그늘
 
 def build(shirt, shorts, hands_covered=False):
     c = C(); base_round(c, shirt, shorts, hands_covered); K.head(c, blush=False); hair_ref2(c); shade_clothes(c, shirt, shorts); return c
