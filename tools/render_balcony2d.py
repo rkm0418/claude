@@ -28,14 +28,15 @@ def main():
     def base_at(x):                                        # 아래 가로대(땅 경계)의 높이
         d = max(L - x, x - Rr, 0); return round(base_y + d)
     for x in range(W):                                     # 땅: 의자와 겹치지 않는 따뜻한 어두운 갈색
-        for y in range(base_at(x) + 3, H): px[x, y] = (46, 34, 30, 255)
+        for y in range(base_at(x) + 2, H): px[x, y] = (46, 34, 30, 255)
     for y in (base_y + 14, base_y + 30):
         for x in range(W):
             if y > base_at(x): px[x, y] = (30, 22, 22, 255)
     def seg(p0, p1, col):
         (x0, y0), (x1, y1) = p0, p1; n = max(abs(x1 - x0), abs(y1 - y0)) or 1
         for i in range(n + 1): px[round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)] = col
-    TT, TB, TW = 4, 3, 3                                   # 철창 두께: 윗줄, 아랫줄, 창살(칸)
+    TT, TB, TW = 3, 2, 2                                   # 철창 두께: 윗줄, 아랫줄, 창살(칸)
+    ST = 4                                                 # 양옆 꺾인 부분 윗줄만 한 칸 더 굵게
     def band(p0, p1, th, col0, col=MR, dy=0):             # 두께 th칸의 선(가로/45도 공통)
         for k in range(th): seg((p0[0], p0[1] + dy + k), (p1[0], p1[1] + dy + k), col0 if k == 0 else col)
     band((L, top_y), (Rr, top_y), TT, ML); band((L, base_y), (Rr, base_y), TB, MR)
@@ -43,10 +44,10 @@ def main():
         for w in range(TW): seg((x + w, top_y + TT), (x + w, base_y - 1), MR)
     for s, x0, ex in ((-1, L, -1), (1, Rr, W)):            # 꺾인 양 끝: 정면과 같은 굵기, 깔끔한 45도
         n = abs(ex - x0)
-        band((x0, top_y), (ex, top_y + n), TT, ML); band((x0, base_y), (ex, base_y + n), TB, MR)
+        band((x0, top_y), (ex, top_y + n), ST, ML); band((x0, base_y), (ex, base_y + n), TB, MR)
         for d in range(4, n, 5):
             xx = x0 + s * d
-            for w in range(TW): seg((xx + w, top_y + d + TT), (xx + w, base_y + d - 1), MR)
+            for w in range(TW): seg((xx + w, top_y + d + ST), (xx + w, base_y + d - 1), MR)
     # 쇠 의자와 탁자: 땅 위
     t = lib['iron_table']; c = lib['iron_chair']
     im.alpha_composite(t, (58, 122 - t.height)); im.alpha_composite(c, (26, 118 - c.height))
