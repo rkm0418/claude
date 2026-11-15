@@ -74,7 +74,7 @@ def render_room(path, scale=1):
         for u in range(sp.width):
             for v in range(sp.height):
                 p = sp.getpixel((u, v))
-                if p[3] == 0: continue
+                if p[3] == 0 or p[:3] == (26, 22, 32): continue          # 원래 테두리는 빼고, 아래에서 한 겹으로 다시 두른다
                 d = d0 + u; X = int(X0 + SK * d); Y = int(Y0 - SS * d - int(lift or 0) - (sp.height - 1 - v)) - 1
                 if 0 <= X < CW and 0 <= Y < CH: painted[(X, Y)] = (int(p[0] * .82), int(p[1] * .82), int(p[2] * .86), 255)   # 가로로 눌릴 때 같은 점에 겹치면 나중 것이 남는다
         for (X, Y), col in painted.items(): px[X, Y] = col
