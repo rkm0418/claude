@@ -17,7 +17,7 @@ export const currentCat = () => curCat;
 
 /** 문제 글 + 그림 + 질문/답을 저장 (원본 사진은 목록에서만 보임). 같은 id면 분류만 바뀜 */
 export async function saveNote(n) {
-  await notes.put({ id: n.id, t: n.t, cat: n.cat, text: n.text, tr: n.tr, ans: n.ans || "", img: n.img, qa: n.qa.map(x => ({ q: x.q, a: x.a })), figs: n.figs.slice(), figs0: n.figs.slice() });
+  await notes.put({ id: n.id, t: n.t, cat: n.cat, text: n.text, tr: n.tr, ans: n.ans || "", memo: n.memo || "", img: n.img, qa: n.qa.map(x => ({ q: x.q, a: x.a, hl: x.hl || [] })), figs: n.figs.slice(), figs0: n.figs.slice() });
 }
 
 /* ── 그림 지우개 ── */
@@ -67,7 +67,8 @@ function editCard(n, c) {
   ok.onclick = async () => {
     if (n.tr) n.tr = body.value.trim(); else n.text = body.value.trim();
     n.ans = ansIn.value.trim();
-    n.qa = qas.map(x => ({ q: x.q.value.trim(), a: x.a.value.trim() })).filter(x => x.q || x.a);
+    const old = n.qa || [];
+    n.qa = qas.map((x, i) => { const a = x.a.value.trim(); return { q: x.q.value.trim(), a, hl: old[i] && old[i].a === a ? old[i].hl || [] : [] } }).filter(x => x.q || x.a);
     await notes.put(n); renderNotes();
   };
   row.append(cancel, ok); c.appendChild(row);
@@ -77,6 +78,23 @@ function editCard(n, c) {
 function card(n) {
   const c = el("div", "nc"), top = el("div", "top"), left = el("span", "tl");
   c.dataset.id = n.id;
+  // 메모는 카드 맨 위. 눌러서 고치고, 아이콘으로 새로 적음
+  const memoWrap = el("div", "memo-wrap");
+  const paintMemo = () => {
+    memoWrap.textContent = "";
+    if (!n.memo) return;
+    const b = el("div", "memo-box"); fillRich(b, n.memo); b.onclick = e => { if (!getSelection().toString()) editMemo() }; memoWrap.appendChild(b);
+  };
+  const editMemo = () => {
+    memoWrap.textContent = "";
+    const ta = el("textarea", "ed"); ta.value = n.memo || ""; ta.rows = 3; ta.placeholder = "메모";
+    const fit = () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 260) + "px" }; ta.addEventListener("input", fit);
+    const row = el("div", "row end"), no = el("button", "btn", "취소"), ok = el("button", "btn pri", "저장");
+    no.type = ok.type = "button"; no.onclick = paintMemo;
+    ok.onclick = async () => { n.memo = ta.value.trim(); await notes.put(n); paintMemo() };
+    row.append(no, ok); memoWrap.append(ta, row); setTimeout(() => { fit(); ta.focus() }, 0);
+  };
+  c.appendChild(memoWrap); paintMemo();
   const mark = el("span", "selmark"); mark.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12.5l3.2 3.2L17 8.8"/></svg>';
   left.append(mark, new Date(n.t).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })); top.appendChild(left);
   c.classList.toggle("sel", sel.has(n.id));
@@ -87,7 +105,10 @@ function card(n) {
   const edit = el("button", "x", ""); edit.type = "button"; edit.setAttribute("aria-label", "수정");
   edit.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14.5 7.5l3 3"/></svg>';
   edit.onclick = () => editCard(n, c);
-  const acts = el("span", "acts"); acts.append(edit, del); top.appendChild(acts); c.appendChild(top);
+  const memoBtn = el("button", "x", ""); memoBtn.type = "button"; memoBtn.setAttribute("aria-label", "메모");
+  memoBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8.5v7M8.5 12h7"/></svg>';
+  memoBtn.onclick = editMemo;
+  const acts = el("span", "acts"); acts.append(memoBtn, edit, del); top.appendChild(acts); c.appendChild(top);
   const pt = el("div", "pt"); fillRich(pt, n.tr || n.text || (n.img ? "(사진 문제)" : "")); c.appendChild(pt);
 
   const dt = el("details"); dt.appendChild(el("summary", null, "자세히"));
@@ -100,7 +121,15 @@ function card(n) {
     });
     dt.appendChild(fw);
   }
-  (n.qa || []).forEach(x => { dt.appendChild(el("div", "q", "Q. " + x.q)); const a = el("div"); fillRich(a, x.a, { pager: true }); dt.appendChild(a) });
+  (n.qa || []).forEach(x => {
+    dt.appendChild(el("div", "q", "Q. " + x.q)); const a = el("div");
+    fillRich(a, x.a, { pager: true, lines: true, hl: x.hl, ctx: {
+      getHl: () => x.hl || (x.hl = []),
+      setHl: list => { x.hl = list; notes.put(n) },
+      addMemo: async text => { if (!text) return ""; n.memo = n.memo ? n.memo + "\n" + text : text; await notes.put(n); paintMemo(); return "메모에 넣었어요" },
+    } });
+    dt.appendChild(a);
+  });
   if (n.img) {
     const od = el("div", "note orig", "원본 사진 (PDF에는 안 들어가요)"), im = new Image(); im.alt = "원본 사진"; im.src = n.img; od.appendChild(im); dt.appendChild(od);
   }
@@ -150,7 +179,7 @@ function initSelection() {
   const cancel = () => { clearTimeout(timer); timer = null };
   list.addEventListener("pointerdown", e => {
     const c = e.target.closest(".nc");
-    if (!c || e.target.closest("button, textarea, input")) return;
+    if (!c || e.target.closest("button, textarea, input, .rich-root, .memo-box")) return;
     sx = e.clientX; sy = e.clientY; cancel();
     timer = setTimeout(() => { timer = null; suppress = true; toggleSel(c.dataset.id, true) }, 500);
   });

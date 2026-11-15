@@ -86,3 +86,12 @@
 @media (hover:hover){.cat-btn:hover{transform:scale(1.05)}}
 .cat-btn:active{transform:scale(1.08);transition-duration:.12s}
 .msg-pick{display:flex;margin:10px 0 0 auto}
+/* 메모 · 형광펜 · 글 선택 도구 */
+.memo-box{background:#fff;border:1.5px solid #000;border-radius:12px;padding:8px 12px;margin-bottom:8px;white-space:pre-wrap;word-break:keep-all;line-height:1.7;cursor:text}
+.memo-box::before{content:"메모";display:block;font:700 .7em "Gmarket",sans-serif;margin-bottom:2px}
+mark.hl,.ln.hl-line{background:#ffe34d;color:#000;border-radius:3px}
+.sel-bar{position:fixed;z-index:200;display:flex;gap:4px;background:#000;border-radius:14px;padding:5px;animation:pop .25s var(--pop)}
+.sel-bar button{border:0;background:transparent;color:#fff;font:700 13px var(--font);padding:8px 11px;border-radius:10px;cursor:pointer;white-space:nowrap;transition:background-color .2s,transform .38s var(--spring)}
+.sel-bar button:hover{background:#333}
+.sel-bar button:active{transform:scale(1.06)}
+.sel-toast{position:fixed;z-index:210;background:#000;color:#fff;font:700 13px var(--font);padding:8px 14px;border-radius:12px;animation:pop .25s var(--pop);pointer-events:none}

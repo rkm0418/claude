@@ -5,6 +5,7 @@ import { callClaude, imageBlock, parseFirst, cleanReply, ApiError } from "./clau
 import { resetDrawer } from "./drawer.js";
 import { makeFigures } from "./figures.js";
 import { saveNote } from "./notes.js";
+import { notes } from "./db.js";
 
 import { categoryBar } from "./catbar.js";
 import { openSettings } from "./settings.js";
@@ -20,7 +21,7 @@ const setAskMode = on => { document.body.classList.toggle("ask-mode", on); $("co
 function addMsg(cls, t, entry) {
   const d = document.createElement("div");
   d.className = "msg " + cls;
-  if (cls === "a") fillRich(d, t, entry ? { pager: true, selectable: true, skip: entry.skip, onToggle: () => { if (S?.noteId) persist(S.cat) } } : { pager: true });
+  if (cls === "a") fillRich(d, t, entry ? { pager: true, selectable: true, skip: entry.skip, onToggle: () => { if (S?.noteId) persist(S.cat) }, lines: true, hl: entry.hl, ctx: entryCtx(entry) } : { pager: true, lines: true });
   else d.textContent = t;
   // 칸으로 나뉘지 않는 답(추가 질문 등)도 체크해서 담음 (처음엔 해제)
   if (cls === "a" && entry && !d.querySelector(".pager")) {
@@ -37,6 +38,22 @@ function addMsg(cls, t, entry) {
   return d;
 }
 
+/** 답변 글에서 고른 부분을 메모에 넣거나 형광펜을 칠할 때 쓰는 저장 방법 */
+function entryCtx(entry) {
+  return {
+    getHl: () => entry.hl,
+    setHl: list => { entry.hl = list; if (S?.noteId) persist(S.cat) },
+    addMemo: async text => {
+      if (!text) return "";
+      S.memo = S.memo ? S.memo + "\n" + text : text;
+      if (!S.noteId) return "메모에 담았어요. 분류를 누르면 저장돼요";
+      const n = await notes.get(S.noteId); // 이미 저장한 노트면 바로 메모에 추가
+      if (n) { n.memo = n.memo ? n.memo + "\n" + text : text; S.memo = n.memo; await notes.put(n) } else await persist(S.cat);
+      return "메모에 넣었어요";
+    },
+  };
+}
+
 /** 저장 선택: 빨간 동그라미 아이콘 아래에 이름을 쓴 버튼 4개 (얻음 · 애매 · 개념 · 어려움).
     누르면 바로 오답노트에 저장하고, 다른 버튼을 누르면 분류만 바뀜 */
 function makeSaveBar() {
@@ -46,17 +63,18 @@ function makeSaveBar() {
 
 /** 오답노트에는 내가 담은 칸만 저장 (칸이 없는 짧은 답은 그대로) */
 async function persist(cat) {
+  const old = S.noteId ? await notes.get(S.noteId) : null;
   S.noteId ||= "n" + Date.now(); S.cat = cat;
   const qa = S.qa.map(x => {
     const sectioned = parseSections(x.a).secs.length > 0;
-    return { q: x.q, a: sectioned ? joinSections(x.a, x.skip).trim() : (x.skip.has("전체") ? "" : x.a) };
+    return { q: x.q, a: sectioned ? joinSections(x.a, x.skip).trim() : (x.skip.has("전체") ? "" : x.a), hl: x.hl || [] };
   }).filter(x => x.a);
-  await saveNote({ id: S.noteId, t: S.t, cat, text: S.transcript ? "" : (S.problem.blob ? "" : (S.qa[0]?.q || "")), tr: S.transcript, ans: S.ans, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa, figs: S.figs });
+  await saveNote({ id: S.noteId, t: S.t, cat, text: S.transcript ? "" : (S.problem.blob ? "" : (S.qa[0]?.q || "")), tr: S.transcript, ans: S.ans, memo: old ? (old.memo ?? S.memo) : S.memo, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa, figs: S.figs });
 }
 
 /* ── 시작 / 끝 ── */
 export function startSession(problem) {
-  S = { problem, qa: [], transcript: "", ans: "", figs: [], noteId: null, t: Date.now() };
+  S = { problem, qa: [], transcript: "", ans: "", memo: "", figs: [], noteId: null, t: Date.now() };
   $("msgs").textContent = ""; $("saveBar").classList.add("hide"); makeSaveBar();
   resetEndButton();
   setAskMode(true);
@@ -122,7 +140,7 @@ async function ask(q) {
     reply = cleanReply(reply);
     // 처음에는 모든 칸이 선택 해제 상태: 오답노트에 넣을 칸만 체크해서 담음
     const ps = parseSections(reply), skip = new Set(ps.secs.length ? [...(ps.pre ? ["요약"] : []), ...ps.secs.map(s => s.h)] : ["전체"]);
-    const entry = { q, a: reply, skip }; S.qa.push(entry);
+    const entry = { q, a: reply, skip, hl: [] }; S.qa.push(entry);
     if (S.noteId) persist(S.cat); // 이미 저장한 문제면 새 답도 같이 저장
     wait.remove(); addMsg("a", reply, entry);
     $("saveBar").classList.remove("hide");

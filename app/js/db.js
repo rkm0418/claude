@@ -34,6 +34,7 @@ async function tx(store, mode, fn) {
 export const notes = {
   async put(n) { if (!(await tx("notes", "readwrite", s => s.put(n)))) mem.notes.set(n.id, n) },
   async all() { const r = await tx("notes", "readonly", s => s.getAll()); return r ? r.v : [...mem.notes.values()] },
+  async get(id) { const r = await tx("notes", "readonly", s => s.get(id)); return r ? r.v : mem.notes.get(id) },
   async del(id) { if (!(await tx("notes", "readwrite", s => s.delete(id)))) mem.notes.delete(id) },
 };
 

@@ -22,9 +22,9 @@ const clean = n => {
     id: String(n.id || "n" + Date.now() + Math.random().toString(36).slice(2, 6)),
     t: +n.t || Date.now(),
     cat: [0, 1, 2, 3, 4].includes(+n.cat) ? +n.cat : 1,
-    text: String(n.text || ""), tr: String(n.tr || ""), ans: String(n.ans || ""),
+    text: String(n.text || ""), tr: String(n.tr || ""), ans: String(n.ans || ""), memo: String(n.memo || ""),
     img: isImg(n.img) ? n.img : "",
-    qa: (Array.isArray(n.qa) ? n.qa : []).map(x => ({ q: String(x?.q || ""), a: String(x?.a || "") })),
+    qa: (Array.isArray(n.qa) ? n.qa : []).map(x => ({ q: String(x?.q || ""), a: String(x?.a || ""), hl: (Array.isArray(x?.hl) ? x.hl : []).filter(h => h && typeof h.l === "string").map(h => ({ id: String(h.id || "h" + Math.random().toString(36).slice(2, 8)), l: h.l, t: String(h.t || ""), k: +h.k || 0 })) })),
     figs, figs0: Array.isArray(n.figs0) ? n.figs0.filter(isImg) : figs.slice(),
   };
 };

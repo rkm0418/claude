@@ -19,7 +19,8 @@ function mathNode(tk) {
   } catch {
     sp.textContent = (tk.d ? "$$" : "$") + tk.m + (tk.d ? "$$" : "$");
   }
-  if (tk.d) { sp.style.display = "block"; sp.style.textAlign = "center" }
+  sp.dataset.tex = tk.m; // 글 선택 도구가 메모로 옮길 때 원래 LaTeX를 쓰도록
+  if (tk.d) { sp.dataset.d = "1"; sp.style.display = "block"; sp.style.textAlign = "center" }
   return sp;
 }
 
@@ -48,7 +49,7 @@ function addTokens(el, text) {
 }
 
 /** 공식 표시가 있는 글은 줄 단위로 나눠서 "사용한 곳"을 줄 전체로 강조할 수 있게 함 (1775 수식이 여러 줄이면 한 줄로 묶음) */
-function addBody(el, text, force) {
+function addBody(el, text, force, key = "본문") {
   if (!force && !/\(공식\d+\)/.test(text)) { addTokens(el, text); return }
   const lines = []; let buf = "";
   for (const ln of String(text).split("\n")) {
@@ -56,7 +57,7 @@ function addBody(el, text, force) {
     if ((buf.match(/\$\$/g) || []).length % 2 === 0) { if (buf.trim()) lines.push(buf); buf = "" }
   }
   if (buf.trim()) lines.push(buf);
-  for (const l of lines) { const d = document.createElement("div"); d.className = "ln"; addTokens(d, l); el.appendChild(d) }
+  lines.forEach((l, i) => { const d = document.createElement("div"); d.className = "ln"; d.dataset.lk = key + ":" + i; addTokens(d, l); el.appendChild(d) });
 }
 
 const CHEV_L = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>';
@@ -95,7 +96,7 @@ function buildPager(el, secs, opts = {}) {
     t.type = "button"; t.className = "pg-tab"; t.textContent = s.h; t.setAttribute("role", "tab");
     t.onclick = () => show(i);
     tabs.appendChild(t); tabEls.push(t);
-    const c = document.createElement("div"); c.className = "pg-card"; addBody(c, s.body, true);
+    const c = document.createElement("div"); c.className = "pg-card"; addBody(c, s.body, true, s.h);
     stage.appendChild(c); cards.push(c);
   });
   // 좌우로 밀어서 이동
@@ -149,17 +150,23 @@ export function joinSections(text, skip = new Set()) {
     opts.pager: 칸으로 나눠 한 칸씩 / opts.selectable+skip+onToggle: 칸마다 담기 선택.
     [빠른 풀이]는 칸이 아닐 때 접어 두고 따로 펼쳐 볼 수 있게 함 */
 export function fillRich(el, text, opts = {}) {
+  buildRich(el, text, opts);
+  el.__ctx = opts.ctx || null; // 글 선택 도구(메모에 넣기·형광펜)가 쓸 저장 방법
+  if (opts.hl?.length) applyHighlights(el, opts.hl);
+}
+
+function buildRich(el, text, opts) {
   el.textContent = ""; el.classList.add("rich-root");
   text = fixNl(text);
   const { pre, secs } = parseSections(text);
-  if (!secs.length) { addBody(el, String(text || "").replace(/^\[검산\][\s\S]*$/m, "").trim() || String(text || "")); return }
+  if (!secs.length) { addBody(el, String(text || "").replace(/^\[검산\][\s\S]*$/m, "").trim() || String(text || ""), !!opts.lines); return }
   if (opts.pager && secs.length >= 2) {
     const list = pre ? [{ h: "요약", body: pre }, ...secs] : secs;
     buildPager(el, list, opts); return;
   }
-  if (pre) { const p = document.createElement("div"); addBody(p, pre); el.appendChild(p) }
+  if (pre) { const p = document.createElement("div"); addBody(p, pre, !!opts.lines, "요약"); el.appendChild(p) }
   for (const s of secs) {
-    const b = document.createElement("div"); b.className = "sec-b"; addBody(b, s.body);
+    const b = document.createElement("div"); b.className = "sec-b"; addBody(b, s.body, !!opts.lines, s.h);
     if (s.h === "빠른 풀이") {
       const d = document.createElement("details"), sm = document.createElement("summary");
       d.className = "sec-fast";
@@ -193,4 +200,28 @@ export function initChips() {
       }
     });
   });
+}
+
+/* ── 형광펜: 줄 키(data-lk) + 선택한 글(없으면 줄 전체)로 저장하고 다시 칠함 ── */
+function markText(line, t, id, k = 0) {
+  const w = document.createTreeWalker(line, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest(".katex") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    let i = n.data.indexOf(t);
+    while (i >= 0 && k > 0) { k--; i = n.data.indexOf(t, i + 1) }
+    if (i < 0) continue;
+    const rg = document.createRange(); rg.setStart(n, i); rg.setEnd(n, i + t.length);
+    const m = document.createElement("mark"); m.className = "hl"; m.dataset.h = id; rg.surroundContents(m);
+    return true;
+  }
+  return false;
+}
+
+/** 저장된 형광펜 목록 [{id, l, t}]을 root 안의 글에 칠함 */
+export function applyHighlights(root, list) {
+  for (const h of list) {
+    const line = root.querySelector('.ln[data-lk="' + CSS.escape(h.l) + '"]');
+    if (!line) continue;
+    if (!h.t) { line.classList.add("hl-line"); line.dataset.h = h.id }
+    else markText(line, h.t, h.id, h.k || 0);
+  }
 }

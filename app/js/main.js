@@ -5,6 +5,7 @@ import { initDrawer } from "./drawer.js";
 import { initSession, startSession } from "./session.js";
 import { initNotes } from "./notes.js";
 import { initChips } from "./rich.js";
+import { initSelectionTools } from "./selection.js";
 
 initButtonEffects();
 initDialogs();
@@ -15,5 +16,6 @@ document.getElementById("dock").inert = true;
 initSession();
 initNotes();
 initChips();
+initSelectionTools();
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

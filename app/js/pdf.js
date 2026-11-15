@@ -52,7 +52,7 @@ function keyAnswer(n) {
 function qaInto(n, box) {
   (n.qa || []).forEach(x => {
     if (x.q) box.appendChild(text("qq", "Q. " + x.q));
-    const a = mk("aa"); fillRich(a, x.a); box.appendChild(openAll(a));
+    const a = mk("aa"); fillRich(a, x.a, { lines: true, hl: x.hl }); box.appendChild(openAll(a));
   });
 }
 
@@ -143,6 +143,7 @@ export async function exportPdf(mode, { scope, cat, setMsg, busy, ids }) {
         const n = items[i], e = mk("card"), nh = mk("nh", '<span class="chip"></span><span></span><b></b>');
         nh.children[0].textContent = CATS_S[n.cat]; nh.children[1].textContent = new Date(n.t).toLocaleDateString("ko-KR"); nh.children[2].textContent = "No. " + (i + 1);
         const { t, imgs } = problemParts(n); t.className = "pt";
+        if (n.memo) { const mb = mk("memo-box"); fillRich(mb, n.memo); e.appendChild(mb) } // 메모는 맨 위
         e.append(nh, t); imgs.forEach(im => e.appendChild(im));
         qaInto(n, e); e.appendChild(text("memo", "내 메모"));
         await add(e);
