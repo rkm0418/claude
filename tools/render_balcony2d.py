@@ -26,7 +26,7 @@ def main():
     ML, MR = (112, 114, 128, 255), (82, 84, 98, 255)
     L, Rr, top_y, base_y = 12, W - 12, 62, 79
     def base_at(x):                                        # 아래 가로대(땅 경계)의 높이
-        d = max(L - x, x - Rr, 0); return round(base_y + 1.1 * d)
+        d = max(L - x, x - Rr, 0); return round(base_y + d)
     for x in range(W):                                     # 땅: 의자와 겹치지 않는 따뜻한 어두운 갈색
         for y in range(base_at(x), H): px[x, y] = (46, 34, 30, 255)
     for y in (base_y + 14, base_y + 30):
@@ -37,12 +37,11 @@ def main():
         for i in range(n + 1): px[round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)] = col
     seg((L, top_y), (Rr, top_y), ML); seg((L, top_y + 1), (Rr, top_y + 1), MR); seg((L, base_y), (Rr, base_y), MR)
     for x in range(L + 4, Rr, 5): seg((x, top_y + 2), (x, base_y - 1), MR)
-    for s, x0, ex in ((-1, L, -1), (1, Rr, W)):            # 꺾인 양 끝
-        seg((x0, top_y), (ex, round(top_y + 1.2 * abs(ex - x0))), ML)
-        seg((x0, base_y), (ex, round(base_y + 1.1 * abs(ex - x0))), MR)
-        for d in range(0, abs(ex - x0), 5):
-            xx = x0 + s * d
-            seg((xx, round(top_y + 1.2 * d) + 1), (xx, round(base_y + 1.1 * d) - 1), MR)
+    for s, x0, ex in ((-1, L, -1), (1, Rr, W)):            # 꺾인 양 끝: 정면과 같은 굵기(위 2칸, 아래 1칸, 창살 1칸), 깔끔한 45도
+        n = abs(ex - x0)
+        seg((x0, top_y), (ex, top_y + n), ML); seg((x0, top_y + 1), (ex, top_y + 1 + n), MR); seg((x0, base_y), (ex, base_y + n), MR)
+        for d in range(4, n, 5):
+            xx = x0 + s * d; seg((xx, top_y + d + 2), (xx, base_y + d - 1), MR)
     # 쇠 의자와 탁자: 땅 위
     t = lib['iron_table']; c = lib['iron_chair']
     im.alpha_composite(t, (58, 122 - t.height)); im.alpha_composite(c, (26, 118 - c.height))
