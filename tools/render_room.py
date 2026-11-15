@@ -34,7 +34,7 @@ def render_room(path, scale=1):
     ncols, nrows = c1 - c0 + 1, len(floor_rows)
     W, D = ncols * T, nrows * T
     sky = int(m.get('extra', {}).get('sky_rows', '0')); wallh = WALLH + 16 * sky      # 방지대 위에 하늘 줄을 더 쌓는다
-    extra_dark = m.get('extra', {}).get('recess_dark') == '1'
+    extra = m.get('extra', {}); extra_dark = extra.get('recess_dark') == '1'
     rc = m.get('extra', {}).get('recess'); RD = T * int(m.get('extra', {}).get('recess_depth', '1')) if rc else 0                  # 뒷벽이 한 칸 안쪽으로 패인 부분(알코브): `recess: 시작열 끝열`
     ra, rb = [int(v) for v in rc.split()] if rc else (0, -1)
     CW, CH = int(PAD * 2 + W + SK * (D + RD)), int(PAD * 2 + wallh + SS * (D + RD))
@@ -98,7 +98,8 @@ def render_room(path, scale=1):
                 z = (Y0 - SS * d) - (Y + .5)
                 if not (0 <= z < wallh): continue
                 nm, ty = (names['base'], 15 - int(z)) if z < 16 else (names['mid'], 15 - int(z - 16)) if z < 32 else (names['top'], int(wallh - 1 - z))
-                r_, g_, b_, a_ = get(nm, int(d), ty); px[X, Y] = (int(r_ * (.25 if extra_dark else .72)), int(g_ * (.25 if extra_dark else .72)), int(b_ * (.28 if extra_dark else .78)), a_)
+                r_, g_, b_, a_ = get(nm, int(d), ty); fk_ = .04 if extra.get('recess_side') == 'hidden' else (.25 if extra_dark else .72)
+                px[X, Y] = (int(r_ * fk_), int(g_ * fk_), int(b_ * fk_ * 1.1), a_)
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)
         sp = lib[name]; img.alpha_composite(sp, (int(round(left)), int(round(bottom - sp.height))))
@@ -109,7 +110,9 @@ def render_room(path, scale=1):
         for c in range(c0, c1 + 1):
             for obj in leg[rows[r_i][c]][1]:
                 inr = ra <= c - c0 <= rb; dd = D + RD if inr else D
-                nm, _, lift = obj.partition('^'); sp_ = stamp(nm, X0 + SK * dd + (c - c0) * T, Y0 - SS * dd - zb - int(lift or 0))
+                nm, _, lift = obj.partition('^'); lx = X0 + SK * dd + (c - c0) * T
+                if inr and c - c0 == rb and lib[nm].width > T: lx -= lib[nm].width - T          # 알코브 오른쪽 끝에 문을 붙인다
+                sp_ = stamp(nm, lx, Y0 - SS * dd - zb - int(lift or 0))
                 if nm == 'wall_light_kr': cone(img, X0 + SK * dd + (c - c0) * T + 10, Y0 - SS * dd - zb - int(lift or 0), 30)
     # 왼쪽 벽의 사물: 세로 선은 그대로, 깊이 방향은 SK 배로 눌리고 SS 만큼 올라가는 기울임
     for tok in extra.get('left_add', '').split():
