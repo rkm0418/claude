@@ -63,7 +63,7 @@ def main():
     # 가구(그림자 없음): 바닥의 (x, 깊이) 한 점 아래 가운데에 놓는다
     def put(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
-    put('iron_table_m', 56, 26); put('iron_chair_m', 30, 20)
+    put('iron_table_m', 58, 26); put('iron_chair_m', 32, 20)
     # 밤의 색조
     for Y in range(CH):
         for X in range(CW):
