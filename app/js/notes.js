@@ -17,7 +17,7 @@ export const currentCat = () => curCat;
 
 /** 문제 글 + 그림 + 질문/답을 저장 (원본 사진은 목록에서만 보임). 같은 id면 분류만 바뀜 */
 export async function saveNote(n) {
-  await notes.put({ id: n.id, t: n.t, cat: n.cat, text: n.text, tr: n.tr, ans: n.ans || "", memo: n.memo || "", img: n.img, qa: n.qa.map(x => ({ q: x.q, a: x.a, hl: x.hl || [] })), figs: n.figs.slice(), figs0: n.figs.slice() });
+  await notes.put({ id: n.id, t: n.t, cat: n.cat, text: n.text, tr: n.tr, ans: n.ans || "", memo: n.memo || "", keep: n.keep || [], img: n.img, qa: n.qa.map(x => ({ q: x.q, a: x.a, hl: x.hl || [] })), figs: n.figs.slice(), figs0: n.figs.slice() });
 }
 
 /* ── 그림 지우개 ── */
@@ -95,6 +95,20 @@ function card(n) {
     row.append(no, ok); memoWrap.append(ta, row); setTimeout(() => { fit(); ta.focus() }, 0);
   };
   c.appendChild(memoWrap); paintMemo();
+  // 끌어서 남긴 글 (문제 글 아래에 모아 보임, × 로 뺌)
+  const keepWrap = el("div", "keep-wrap");
+  const paintKeep = () => {
+    keepWrap.textContent = "";
+    if (!n.keep?.length) return;
+    const box = el("div", "keep-box");
+    n.keep.forEach(k => {
+      const row = el("div", "keep-item"), t = el("div", "keep-t"); fillRich(t, k.t);
+      const x = el("button", "x", "×"); x.type = "button"; x.setAttribute("aria-label", "남긴 글 빼기");
+      x.onclick = async () => { n.keep = n.keep.filter(y => y.id !== k.id); await notes.put(n); paintKeep() };
+      row.append(t, x); box.appendChild(row);
+    });
+    keepWrap.appendChild(box);
+  };
   const mark = el("span", "selmark"); mark.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 12.5l3.2 3.2L17 8.8"/></svg>';
   left.append(mark, new Date(n.t).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })); top.appendChild(left);
   c.classList.toggle("sel", sel.has(n.id));
@@ -110,6 +124,7 @@ function card(n) {
   memoBtn.onclick = editMemo;
   const acts = el("span", "acts"); acts.append(memoBtn, edit, del); top.appendChild(acts); c.appendChild(top);
   const pt = el("div", "pt"); fillRich(pt, n.tr || n.text || (n.img ? "(사진 문제)" : "")); c.appendChild(pt);
+  c.appendChild(keepWrap); paintKeep();
 
   const dt = el("details"); dt.appendChild(el("summary", null, "자세히"));
   if (n.figs?.length) {
@@ -126,6 +141,7 @@ function card(n) {
     fillRich(a, x.a, { pager: true, lines: true, hl: x.hl, ctx: {
       getHl: () => x.hl || (x.hl = []),
       setHl: list => { x.hl = list; notes.put(n) },
+      addKeep: async text => { if (!text) return ""; n.keep = [...(n.keep || []), { id: "k" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t: text }]; await notes.put(n); paintKeep(); return "오답노트에 남겼어요" },
       addMemo: async text => { if (!text) return ""; n.memo = n.memo ? n.memo + "\n" + text : text; await notes.put(n); paintMemo(); return "메모에 넣었어요" },
     } });
     dt.appendChild(a);

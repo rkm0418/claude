@@ -101,10 +101,12 @@ function buildPager(el, secs, opts = {}) {
   });
   // 좌우로 밀어서 이동
   let sx = null, sy = 0;
-  stage.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; sx = e.clientX; sy = e.clientY });
+  // 마우스로 글을 끌어 고를 때는 칸이 넘어가지 않게, 터치 스와이프만 칸 이동으로 봄
+  stage.addEventListener("pointerdown", e => { if (e.pointerType === "mouse" || e.target.closest("button")) return; sx = e.clientX; sy = e.clientY });
   stage.addEventListener("pointerup", e => {
     if (sx === null) return;
     const dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
+    if (getSelection().toString()) return; // 글을 고르는 중이면 이동하지 않음
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(cur + (dx < 0 ? 1 : -1));
   });
   stage.addEventListener("pointercancel", () => { sx = null });

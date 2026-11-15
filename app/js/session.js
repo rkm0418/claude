@@ -43,6 +43,15 @@ function entryCtx(entry) {
   return {
     getHl: () => entry.hl,
     setHl: list => { entry.hl = list; if (S?.noteId) persist(S.cat) },
+    addKeep: async text => { // 끌어서 고른 글을 오답노트에 남김
+      if (!text) return "";
+      const item = { id: "k" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t: text };
+      S.keep.push(item);
+      if (!S.noteId) return "남겼어요. 분류를 누르면 저장돼요";
+      const n = await notes.get(S.noteId);
+      if (n) { n.keep = [...(n.keep || []), item]; S.keep = n.keep; await notes.put(n) } else await persist(S.cat);
+      return "오답노트에 남겼어요";
+    },
     addMemo: async text => {
       if (!text) return "";
       S.memo = S.memo ? S.memo + "\n" + text : text;
@@ -69,12 +78,12 @@ async function persist(cat) {
     const sectioned = parseSections(x.a).secs.length > 0;
     return { q: x.q, a: sectioned ? joinSections(x.a, x.skip).trim() : (x.skip.has("전체") ? "" : x.a), hl: x.hl || [] };
   }).filter(x => x.a);
-  await saveNote({ id: S.noteId, t: S.t, cat, text: S.transcript ? "" : (S.problem.blob ? "" : (S.qa[0]?.q || "")), tr: S.transcript, ans: S.ans, memo: old ? (old.memo ?? S.memo) : S.memo, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa, figs: S.figs });
+  await saveNote({ id: S.noteId, t: S.t, cat, text: S.transcript ? "" : (S.problem.blob ? "" : (S.qa[0]?.q || "")), tr: S.transcript, ans: S.ans, memo: old ? (old.memo ?? S.memo) : S.memo, keep: old ? (old.keep ?? S.keep) : S.keep, img: S.problem.blob ? await blobToDataUrl(S.problem.blob) : "", qa, figs: S.figs });
 }
 
 /* ── 시작 / 끝 ── */
 export function startSession(problem) {
-  S = { problem, qa: [], transcript: "", ans: "", memo: "", figs: [], noteId: null, t: Date.now() };
+  S = { problem, qa: [], transcript: "", ans: "", memo: "", keep: [], figs: [], noteId: null, t: Date.now() };
   $("msgs").textContent = ""; $("saveBar").classList.add("hide"); makeSaveBar();
   resetEndButton();
   setAskMode(true);

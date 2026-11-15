@@ -29,6 +29,7 @@ const strip = s => String(s || "").replace(/\(공식\d+\)/g, "").replace(/[ \t]+
 
 /** 답지용 풀이: 내가 고른(저장한) 칸의 내용만, 제목 없이 이어서 */
 function keyBody(n) {
+  if (n.keep?.length) return strip(n.keep.map(k => k.t).join("\n")).trim(); // 끌어서 남긴 글이 있으면 그것이 풀이
   const parts = [];
   (n.qa || []).forEach(x => {
     const { pre, secs } = parseSections(x.a);
@@ -145,6 +146,7 @@ export async function exportPdf(mode, { scope, cat, setMsg, busy, ids }) {
         const { t, imgs } = problemParts(n); t.className = "pt";
         if (n.memo) { const mb = mk("memo-box"); fillRich(mb, n.memo); e.appendChild(mb) } // 메모는 맨 위
         e.append(nh, t); imgs.forEach(im => e.appendChild(im));
+        if (n.keep?.length) { const kb = mk("keep-box"); n.keep.forEach(k => { const it = mk("keep-item"), kt = mk("keep-t"); fillRich(kt, k.t); it.appendChild(kt); kb.appendChild(it) }); e.appendChild(kb) }
         qaInto(n, e); e.appendChild(text("memo", "내 메모"));
         await add(e);
       }

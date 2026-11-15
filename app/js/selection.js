@@ -1,5 +1,5 @@
-/* 답변 글을 끌어서 고르면 뜨는 도구: 메모에 넣기 · 형광펜 · 형광펜 지우기.
-   글을 그리는 쪽(fillRich)이 root.__ctx = { getHl, setHl, addMemo }를 달아 둔 곳에서만 동작 */
+/* 답변 글을 끌어서 고르면 뜨는 도구: 남기기 · 메모에 넣기 · 형광펜 · 형광펜 지우기.
+   글을 그리는 쪽(fillRich)이 root.__ctx = { getHl, setHl, addMemo, addKeep }를 달아 둔 곳에서만 동작 */
 let bar = null, timer = null, cur = null; // cur: 지금 선택 {root, ctx, range}
 
 const rootOf = n => (n && (n.nodeType === 1 ? n : n.parentElement))?.closest?.(".rich-root");
@@ -82,6 +82,7 @@ function show(root, ctx, range) {
     b.onclick = async () => { const msg = await fn(); const r = rect; getSelection().removeAllRanges(); hide(); if (msg) toast(host, r, msg) };
     bar.appendChild(b);
   };
+  if (ctx.addKeep) mk("남기기", () => ctx.addKeep(selectionText(cur.range)));
   mk("메모에 넣기", () => ctx.addMemo(selectionText(cur.range)));
   mk("형광펜", highlight);
   if (inMark) mk("형광펜 지우기", clearHighlight);
