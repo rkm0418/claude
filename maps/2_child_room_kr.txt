@@ -1,8 +1,7 @@
 title: 2장 - 아이 방 (한국 아파트, 사선 시점, 현실 버전)
 tone: 255 246 232
-ambient: 0.42
+ambient: 0.14
 left_wall: kr
-left_add: drawing@1.4^21 shelf_toy@2^18
 legend:
 # void
 t wall_top_kr
@@ -11,6 +10,8 @@ b wall_base_kr
 W window_kr_l
 V window_kr_r
 K wall_kr clock^3
+H wall_kr shelf_toy^3
+P wall_kr drawing^4
 D wall_base_kr door
 . floor_kr
 C floor_kr ceiling_light
@@ -22,11 +23,11 @@ Z floor_kr rug_small
 map:
 ##########
 ##tttttt##
-##wwwwKw##
+##wHwKPw##
 ##bbbbbD##
 ##x.E...##
 ##......##
-##..Z.C.##
+##..Z...##
 ##......##
 ##########
 ##########

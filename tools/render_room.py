@@ -89,7 +89,9 @@ def render_room(path, scale=1):
         if nm == 'ceiling_light':
             emitters.append((gx + 8, gy - 18) + lights[nm]); continue
         sp = lib[nm]
-        if nm in boxset: img.alpha_composite(sp, (int(round(gx - 1)), int(round(gy - (sp.height - 2) - lift))))
+        if nm in boxset:
+            img.alpha_composite(sp, (int(round(gx - 1)), int(round(gy - (sp.height - 2) - lift))))
+            if nm in lights: emitters.append((gx + 5 + SK * 6, gy - 22 - SS * 6 - lift) + lights[nm])      # 스탠드 갓 근처에서 둥글게 퍼지는 빛
         else: stamp(nm, gx, gy - lift)
     # 조명과 톤
     bg = Image.new('RGBA', img.size, (8, 6, 12, 255)); bg.alpha_composite(img); img = R.shade(bg, emitters, m['ambient'], False)
