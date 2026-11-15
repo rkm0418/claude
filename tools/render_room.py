@@ -123,8 +123,8 @@ def render_room(path, scale=1):
             xm = int(X0 + SK * D + (rb + 1) * T); base_y = int(Y0 - SS * D); top_y = int(by - wallh)
             for off in range(int(SK * RD)):
                 X = xm - int(SK * RD) + off; sh = 0                                  # 원래 벽 왼쪽에 붙이고, 원래 벽이 이 면보다 앞(위)에 있다
-                for Y in range(top_y - sh, base_y - sh):
-                    z = (base_y - sh) - (Y + .5)
+                for Y in range(top_y - (off + 1), base_y):                                     # 윗변만 오른쪽으로 갈수록 올라가는 사선(왼쪽 옆면과 평행), 아랫변은 평평
+                    z = base_y - (Y + .5)
                     if z < 16: nm, ty = names['base'], 15 - int(z)
                     elif z < 32: nm, ty = names['mid'], 15 - int(z - 16)
                     else: nm, ty = names['top'], int(wallh - 1 - z)
