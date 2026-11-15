@@ -69,7 +69,7 @@ def render_room(path, scale=1):
                 nm, _, lift = obj.partition('^'); stamp(nm, X0 + SK * D + (c - c0) * T, by - zb - int(lift or 0))
     # 왼쪽 벽의 사물: 세로 선은 그대로, 깊이 방향은 SK 배로 눌리고 SS 만큼 올라가는 기울임
     for tok in extra.get('left_add', '').split():
-        nm, at = tok.split('@'); dc, _, lift = at.partition('^'); d0 = int(dc) * T; sp = lib[nm]
+        nm, at = tok.split('@'); dc, _, lift = at.partition('^'); d0 = int(float(dc) * T); sp = lib[nm]
         for u in range(sp.width):
             for v in range(sp.height):
                 p = sp.getpixel((u, v))
