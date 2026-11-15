@@ -36,7 +36,7 @@ def base_round(c, shirt, shorts, covered=False):
         if not covered: c.ell(12 + sgn * 7.8, 29.6, 1.5, 1.6, K.SKIN)
         c.ell(12 + sgn * 5.6, 23.6, 2.7, 2.7, shirt)                                                      # 둥근 어깨
     c.ell(12, 25.2, 6.8, 4.8, shirt); c.ell(12, 22.6, 6.4, 2.8, shirt)                                       # 몸통과 어깨 윗선
-    c.ell(12, 20.8, 3.4, 1.9, K.SKIN); c.ell(12, 21.8, 4.2, 1.4, shirt)                                       # 목과 둥근 목선
+    c.ell(12, 20.2, 2.5, 1.5, K.SKIN); c.ell(12, 21.6, 3.8, 1.3, shirt)                                       # 목과 둥근 목선
 
 SHADE = {'c': 'C', 't': 'T', 'y': 'Y', 'l': 'L', 'a': 'A', 'h': 'O', 'd': 's'}      # 옷/바지 색 -> 그늘 색
 
@@ -55,7 +55,7 @@ def crescent(c, base, shade, cx, cy, rx, ry, dx, dy):
 def shade_clothes(c, shirt, pants):
     """빛은 왼쪽 위. 몸의 둥근 형태를 따라 오른쪽 아래에 초승달 모양 그늘."""
     sh, ps = SHADE[shirt], SHADE[pants]
-    shade_on(c, K.SKIN, 'u', 12, 18.8, 4.4, 0.7)                                    # 턱 밑의 가는 그늘
+    crescent(c, K.SKIN, 'u', 12, 20.0, 2.6, 1.9, 0, -1.0)                          # 목 위쪽(턱 밑)의 둥근 초승달 그늘
     crescent(c, shirt, sh, 12, 25.2, 6.8, 4.8, 2.6, 1.9)                           # 몸통
     crescent(c, shirt, sh, 17.6, 23.6, 2.7, 2.7, 1.4, 1.1)                         # 오른쪽 어깨 덮개
     crescent(c, shirt, sh, 6.4, 23.6, 2.7, 2.7, 1.2, .9)                           # 왼쪽 어깨 덮개(약하게)
@@ -63,8 +63,8 @@ def shade_clothes(c, shirt, pants):
     for cx in (9.2, 14.8): crescent(c, pants, ps, cx, 32.0, 3.0, 5.2, 1.5, .8)         # 다리(오른쪽 아래가 어두움)
     for y in range(19, 26):                                                                                # 둥근 목선(U자): 안쪽은 살색, 바깥은 옷 그늘색 테두리
         for x in range(24):
-            d_out = ((x - 12) / 4.6) ** 2 + ((y - 21.4) / 3.2) ** 2
-            d_in = ((x - 12) / 3.2) ** 2 + ((y - 21.2) / 2.4) ** 2
+            d_out = ((x - 12) / 3.6) ** 2 + ((y - 21.2) / 2.6) ** 2
+            d_in = ((x - 12) / 2.4) ** 2 + ((y - 21.0) / 1.8) ** 2
             if d_in <= 1 and y >= 20 and c.g[y][x] in (shirt, sh, K.SKIN, 'u'): c.g[y][x] = K.SKIN
             elif d_out <= 1 and y >= 20 and c.g[y][x] in (shirt, sh): c.g[y][x] = sh
 
