@@ -8,7 +8,8 @@ import math, os, sys
 from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import render_balcony2d as B, gen_child_back as CB
-CHAIR = B.R.load_library()['iron_chair']
+LIB = B.R.load_library(); CHAIR = LIB['iron_chair']
+FWALK = [LIB[f'child_w{i}'] for i in (1, 2, 3, 4)]            # 앞모습 걷기(보는 쪽·옆으로 걸을 때)
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'maps', 'out')
 P = CB.make(); WALK, IDLE, HANG, REACH, PUSH, FOOT = P['walk'], P['idle'], P['hang'], P['reach'], P['push'], P['foot']
@@ -84,7 +85,8 @@ add(dict(S, child=kid(*SPOT, IDLE), bang=True), 8, '4 옆의 의자를 발견')
 def behind(cp): return (cp[0] + 29, cp[1] - 2)                # 의자 오른쪽 옆: 왼손이 등받이 옆(팔걸이)에 실제로 닿는 자리
 def walk_to(a, bpt, n, st, label=''):
     for i in range(n):
-        t = (i + 1) / n; add(dict(st, child=kid(lerp(a[0], bpt[0], t), lerp(a[1], bpt[1], t), WALK[(i // 3) % 4])), 1, label if i == 0 else '')
+        t = (i + 1) / n; fr = (WALK if bpt[1] < a[1] - 2 else FWALK)[(i // 3) % 4]     # 화면 위쪽(안쪽)으로 갈 때만 뒷모습, 아래·옆으로 갈 때는 앞모습
+        add(dict(st, child=kid(lerp(a[0], bpt[0], t), lerp(a[1], bpt[1], t), fr)), 1, label if i == 0 else '')
 cur = CH0; bh = behind(CH0); mid = (SPOT[0] + 4, bh[1] + 20); mid2 = (bh[0] + 6, bh[1] + 20)     # 의자 아래로 돌아서 오른쪽 옆으로
 walk_to(SPOT, mid, 12, S, '5 의자 옆으로 돌아가 잡고 끌고 옴'); walk_to(mid, mid2, 12, S); walk_to(mid2, bh, 8, S)
 add(dict(S, child=kid(*bh, PUSH[0])), 5)                        # 등받이를 잡음
@@ -101,13 +103,14 @@ add(dict(chair=CH, child=kid(*side, FOOT[0])), 6)               # 한 발을 앉
 add(dict(chair=CH, child=kid((side[0] + cx) / 2 + 2, seat_y + 5, HANG[0])), 3)       # 힘줘서 몸을 끌어올림(끊어서)
 add(dict(chair=CH, child=kid(cx, seat_y + 1, HANG[1]), chair_over=True), 3)
 add(dict(chair=CH, child=kid(cx, seat_y, IDLE), chair_over=True), 7)             # 의자 위에 섬
-add(dict(chair=CH, child=kid(cx, seat_y, REACH), chair_over=True), 5)            # 철창 윗줄을 잡음
-add(dict(chair=CH, child=kid(cx, seat_y, FOOT[1]), chair_over=True), 6)          # 한 발을 철창에 걸침
-mid_y = (seat_y + TOPY) / 2
-add(dict(chair=CH, child=kid(cx, mid_y + 4, HANG[1]), chair_over=True), 4)       # 끌어올림(끊어서)
-add(dict(chair=CH, child=kid(cx, mid_y - 4, HANG[0])), 4)
-add(dict(chair=CH, child=kid(cx, TOPY + 3, FOOT[0])), 4)                         # 무릎을 올림
-add(dict(chair=CH, child=kid(cx, TOPY, IDLE)), 3)                                # 철창 위에 완전히 올라섬
+def rail(feet_y, leg=None, lean=0):                              # 손이 철창 윗줄(y=RAIL_TOP+1)을 놓지 않는 자세
+    return CB.hold(round(RAIL_TOP + 1 - (feet_y - 42)) - CB.PAD, leg, lean)
+add(dict(chair=CH, child=kid(cx, seat_y, rail(seat_y)), chair_over=True), 5)                     # 철창 윗줄을 잡음
+add(dict(chair=CH, child=kid(cx, seat_y, rail(seat_y, ('r', 6))), chair_over=True), 6)           # 한 발을 철창에 걸침
+for fy, leg, n, over in ((seat_y - 6, ('r', 5), 4, True), (seat_y - 13, ('l', 4), 4, False), (TOPY + 5, ('r', 4), 4, False)):
+    add(dict(chair=CH, child=kid(cx, fy, rail(fy, leg)), chair_over=over), n)                    # 끊어서 끌어올림: 손은 그대로, 몸만 올라옴
+add(dict(chair=CH, child=kid(cx, TOPY, CB.hold(33, None, 3))), 4)                                # 철창 위에 웅크려 올라앉음(손은 발 옆 철창)
+add(dict(chair=CH, child=kid(cx, TOPY, IDLE)), 3)                                                # 일어섬
 # 7. 철창 위에서 결심한 듯 잠깐 멈춤
 add(dict(chair=CH, child=kid(cx, TOPY, IDLE)), 16, '7 결심한 듯 멈춤')
 # 8. 옆으로 기울어지며 떨어짐

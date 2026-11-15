@@ -80,6 +80,12 @@ def lift_leg(im, side, dy):
     for x in xs:
         if px[x, PAD + 37 - dy][3]: px[x, PAD + 37 - dy] = A
 
+def hold(hand_row, leg=None, lean=0):
+    """두 손이 그림의 hand_row 줄(PAD 제외)에 고정된 자세: 몸이 올라갈수록 손은 상대적으로 내려온다(잡은 곳을 놓지 않음)."""
+    r = max(15, min(33, hand_row)); up = r < 22
+    ey = (22 + r) // 2 + (1 if up else 0); hx_l, hx_r = (0, 22) if r < 26 else (2, 20)
+    return pose(((1 if r < 26 else 3, ey), (hx_l, r)), ((22 if r < 26 else 20, ey), (hx_r, r)), leg, lean, raised=up)
+
 DOWN_L, DOWN_R = ((4, 26), (4, 29)), ((19, 26), (19, 29))          # 내린 팔
 def make():
     out = {}
