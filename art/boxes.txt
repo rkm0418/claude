@@ -194,3 +194,19 @@ box 0 0 0 5 5 0 w
 [flashlight] 손전등 (회색) | real
 box 0 0 0 6 2 2 l
 box 6 0 0 2 2 2 w
+
+[radio] 낡은 라디오 (꺼짐, 안테나 하나) | real
+box 0 0 0 9 4 6 n
+decal 1 0 1 4 4 d
+decal 1 0 2 4 1 m
+decal 6 0 4 2 1 w
+decal 6 0 2 2 1 m
+box 8 3 6 0 0 6 l
+
+[radio_on] 혼자 켜진 라디오 (다이얼과 스피커에 불빛) | dream
+box 0 0 0 9 4 6 n
+decal 1 0 1 4 4 d
+decal 1 0 2 4 1 y
+decal 6 0 4 2 1 y
+decal 6 0 2 2 1 w
+box 8 3 6 0 0 6 l

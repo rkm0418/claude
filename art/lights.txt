@@ -17,3 +17,4 @@ sconce 52 0.8 fff4e0
 floor_lamp 74 0.9 fff4e0
 streetlamp 100 1.0 f0f4ff
 tv 60 0.8 cfe4ff
+radio_on 64 0.8 f2d28a

@@ -1,6 +1,7 @@
 title: 1장 - 식탁 방
 tone: 255 246 232
 ambient: 0.3
+dream: radio=radio_on
 legend:
 # void
 t wall_top_cozy
@@ -17,6 +18,7 @@ Q wall_base_cozy doorway_dark
 C floor_cozy ceiling_light^4
 c floor_cozy chair
 s floor_cozy sideboard table_lamp^14
+r floor_cozy sideboard radio^14
 Y floor_cozy plant
 B floor_cozy bookshelf
 H floor_cozy shoes
@@ -28,7 +30,7 @@ map:
 ##ttttttttt##
 ##wWVwGwKww##
 ##bbbbbbbbD##
-##s.Y...B.H##
+##srY...B.H##
 ##....c....##
 ##..ZT..c..##
 ##...C.....##
@@ -39,7 +41,7 @@ dream_map:
 ##ttttttttt##
 ##wWVwFwKFw##
 ##bbbbbbbbQ##
-##s.Y...B.H##
+##srY...B.H##
 ##.........##
 ##..zT..c.c##
 ##...C.....##
