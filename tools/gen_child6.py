@@ -38,8 +38,27 @@ def base_round(c, shirt, shorts, covered=False):
     c.ell(12, 25.2, 6.8, 4.8, shirt); c.ell(12, 22.6, 6.4, 2.8, shirt)                                       # 몸통과 어깨 윗선
     c.ell(12, 20.8, 3.4, 1.9, K.SKIN); c.ell(12, 21.8, 4.2, 1.4, shirt)                                       # 목과 둥근 목선
 
+SHADE = {'c': 'C', 't': 'T', 'y': 'Y', 'l': 'L', 'a': 'A', 'h': 'O', 'd': 's'}      # 옷/바지 색 -> 그늘 색
+
+def shade_on(c, base, shade, cx, cy, rx, ry):
+    for y in range(38):
+        for x in range(24):
+            if c.g[y][x] == base and ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1: c.g[y][x] = shade
+
+def shade_clothes(c, shirt, pants):
+    """빛은 왼쪽 위. 그늘: 턱 밑 목, 목선 안쪽, 오른쪽 옆구리와 오른팔, 겨드랑이, 상의 밑단 아래, 바지 오른쪽."""
+    sh, ps = SHADE[shirt], SHADE[pants]
+    shade_on(c, K.SKIN, 'u', 12, 19.6, 3.6, 1.8)                    # 턱 밑 목 그늘
+    shade_on(c, shirt, sh, 12, 22.2, 4.2, 1.1)                      # 목선 안쪽 그늘
+    shade_on(c, shirt, sh, 17.6, 25.6, 3.0, 4.6)                    # 오른쪽 몸통 그늘
+    shade_on(c, shirt, sh, 19.4, 26.0, 1.6, 3.4)                    # 오른팔 안쪽 그늘
+    shade_on(c, shirt, sh, 12, 29.2, 6.0, 0.9)                      # 상의 밑단 아래 그늘
+    shade_on(c, shirt, sh, 7.0, 25.4, 1.0, 2.0); shade_on(c, shirt, sh, 17.0, 25.4, 1.0, 2.0)     # 겨드랑이
+    shade_on(c, pants, ps, 11.2, 33, 1.4, 4.4); shade_on(c, pants, ps, 17.0, 33, 1.5, 4.4)        # 바지 오른쪽 면
+    shade_on(c, pants, ps, 12, 28.6, 5.6, 0.9)                      # 허리 아래 그늘
+
 def build(shirt, shorts, hands_covered=False):
-    c = C(); base_round(c, shirt, shorts, hands_covered); K.head(c, blush=False); hair_ref2(c); return c
+    c = C(); base_round(c, shirt, shorts, hands_covered); K.head(c, blush=False); hair_ref2(c); shade_clothes(c, shirt, shorts); return c
 
 def A():
     c = build('c', 'h'); c.ell(9.2, 37.4, 2.4, .9, 'p'); c.ell(14.8, 37.2, 1.8, .8, K.SKIN); return c.finish()          # 슬리퍼 한 짝만
