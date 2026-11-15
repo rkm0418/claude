@@ -119,6 +119,16 @@ def render_room(path, scale=1):
                     if 0 <= X < CW:
                         r_, g_, b_, a_ = px[X, Y]
                         if a_: px[X, Y] = (int(r_ * kk), int(g_ * kk), int(b_ * kk), a_)
+        if rc:                                                              # ㄴ 자 벽: 바깥 벽의 왼쪽 끝면(두께)을 안쪽 검은 면 오른쪽에 보이게 한다
+            xm = int(X0 + SK * D + (rb + 1) * T); base_y = int(Y0 - SS * D); top_y = int(by - wallh)
+            for off in range(int(SK * RD)):
+                X = xm + off
+                for Y in range(top_y - off, base_y - off):
+                    z = (base_y - off) - (Y + .5)
+                    if z < 16: nm, ty = names['base'], 15 - int(z)
+                    elif z < 32: nm, ty = names['mid'], 15 - int(z - 16)
+                    else: nm, ty = names['top'], int(wallh - 1 - z)
+                    r_, g_, b_, a_ = get(nm, int(off + 5), ty); px[X, Y] = (int(r_ * .5), int(g_ * .5), int(b_ * .55), a_)
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)
         sp = lib[name]; img.alpha_composite(sp, (int(round(left)), int(round(bottom - sp.height))))
