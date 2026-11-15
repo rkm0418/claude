@@ -15,7 +15,7 @@ def lim(x):
     if x < 4.6 or x > 19.6: return 13.4                                                  # 귀 위에서 멈추는 옆머리
     for (x0, y0), (x1, y1) in zip(PTS, PTS[1:]):
         if x0 <= x <= x1: base = y0 + (y1 - y0) * (x - x0) / (x1 - x0); break
-    return base + bump(x, 11.0, 1.6, 2.2) + bump(x, 17.4, 1.6, 1.8)                      # 왼쪽 중앙과 오른쪽의 삐져나온 가닥(끝이 둥근 곡선)
+    return base + bump(x, 11.0, 2.0, 2.2) + bump(x, 17.4, 2.0, 1.8)                      # 왼쪽 중앙과 오른쪽의 삐져나온 가닥(끝이 둥근 곡선)
 
 def hair_ref2(c):
     c.ell(12, 8.6, 10.6, 8.2, 'b')
@@ -23,7 +23,8 @@ def hair_ref2(c):
         for x in range(24):
             if c.g[y][x] != 'b': continue
             if y > lim(x): c.g[y][x] = K.SKIN
-            elif y > lim(x) - 1.0 and (x + y) % 2 == 0: c.g[y][x] = 'n'                  # 끝이 부드럽게 번지도록 한 줄 옅은 갈색을 섞음
+            elif y > lim(x) - 1.0: c.g[y][x] = 'u' if (x + y) % 2 == 0 else 'n'                 # 끝이 피부색으로 번지는 2단계 그라데이션(밝은 갈색, 연한 갈색)
+            elif y > lim(x) - 2.0 and (x + y) % 2 == 0: c.g[y][x] = 'n'
     c.line(5, 4.6, 6.6, 2.6, 1, ch='n'); c.put(6, 3, 'n'); c.put(7, 2, 'n')                                # 왼쪽 위의 옅은 윤기
 
 def build(shirt, shorts, hands_covered=False):
