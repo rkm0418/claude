@@ -122,6 +122,27 @@ def render_room(path, scale=1):
             img.alpha_composite(sp, (int(round(gx - 1)), int(round(gy - (sp.height - 2) - lift))))
             if nm in lights: emitters.append((gx + 5 + SK * 6, gy - 22 - SS * 6 - lift) + lights[nm])      # 스탠드 갓 근처에서 둥글게 퍼지는 빛
         else: stamp(nm, gx, gy - lift)
+    # 앞벽(화면 아래쪽): 낮은 벽 + 출입문 틀. 복도에서 위로 나가면 이 방에서도 계속 위를 보도록, 출입문은 앞벽에 둔다
+    fk = extra.get('front_wall')
+    if fk:
+        LOW, POST = 9, 24
+        dx0, dw = [int(v) for v in extra.get('front_door', '0 20').split()]
+        for xx in range(int(W + 1)):
+            X = int(X0 + xx)
+            in_door = dx0 <= xx < dx0 + dw
+            post = dx0 <= xx < dx0 + 2 or dx0 + dw - 2 <= xx < dx0 + dw
+            top = POST if post else (0 if in_door else LOW)
+            for z in range(top):
+                Y = int(Y0 + 1 - 1 - z) - 0
+                if post: col = (247, 245, 240, 255) if 0 < z < top - 1 and xx not in (dx0, dx0 + dw - 1) else (26, 22, 32, 255)
+                elif z == top - 1: col = (156, 143, 138, 255)
+                else: col = get(f'wall_base_{fk}', xx, 15 - z)
+                px[X, Y] = col
+            if in_door and not post:                        # 문턱과 발판
+                for z in range(2): px[X, int(Y0) - z] = (115, 86, 62, 255) if z == 0 else (156, 143, 138, 255)
+        glow = extra.get('front_glow')
+        if glow:
+            emitters.append((X0 + dx0 + dw / 2, Y0 - 8, 54, float(glow), (232, 207, 106)))
     # 조명과 톤
     bg = Image.new('RGBA', img.size, (8, 6, 12, 255)); bg.alpha_composite(img); img = R.shade(bg, emitters, m['ambient'], False)
     if m['tone']:

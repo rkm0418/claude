@@ -3,7 +3,9 @@ tone: 175 195 255
 ambient: 0.62
 left_wall: bal
 sky_rows: 2
-left_add: balcony_door_ls@0.3^0
+front_wall: bal
+front_door: 30 22
+front_glow: 0.55
 legend:
 # void
 t wall_rail_top_a
@@ -29,6 +31,7 @@ map:
 ##bbbbb##
 ##.....##
 ##.CT..##
+##.....##
 ##.....##
 #########
 #########
