@@ -1,34 +1,38 @@
 #!/usr/bin/env python3
-"""쇠 원탁(위에서 내려다보는 시점): 얇은 상판 + X자 다리. art/objects.txt 의 iron_table 을 다시 쓴다."""
-import re
-import sys
-SC = float(sys.argv[1]) if len(sys.argv) > 1 else 1.4          # 크기 배율
-NAME = sys.argv[2] if len(sys.argv) > 2 else 'iron_table'
-LEG = 20                                                 # 다리 끝 높이(낮출수록 탁자가 낮아짐)
-W, H = int(30 * SC) + 1, int((LEG + 1) * SC) + 1
+"""쇠 원탁(위에서 내려다본 시점): 타원 상판(윗면+얇은 옆면) + X자 다리.  사용: python3 tools/gen_iron_table.py [상판지름 높이 이름]
+기본: 지름 28, 다리 높이 22 -> iron_table.  (아이 키 38칸 기준으로 허리 높이)"""
+import re, sys
+TOP = int(sys.argv[1]) if len(sys.argv) > 1 else 28
+LEG = int(sys.argv[2]) if len(sys.argv) > 2 else 22
+NAME = sys.argv[3] if len(sys.argv) > 3 else 'iron_table'
+RY = max(2, round(TOP * .17))                      # 윗면 타원의 세로 반지름(위에서 비스듬히 본 정도)
+W, H = TOP + 2, 2 * RY + 2 + LEG
 g = [['.'] * W for _ in range(H)]
 def px(x, y, c):
     if 0 <= x < W and 0 <= y < H: g[y][x] = c
-def line(p, q, c, ox=0):
-    (x0, y0), (x1, y1) = [(a * SC, b * SC) for a, b in (p, q)]; n = int(max(abs(x1 - x0), abs(y1 - y0))) or 1
-    for i in range(n + 1): px(round(x0 + (x1 - x0) * i / n) + ox, round(y0 + (y1 - y0) * i / n), c)
-# 상판: 타원 윗면 3줄 + 얇은 옆면 1줄 (가로 폭만 배율, 두께는 그대로)
-w0, w1, w2 = [int(v * SC) for v in (5, 2, 1)]
-for y, (a_, b_) in enumerate([(int(5 * SC), int(24 * SC)), (int(2 * SC), int(27 * SC)), (int(1 * SC), int(28 * SC))]):
-    for x in range(a_, b_ + 1): px(x, y, 'c' if y == 0 else 'l' if y == 1 else 'm')
-for x in range(int(2 * SC), int(28 * SC)): px(x, 3, 'd')
-for x in (int(4 * SC), int(25 * SC)): px(x, 3, 'k')
-# 다리: 가늘고 긴 X자(상판 아래 양끝에서 가운데에서 엇갈려 반대쪽 바닥으로) + 교차부 작은 고리
-for ox in (0, 1):                                          # 다리를 2칸 굵기로
-    line((8, 4 / SC), (24, LEG), 'm', ox); line((21, 4 / SC), (5, LEG), 'm', ox)   # 상판 바로 밑(4번째 줄)에서 시작
-for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)): px(int(12 * SC) + dx, int(12 * SC) + dy, 'd')
-px(int(12 * SC), int(12 * SC), 'l')
+def line(p, q, c, th=1):
+    (x0, y0), (x1, y1) = p, q; n = int(max(abs(x1 - x0), abs(y1 - y0))) or 1
+    for i in range(n + 1):
+        for k in range(th): px(round(x0 + (x1 - x0) * i / n) + k, round(y0 + (y1 - y0) * i / n), c)
+cx, cy, rx = (W - 1) / 2, RY, TOP / 2
+for y in range(2 * RY + 1):                          # 상판 윗면(타원)
+    for x in range(W):
+        e = ((x - cx) / rx) ** 2 + ((y - cy) / RY) ** 2
+        if e <= 1: px(x, y, 'l' if e < .6 else 'm')
+for y in range(2 * RY + 1, 2 * RY + 2 + 1):          # 얇은 옆면: 타원 아래쪽 호를 따라 아래로 1~2칸
+    for x in range(W):
+        e = ((x - cx) / rx) ** 2 + ((y - 1 - cy) / RY) ** 2
+        if e <= 1 and g[y][x] == '.': px(x, y, 'd')
+yb = 2 * RY + 2                                       # 다리 시작(상판 바로 밑)
+th = 2 if TOP >= 22 else 1
+a, b = TOP * .30, TOP * .40
+line((cx - a, yb - 1), (cx + b, H - 1), 'm', th); line((cx + a - th + 1, yb - 1), (cx - b, H - 1), 'm', th)   # X자 다리
+hy = yb + LEG * .45
+for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)): px(round(cx) + dx, round(hy) + dy, 'd')
+px(round(cx), round(hy), 'l')
 grid = '\n'.join(''.join(r) for r in g)
 txt = open('art/objects.txt', encoding='utf-8').read()
-blk = '[' + NAME + '] 고풍스러운 쇠 원탁: 얇은 상판 + X자 다리(배율 %s) | real\n' % SC + grid + '\n\n'
+blk = '[' + NAME + '] 고풍스러운 쇠 원탁: 타원 상판 + X자 다리(지름 %d, 높이 %d) | real\n' % (TOP, LEG) + grid + '\n\n'
 pat = r'\[' + NAME + r'\][^\n]*\n(?:[.\w]+\n)+\n'
-if re.search(pat, txt):
-    txt = re.sub(pat, lambda m: blk, txt, count=1)
-else:
-    txt = txt.replace('[iron_table]', blk + '[iron_table]', 1)
+txt = re.sub(pat, lambda m: blk, txt, count=1) if re.search(pat, txt) else txt.replace('[balcony_door_ls]', blk + '[balcony_door_ls]', 1)
 open('art/objects.txt', 'w', encoding='utf-8').write(txt)

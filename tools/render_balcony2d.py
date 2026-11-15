@@ -56,6 +56,14 @@ def main():
             elif n > 0 and (xb - VX + 100 - joints[n - 1]) * t < 1.0: c = (26, 16, 12)   # 판 끝 이음
             elif fr.random() < .035: c = tuple(v + 12 for v in c)                    # 나뭇결 점
             px[x, y] = c + (255,)
+    # 왼쪽은 집 외벽으로 막는다: 철창 아랫줄 선을 따라 내려오는 벽(윗선은 철창 사선보다 24칸 높게)
+    wall = lib['wall_bal']; wb = lib['wall_base_bal']; wt = lib['wall_top_bal']
+    for x in range(0, L):
+        d = L - x; ytop = max(0, top_y + d - 24); ybot = base_at(x) + SB
+        for y in range(ytop, ybot):
+            z = ybot - y; tex = wb if z <= 8 else wt if y - ytop < 8 else wall
+            r_, g_, b_, a_ = tex.load()[(x + 7) % 16, y % 16]; px[x, y] = (int(r_ * .8), int(g_ * .8), int(b_ * .86), 255)
+        px[x, ytop] = (20, 18, 26, 255)
     def seg(p0, p1, col):
         (x0, y0), (x1, y1) = p0, p1; n = max(abs(x1 - x0), abs(y1 - y0)) or 1
         for i in range(n + 1): px[round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)] = col
@@ -64,41 +72,18 @@ def main():
     band((L, top_y), (Rr, top_y), TT, ML); band((L, base_y), (Rr, base_y), TB, MR)
     for x in range(L + 4, Rr, 5):
         for w in range(TW): seg((x + w, top_y + TT), (x + w, base_y - 1), MR)
-    for x in (L, Rr - TW + 1):                             # 정면과 양옆이 만나는 곳에도 창살 하나
+    for x in (Rr - TW + 1,):                               # 정면과 오른쪽 꺾임이 만나는 곳에도 창살 하나
         for w in range(TW): seg((x + w, top_y + TT), (x + w, base_y - 1), MR)
-    for s, x0, ex in ((-1, L, -1), (1, Rr, W)):            # 꺾인 양 끝: 정면과 같은 굵기, 깔끔한 45도
+    seg((L, top_y - 24), (L, base_y + SB), (20, 18, 26, 255))      # 벽 모서리
+    for s, x0, ex in ((1, Rr, W),):                        # 오른쪽만 철창이 꺾여 나간다(왼쪽은 벽): 정면과 같은 굵기, 깔끔한 45도
         n = abs(ex - x0)
         band((x0, top_y), (ex, top_y + n), ST, ML); band((x0, base_y), (ex, base_y + n), SB, MR)
         for d in range(4, n, 5):
             xx = x0 + s * d
             for w in range(TW): seg((xx + w, top_y + d + ST), (xx + w, base_y + d - 1), MR)
-    # 입체감: 바닥 깊이 그라데이션(안쪽=어둡고 차갑게, 앞쪽=밝게), 철창이 바닥에 드리우는 그림자, 위쪽 가로대 아래 어두운 띠
-    def dark(x, y, f):
-        if 0 <= x < W and 0 <= y < H:
-            r_, g_, b_, a_ = px[x, y]; px[x, y] = (int(r_ * f), int(g_ * f), int(b_ * f), a_)
-    for y in range(base_y, H):
-        f = .72 + .5 * min(1, (y - base_y) / (H - base_y))
-        for x in range(W):
-            if y >= base_at(x) + (SB if (x < L or x > Rr) else TB): dark(x, y, f)
-    for x in range(L + 4, Rr, 5):                          # 가운데 창살 그림자(달빛이 왼쪽 위에서 비스듬히)
-        for k in range(12):
-            for w in range(TW): dark(x + w + k // 2 + 1, base_y + TB + k, .55)
-    for s_, x0, ex in ((-1, L, -1), (1, Rr, W)):          # 꺾인 부분 그림자
-        for d in range(4, abs(ex - x0), 5):
-            xx = x0 + s_ * d
-            for k in range(10):
-                for w in range(TW): dark(xx + w + k // 2 + 1, base_y + d + SB + k, .55)
-    for x in range(L, Rr):                                 # 위 가로대 바로 아래 어두운 띠(두께감)
-        for y in range(top_y + TT, top_y + TT + 2): dark(x, y, .75)
     # 쇠 의자와 탁자: 땅 위
     t = lib['iron_table']; c = lib['iron_chair']
-    def shadow(cx, cy, rx, ry):                            # 발 밑 그림자(바닥에 닿아 보이게)
-        for yy in range(cy - ry, cy + ry + 1):
-            for xx in range(cx - rx, cx + rx + 1):
-                if ((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2 <= 1:
-                    r_, g_, b_, a_ = px[xx, yy]; px[xx, yy] = (int(r_ * .55), int(g_ * .55), int(b_ * .55), a_)
-    shadow(71, 106, 19, 3); shadow(43, 112, 15, 3)
-    im.alpha_composite(t, (51, 108 - t.height)); im.alpha_composite(c, (27, 114 - c.height))
+    im.alpha_composite(t, (60, 104 - t.height)); im.alpha_composite(c, (30, 112 - c.height))
     # 밤의 색조
     for y in range(H):
         for x in range(W):

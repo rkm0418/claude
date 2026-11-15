@@ -48,12 +48,16 @@ def main():
             elif n > 0 and x - js[n - 1] < 1: c = (26, 16, 12)                          # 판 끝 이음(사선)
             elif fr.random() < .035: c = tuple(v + 12 for v in c)                        # 나뭇결 점
             px[X, Y] = c + (255,)
-    # 왼쪽 옆 철창(사선으로 눌린 모양): 윗줄 2칸 / 아랫줄 1칸 / 창살 1칸
-    for d in range(0, D + 1):
-        X, Yb = X0 + SK * d, Y0 - SS * d
-        seg((X, Yb - RAIL), (X, Yb - RAIL), ML); seg((X, Yb - RAIL + 1), (X, Yb - RAIL + 1), MR); seg((X, Yb), (X, Yb), MR)
-    for d in range(10, D + 1, 10):
-        X, Yb = X0 + SK * d, Y0 - SS * d; seg((X, Yb - RAIL + 2), (X, Yb - 1), MR)
+    # 왼쪽 옆은 집 외벽(벽으로 막음): 방·복도의 왼쪽 벽과 같은 사선 눌림, 철창보다 높다
+    WH = RAIL + 24
+    for X in range(int(X0), int(X0 + SK * D) + 1):
+        d = (X + .5 - X0) / SK
+        if not (0 <= d < D): continue
+        for Y in range(int(Y0 - SS * d - WH), int(Y0 - SS * d) + 1):
+            z = (Y0 - SS * d) - (Y + .5)
+            if not (0 <= z < WH): continue
+            nm, ty = ('wall_base_bal', 15 - int(z)) if z < 16 else ('wall_top_bal', int(WH - 1 - z)) if z >= WH - 16 else ('wall_bal', 15 - int(z - 16) % 16)
+            r, g, bb, a = lib[nm].load()[int(d) % 16, ty]; px[X, Y] = (int(r * .82), int(g * .82), int(bb * .86), a)
     # 가구(그림자 없음): 바닥의 (x, 깊이) 한 점 아래 가운데에 놓는다
     def put(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
