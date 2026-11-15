@@ -35,7 +35,7 @@ def build(item, pal):
     parts = item['parts']
     maxx = max((p[1] + p[4] + SK * (p[2] + p[5]) if p[0] == 'box' else p[1] + p[4]) for p in parts)
     maxz = max((p[3] + p[6] + SS * (p[2] + p[5]) if p[0] == 'box' else p[3] + p[5] + SS * p[2]) for p in parts)
-    W, H = int(math.ceil(maxx)) + 2, int(math.ceil(maxz)) + 2
+    W, H = int(math.ceil(maxx)) + 2, int(math.ceil(maxz)) + 3
     img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     def pt(x, y, z):
