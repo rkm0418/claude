@@ -87,7 +87,7 @@ def render_room(path, scale=1):
         by2 = Y0 - SS * (D + RD)                                         # 알코브: 한 칸 안쪽의 뒷벽 + 왼쪽 옆벽
         for X in range(int(X0 + SK * (D + RD) + ra * T), int(min(X0 + SK * (D + RD) + (rb + 1) * T, X0 + SK * D + (rb + 1) * T))):    # 오른쪽은 앞에 있는 바깥 벽이 가리므로 그 왼쪽 끝에서 자른다
             x = X + .5 - X0 - SK * (D + RD); c = c0 + int(x // T)
-            for Y in range(int(by2 - wallh), int(by2)):                       # 윗선 위쪽은 배경으로 서서히 사라진다
+            for Y in range(int(by2 - wallh) + int(SS * RD), int(by2)):        # 안쪽 면의 윗선은 바깥 벽의 윗선과 같게 맞춘다(벽이 이어지게)
                 z = by2 - (Y + .5)
                 if z < 16: nm, ty = tile(rows[base_row][c]), 15 - int(z)
                 elif z < 32: nm, ty = tile(rows[mid_row][c]), 15 - int(z - 16)
