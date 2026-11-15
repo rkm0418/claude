@@ -25,18 +25,18 @@ def main():
     # 철창(뒤쪽 한 줄): 위 가로대 y=62, 아래 가로대 y=79. 양 끝은 앞쪽으로 비스듬히 벌어져 화면 밖까지 잘린다. 철창 아래는 전부 땅.
     ML, MR = (112, 114, 128, 255), (82, 84, 98, 255)
     L, Rr, top_y, base_y = 12, W - 12, 62, 79
+    TT, TB, TW = 2, 1, 1                                   # 철창 두께: 윗줄, 아랫줄, 창살(칸)
+    ST, SB = 3, 2                                                 # 양옆 꺾인 부분 윗줄만 한 칸 더 굵게
     def base_at(x):                                        # 아래 가로대(땅 경계)의 높이
         d = max(L - x, x - Rr, 0); return round(base_y + d)
     for x in range(W):                                     # 땅: 의자와 겹치지 않는 따뜻한 어두운 갈색
-        for y in range(base_at(x) + 1, H): px[x, y] = (46, 34, 30, 255)
+        for y in range(base_at(x) + (SB if (x < L or x > Rr) else TB), H): px[x, y] = (46, 34, 30, 255)
     for y in (base_y + 14, base_y + 30):
         for x in range(W):
             if y > base_at(x): px[x, y] = (30, 22, 22, 255)
     def seg(p0, p1, col):
         (x0, y0), (x1, y1) = p0, p1; n = max(abs(x1 - x0), abs(y1 - y0)) or 1
         for i in range(n + 1): px[round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)] = col
-    TT, TB, TW = 2, 1, 1                                   # 철창 두께: 윗줄, 아랫줄, 창살(칸)
-    ST = 4                                                 # 양옆 꺾인 부분 윗줄만 한 칸 더 굵게
     def band(p0, p1, th, col0, col=MR, dy=0):             # 두께 th칸의 선(가로/45도 공통)
         for k in range(th): seg((p0[0], p0[1] + dy + k), (p1[0], p1[1] + dy + k), col0 if k == 0 else col)
     band((L, top_y), (Rr, top_y), TT, ML); band((L, base_y), (Rr, base_y), TB, MR)
@@ -44,7 +44,7 @@ def main():
         for w in range(TW): seg((x + w, top_y + TT), (x + w, base_y - 1), MR)
     for s, x0, ex in ((-1, L, -1), (1, Rr, W)):            # 꺾인 양 끝: 정면과 같은 굵기, 깔끔한 45도
         n = abs(ex - x0)
-        band((x0, top_y), (ex, top_y + n), ST, ML); band((x0, base_y), (ex, base_y + n), TB, MR)
+        band((x0, top_y), (ex, top_y + n), ST, ML); band((x0, base_y), (ex, base_y + n), SB, MR)
         for d in range(4, n, 5):
             xx = x0 + s * d
             for w in range(TW): seg((xx + w, top_y + d + ST), (xx + w, base_y + d - 1), MR)
