@@ -72,6 +72,24 @@ def main():
         for d in range(4, n, 5):
             xx = x0 + s * d
             for w in range(TW): seg((xx + w, top_y + d + ST), (xx + w, base_y + d - 1), MR)
+    # 입체감: 바닥 깊이 그라데이션(안쪽=어둡고 차갑게, 앞쪽=밝게), 철창이 바닥에 드리우는 그림자, 위쪽 가로대 아래 어두운 띠
+    def dark(x, y, f):
+        if 0 <= x < W and 0 <= y < H:
+            r_, g_, b_, a_ = px[x, y]; px[x, y] = (int(r_ * f), int(g_ * f), int(b_ * f), a_)
+    for y in range(base_y, H):
+        f = .72 + .5 * min(1, (y - base_y) / (H - base_y))
+        for x in range(W):
+            if y >= base_at(x) + (SB if (x < L or x > Rr) else TB): dark(x, y, f)
+    for x in range(L + 4, Rr, 5):                          # 가운데 창살 그림자(달빛이 왼쪽 위에서 비스듬히)
+        for k in range(12):
+            for w in range(TW): dark(x + w + k // 2 + 1, base_y + TB + k, .55)
+    for s_, x0, ex in ((-1, L, -1), (1, Rr, W)):          # 꺾인 부분 그림자
+        for d in range(4, abs(ex - x0), 5):
+            xx = x0 + s_ * d
+            for k in range(10):
+                for w in range(TW): dark(xx + w + k // 2 + 1, base_y + d + SB + k, .55)
+    for x in range(L, Rr):                                 # 위 가로대 바로 아래 어두운 띠(두께감)
+        for y in range(top_y + TT, top_y + TT + 2): dark(x, y, .75)
     # 쇠 의자와 탁자: 땅 위
     t = lib['iron_table']; c = lib['iron_chair']
     def shadow(cx, cy, rx, ry):                            # 발 밑 그림자(바닥에 닿아 보이게)
