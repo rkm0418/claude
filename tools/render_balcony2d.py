@@ -57,12 +57,15 @@ def main():
             elif fr.random() < .035: c = tuple(v + 12 for v in c)                    # 나뭇결 점
             px[x, y] = c + (255,)
     # 왼쪽은 집 외벽으로 막는다: 철창 아랫줄 선을 따라 내려오는 벽(윗선은 철창 사선보다 24칸 높게)
+    def flat(t):                                           # 타일의 점(얼룩)을 없애고 가장 많은 색 한 가지로 칠한다
+        from collections import Counter
+        return Counter(t.getdata()).most_common(1)[0][0]
     wall = lib['wall_bal']; wb = lib['wall_base_bal']; wt = lib['wall_top_bal']
     for x in range(0, L):
         d = L - x; ytop = max(0, top_y + d - 24); ybot = base_at(x) + SB
         for y in range(ytop, ybot):
             z = ybot - y; tex = wb if z <= 8 else wt if y - ytop < 8 else wall
-            r_, g_, b_, a_ = tex.load()[(x + 7) % 16, y % 16]; px[x, y] = (int(r_ * .8), int(g_ * .8), int(b_ * .86), 255)
+            r_, g_, b_, a_ = flat(tex); px[x, y] = (int(r_ * .8), int(g_ * .8), int(b_ * .86), 255)
         px[x, ytop] = (20, 18, 26, 255)
     def seg(p0, p1, col):
         (x0, y0), (x1, y1) = p0, p1; n = max(abs(x1 - x0), abs(y1 - y0)) or 1

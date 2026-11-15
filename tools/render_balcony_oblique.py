@@ -50,6 +50,8 @@ def main():
             px[X, Y] = c + (255,)
     # 왼쪽 옆은 집 외벽(벽으로 막음): 방·복도의 왼쪽 벽과 같은 사선 눌림, 철창보다 높다
     WH = RAIL + 24
+    from collections import Counter
+    flat = lambda t: Counter(t.getdata()).most_common(1)[0][0]     # 타일의 점(얼룩) 제거: 가장 많은 색 한 가지
     for X in range(int(X0), int(X0 + SK * D) + 1):
         d = (X + .5 - X0) / SK
         if not (0 <= d < D): continue
@@ -57,7 +59,7 @@ def main():
             z = (Y0 - SS * d) - (Y + .5)
             if not (0 <= z < WH): continue
             nm, ty = ('wall_base_bal', 15 - int(z)) if z < 16 else ('wall_top_bal', int(WH - 1 - z)) if z >= WH - 16 else ('wall_bal', 15 - int(z - 16) % 16)
-            r, g, bb, a = lib[nm].load()[int(d) % 16, ty]; px[X, Y] = (int(r * .82), int(g * .82), int(bb * .86), a)
+            r, g, bb, a = flat(lib[nm]); px[X, Y] = (int(r * .82), int(g * .82), int(bb * .86), a)
     # 가구(그림자 없음): 바닥의 (x, 깊이) 한 점 아래 가운데에 놓는다
     def put(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
