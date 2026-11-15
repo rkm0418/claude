@@ -22,28 +22,34 @@ def main():
     for y in range(0, floor_y):
         for x in range(W): px[x, y] = rgb(pal, 'X')
     for _ in range(5): px[rng.randrange(8, W - 8), rng.randrange(6, rail_y - 14)] = rgb(pal, rng.choice('WwWq'))
-    # 방지대: 가운데는 정면, 양끝은 뒤쪽으로 꺾여 올라가는 사선(철창이 이어지다 꺾임)
-    L, Rr, bend = 26, W - 26, 27
-    for x in range(L, Rr):
-        for dy in range(2): px[x, rail_y + dy] = rgb(pal, 'l' if dy == 0 else 'm')
-        px[x, rail_b - 1] = rgb(pal, 'm')
-    for k in range(bend):                                  # 꺾인 부분: 앞(보는 쪽)으로 비스듬히 내려오며 벌어짐
-        for sx in (L - 1 - k, Rr + k):
-            px[sx, rail_y + k] = rgb(pal, 'l'); px[sx, rail_y + k + 1] = rgb(pal, 'm')
-            px[sx, rail_b - 1 + k] = rgb(pal, 'm')
-    for x in range(L, Rr, 5):
-        for y in range(rail_y + 2, rail_b - 1): px[x, y] = rgb(pal, 'm')
-    for k in range(2, bend, 5):                            # 꺾인 부분 창살(점점 길어짐)
-        for sx in (L - 1 - k, Rr + k):
-            for y in range(rail_y + k + 2, rail_b - 1 + k): px[sx, y] = rgb(pal, 'm')
-    # 바닥: 한 가지 어두운 색 + 가로 이음선만 (깔끔하게)
+    # 바닥: 의자(밝은 회색 선)와 겹치지 않는 따뜻한 어두운 갈색, 가로 이음선만
     for y in range(floor_y, H):
-        for x in range(W): px[x, y] = rgb(pal, 'd')
+        for x in range(W): px[x, y] = (46, 34, 30, 255)
     for y in (floor_y + 14, floor_y + 30):
-        for x in range(W): px[x, y] = rgb(pal, 'k')
-    # 쇠 의자와 탁자: 오른쪽, 방지대 앞
+        for x in range(W): px[x, y] = (30, 22, 22, 255)
+    ML, MR = (112, 114, 128, 255), (82, 84, 98, 255)    # 철창 색(밝은 줄/보통 줄)
+    def seg(p0, p1, col):
+        (x0, y0), (x1, y1) = p0, p1; n = max(abs(x1 - x0), abs(y1 - y0)) or 1
+        for i in range(n + 1): px[round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)] = col
+    L, Rr = 26, W - 26                                     # 가운데 정면 구간 [L, Rr], 양옆은 앞쪽으로 꺾여 화면 밖까지
+    ft, fb = H - 30, H - 5                                 # 앞쪽 철창의 윗줄/아랫줄
+    def rails():
+        seg((L, rail_y), (Rr, rail_y), ML); seg((L, rail_y + 1), (Rr, rail_y + 1), MR); seg((L, floor_y - 1), (Rr, floor_y - 1), MR)
+        for x in range(L, Rr + 1, 5): seg((x, rail_y + 2), (x, floor_y - 2), MR)
+        for s, ex in ((-1, -1), (1, W)):                   # 왼쪽(-1)/오른쪽(1) 꺾인 철창
+            x0 = L if s < 0 else Rr
+            seg((x0, rail_y), (ex, ft), ML); seg((x0, floor_y - 1), (ex, fb), MR)
+            for d in range(5, 28, 5):
+                xx = x0 + s * d; t = d / abs(ex - x0)
+                y0 = round(rail_y + (ft - rail_y) * t) + 1; y1 = round(floor_y - 1 + (fb - floor_y + 1) * t)
+                seg((xx, y0), (xx, y1), MR)
+    rails()
+    # 쇠 의자와 탁자: 바닥 위
     t = lib['iron_table']; c = lib['iron_chair']
-    im.alpha_composite(t, (62, floor_y + 34 - t.height + 6)); im.alpha_composite(c, (36, floor_y + 34 - c.height + 8))
+    im.alpha_composite(t, (60, 104 - t.height)); im.alpha_composite(c, (30, 104 - c.height))
+    # 정면(보는 쪽) 철창: 가로로 늘려 사각 공간을 닫는다
+    seg((0, ft), (W - 1, ft), ML); seg((0, ft + 1), (W - 1, ft + 1), MR); seg((0, fb), (W - 1, fb), MR)
+    for x in range(2, W, 5): seg((x, ft + 2), (x, fb - 1), MR)
     # 밤의 색조
     for y in range(H):
         for x in range(W):
