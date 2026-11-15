@@ -11,7 +11,7 @@ import render_maps as R
 SK, SS, T, WALLH, PAD = boxes.SK, boxes.SS, 16, 40, 12
 
 def render_room(path, scale=1):
-    m = R.load_map(path); lib = R.load_library(); lights = R.load_lights(); boxset = set(boxes.load_all(render.ROOT))
+    m = R.load_map(path); lib = R.load_library(); lights = R.load_lights(); boxset = set(boxes.load_all(render.ROOT)); bdepth = {it['name']: max(p[2] + p[5] for p in it['parts'] if p[0] == 'box') for it in boxes.load_boxes(os.path.join(render.ROOT, 'boxes.txt'))}
     rows, leg = m['rows'], m['legend']
     tile = lambda ch: leg[ch][0]
     floor_rows = [i for i, r in enumerate(rows) if any(tile(c).startswith('floor') for c in r)]
@@ -84,6 +84,7 @@ def render_room(path, scale=1):
                 nm, _, lift = obj.partition('^'); d0 = D - T * (fr + 1)
                 things.append((-d0, 0 if nm.startswith('rug') else 1, c, nm, int(lift or 0), d0))
     for _, _, c, nm, lift, d0 in sorted(things):
+        if nm in bdepth: d0 += max(0, T - bdepth[nm])        # 상자 가구는 칸의 뒤쪽 끝에 붙인다(벽에 맞닿게)
         gx, gy = X0 + (c - c0) * T + SK * d0, Y0 - SS * d0
         if nm == 'ceiling_light':
             emitters.append((gx + 8, gy - 18) + lights[nm]); continue
