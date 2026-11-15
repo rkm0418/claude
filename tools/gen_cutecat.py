@@ -63,18 +63,11 @@ def cat2(expr):
     c.line(12, 26.6, 12, 29.8, 1, ch='k')                                                                   # 두 다리 사이 검은 선
     for x in (8, 10, 14, 16): c.put(x, 29.4, 'k')                                                          # 발가락 선
     c.line(7.2, 21.4, 7.2, 25.2, 1, ch='w'); c.line(16.8, 21.4, 16.8, 25.2, 1, ch='w')                    # 앞발과 몸통 경계의 옅은 선
-    c.ell(5.6, 3.6, 3.3, 3.8, 'q'); c.ell(18.4, 3.6, 3.3, 3.8, 'P'); c.ell(4.8, 1.6, 2.0, 2.0, 'q'); c.ell(19.2, 1.6, 2.0, 2.0, 'P')   # 둥근 귀(왼쪽 크림, 오른쪽 살구)
+    c.ell(5.6, 3.6, 3.3, 3.8, 'P'); c.ell(18.4, 3.6, 3.3, 3.8, 'P'); c.ell(4.8, 1.6, 2.0, 2.0, 'P'); c.ell(19.2, 1.6, 2.0, 2.0, 'P')   # 둥근 귀
     c.ell(5.8, 3.8, 1.3, 1.7, 'i'); c.ell(18.2, 3.8, 1.3, 1.7, 'i')
     c.ell(12, 12.0, 10.4, 8.4, 'W')
-    for y in range(30):                                                                                    # 얼룩: 왼쪽은 연한 크림, 오른쪽은 진한 살구, 경계는 비스듬하고 울퉁불퉁하게
-        for x in range(26):
-            if c.g[y][x] != 'W': continue
-            wob = 0.8 * ((x * 7 + y * 3) % 3 - 1)
-            if y < 10.6 - (x - 3) * 0.55 + wob and x < 13.5: c.g[y][x] = 'q'                               # 왼쪽 큰 얼룩(눈 위로 흘러내림)
-            elif y < 6.0 + (x - 16) * 0.35 + wob and x >= 14.5: c.g[y][x] = 'P'                            # 오른쪽 살구색 얼룩
-    for y in range(8, 11):                                                                                 # 왼쪽 눈 옆으로 늘어진 작은 얼룩 끝
-        for x in range(2, 6):
-            if c.g[y][x] == 'W': c.g[y][x] = 'q'
+    patch(c, 9.0, 6.6, 6.2, 4.6, 'P')                                                                       # 머리 위쪽(왼쪽 치우침)의 살구색 얼룩
+    patch(c, 19.5, 6.0, 3.4, 3.4, 'P')
     for sx in (-1, 1): c.ell(12 + sx * 6.8, 15.6, 2.2, 1.4, 'i')                                            # 분홍 볼터치
     c.put(12, 14.0, 'p')
     if expr == 'A':
@@ -107,4 +100,17 @@ def main():
     lines = ['# 흰 고양이 표정 5종 (tools/gen_cutecat.py 가 생성함)', '']
     for v in 'ABCDE': lines.append(f'[cat_{v}] {notes[v]} | {v}'); lines += cat2(v); lines.append('')
     open(os.path.join(root, 'cutecat2_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
-if __name__ == '__main__': main()
+def export_final():
+    """확정안(흰 고양이)을 art/objects.txt 에 cat_white_A..E 로 넣는다."""
+    path = os.path.join(os.path.dirname(__file__), '..', 'art', 'objects.txt')
+    notes = {'A': '기본(입 일자)', 'B': '웃음', 'C': '걱정(입 일자)', 'D': '졸림', 'E': '화남(입 일자)'}
+    blocks = [f'[cat_white_{v}] 말랑한 고양이(흰 털, 살구색 얼룩) {notes[v]} | dream\n' + '\n'.join(cat2(v)) + '\n' for v in 'ABCDE']
+    keep, skip = [], False
+    for line in open(path, encoding='utf-8').read().split('\n'):
+        if line.startswith('['): skip = line.startswith('[cat_white')
+        if not skip: keep.append(line)
+    open(path, 'w', encoding='utf-8').write('\n'.join(keep).rstrip('\n') + '\n\n' + '\n'.join(blocks))
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == 'final': export_final()
+    else: main()

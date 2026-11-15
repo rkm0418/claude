@@ -268,3 +268,5 @@
 - `art/objects.txt` 에 `bear_green_A..E` 로 저장됨. 생성기: `python3 tools/gen_cutebear.py final` (곰과 토끼를 함께 다시 만든다).
 - 레퍼런스 이미지(상업 캐릭터)를 직접 도트로 옮긴 것은 `art/out/pixelize/` 에 참고용으로만 두고, 게임에 쓰는 것은 오리지널 디자인.
 - 토끼: 레퍼런스 도트화의 비율(큰 둥근 머리, 길고 하얀 귀, 점 눈, 작은 흰 발)을 가져와 흰 피부 + 붉은 더블 트렌치코트(허리 벨트, 검은 단추 두 줄, 줄무늬 스카프) + 둥근 귀, 귀 밑 빨간 리본·옅은 볼터치·속눈썹으로 여자 캐릭터, 입 일자로 `rabbit_red_A..E`(24x40) 표정 5종. **확정**(사용자). 표정 5종, 24x42. 낱장 PNG는 `art/out/final/`. (처음에는 곰 틀을 색만 바꿔 만들어 사용자가 지적함. 지금 것은 토끼 전용으로 다시 그림.)
+
+- 고양이: 레퍼런스(주황 태비, 흰 고양이) 도트화에서 비율을 가져온 오리지널. **흰 고양이(살구색 얼룩, 머리 위쪽과 꼬리) 확정**, 표정 5종, 26x30, 다리 선명. `art/objects.txt` 의 `cat_white_A..E`, 낱장 PNG는 `art/out/final/`. 주황 태비 시안(`art/variants/cutecat_pixels.txt`)은 보관. 생성기: `python3 tools/gen_cutecat.py final`.
