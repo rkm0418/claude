@@ -17,6 +17,7 @@ def hair_black(c):
         half = 0.4 + (y - 2) * 0.22
         for x in range(24):
             if abs(x - 12) <= half and c.g[y][x] == 's': c.g[y][x] = K.SKIN
+    for x0, y0, x1, y1 in ((11.4, 5.6, 12.0, 9.0),): c.line(x0, y0, x1, y1, 1, ch='s')   # 가르마 사이로 내려온 잔머리
     for x0, y0, x1, y1 in ((7, 3.4, 5, 8.6), (9.4, 3.0, 8.0, 7.6), (15, 3.6, 16.6, 7.8), (17.6, 4.4, 19, 8.4)): c.line(x0, y0, x1, y1, 1, ch='d')   # 결(옅은 선)
     for x, y in ((6, 4), (7, 3), (17, 4)): c.put(x, y, 'm')                                                                                      # 윤기
 
