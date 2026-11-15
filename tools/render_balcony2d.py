@@ -29,19 +29,32 @@ def main():
     ST, SB = 3, 2                                                 # 양옆 꺾인 부분 윗줄만 한 칸 더 굵게
     def base_at(x):                                        # 아래 가로대(땅 경계)의 높이
         d = max(L - x, x - Rr, 0); return round(base_y + d)
-    # 나무판자 바닥(원근법): 소실점 (VX, VY)로 모이는 판자 이음선, 가까울수록 판이 커진다
-    PL = [(78, 52, 35), (70, 47, 32), (84, 57, 38)]
-    VX, VY, G, BW = W / 2, 20.0, 1.18, 8.0
+    # 나무판자 바닥(원근법): 판은 가로로 길게, 줄 사이 이음은 가로선, 판 끝 이음은 소실점으로 모인다. 폭·색·이음 위치는 불규칙
+    fr = random.Random(21)
+    VX, VY = W / 2, 20.0
+    rows, t = [], 1.0
+    while t < 2.2:                                        # 줄의 깊이 경계(t=1 안쪽 끝, 클수록 가깝다), 줄 폭 불규칙
+        nt = t * (1 + fr.uniform(.05, .13)); rows.append((t, nt)); t = nt
+    base_cols = [(60, 40, 27), (52, 34, 24), (66, 44, 29), (56, 37, 26), (48, 32, 22)]
+    row_info = []
+    for (t0, t1) in rows:
+        joints, xj = [], fr.uniform(-60, 0)
+        while xj < 200:
+            xj += fr.uniform(22, 70); joints.append(xj)    # 안쪽 끝 기준 판 끝 위치
+        cols = [tuple(max(0, v + fr.randint(-4, 4)) for v in fr.choice(base_cols)) for _ in joints]
+        row_info.append((t0, t1, joints, cols))
     for x in range(W):
         for y in range(base_at(x) + (SB if (x < L or x > Rr) else TB), H):
-            t = (y - VY) / (base_y - VY)                       # 1 = 안쪽 끝(철창 아래), 클수록 가깝다
-            xb = VX + (x + .5 - VX) / t; u = math.floor(xb / BW)  # 안쪽 끝 기준 가로 위치 → 판 번호
-            k = math.log(t) / math.log(G); r = math.floor(k)    # 앞뒤 방향 줄 번호
-            rowh = (base_y - VY) * t * math.log(G)              # 이 줄의 화면 높이
-            c = PL[(u * 5 + r * 2) % 3]
-            if ((xb - u * BW) * t < 1.0): c = (34, 22, 16)       # 판 사이 세로 이음(소실점으로 모임)
-            elif (k - r) * rowh < 1.0 and (u + r) % 3: c = (34, 22, 16)   # 판 끝 가로 이음(판마다 어긋남)
-            elif (x * 5 + y * 3) % 17 == 0: c = (92, 63, 42)     # 나뭇결 점
+            t = (y - VY) / (base_y - VY)
+            ri = next((r for r in row_info if r[0] <= t < r[1]), row_info[-1])
+            t0, t1, joints, cols = ri
+            xb = VX + (x + .5 - VX) / t
+            n = next((k for k, jx in enumerate(joints) if xb - VX + 100 < jx), len(joints) - 1)
+            c = cols[n]
+            ypx0 = VY + (base_y - VY) * t0
+            if y - ypx0 < 1.0: c = (26, 16, 12)                            # 줄 사이 가로 이음
+            elif n > 0 and (xb - VX + 100 - joints[n - 1]) * t < 1.0: c = (26, 16, 12)   # 판 끝 이음
+            elif fr.random() < .035: c = tuple(v + 12 for v in c)                    # 나뭇결 점
             px[x, y] = c + (255,)
     def seg(p0, p1, col):
         (x0, y0), (x1, y1) = p0, p1; n = max(abs(x1 - x0), abs(y1 - y0)) or 1
