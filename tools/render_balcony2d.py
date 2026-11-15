@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """베란다 바깥 2D(정면, 위를 올려다보는 구도) - 사용자 스케치: 양옆 벽, 위쪽 하늘(드문 별), 쇠창살 방지대, 바닥 사다리꼴, 오른쪽에 쇠 의자와 탁자.
 사용: python3 tools/render_balcony2d.py  -> maps/out/4_balcony_2d.png"""
-import os, random, sys
+import math, os, random, sys
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import render, render_maps as R
@@ -29,14 +29,19 @@ def main():
     ST, SB = 3, 2                                                 # 양옆 꺾인 부분 윗줄만 한 칸 더 굵게
     def base_at(x):                                        # 아래 가로대(땅 경계)의 높이
         d = max(L - x, x - Rr, 0); return round(base_y + d)
-    PL = [(78, 52, 35), (70, 47, 32), (84, 57, 38)]          # 나무판자 색(판마다 약간 다름)
+    # 나무판자 바닥(원근법): 소실점 (VX, VY)로 모이는 판자 이음선, 가까울수록 판이 커진다
+    PL = [(78, 52, 35), (70, 47, 32), (84, 57, 38)]
+    VX, VY, G, BW = W / 2, 20.0, 1.18, 8.0
     for x in range(W):
         for y in range(base_at(x) + (SB if (x < L or x > Rr) else TB), H):
-            r = (y - base_y) // 8; seam = (y - base_y) % 8 == 7
-            joint = (x + r * 23) % 61 == 0                      # 판 끝 이음(줄마다 어긋남)
-            c = PL[r % 3]
-            if seam or joint: c = (34, 22, 16)
-            elif (x * 5 + y * 3 + r * 11) % 13 == 0 and (y - base_y) % 8 in (2, 4): c = (92, 63, 42)   # 나뭇결
+            t = (y - VY) / (base_y - VY)                       # 1 = 안쪽 끝(철창 아래), 클수록 가깝다
+            xb = VX + (x + .5 - VX) / t; u = math.floor(xb / BW)  # 안쪽 끝 기준 가로 위치 → 판 번호
+            k = math.log(t) / math.log(G); r = math.floor(k)    # 앞뒤 방향 줄 번호
+            rowh = (base_y - VY) * t * math.log(G)              # 이 줄의 화면 높이
+            c = PL[(u * 5 + r * 2) % 3]
+            if ((xb - u * BW) * t < 1.0): c = (34, 22, 16)       # 판 사이 세로 이음(소실점으로 모임)
+            elif (k - r) * rowh < 1.0 and (u + r) % 3: c = (34, 22, 16)   # 판 끝 가로 이음(판마다 어긋남)
+            elif (x * 5 + y * 3) % 17 == 0: c = (92, 63, 42)     # 나뭇결 점
             px[x, y] = c + (255,)
     def seg(p0, p1, col):
         (x0, y0), (x1, y1) = p0, p1; n = max(abs(x1 - x0), abs(y1 - y0)) or 1
