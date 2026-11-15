@@ -207,6 +207,14 @@ def burst(dur=.18, g=1.0): n = int(dur * SR); return norm(fft_filter(rng.standar
 def whisper(dur, g=.5): n = int(dur * SR); tt = np.arange(n) / SR; return norm(fft_filter(rng.standard_normal(n), 2500, 8000) * np.clip(np.sin(2 * np.pi * 5 * tt + rng.random() * 6), 0, 1) ** 2, g)
 def crash_f(dur, g=1.0): return crash(0, 1.0)[:int(2.5 * SR)] * g
 
+def scream(dur, g=.9):               # 비명: 높은 음이 위로 치솟았다 갈라지고 거칠게 찌그러지다 갑자기 끊김
+    n = int(dur * SR); tt = np.arange(n) / SR
+    f0 = (650 + 900 * (tt / dur) ** .7 + 140 * np.sin(2 * np.pi * 9 * tt)) * (1 + .06 * (rng.random(n // 800 + 2)[(tt * SR / 800).astype(int)] - .5))
+    src = ((np.cumsum(f0) / SR) % 1.0) * 2 - 1; src = src + .5 * rng.standard_normal(n)
+    y = sum(gg * biquad_bp(src, f, 4) for f, gg in ((950, 1.0), (1700, .8), (3000, .6)))
+    y = np.tanh(norm(y, 1) * 4.0) * np.clip(tt * 40, 0, 1) * (1 - .35 * np.clip(np.sin(2 * np.pi * 13 * tt), 0, 1))
+    return norm(y, g)
+
 FRAGS = {   # 이름: (생성 함수(dur) -> 배열, 최소 길이, 최대 길이)
     'voice': (lambda d: band(vv(d, rng.choice([180, 220, 300]), ''.join(rng.choice(list('aeiou'), 7))), 300, 3400), .5, 3.0),
     'voice_slow': (lambda d: norm(slow(vv(d * 1.7, 200, ''.join(rng.choice(list('aeiou'), 6))), .55), .85), .8, 3.0),
@@ -222,6 +230,7 @@ FRAGS = {   # 이름: (생성 함수(dur) -> 배열, 최소 길이, 최대 길�
     'knock': (lambda d: sum(place_at(knock(0), k) for k in np.cumsum(rng.uniform(.15, .6, 3)))[:int(d * SR)], .8, 2.0),
     'phone': (lambda d: phone(0, 2, .6)[:int(d * SR)], 1.0, 3.0),
     'bell': (lambda d: (tone(0, d, 880, .5) + tone(0, d, 660, .4))[:int(d * SR)], .8, 2.0),
+    'scream': (scream, .7, 2.2),
     'burst': (lambda d: burst(.2), .2, .2),
 }
 def place_at(y, k): z = np.zeros(N); i = int(k * SR); z[i:i + len(y)] = y[:N - i]; return z
@@ -231,7 +240,7 @@ def sing_arr(d):
 def build(noise=1.0, seed=3):
     """불규칙 짜깁기: 조각의 종류, 길이, 간격이 모두 제멋대로이고, 갑자기 큰 소리가 터지고 정적이 길게 끼어든다."""
     global rng
-    rng = np.random.default_rng(seed); m = np.zeros(N); cur = .0; names = list(FRAGS); last = None; crashed = False
+    rng = np.random.default_rng(seed); m = np.zeros(N); cur = .0; names = list(FRAGS) + ['voice_slow'] * 3 + ['scrape'] * 3 + ['scream'] * 4; last = None; crashed = False
     while cur < DUR - 1.0:
         if not crashed and cur > 20 and rng.random() < .5:            # 교통사고는 후반 어딘가에 한 번(위치는 매번 다름)
             m += horn(cur, rng.uniform(.6, 1.4), .6); m += screech(cur + .7, rng.uniform(.6, 1.2), .6); m += crash(cur + 1.6); cur += 2.6; crashed = True; cur += rng.uniform(1.0, 2.2); continue
