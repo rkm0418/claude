@@ -33,8 +33,9 @@ def render_room(path, scale=1):
     c1 = max(c for i in floor_rows for c, ch in enumerate(rows[i]) if tile(ch).startswith('floor'))
     ncols, nrows = c1 - c0 + 1, len(floor_rows)
     W, D = ncols * T, nrows * T
-    CW, CH = int(PAD * 2 + W + SK * D), int(PAD * 2 + WALLH + SS * D)
-    X0, Y0 = PAD, PAD + WALLH + SS * D
+    sky = int(m.get('extra', {}).get('sky_rows', '0')); wallh = WALLH + 16 * sky      # 방지대 위에 하늘 줄을 더 쌓는다
+    CW, CH = int(PAD * 2 + W + SK * D), int(PAD * 2 + wallh + SS * D)
+    X0, Y0 = PAD, PAD + wallh + SS * D
     img = Image.new('RGBA', (CW, CH), (0, 0, 0, 0)); px = img.load()
     tex = lambda name: lib[name].load()
     def get(name, x, y): return tex(name)[x % 16, y % 16]
@@ -54,20 +55,21 @@ def render_room(path, scale=1):
     for X in range(int(X0), int(X0 + SK * D) + 1):
         d = (X + .5 - X0) / SK
         if not (0 <= d < D): continue
-        for Y in range(int(Y0 - SS * D - WALLH), int(Y0) + 1):
+        for Y in range(int(Y0 - SS * D - wallh), int(Y0) + 1):
             z = (Y0 - SS * d) - (Y + .5)
-            if not (0 <= z < WALLH): continue
-            nm, ty = (names['base'], 15 - int(z)) if z < 16 else (names['mid'], 15 - int(z - 16)) if z < 32 else (names['top'], int(WALLH - 1 - z))
+            if not (0 <= z < wallh): continue
+            nm, ty = (names['base'], 15 - int(z)) if z < 16 else (names['mid'], 15 - int(z - 16)) if z < 32 else (names['top'], int(wallh - 1 - z))
             r, g, b, a = get(nm, int(d), ty); px[X, Y] = (int(r * .82), int(g * .82), int(b * .86), a)
     # 뒷벽
     by = Y0 - SS * D
     for X in range(int(X0 + SK * D), int(X0 + SK * D + W)):
         x = X + .5 - X0 - SK * D; c = c0 + int(x // T)
-        for Y in range(int(by - WALLH), int(by)):
+        for Y in range(int(by - wallh), int(by)):
             z = by - (Y + .5)
             if z < 16: nm, ty = tile(rows[base_row][c]), 15 - int(z)
             elif z < 32: nm, ty = tile(rows[mid_row][c]), 15 - int(z - 16)
-            else: nm, ty = tile(rows[top_row][c]), int(WALLH - 1 - z)
+            elif sky and tile(rows[top_row][c]).startswith('wall_rail_top_'): nm, ty = 'wall_rail_top_' + 'abcdef'[(c + 2 * int((z - 32) // 16)) % 6], 15 - int((z - 32) % 16)
+            else: nm, ty = tile(rows[top_row][c]), int(wallh - 1 - z)
             if nm in lib: px[X, Y] = get(nm, int(x), ty)
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)

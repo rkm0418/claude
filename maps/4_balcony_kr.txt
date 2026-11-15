@@ -2,6 +2,7 @@ title: 베란다 바깥 (한국 아파트, 아주 깊은 새벽, 사선 시점)
 tone: 175 195 255
 ambient: 0.62
 left_wall: bal
+sky_rows: 2
 left_add: balcony_door_ls@0.3^0
 legend:
 # void
@@ -22,12 +23,12 @@ b wall_rail_base
 T floor_kr_bal iron_table
 C floor_kr_bal iron_chair_side
 map:
-##########
-##tuvyzx##
-##pqrson##
-##bbbbbb##
-##......##
-##.CT...##
-##......##
-##########
-##########
+#########
+##tuvyz##
+##pqrso##
+##bbbbb##
+##.....##
+##.CT..##
+##.....##
+#########
+#########
