@@ -81,7 +81,7 @@ def render_room(path, scale=1):
             if nm in lib: px[X, Y] = get(nm, int(x), ty)
     if rc:
         by2 = Y0 - SS * (D + RD)                                         # 알코브: 한 칸 안쪽의 뒷벽 + 왼쪽 옆벽
-        for X in range(int(X0 + SK * (D + RD) + ra * T), int(X0 + SK * (D + RD) + (rb + 1) * T)):
+        for X in range(int(X0 + SK * (D + RD) + ra * T), int(min(X0 + SK * (D + RD) + (rb + 1) * T, X0 + SK * D + (rb + 1) * T))):    # 오른쪽은 앞에 있는 바깥 벽이 가리므로 그 왼쪽 끝에서 자른다
             x = X + .5 - X0 - SK * (D + RD); c = c0 + int(x // T)
             for Y in range(int(by2 - wallh), int(by2)):
                 z = by2 - (Y + .5)
