@@ -119,6 +119,11 @@ def render_room(path, scale=1):
                 if 0 <= X < CW:
                     r_, g_, b_, a_ = px[X, Y]
                     if a_: px[X, Y] = (int(r_ * kk), int(g_ * kk), int(b_ * kk), a_)
+    if rc and extra.get('recess_triangle') == 'on':                    # 바깥 벽 왼쪽 끝 위의 어두운 삼각형 벽(왼쪽 옆면의 윗변과 평행한 사선)
+        xm_ = int(X0 + SK * D + (rb + 1) * T); top_ = int(by - wallh)
+        for off in range(int(SK * RD)):
+            for Y in range(top_ - (off + 1), top_):
+                px[xm_ + off, Y] = (46, 38, 40, 255)
     strip_px = []
     if rc and extra.get('recess_endface', 'on') != 'off':               # ㄴ 자 벽: 바깥 벽의 왼쪽 끝면(두께)을 안쪽 검은 면 오른쪽에 보이게 한다
             xm = int(X0 + SK * D + (rb + 1) * T); base_y = int(Y0 - SS * D); top_y = int(by - wallh)
