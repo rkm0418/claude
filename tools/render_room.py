@@ -35,7 +35,7 @@ def render_room(path, scale=1):
     W, D = ncols * T, nrows * T
     sky = int(m.get('extra', {}).get('sky_rows', '0')); wallh = WALLH + 16 * sky      # 방지대 위에 하늘 줄을 더 쌓는다
     extra_dark = m.get('extra', {}).get('recess_dark') == '1'
-    rc = m.get('extra', {}).get('recess'); RD = T if rc else 0                  # 뒷벽이 한 칸 안쪽으로 패인 부분(알코브): `recess: 시작열 끝열`
+    rc = m.get('extra', {}).get('recess'); RD = T * int(m.get('extra', {}).get('recess_depth', '1')) if rc else 0                  # 뒷벽이 한 칸 안쪽으로 패인 부분(알코브): `recess: 시작열 끝열`
     ra, rb = [int(v) for v in rc.split()] if rc else (0, -1)
     CW, CH = int(PAD * 2 + W + SK * (D + RD)), int(PAD * 2 + wallh + SS * (D + RD))
     X0, Y0 = PAD, PAD + wallh + SS * (D + RD)
@@ -56,7 +56,7 @@ def render_room(path, scale=1):
             if not tile(ch).startswith('floor'): continue
             col = get(tile(ch), int(x), 15 - int(d % T))
             if d >= D - 4 and rc and ra * T <= x < (rb + 1) * T and extra_dark:           # 알코브 바닥: 안쪽으로 갈수록 검게 사라진다
-                k = max(.06, .55 - (d - (D - 4)) / (RD + 4) * .5); col = (int(col[0] * k), int(col[1] * k), int(col[2] * k), col[3])
+                k = max(.14, .6 - (d - (D - 4)) / (RD + 4) * .4); col = (int(col[0] * k), int(col[1] * k), int(col[2] * k), col[3])
             px[X, Y] = col
     # 왼쪽 벽
     for X in range(int(X0), int(X0 + SK * D) + 1):
@@ -88,7 +88,9 @@ def render_room(path, scale=1):
                 if z < 16: nm, ty = tile(rows[base_row][c]), 15 - int(z)
                 elif z < 32: nm, ty = tile(rows[mid_row][c]), 15 - int(z - 16)
                 else: nm, ty = tile(rows[top_row][c]), int(wallh - 1 - z)
-                r_, g_, b_, a_ = get(nm, int(x), ty); px[X, Y] = ((int(r_ * .05), int(g_ * .05), int(b_ * .07), a_) if extra_dark else (int(r_ * .9), int(g_ * .9), int(b_ * .92), a_))       # 안쪽은 어둡게(recess_dark면 거의 검정)
+                glass = extra_dark and 16 <= z < 32 and c - c0 in (ra, ra + 1)                          # 안쪽 벽에 희미한 푸른 창: 방이 더 이어진다는 단서
+                if glass: nm = 'window_kr_l' if c - c0 == ra else 'window_kr_r'
+                r_, g_, b_, a_ = get(nm, int(x), ty); px[X, Y] = ((int(r_ * .38), int(g_ * .42), int(b_ * .55), a_) if glass else (int(r_ * .06), int(g_ * .06), int(b_ * .08), a_)) if extra_dark else (int(r_ * .9), int(g_ * .9), int(b_ * .92), a_)       # 안쪽은 어둡게(recess_dark면 거의 검정)
         for X in range(int(X0 + ra * T + SK * D), int(X0 + ra * T + SK * (D + RD)) + 1):
             d = (X + .5 - X0 - ra * T) / SK
             if not (D <= d < D + RD): continue
