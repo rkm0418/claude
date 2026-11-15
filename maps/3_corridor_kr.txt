@@ -4,7 +4,8 @@ ambient: 0.1
 left_wall: kr
 recess: 3 5
 recess_depth: 1
-recess_side: none
+recess_side: dark
+recess_panel: black
 left_add: door_entry_ls@0.2^0
 legend:
 # void

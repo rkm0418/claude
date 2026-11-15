@@ -90,7 +90,7 @@ def render_room(path, scale=1):
                 else: nm, ty = tile(rows[top_row][c]), int(wallh - 1 - z)
                 glass = extra_dark and 16 <= z < 32 and c - c0 in (ra, ra + 1)                          # 안쪽 벽에 희미한 푸른 창: 방이 더 이어진다는 단서
                 if glass: nm = 'window_kr_l' if c - c0 == ra else 'window_kr_r'
-                r_, g_, b_, a_ = get(nm, int(x), ty); px[X, Y] = ((int(r_ * .38), int(g_ * .42), int(b_ * .55), a_) if glass else (int(r_ * .06), int(g_ * .06), int(b_ * .08), a_)) if extra_dark else (int(r_ * .9), int(g_ * .9), int(b_ * .92), a_)       # 안쪽은 어둡게(recess_dark면 거의 검정)
+                r_, g_, b_, a_ = get(nm, int(x), ty); px[X, Y] = ((int(r_ * .38), int(g_ * .42), int(b_ * .55), a_) if glass else (int(r_ * .06), int(g_ * .06), int(b_ * .08), a_)) if extra_dark else ((int(r_ * .03), int(g_ * .03), int(b_ * .05), a_) if extra.get('recess_panel') == 'black' else (int(r_ * .9), int(g_ * .9), int(b_ * .92), a_))       # 안쪽은 어둡게(recess_dark면 거의 검정)
         for X in range(int(X0 + ra * T + SK * D), int(X0 + ra * T + SK * (D + RD)) + 1) if extra.get('recess_side') != 'none' else []:     # none: 옆벽은 시점에서 보이지 않으므로 그리지 않는다
             d = (X + .5 - X0 - ra * T) / SK
             if not (D <= d < D + RD): continue
@@ -98,7 +98,7 @@ def render_room(path, scale=1):
                 z = (Y0 - SS * d) - (Y + .5)
                 if not (0 <= z < wallh): continue
                 nm, ty = (names['base'], 15 - int(z)) if z < 16 else (names['mid'], 15 - int(z - 16)) if z < 32 else (names['top'], int(wallh - 1 - z))
-                r_, g_, b_, a_ = get(nm, int(d), ty); fk_ = .04 if extra.get('recess_side') == 'hidden' else (.25 if extra_dark else .72)
+                r_, g_, b_, a_ = get(nm, int(d), ty); fk_ = .04 if extra.get('recess_side') == 'hidden' else (.38 if extra.get('recess_side') == 'dark' else (.25 if extra_dark else .72))
                 px[X, Y] = (int(r_ * fk_), int(g_ * fk_), int(b_ * fk_ * 1.1), a_)
     emitters = []
     def stamp(name, left, bottom):                           # 정면 스프라이트 (왼쪽 아래 모서리 기준)
