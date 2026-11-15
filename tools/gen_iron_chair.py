@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """사진(스핀들 등받이 빈티지 의자)을 토대로 쇠 의자 정면을 art/objects.txt 에 iron_chair 로 쓴다."""
 import re
-W, H = 20, 34
+W, H = 18, 32
 g = [['.'] * W for _ in range(H)]
 def px(x, y, c):
     if 0 <= x < W and 0 <= y < H: g[y][x] = c
@@ -17,28 +17,22 @@ def outline():
                     nx, ny = x+dx, y+dy
                     if 0 <= nx < W and 0 <= ny < H and src[ny][nx] not in '.k':
                         g[y][x] = 'k'; break
-# 등받이 윗판(살짝 휜 곡선)
-rect(3, 1, 16, 3, 'm'); rect(2, 2, 17, 2, 'm'); rect(4, 1, 15, 1, 'c')
-px(2, 3, '.'); px(17, 3, '.')
-# 양쪽 기둥(마디 장식)
-for x in (3, 16):
-    rect(x, 4, x, 16, 'm')
-    px(x, 7, 'c'); px(x, 10, 'd'); px(x, 11, 'c'); px(x, 12, 'd')
-# 살대 4개
-for x in (6, 8, 11, 13):
-    rect(x, 4, x, 15, 'm'); px(x, 5, 'c')
-# 안장 모양 앉는 판
-rect(2, 16, 17, 16, 'c'); rect(1, 17, 18, 18, 'm'); rect(2, 19, 17, 19, 'd')
-px(1, 18, 'd'); px(18, 18, 'd')
-# 뒷다리(안쪽), 앞다리(바깥, 굵은 마디 장식)
-for x in (6, 13): rect(x, 20, x, 27, 'd')
-for x in (3, 16):
-    rect(x, 20, x, 33, 'm')
-    for y in (22, 23): px(x, y, 'd')
-    px(x, 21, 'c'); px(x, 29, 'd'); px(x, 30, 'c')
-# 가로대
-rect(4, 26, 15, 26, 'm'); rect(5, 27, 14, 27, 'd')
-outline()
+# 사진: 검은 철제 팔걸이 의자. 뒤에서 본 모습(난간 쪽을 향해 앉음)
+W2 = 18
+for x in range(4, 14): px(x, 0, 'l')                      # 등받이 고리 윗줄
+px(3, 1, 'm'); px(14, 1, 'm'); px(2, 2, 'm'); px(15, 2, 'm')
+for y in range(3, 12):                                    # 고리 양쪽(팔걸이로 이어짐)
+    px(2, y, 'm'); px(15, y, 'm')
+for y in range(2, 11):                                    # 망(그물) 등받이: 마름모 점
+    for x in range(3, 15):
+        if (x + y) % 2 == 0: px(x, y, 'd')
+for x in range(3, 15): px(x, 11, 'm')                     # 등받이 아래 가로대
+px(1, 12, 'm'); px(16, 12, 'm'); px(1, 13, 'm'); px(16, 13, 'm')   # 팔걸이 끝
+for x in range(2, 16): px(x, 14, 'c')                     # 앉는 판(뒤에서 얇게)
+for x in range(3, 15): px(x, 15, 'd')
+for y in range(15, 31): px(3, y, 'm'); px(14, y, 'm')     # 뒷다리(가까움, 길게)
+for y in range(15, 27): px(6, y, 'd'); px(11, y, 'd')     # 앞다리(멀리, 짧게)
+px(3, 16, 'c'); px(14, 16, 'c')
 grid = '\n'.join(''.join(r) for r in g)
 txt = open('art/objects.txt', encoding='utf-8').read()
 blk = '[iron_chair] 사진 속 스핀들 의자를 쇠로 옮긴 정면 의자(20x34) | real\n' + grid + '\n\n'

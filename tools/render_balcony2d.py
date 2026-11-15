@@ -13,39 +13,32 @@ def main():
     pal = render.load_palette(); lib = R.load_library(); rng = random.Random(8)
     im = Image.new('RGBA', (W, H), (0, 0, 0, 255)); px = im.load()
     top, rail_y, rail_b, floor_y = 10, 86, 112, 112
-    # 하늘: 위는 아주 깊은 남색, 아래(지평선 쪽)는 약간 밝게
-    for y in range(top, rail_y):
-        t = (y - top) / (rail_y - top); ch = 'X' if t < .9 else 'D'
-        for x in range(6, W - 6): px[x, y] = rgb(pal, ch)
-    for _ in range(5): px[rng.randrange(10, W - 10), rng.randrange(top + 2, rail_y - 14)] = rgb(pal, rng.choice('WwWq'))
-    # 천장(위의 얇은 띠, 스케치의 비스듬한 윗선)
-    for x in range(W):
-        yy = 6 + int((x / W) * -3)
-        for y in range(0, yy + top - 6): px[x, y] = rgb(pal, 's')
-    # 양옆 벽
-    for y in range(H):
-        for x in range(0, 6): px[x, y] = rgb(pal, 'd' if (x + y) % 11 else 'm')
-        for x in range(W - 6, W): px[x, y] = rgb(pal, 'd' if (x * 3 + y) % 13 else 'm')
-    for y in range(rail_y, rail_b - 1):                      # 창살 뒤로도 하늘이 이어진다
-        for x in range(6, W - 6): px[x, y] = rgb(pal, 'D')
-    # 방지대: 윗 가로대, 쇠창살, 아래 가로대. 양끝은 비스듬히 벽에 붙는다
-    for x in range(6, W - 6):
+    # 하늘: 한 가지 짙은 새벽색(층 없음), 양옆은 뚫려 있음
+    for y in range(0, floor_y):
+        for x in range(W): px[x, y] = rgb(pal, 'X')
+    for _ in range(5): px[rng.randrange(8, W - 8), rng.randrange(6, rail_y - 14)] = rgb(pal, rng.choice('WwWq'))
+    # 방지대: 가운데는 정면, 양끝은 뒤쪽으로 꺾여 올라가는 사선(철창이 이어지다 꺾임)
+    L, Rr, bend = 14, W - 14, 10
+    for x in range(L, Rr):
         for dy in range(2): px[x, rail_y + dy] = rgb(pal, 'l' if dy == 0 else 'm')
         px[x, rail_b - 1] = rgb(pal, 'm')
-    for x in range(10, W - 8, 5):
-        for y in range(rail_y + 2, rail_b - 1): px[x, y] = rgb(pal, 'm'); 
-    for k in range(6):                                     # 난간 끝이 벽으로 꺾이는 사선
-        px[5 - min(k, 5), rail_y + 6 - k] = rgb(pal, 'm'); px[W - 6 + min(k, 5), rail_y + 6 - k] = rgb(pal, 'm')
-    # 바닥: 사다리꼴(앞으로 올수록 넓음), 가로 이음선
+    for k in range(bend):                                  # 꺾인 부분: 위·아래 가로대가 함께 위로 비스듬히
+        for sx, ex in ((L - 1 - k, 1), (Rr + k, 1)):
+            px[sx, rail_y - k * 1 // 1 + 0] = rgb(pal, 'l'); px[sx, rail_y - k + 1] = rgb(pal, 'm')
+            px[sx, rail_b - 1 - k] = rgb(pal, 'm')
+    for x in range(L, Rr, 5):
+        for y in range(rail_y + 2, rail_b - 1): px[x, y] = rgb(pal, 'm')
+    for k in range(1, bend, 3):                            # 꺾인 부분 창살(점점 짧아짐)
+        for sx in (L - 1 - k, Rr + k):
+            for y in range(rail_y - k + 2, rail_b - 1 - k): px[sx, y] = rgb(pal, 'm')
+    # 바닥: 한 가지 어두운 색 + 가로 이음선만 (깔끔하게)
     for y in range(floor_y, H):
-        t = (y - floor_y) / (H - floor_y); inset = int(8 * (1 - t))
-        for x in range(inset, W - inset):
-            px[x, y] = rgb(pal, 'd') if (y * 7 + x * 3) % 17 else rgb(pal, 'm')
-    for y in (floor_y + 3, floor_y + 8, floor_y + 15):
-        for x in range(0, W): px[x, y] = rgb(pal, 'k')
+        for x in range(W): px[x, y] = rgb(pal, 'd')
+    for y in (floor_y + 6, floor_y + 14):
+        for x in range(W): px[x, y] = rgb(pal, 'k')
     # 쇠 의자와 탁자: 오른쪽, 방지대 앞
     t = lib['iron_table']; c = lib['iron_chair']
-    im.alpha_composite(t, (62, floor_y + 14 - t.height + 6)); im.alpha_composite(c, (44, floor_y + 14 - c.height + 8))
+    im.alpha_composite(t, (62, floor_y + 14 - t.height + 6)); im.alpha_composite(c, (46, floor_y + 14 - c.height + 8))
     # 밤의 색조
     for y in range(H):
         for x in range(W):
