@@ -48,10 +48,52 @@ def cat(expr):
         for x, y in ((20, 3), (21, 3), (20, 4), (22, 4), (21, 5), (22, 5)): c.put(x, y, 'r')
     return c.finish()
 
+def patch(c, cx, cy, rx, ry, ch, only='W'):
+    for y in range(30):
+        for x in range(26):
+            if c.g[y][x] == only and ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1: c.g[y][x] = ch
+
+def cat2(expr):
+    """흰 고양이(레퍼런스2 도트화의 비율): 머리와 몸이 이어진 둥근 덩어리, 머리 위쪽의 살구색 얼룩, 분홍 볼터치, 점 눈, 살구색 꼬리."""
+    c = C()
+    tube(c, [(18, 28), (23, 25), (23.4, 20)], 3.2, 2.8, 0, 0, 'P')
+    c.ell(12, 23.8, 7.4, 6.0, 'W'); c.ell(4.8, 23.0, 2.2, 2.8, 'W'); c.ell(19.2, 23.0, 2.2, 2.8, 'W')      # 몸과 짧은 앞발
+    c.ell(9, 28.4, 2.7, 1.7, 'W'); c.ell(15, 28.4, 2.7, 1.7, 'W')                                          # 두 발
+    c.ell(5.6, 3.6, 3.3, 3.8, 'P'); c.ell(18.4, 3.6, 3.3, 3.8, 'P'); c.ell(4.8, 1.6, 2.0, 2.0, 'P'); c.ell(19.2, 1.6, 2.0, 2.0, 'P')   # 둥근 귀
+    c.ell(5.8, 3.8, 1.3, 1.7, 'i'); c.ell(18.2, 3.8, 1.3, 1.7, 'i')
+    c.ell(12, 12.0, 10.4, 8.4, 'W')
+    patch(c, 9.0, 6.6, 6.2, 4.6, 'P')                                                                       # 머리 위쪽(왼쪽 치우침)의 살구색 얼룩
+    patch(c, 19.5, 6.0, 3.4, 3.4, 'P')
+    for sx in (-1, 1): c.ell(12 + sx * 6.8, 15.6, 2.2, 1.4, 'i')                                            # 분홍 볼터치
+    c.put(12, 14.0, 'p')
+    if expr == 'A':
+        for ex in (7.0, 17.0): c.ell(ex, 12.4, 1.5, 1.6, 'k')
+        for x in range(11, 14): c.put(x, 16, 'k')
+    if expr == 'B':
+        for ex in (7.0, 17.0): c.put(ex - 1, 13, 'k'); c.put(ex, 12, 'k'); c.put(ex + 1, 12, 'k'); c.put(ex + 2, 13, 'k')
+        for x in range(11, 14): c.put(x, 16, 'k')
+        c.put(12, 17, 'r')
+    if expr == 'C':
+        for ex in (7.0, 17.0): c.ell(ex, 12.4, 1.5, 1.6, 'k')
+        for x in range(11, 14): c.put(x, 16, 'k')
+        c.ell(21, 7, 1.1, 1.7, 'c'); c.put(21, 5, 'c')
+    if expr == 'D':
+        for ex in (5.8, 15.6): c.line(ex, 12.6, ex + 3, 12.6, 1, ch='k')
+        c.put(12, 16, 'k')
+        for x, y in ((21, 1), (22, 1), (23, 1), (22, 2), (21, 3), (22, 3), (23, 3)): c.put(x, y, 'k')
+    if expr == 'E':
+        for ex in (5.8, 15.6): c.line(ex, 11.2, ex + 3, 12.6, 1, ch='k') if ex < 10 else c.line(ex + 3, 11.2, ex, 12.6, 1, ch='k'); c.put(ex + 1, 12.6, 'k'); c.put(ex + 2, 12.6, 'k')
+        for x in range(11, 14): c.put(x, 16, 'k')
+        for x, y in ((20, 3), (21, 3), (20, 4), (22, 4), (21, 5), (22, 5)): c.put(x, y, 'r')
+    return c.finish()
+
 def main():
     root = os.path.join(os.path.dirname(__file__), '..', 'art', 'variants')
     notes = {'A': '기본(입 일자)', 'B': '웃음', 'C': '걱정(땀방울, 입 일자)', 'D': '졸림', 'E': '화남(입 일자)'}
     lines = ['# 말랑한 고양이 표정 5종 (tools/gen_cutecat.py 가 생성함)', '']
     for v in 'ABCDE': lines.append(f'[cat_{v}] {notes[v]} | {v}'); lines += cat(v); lines.append('')
     open(os.path.join(root, 'cutecat_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
+    lines = ['# 흰 고양이 표정 5종 (tools/gen_cutecat.py 가 생성함)', '']
+    for v in 'ABCDE': lines.append(f'[cat_{v}] {notes[v]} | {v}'); lines += cat2(v); lines.append('')
+    open(os.path.join(root, 'cutecat2_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
 if __name__ == '__main__': main()
