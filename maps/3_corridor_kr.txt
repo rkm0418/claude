@@ -1,0 +1,29 @@
+title: 3장 - 복도와 현관 (한국 아파트, 사선 시점, 현실 버전)
+tone: 255 246 232
+ambient: 0.2
+left_wall: kr
+left_add: door_entry_ls@0.2^0
+legend:
+# void
+t wall_top_kr
+w wall_kr
+b wall_base_kr
+S wall_kr sconce^6
+G wall_kr frame_a^3
+D wall_base_kr door_kr
+. floor_kr
+e floor_kr_entry
+E floor_kr_entry shoes
+R floor_kr_entry shoe_rack
+L floor_kr ceiling_light
+c floor_kr chair
+U floor_kr runner
+map:
+##############
+##tttttttttt##
+##wGwwSwwSww##
+##bbDbbDbbDb##
+##Rec..L....##
+##Ee..U.....##
+##############
+##############

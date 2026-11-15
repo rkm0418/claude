@@ -410,3 +410,21 @@ lWjjjjjjjjjjjlww
 lWWWWWWWWWWWWWWW
 llllllllllllllll
 qqqqqqqqqqqqqqqq
+
+[floor_kr_entry] 현관 바닥(회색 타일) | real
+mmmmmmmmmmmmmmmm
+mlllllllllllllll
+mlWWWWllllllllll
+mlWWWWllllllllll
+mlWWWWllllllllll
+mlWWWWllllllllll
+mlllllllllllllll
+mlllllllllllllll
+mlllllllllllllll
+mlllllllllllllll
+mlllllllllllllll
+mlllllllllllllll
+mlllllllllllllll
+mlllllllllllllll
+mlllllllllllllll
+mlllllllllllllll
