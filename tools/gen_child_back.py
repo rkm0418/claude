@@ -54,7 +54,10 @@ def pose(arm_l, arm_r, leg=None, lean=0, raised=False):
     core = {(x, y): px[x, y] for x in range(5, 19) for y in range(PAD + 19, PAD + 29)}
     P = lambda p: (p[0], p[1] + PAD)
     sl, sr = (SHL[0], SHL[1] - (1 if raised else 0)), (SHR[0], SHR[1] - (1 if raised else 0))
-    limb(im, [sl, P(arm_l[0]), P(arm_l[1])]); limb(im, [sr, P(arm_r[0]), P(arm_r[1])])
+    head = {(x, y): px[x, y] for x in range(24) for y in range(0, PAD + 20) if px[x, y][3]}
+    if arm_l: limb(im, [sl, P(arm_l[0]), P(arm_l[1])])
+    if arm_r: limb(im, [sr, P(arm_r[0]), P(arm_r[1])])
+    for k, c in head.items(): px[k] = c                    # 팔은 머리 앞쪽(철창 쪽)에 있다: 뒤에서 보면 머리가 팔을 가린다
     for k, c in core.items():                               # 몸통을 팔 위에 다시 그려 어깨 이음매를 덮는다
         if c[3] and not (k[0] in (5, 18) and PAD + 20 <= k[1] <= PAD + 23): px[k] = c
     for x, sx in ((5, 4), (18, 19)):                        # 어깨: 팔이 향하는 쪽으로 옷이 이어진다
@@ -82,20 +85,15 @@ def make():
     out = {}
     out['idle'] = pose(DOWN_L, DOWN_R)
     # 걷기 4장: 왼발 듦 + 오른팔 앞으로(뒤에서 보면 짧아 보임), 선 자세, 반대
-    w1 = pose(((3, 25), (3, 28)), ((19, 25), (20, 27)), ('l', 3)); w3 = pose(((4, 25), (3, 27)), ((20, 25), (20, 28)), ('r', 3))
-    def bob(im):
-        o = Image.new('RGBA', im.size, CLEAR); o.alpha_composite(im, (0, -1)); return o
-    out['walk'] = [bob(w1), out['idle'], bob(w3), out['idle']]
-    # 의자 밀기 2장: 몸을 앞으로 숙이고 두 손으로 등받이 양 끝을 잡는다. 팔꿈치가 굽혔다 펴지고 한 발씩 내딛는다
-    out['push'] = [pose(((3, 25), (2, 22)), ((20, 25), (21, 22)), ('l', 2), lean=1),
-                   pose(((3, 23), (2, 20)), ((20, 23), (21, 20)), ('r', 2), lean=2)]
-    # 잡기: 두 팔을 위로(팔 길이 그대로), 어깨가 따라 올라간다
-    up_l, up_r = ((4, 18), (4, 14)), ((19, 18), (19, 14))
+    w1 = pose(DOWN_L, ((19, 26), (19, 28)), ('l', 2)); w3 = pose(((4, 26), (4, 28)), DOWN_R, ('r', 2))
+    out['walk'] = [w1, out['idle'], w3, out['idle']]         # 들썩임 없이 차분하게: 발은 2칸만 들고 팔은 1칸만 흔든다
+    # 의자 끌기 2장: 의자 오른쪽에 서서 왼손으로 등받이 옆을 잡는다(오른팔은 몸 앞쪽이라 보이지 않음). 팔이 굽혔다 펴지고 한 발씩 내딛는다
+    out['push'] = [pose(((2, 25), (0, 22)), None, ('l', 2), lean=1), pose(((3, 24), (0, 23)), None, ('r', 2), lean=1)]
+    # 잡기: 두 팔을 앞 위로. 머리에 가려 팔꿈치와 손만 머리 양옆으로 보인다. 어깨가 따라 올라간다
+    up_l, up_r = ((2, 19), (0, 15)), ((21, 19), (22, 15))
     out['grab'] = out['reach'] = pose(up_l, up_r, raised=True)
-    # 발 올리기: 잡은 채로 한 발을 높이 올린다
-    out['foot'] = [pose(up_l, up_r, ('l', 6), raised=True), pose(up_l, up_r, ('r', 6), raised=True)]
-    # 끌어올리기: 팔꿈치를 굽혀 당긴다(손은 같은 자리, 몸이 올라옴)
-    bent_l, bent_r = ((2, 20), (4, 17)), ((21, 20), (19, 17))
+    out['foot'] = [pose(up_l, up_r, ('l', 6), raised=True), pose(up_l, up_r, ('r', 6), raised=True)]      # 잡은 채로 한 발을 높이
+    bent_l, bent_r = ((1, 21), (0, 17)), ((22, 21), (22, 17))                                             # 끌어올리기: 팔꿈치를 굽혀 당김
     out['hang'] = [pose(bent_l, bent_r, ('l', 4), raised=True), pose(bent_l, bent_r, ('r', 4), raised=True)]
     return out
 

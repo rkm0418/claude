@@ -2,7 +2,7 @@
 """프롤로그 추락 컷신(1인칭: 베란다 정면, 올려다보는 구도) 초안.  사용: python3 tools/gen_cutscene_prologue.py
 출력: maps/out/prologue_cutscene.gif (10fps, 320x240), maps/out/prologue_cutscene_sheet.png (주요 컷)
 흐름: 무음 → 철창 앞으로 걸어감 → 맨몸으로 매달려 보며 낑낑 → 옆의 의자를 발견 → 의자를 끌고 와 밟고 올라섬 →
-철창 위에서 결심한 듯 잠깐 멈춤 → 옆으로 기울어지며 떨어짐(슬리퍼 한 짝이 떨어짐) → 암전 → 타이틀. 착지는 그리지 않는다.
+철창 위에서 결심한 듯 잠깐 멈춤 → 옆으로 기울어지며 떨어짐 → 암전 → 타이틀. 착지는 그리지 않는다.
 카메라는 고정(확대 없음)."""
 import math, os, sys
 from PIL import Image, ImageDraw, ImageFont
@@ -69,7 +69,7 @@ add(S, 8, '1 어두운 베란다 (무음)')
 # 2. 철창 앞으로 걸어감(뒷모습 걷기)
 SPOT = (32, 84); start = (26, 150)                           # 의자를 지나치지 않도록 왼쪽으로 곧장 올라간다
 for i in range(28):
-    t = i / 27; add(dict(S, child=kid(lerp(start[0], SPOT[0], t), lerp(start[1], SPOT[1], t), WALK[(i // 2) % 4])), 1, '2 철창 앞으로 감' if i == 0 else '')
+    t = i / 27; add(dict(S, child=kid(lerp(start[0], SPOT[0], t), lerp(start[1], SPOT[1], t), WALK[(i // 3) % 4])), 1, '2 철창 앞으로 감' if i == 0 else '')
 add(dict(S, child=kid(*SPOT, IDLE)), 4)
 # 3. 맨몸으로 매달려 보며 낑낑(세 번): 팔을 뻗고 → 폴짝 매달려 다리를 버둥 → 미끄러져 내려옴
 for k in range(3):
@@ -81,12 +81,12 @@ add(dict(S, child=kid(*SPOT, IDLE)), 6)
 # 4. 옆의 의자를 발견
 add(dict(S, child=kid(*SPOT, IDLE), bang=True), 8, '4 옆의 의자를 발견')
 # 5. 의자 뒤로 돌아가(의자를 통과하지 않게 아래로 돌아서) 등받이를 두 손으로 잡고 철창 앞으로 민다
-def behind(cp): return (cp[0] + 25, cp[1] + 13)                # 의자 뒤 오른쪽(보는 쪽): 의자가 아이에게 가려지지 않고, 손이 등받이 오른쪽 끝에 닿는 자리
+def behind(cp): return (cp[0] + 29, cp[1] - 2)                # 의자 오른쪽 옆: 왼손이 등받이 옆(팔걸이)에 실제로 닿는 자리
 def walk_to(a, bpt, n, st, label=''):
     for i in range(n):
-        t = (i + 1) / n; add(dict(st, child=kid(lerp(a[0], bpt[0], t), lerp(a[1], bpt[1], t), WALK[(i // 2) % 4])), 1, label if i == 0 else '')
-cur = CH0; bh = behind(CH0); mid = (SPOT[0] + 2, bh[1] + 2)
-walk_to(SPOT, mid, 10, S, '5 의자 뒤로 돌아가 잡고 밂'); walk_to(mid, bh, 10, S)
+        t = (i + 1) / n; add(dict(st, child=kid(lerp(a[0], bpt[0], t), lerp(a[1], bpt[1], t), WALK[(i // 3) % 4])), 1, label if i == 0 else '')
+cur = CH0; bh = behind(CH0); mid = (SPOT[0] + 4, bh[1] + 20); mid2 = (bh[0] + 6, bh[1] + 20)     # 의자 아래로 돌아서 오른쪽 옆으로
+walk_to(SPOT, mid, 12, S, '5 의자 옆으로 돌아가 잡고 끌고 옴'); walk_to(mid, mid2, 12, S); walk_to(mid2, bh, 8, S)
 add(dict(S, child=kid(*bh, PUSH[0])), 5)                        # 등받이를 잡음
 for k in range(3):                                              # 세 번에 나눠 민다: 힘을 줘 밀고(팔이 펴짐) → 멈춰 숨 고름
     nxt = (lerp(CH0[0], GOAL[0], (k + 1) / 3), lerp(CH0[1], GOAL[1], (k + 1) / 3))
@@ -95,26 +95,28 @@ for k in range(3):                                              # 세 번에 나
     cur = nxt; add(dict(chair=cur, child=kid(*behind(cur), PUSH[0])), 5)
 CH = cur; cx = CH[0] + 14; seat_y = CH[1] - 12
 # 6. 올라가기: 의자 옆(오른쪽)으로 돌아가 → 잡고 → 한 발을 올리고 → 몸을 끌어올려 선다. 그다음 철창도 같은 순서
-side = (CH[0] + 36, CH[1] + 2)
-walk_to(behind(CH), side, 8, dict(chair=CH), '6 의자 옆에서 잡고 발을 올려 올라감')
-add(dict(chair=CH, child=kid(*side, PUSH[0])), 4)               # 팔걸이를 잡음
-add(dict(chair=CH, child=kid(*side, FOOT[0])), 5)               # 한 발을 앉는 판에
-for i in range(7):
-    t = ease((i + 1) / 7); add(dict(chair=CH, child=kid(lerp(side[0], cx, t), lerp(side[1], seat_y, t), HANG[0]), chair_over=t > .6))
-add(dict(chair=CH, child=kid(cx, seat_y, IDLE), chair_over=True), 6)                             # 의자 위에 섬
-add(dict(chair=CH, child=kid(cx, seat_y, REACH), chair_over=True), 5)                            # 철창 윗줄을 잡음
-add(dict(chair=CH, child=kid(cx, seat_y, FOOT[1]), chair_over=True), 5)                          # 한 발을 철창에 걸침
-for i in range(10):
-    t = ease((i + 1) / 10); add(dict(chair=CH, child=kid(cx, lerp(seat_y, RAIL_TOP + 4, t), HANG[1] if i < 7 else IDLE), chair_over=t < .5))
+side = behind(CH); TOPY = RAIL_TOP                              # 끌고 온 자리(의자 오른쪽 옆)에서 바로 오른다. TOPY: 철창 윗줄 위에 완전히 올라선 발 높이
+add(dict(chair=CH, child=kid(*side, PUSH[0])), 4, '6 잡고 발을 올려 올라감')      # 팔걸이를 잡음
+add(dict(chair=CH, child=kid(*side, FOOT[0])), 6)               # 한 발을 앉는 판에 올림
+add(dict(chair=CH, child=kid((side[0] + cx) / 2 + 2, seat_y + 5, HANG[0])), 3)       # 힘줘서 몸을 끌어올림(끊어서)
+add(dict(chair=CH, child=kid(cx, seat_y + 1, HANG[1]), chair_over=True), 3)
+add(dict(chair=CH, child=kid(cx, seat_y, IDLE), chair_over=True), 7)             # 의자 위에 섬
+add(dict(chair=CH, child=kid(cx, seat_y, REACH), chair_over=True), 5)            # 철창 윗줄을 잡음
+add(dict(chair=CH, child=kid(cx, seat_y, FOOT[1]), chair_over=True), 6)          # 한 발을 철창에 걸침
+mid_y = (seat_y + TOPY) / 2
+add(dict(chair=CH, child=kid(cx, mid_y + 4, HANG[1]), chair_over=True), 4)       # 끌어올림(끊어서)
+add(dict(chair=CH, child=kid(cx, mid_y - 4, HANG[0])), 4)
+add(dict(chair=CH, child=kid(cx, TOPY + 3, FOOT[0])), 4)                         # 무릎을 올림
+add(dict(chair=CH, child=kid(cx, TOPY, IDLE)), 3)                                # 철창 위에 완전히 올라섬
 # 7. 철창 위에서 결심한 듯 잠깐 멈춤
-add(dict(chair=CH, child=kid(cx, RAIL_TOP + 4, IDLE)), 16, '7 결심한 듯 멈춤')
-# 8. 옆으로 기울어지며 떨어짐: 슬리퍼 한 짝이 떨어진다
+add(dict(chair=CH, child=kid(cx, TOPY, IDLE)), 16, '7 결심한 듯 멈춤')
+# 8. 옆으로 기울어지며 떨어짐
 for i in range(8):
-    add(dict(chair=CH, child=kid(cx + i * .4, RAIL_TOP + 4, IDLE, 'front', -(i + 1) * 3)), 1, '8 기울어지며 떨어짐' if i == 0 else '')
-yy, v, ang = RAIL_TOP + 4, .6, -24
+    add(dict(chair=CH, child=kid(cx + i * .4, TOPY, IDLE, 'front', -(i + 1) * 3)), 1, '8 기울어지며 떨어짐' if i == 0 else '')
+yy, v, ang = TOPY, .6, -24
 for i in range(14):
     yy += v; v += .8; ang -= 4
-    add(dict(chair=CH, child=kid(cx + 4 + i * .3, yy, IDLE, 'behind', ang), slip=(cx - 12, RAIL_TOP + 2 + (i * 2.0) ** 1.25 * .8)))
+    add(dict(chair=CH, child=kid(cx + 4 + i * .3, yy, IDLE, 'behind', ang)))
 add(dict(chair=CH), 12)
 # 9. 암전 → 타이틀(착지는 그리지 않는다)
 for i in range(10): add(dict(chair=CH, fade=(i + 1) / 10), 1, '9 암전' if i == 0 else '')
@@ -122,7 +124,7 @@ for i in range(12): add(dict(chair=CH, fade=1.0, title=(i + 1) / 12), 1, '10 타
 add(dict(chair=CH, fade=1.0, title=1.0), 14)
 
 # 카메라: 확대 없이 고정(전체, 2배)
-cams = [(48, 70, 2.0)] * len(frames)
+cams = [(48, 66, 2.0)] * len(frames)
 imgs = [render(st, cam) for st, cam in zip(frames, cams)]
 os.makedirs(OUT, exist_ok=True)
 imgs[0].save(os.path.join(OUT, 'prologue_cutscene.gif'), save_all=True, append_images=imgs[1:], duration=100, loop=0)
