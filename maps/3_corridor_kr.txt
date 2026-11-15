@@ -10,6 +10,7 @@ w wall_kr
 b wall_base_kr
 G wall_kr frame_a^3
 D wall_base_kr door_kr
+O wall_base_kr opening_kr
 . floor_kr
 e floor_kr_entry
 E floor_kr_entry shoes
@@ -21,7 +22,7 @@ map:
 ##############
 ##tttttttttt##
 ##wGwwwwwSww##
-##bbDbDbDbBb##
+##bbObDbDbBb##
 ##Re......ee##
 ##Ee......ee##
 ##############
