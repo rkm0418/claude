@@ -70,6 +70,14 @@ def render_room(path, scale=1):
     # 왼쪽 벽의 사물: 세로 선은 그대로, 깊이 방향은 SK 배로 눌리고 SS 만큼 올라가는 기울임
     for tok in extra.get('left_add', '').split():
         nm, at = tok.split('@'); dc, _, lift = at.partition('^'); d0 = int(float(dc) * T); sp = lib[nm]
+        if nm.endswith('_ls'):                                    # 왼쪽 벽 면에 맞춰 미리 눌러 그린 스프라이트: 가로는 그대로, 한 칸 갈 때마다 1점씩 올라가는 기울임만 준다
+            for u in range(sp.width):
+                for v in range(sp.height):
+                    p = sp.getpixel((u, v))
+                    if p[3] == 0: continue
+                    X = int(X0 + SK * d0 + u); Y = int(Y0 - SS * d0 - u * SS / SK - int(lift or 0) - (sp.height - 1 - v)) - 1
+                    if 0 <= X < CW and 0 <= Y < CH: px[X, Y] = (int(p[0] * .85), int(p[1] * .85), int(p[2] * .88), 255)
+            continue
         painted = {}
         for u in range(sp.width):
             for v in range(sp.height):
