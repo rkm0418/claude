@@ -29,8 +29,8 @@ def hair_ref2(c):
 
 def base_round(c, shirt, shorts, covered=False):
     """둥근 몸: 어깨는 둥근 덮개, 목과 어깨 연결은 넓은 타원으로 이음, 팔은 어깨에서 부드럽게 이어짐."""
-    c.ell(9.2, 33, 3.0, 2.4, shorts); c.ell(14.8, 33, 3.0, 2.4, shorts)
-    c.ell(9.2, 35.4, 1.7, 2.0, K.SKIN); c.ell(14.8, 35.4, 1.7, 2.0, K.SKIN)
+    c.ell(9.2, 32.6, 3.0, 4.6, shorts); c.ell(14.8, 32.6, 3.0, 4.6, shorts)                              # 긴바지(발목까지)
+    c.line(12, 30, 12, 36.4, 1, ch='k')                                                                   # 두 다리 사이 선
     for sgn in (-1, 1):
         K.tube(c, [(12 + sgn * 6.4, 24.4), (12 + sgn * 7.6, 29.4)], 3.0, 2.6, 0, 0, shirt)                    # 팔
         if not covered: c.ell(12 + sgn * 7.8, 30.8, 1.5, 1.6, K.SKIN)
@@ -42,20 +42,19 @@ def build(shirt, shorts, hands_covered=False):
     c = C(); base_round(c, shirt, shorts, hands_covered); K.head(c, blush=False); hair_ref2(c); return c
 
 def A():
-    c = build('c', 'h'); c.line(8.4, 35.4, 10.4, 35.4, 1, ch='W'); c.put(9.4, 34.6, 'W'); c.put(9.4, 36.2, 'W')
-    c.ell(9.2, 37.4, 2.4, .9, 'p'); c.ell(14.8, 37.2, 1.8, .8, K.SKIN); return c.finish()
+    c = build('c', 'h'); c.ell(9.2, 37.4, 2.4, .9, 'p'); c.ell(14.8, 37.2, 1.8, .8, K.SKIN); return c.finish()          # 슬리퍼 한 짝만
 def B():
-    c = build('t', 'd'); c.ell(9.2, 37.2, 2.0, .9, 'k'); c.ell(14.8, 37.2, 2.0, .9, 'k'); return c.finish()
+    c = build('t', 'd'); c.ell(9.2, 37.2, 2.2, .9, 'k'); c.ell(14.8, 37.2, 2.2, .9, 'k'); return c.finish()
 def Cc():
-    c = build('y', 'a'); c.ell(9.2, 36.0, 1.9, 1.2, 'W'); c.ell(14.8, 35.2, 1.9, 2.2, 'W'); c.ell(9.2, 37.3, 2.0, .8, 'd'); c.ell(14.8, 37.3, 2.0, .8, 'd'); return c.finish()
+    c = build('y', 'a'); c.ell(9.2, 36.0, 2.0, 1.3, 'W'); c.ell(9.2, 37.3, 2.2, .8, 'd'); c.ell(14.8, 37.3, 2.2, .8, 'd'); return c.finish()   # 한쪽 바짓단만 접혀 양말이 보임
 def D():
     c = build('l', 'd', True)
-    for sgn in (-1, 1): c.ell(12 + sgn * 7.6, 30.4, 1.9, 1.7, 'l')
+    for sgn in (-1, 1): c.ell(12 + sgn * 7.8, 30.8, 1.9, 1.7, 'l')
     c.ell(9.2, 37.2, 1.8, .9, K.SKIN); c.ell(14.8, 37.2, 1.8, .9, K.SKIN); return c.finish()
 
 def main():
     root = os.path.join(os.path.dirname(__file__), '..', 'art', 'variants')
-    notes = {'A': '하늘색 긴소매, 올리브 반바지, 무릎 밴드, 슬리퍼 한 짝', 'B': '민트 후드티, 검은 반바지, 운동화', 'C': '노란 긴소매, 한쪽만 내려간 양말', 'D': '손을 덮은 큰 회색 후드, 맨발'}
+    notes = {'A': '하늘색 긴소매, 올리브 긴바지, 슬리퍼 한 짝', 'B': '민트 후드티, 짙은 긴바지, 운동화', 'C': '노란 긴소매, 주황 긴바지(한쪽 바짓단만 접힘)', 'D': '손을 덮은 큰 회색 후드, 짙은 긴바지, 맨발'}
     lines = ['# 주인공 6차 시안: 갈색 단순 단발(중앙 왼쪽 뾰족 앞머리) + 얼굴 없음 (tools/gen_child6.py 가 생성함)', '']
     for v, fn in zip('ABCD', (A, B, Cc, D)): lines.append(f'[child_{v}] {notes[v]} | {v}'); lines += fn(); lines.append('')
     open(os.path.join(root, 'child6_pixels.txt'), 'w', encoding='utf-8').write('\n'.join(lines))
