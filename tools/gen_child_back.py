@@ -46,27 +46,50 @@ def lift_leg(im, side, dy):
     for x in xs:                                            # 들린 발바닥 선
         if px[x, PAD + 37 - dy][3]: px[x, PAD + 37 - dy] = A
 
+def swing(im, side, dy):
+    """내린 팔의 아래쪽(소매 끝+손, 27~32줄)을 dy칸 올린다: 걸을 때 앞으로 나간 팔."""
+    px = im.load(); xs = range(0, 7) if side == 'l' else range(17, 24)
+    block = {(x, y): px[x, y] for x in xs for y in range(PAD + 29, PAD + 33)}
+    for k in block: px[k] = CLEAR
+    for (x, y), c in block.items():
+        if c[3]: px[x, y - dy] = c
+
+def bob(im, dy=1):
+    out = Image.new('RGBA', im.size, CLEAR); out.alpha_composite(im, (0, -dy)) if dy > 0 else out.alpha_composite(im, (0, 0)); return out
+
+def arm_fwd(im, side, top):
+    """앞으로 내민 팔(의자 등받이를 잡음): 어깨에서 바깥 위로 짧게, 손은 가슴~어깨 높이. 소매 명암은 팔과 함께 움직인다."""
+    drop_hand(im, side); arm_up(im, side, top)
+
 def make():
     out = {}
-    out['walk'] = [base(f'child_w{i}') for i in (1, 2, 3, 4)]
+    # 걷기 4장: 왼발 듦(+오른팔 앞으로, 몸 살짝 위) → 선 자세 → 오른발 듦(+왼팔 앞으로) → 선 자세
+    w = []
+    for side, other in (('l', 'r'), ('r', 'l')):
+        im = base('child'); lift_leg(im, side, 3); swing(im, other, 2); w.append(bob(im, 1)); w.append(base('child'))
+    out['walk'] = w
     out['idle'] = base('child')
+    # 의자 밀기 2장: 두 손으로 등받이를 잡고, 한 발씩 내딛으며 팔을 굽혔다 폈다
+    push = []
+    for k, side in enumerate(('l', 'r')):
+        im = base('child'); arm_fwd(im, 'l', PAD + (17 if k == 0 else 15)); arm_fwd(im, 'r', PAD + (17 if k == 0 else 15)); lift_leg(im, side, 2); push.append(im)
+    out['push'] = push
+    # 잡기(두 손 위로) / 발 올리기(잡은 채 한 발을 높이) / 매달려 당기기
+    grab = base('child'); arm_fwd(grab, 'l', PAD + 13); arm_fwd(grab, 'r', PAD + 13); out['grab'] = out['reach'] = grab
+    foot = []
+    for side in ('l', 'r'):
+        im = base('child'); arm_fwd(im, 'l', PAD + 12); arm_fwd(im, 'r', PAD + 12); lift_leg(im, side, 6); foot.append(im)
+    out['foot'] = foot
     hang = []
     for k in range(2):
-        im = base('child'); drop_hand(im, 'l'); drop_hand(im, 'r'); arm_up(im, 'l', PAD + 11); arm_up(im, 'r', PAD + 11)
-        lift_leg(im, 'l' if k == 0 else 'r', 3); hang.append(im)
+        im = base('child'); arm_fwd(im, 'l', PAD + 11); arm_fwd(im, 'r', PAD + 11); lift_leg(im, 'l' if k == 0 else 'r', 3); hang.append(im)
     out['hang'] = hang
-    climb = []
-    for side in ('l', 'r'):
-        im = base('child'); drop_hand(im, side); arm_up(im, side, PAD + 12); lift_leg(im, side, 4); climb.append(im)
-    out['climb'] = climb
-    reach = base('child'); drop_hand(reach, 'l'); drop_hand(reach, 'r'); arm_up(reach, 'l', PAD + 13); arm_up(reach, 'r', PAD + 13)
-    out['reach'] = reach
     return out
 
 if __name__ == '__main__':
     s = make()
-    flat = [('walk%d' % i, im) for i, im in enumerate(s['walk'], 1)] + [('idle', s['idle']), ('reach', s['reach'])] + \
-           [('hang%d' % i, im) for i, im in enumerate(s['hang'], 1)] + [('climb%d' % i, im) for i, im in enumerate(s['climb'], 1)]
+    flat = [('walk%d' % i, im) for i, im in enumerate(s['walk'], 1)] + [('idle', s['idle'])] + [('push%d' % i, im) for i, im in enumerate(s['push'], 1)] + \
+           [('grab', s['grab'])] + [('foot%d' % i, im) for i, im in enumerate(s['foot'], 1)] + [('hang%d' % i, im) for i, im in enumerate(s['hang'], 1)]
     for n, im in flat: im.save(os.path.join(SPR, 'child_b_' + n + '.png'))
     sheet = Image.new('RGBA', (len(flat) * 30 * 4, 46 * 4), (40, 44, 60, 255))
     for i, (n, im) in enumerate(flat): sheet.alpha_composite(im.resize((96, 168), Image.NEAREST), (i * 120 + 12, 8))
