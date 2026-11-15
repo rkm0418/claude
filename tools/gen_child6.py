@@ -49,7 +49,12 @@ def shade_clothes(c, shirt, pants):
     """빛은 왼쪽 위. 그늘: 턱 밑 목, 목선 안쪽, 오른쪽 옆구리와 오른팔, 겨드랑이, 상의 밑단 아래, 바지 오른쪽."""
     sh, ps = SHADE[shirt], SHADE[pants]
     shade_on(c, K.SKIN, 'u', 12, 19.6, 3.6, 1.8)                    # 턱 밑 목 그늘
-    shade_on(c, shirt, sh, 12, 22.2, 4.2, 1.1)                      # 목선 안쪽 그늘
+    for y in range(19, 26):                                                                                # 둥근 목선(U자): 안쪽은 살색, 바깥은 옷 그늘색 테두리
+        for x in range(24):
+            d_out = ((x - 12) / 4.6) ** 2 + ((y - 21.4) / 3.2) ** 2
+            d_in = ((x - 12) / 3.2) ** 2 + ((y - 21.2) / 2.4) ** 2
+            if d_in <= 1 and y >= 20 and c.g[y][x] in (shirt, sh, K.SKIN, 'u'): c.g[y][x] = 'u' if y <= 21 else K.SKIN
+            elif d_out <= 1 and y >= 20 and c.g[y][x] in (shirt, sh): c.g[y][x] = sh
     shade_on(c, shirt, sh, 17.6, 25.6, 3.0, 4.6)                    # 오른쪽 몸통 그늘
     shade_on(c, shirt, sh, 19.4, 26.0, 1.6, 3.4)                    # 오른팔 안쪽 그늘
     shade_on(c, shirt, sh, 12, 29.2, 6.0, 0.9)                      # 상의 밑단 아래 그늘
