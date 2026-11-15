@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import gen_child as K
 from gen_shadow import C
 
-PTS = [(4.6, 13.0), (10.4, 10.6), (12.4, 10.8), (16.4, 8.2), (19.5, 10.4), (19.6, 13.4)]   # 앞머리선의 큰 흐름(조절점)
+PTS = [(4.6, 13.0), (10.4, 10.6), (12.4, 10.6), (16.4, 10.0), (19.5, 11.4), (19.6, 13.4)]   # 앞머리선의 큰 흐름(조절점)
 
 def bump(x, c, w, h):
     return h * max(0.0, 1 - ((x - c) / w) ** 2) ** .5                                    # 가닥 끝을 둥글게(반타원)
@@ -15,7 +15,7 @@ def lim(x):
     if x < 4.6 or x > 19.6: return 13.4                                                  # 귀 위에서 멈추는 옆머리
     for (x0, y0), (x1, y1) in zip(PTS, PTS[1:]):
         if x0 <= x <= x1: base = y0 + (y1 - y0) * (x - x0) / (x1 - x0); break
-    return base + bump(x, 11.4, 1.6, 2.2) + bump(x, 17.6, 1.5, 2.6)                      # 왼쪽 중앙과 오른쪽의 삐져나온 가닥(끝이 둥근 곡선)
+    return base + bump(x, 11.0, 1.6, 2.2) + bump(x, 17.4, 1.6, 1.8)                      # 왼쪽 중앙과 오른쪽의 삐져나온 가닥(끝이 둥근 곡선)
 
 def hair_ref2(c):
     c.ell(12, 8.6, 10.6, 8.2, 'b')
