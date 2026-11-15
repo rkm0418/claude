@@ -29,11 +29,15 @@ def main():
     ST, SB = 3, 2                                                 # 양옆 꺾인 부분 윗줄만 한 칸 더 굵게
     def base_at(x):                                        # 아래 가로대(땅 경계)의 높이
         d = max(L - x, x - Rr, 0); return round(base_y + d)
-    for x in range(W):                                     # 땅: 의자와 겹치지 않는 따뜻한 어두운 갈색
-        for y in range(base_at(x) + (SB if (x < L or x > Rr) else TB), H): px[x, y] = (46, 34, 30, 255)
-    for y in (base_y + 14, base_y + 30):
-        for x in range(W):
-            if y > base_at(x): px[x, y] = (30, 22, 22, 255)
+    PL = [(78, 52, 35), (70, 47, 32), (84, 57, 38)]          # 나무판자 색(판마다 약간 다름)
+    for x in range(W):
+        for y in range(base_at(x) + (SB if (x < L or x > Rr) else TB), H):
+            r = (y - base_y) // 8; seam = (y - base_y) % 8 == 7
+            joint = (x + r * 23) % 61 == 0                      # 판 끝 이음(줄마다 어긋남)
+            c = PL[r % 3]
+            if seam or joint: c = (34, 22, 16)
+            elif (x * 5 + y * 3 + r * 11) % 13 == 0 and (y - base_y) % 8 in (2, 4): c = (92, 63, 42)   # 나뭇결
+            px[x, y] = c + (255,)
     def seg(p0, p1, col):
         (x0, y0), (x1, y1) = p0, p1; n = max(abs(x1 - x0), abs(y1 - y0)) or 1
         for i in range(n + 1): px[round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)] = col
@@ -41,6 +45,8 @@ def main():
         for k in range(th): seg((p0[0], p0[1] + dy + k), (p1[0], p1[1] + dy + k), col0 if k == 0 else col)
     band((L, top_y), (Rr, top_y), TT, ML); band((L, base_y), (Rr, base_y), TB, MR)
     for x in range(L + 4, Rr, 5):
+        for w in range(TW): seg((x + w, top_y + TT), (x + w, base_y - 1), MR)
+    for x in (L, Rr - TW + 1):                             # 정면과 양옆이 만나는 곳에도 창살 하나
         for w in range(TW): seg((x + w, top_y + TT), (x + w, base_y - 1), MR)
     for s, x0, ex in ((-1, L, -1), (1, Rr, W)):            # 꺾인 양 끝: 정면과 같은 굵기, 깔끔한 45도
         n = abs(ex - x0)
@@ -50,7 +56,8 @@ def main():
             for w in range(TW): seg((xx + w, top_y + d + ST), (xx + w, base_y + d - 1), MR)
     # 쇠 의자와 탁자: 땅 위
     t = lib['iron_table']; c = lib['iron_chair']
-    im.alpha_composite(t, (58, 122 - t.height)); im.alpha_composite(c, (26, 118 - c.height))
+    t = t.resize((t.width * 3 // 2 * 1, t.height * 3 // 2), Image.NEAREST)
+    im.alpha_composite(t, (56, 124 - t.height)); im.alpha_composite(c, (30, 118 - c.height))
     # 밤의 색조
     for y in range(H):
         for x in range(W):
