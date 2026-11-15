@@ -25,13 +25,13 @@ def render(st, cam):
     def actors(im, stage):
         ch = st.get('child')
         if ch and ch[3] == stage:
-            cx, fy, spr, _, ang = ch
-            if ang:                                         # 발을 축으로 기울인다
-                big = Image.new('RGBA', (spr.width * 3, spr.height * 2), (0, 0, 0, 0)); big.alpha_composite(spr, (spr.width, 0))
-                spr = big.rotate(ang, resample=Image.NEAREST, center=(spr.width * 1.5, spr.height))
-                ox, oy = cx - spr.width / 2, fy - spr.height / 2
-            else:
-                ox, oy = cx - spr.width / 2, fy - spr.height
+            cx, fy, spr, _, lean = ch
+            if lean:                                        # 앞(철창 바깥)으로 기울기: 뒤에서 보면 발을 축으로 위쪽이 눌려 짧아진다. lean>1 이면 뒤집혀 거꾸로
+                k = abs(1 - lean) if lean <= 1 else min(1, lean - 1)
+                h = max(2, round(spr.height * max(.18, k)))
+                spr = spr.resize((spr.width, h), Image.NEAREST)
+                if lean > 1: spr = spr.transpose(Image.FLIP_TOP_BOTTOM)
+            ox, oy = cx - spr.width / 2, fy - spr.height
             tmp = Image.new('RGBA', im.size, (0, 0, 0, 0)); tmp.alpha_composite(spr, (int(ox), int(oy)))
             if stage == 'behind':                           # 철창 바깥: 바닥선 아래로는 보이지 않는다
                 tmp.paste((0, 0, 0, 0), (0, BASE_Y, im.width, im.height))
@@ -48,7 +48,7 @@ def render(st, cam):
     big = sc.resize((sc.width * SS, sc.height * SS), Image.NEAREST)
     box = [int((cx - vw / 2) * SS), int((cy - vh / 2) * SS), int((cx + vw / 2) * SS), int((cy + vh / 2) * SS)]
     view = Image.new('RGB', (box[2] - box[0], box[3] - box[1]), (8, 8, 14)); view.paste(big, (-box[0], -box[1]))
-    c = view.resize((320, 240), Image.NEAREST)
+    c = view.resize((320, 240), Image.LANCZOS)              # 도트를 다시 찍지 않는 화면 확대 효과
     if st.get('fade'): c = Image.blend(c, Image.new('RGB', c.size, (0, 0, 0)), st['fade'])
     if st.get('title'):
         d = ImageDraw.Draw(c); txt = '멈춘 시계'; w = d.textlength(txt, font=FONT)
@@ -87,21 +87,31 @@ for k in range(2):
         t = (i + 1) / 6; cp = (lerp(cur[0], nxt[0], t), lerp(cur[1], nxt[1], t)); add(dict(chair=cp, child=kid(cp[0] + 22, cp[1] + 15, WALK[(i + k) % 4])))
     cur = nxt; add(dict(chair=cur, child=kid(cur[0] + 22, cur[1] + 15, IDLE)), 6)
 CH = cur; cx = CH[0] + 14; seat_y = CH[1] - 12
-# 6. 의자를 밟고 올라섬 → 철창을 타고 올라감(올라가기 동작 좌우 번갈아)
-for i in range(8):
-    t = (i + 1) / 8; add(dict(chair=CH, child=kid(lerp(CH[0] + 22, cx, t), lerp(CH[1] + 15, seat_y, t), CLIMB[(i // 2) % 2])), 1, '6 의자를 밟고 올라감' if i == 0 else '')
-add(dict(chair=CH, child=kid(cx, seat_y, IDLE)), 4)
-for i in range(12):
-    t = (i + 1) / 12; add(dict(chair=CH, child=kid(cx, lerp(seat_y, RAIL_TOP + 4, t), CLIMB[(i // 3) % 2])))
+# 6. 의자를 밟고 올라감: 한 발씩 끊어서(발 올림 → 몸 올림 → 잠깐 멈춤)
+x0, y0 = CH[0] + 22, CH[1] + 15
+for i in range(5):                                          # 의자 앞으로 다가감
+    t = (i + 1) / 5; add(dict(chair=CH, child=kid(lerp(x0, cx, t), lerp(y0, CH[1] + 4, t), WALK[i % 4])), 1, '6 의자를 밟고 올라감' if i == 0 else '')
+steps = [(CH[1] + 4, seat_y + 6), (seat_y + 6, seat_y)]     # 한 발 → 다른 발
+for k, (ya, yb) in enumerate(steps):
+    add(dict(chair=CH, child=kid(cx, ya, CLIMB[k % 2])), 4)
+    add(dict(chair=CH, child=kid(cx, yb, CLIMB[k % 2])), 3)
+    add(dict(chair=CH, child=kid(cx, yb, IDLE)), 4)
+# 철창: 손으로 윗줄을 잡고(매달리기) → 몸을 끌어올림 → 한 무릎 올림 → 일어섬
+add(dict(chair=CH, child=kid(cx, seat_y, REACH)), 5)
+for k, yb in enumerate((seat_y - 6, seat_y - 12)):
+    add(dict(chair=CH, child=kid(cx, yb, HANG[k % 2])), 4)
+    add(dict(chair=CH, child=kid(cx + (1 if k else -1), yb, HANG[(k + 1) % 2])), 3)
+add(dict(chair=CH, child=kid(cx, RAIL_TOP + 8, CLIMB[0])), 5)
+add(dict(chair=CH, child=kid(cx, RAIL_TOP + 4, CLIMB[1])), 4)
 # 7. 철창 위에서 결심한 듯 잠깐 멈춤
 add(dict(chair=CH, child=kid(cx, RAIL_TOP + 4, IDLE)), 16, '7 결심한 듯 멈춤')
-# 8. 앞으로(철창 바깥쪽으로) 기울어지며 떨어짐: 슬리퍼는 떨어지고 손전등은 떠오른다
-for i in range(8):
-    add(dict(chair=CH, child=kid(cx + i * .4, RAIL_TOP + 4, IDLE, 'front', -(i + 1) * 3)), 1, '8 기울어지며 떨어짐' if i == 0 else '')
-yy, v, ang = RAIL_TOP + 4, .6, -24
+# 8. 앞으로(철창 바깥쪽으로) 천천히 기울어지다가 넘어가 떨어짐: 슬리퍼는 떨어지고 손전등은 떠오른다
+for i in range(10):
+    add(dict(chair=CH, child=kid(cx, RAIL_TOP + 4, IDLE, 'front', ease((i + 1) / 10) * .75)), 1, '8 앞으로 기울어지며 떨어짐' if i == 0 else '')
+yy, v = RAIL_TOP + 4, .5
 for i in range(14):
-    yy += v; v += .8; ang -= 4
-    add(dict(chair=CH, child=kid(cx + 4 + i * .3, yy, IDLE, 'behind', ang), slip=(cx - 12, RAIL_TOP + 2 + (i * 2.0) ** 1.25 * .8), light=(cx + 10, RAIL_TOP - 6 - i * .8)))
+    yy += v; v += .8
+    add(dict(chair=CH, child=kid(cx, yy, IDLE, 'behind', .8 + i * .08), slip=(cx - 12, RAIL_TOP + 2 + (i * 2.0) ** 1.25 * .8), light=(cx + 10, RAIL_TOP - 6 - i * .8)))
 for i in range(12): add(dict(chair=CH, light=(cx + 10, RAIL_TOP - 17 - i * .8)))
 # 9. 암전 → 타이틀(착지는 그리지 않는다)
 for i in range(10): add(dict(chair=CH, fade=(i + 1) / 10), 1, '9 암전' if i == 0 else '')
@@ -109,7 +119,7 @@ for i in range(12): add(dict(chair=CH, fade=1.0, title=(i + 1) / 12), 1, '10 타
 add(dict(chair=CH, fade=1.0, title=1.0), 14)
 
 # 카메라: 처음(전체, 2배) → 떨어지는 순간(약 3.8배, 철창·의자 중심, 왼쪽 벽이 화면 밖) 으로 천천히 확대
-fall_i = labels.index('8 기울어지며 떨어짐')
+fall_i = labels.index('8 앞으로 기울어지며 떨어짐')
 for i in range(len(frames)):
     t = ease(min(1, i / fall_i))
     s = lerp(2.0, 3.8, t); vw = 320 / s
