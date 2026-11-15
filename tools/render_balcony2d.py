@@ -74,6 +74,12 @@ def main():
             for w in range(TW): seg((xx + w, top_y + d + ST), (xx + w, base_y + d - 1), MR)
     # 쇠 의자와 탁자: 땅 위
     t = lib['iron_table']; c = lib['iron_chair']
+    def shadow(cx, cy, rx, ry):                            # 발 밑 그림자(바닥에 닿아 보이게)
+        for yy in range(cy - ry, cy + ry + 1):
+            for xx in range(cx - rx, cx + rx + 1):
+                if ((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2 <= 1:
+                    r_, g_, b_, a_ = px[xx, yy]; px[xx, yy] = (int(r_ * .55), int(g_ * .55), int(b_ * .55), a_)
+    shadow(71, 106, 19, 3); shadow(43, 112, 15, 3)
     im.alpha_composite(t, (51, 108 - t.height)); im.alpha_composite(c, (27, 114 - c.height))
     # 밤의 색조
     for y in range(H):

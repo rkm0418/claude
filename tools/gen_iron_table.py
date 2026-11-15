@@ -18,7 +18,7 @@ for x in range(int(2 * SC), int(28 * SC)): px(x, 3, 'd')
 for x in (int(4 * SC), int(25 * SC)): px(x, 3, 'k')
 # 다리: 가늘고 긴 X자(상판 아래 양끝에서 가운데에서 엇갈려 반대쪽 바닥으로) + 교차부 작은 고리
 for ox in (0, 1):                                          # 다리를 2칸 굵기로
-    line((8, 4), (24, LEG), 'm', ox); line((21, 4), (5, LEG), 'm', ox)
+    line((8, 4 / SC), (24, LEG), 'm', ox); line((21, 4 / SC), (5, LEG), 'm', ox)   # 상판 바로 밑(4번째 줄)에서 시작
 for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)): px(int(12 * SC) + dx, int(12 * SC) + dy, 'd')
 px(int(12 * SC), int(12 * SC), 'l')
 grid = '\n'.join(''.join(r) for r in g)
