@@ -3,9 +3,8 @@ tone: 255 246 232
 ambient: 0.1
 left_wall: kr
 recess: 3 5
-recess_depth: 1
+recess_depth: 2
 recess_side: dark
-recess_panel: black
 recess_endface: on
 recess_feather: 0
 left_add: door_entry_ls@0.2^0
