@@ -1,7 +1,6 @@
-title: 1장 - 식탁 방 (한국 아파트 시안)
+title: 1장 - 식탁 방 (한국 아파트, 현실 버전)
 tone: 255 246 232
 ambient: 0.3
-dream: radio=radio_on
 legend:
 # void
 t wall_top_kr
@@ -10,40 +9,25 @@ b wall_base_kr
 W window_kr_l
 V window_kr_r
 G wall_kr frame_a^3
-F wall_kr frame_back^3
 K wall_kr clock^3
 D wall_base_kr door
-Q wall_base_kr doorway_dark
 . floor_kr
 C floor_kr ceiling_light^4
 c floor_kr chair
-s floor_kr sink
-r floor_kr sink radio^15
-Y floor_kr plant
-B floor_kr fridge
-H floor_kr shoes
-Z floor_kr chair
-z floor_kr
+s floor_kr sink^6
+Y floor_kr plant^6
+B floor_kr fridge_kr^6
+L floor_kr chair_side_r
+R floor_kr chair_side_l^-16
 T floor_kr table plates3^15
 map:
 #############
 ##ttttttttt##
 ##wWVwGwKww##
 ##bbbbbbbbD##
-##srY...B.H##
-##....c....##
-##..ZT..c..##
-##...C.....##
-#############
-#############
-dream_map:
-#############
-##ttttttttt##
-##wWVwFwKFw##
-##bbbbbbbbQ##
-##srY...B.H##
-##.........##
-##..zT..c.c##
+##ss.Y...B.##
+##....cR...##
+##..LT.....##
 ##...C.....##
 #############
 #############

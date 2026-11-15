@@ -218,3 +218,11 @@ decal 1 0 1 8 11 w
 decal 10 0 1 8 11 w
 decal 7 0 6 2 1 m
 decal 10 0 6 2 1 m
+
+[fridge_kr] 냉장고 (0.7m x 1.7m, 문 높이의 85%) | real
+box 0 0 0 11 5 26 l
+decal 1 0 17 9 1 m
+decal 1 0 18 9 7 w
+decal 1 0 2 9 14 w
+decal 8 0 20 1 4 m
+decal 8 0 10 1 4 m
