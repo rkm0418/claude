@@ -21,7 +21,7 @@ def main():
     # 하늘: 한 가지 짙은 새벽색(층 없음), 양옆은 뚫려 있음
     for y in range(0, H):
         for x in range(W): px[x, y] = rgb(pal, 'X')
-    for _ in range(5): px[rng.randrange(8, W - 8), rng.randrange(6, rail_y - 14)] = rgb(pal, rng.choice('WwWq'))
+    for _ in range(10): px[rng.randrange(22, W - 4), rng.randrange(6, 40)] = rgb(pal, rng.choice('WwWq'))   # 왼쪽 벽 쪽에는 별을 두지 않고 오른쪽에 더 둔다
     # 철창(뒤쪽 한 줄): 위 가로대 y=62, 아래 가로대 y=79. 양 끝은 앞쪽으로 비스듬히 벌어져 화면 밖까지 잘린다. 철창 아래는 전부 땅.
     ML, MR = (112, 114, 128, 255), (82, 84, 98, 255)
     L, Rr, top_y, base_y = 12, W - 12, 50, 79

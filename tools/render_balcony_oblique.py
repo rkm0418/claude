@@ -15,13 +15,16 @@ ML, MR = (112, 114, 128, 255), (82, 84, 98, 255)
 def main():
     pal = render.load_palette(); lib = R.load_library(); rng = random.Random(8); fr = random.Random(21)
     img = Image.new('RGBA', (CW, CH), tuple(pal['X'][:3]) + (255,)); px = img.load()
-    for _ in range(8): px[rng.randrange(8, CW - 8), rng.randrange(6, SKY + 10)] = tuple(pal[rng.choice('WwWq')][:3]) + (255,)
+    by = Y0 - SS * D                                          # 뒤쪽 철창이 서 있는 바닥 높이
+    # 별: 왼쪽 벽 쪽(벽 윗선 오른쪽 끝보다 왼쪽)에는 두지 않고, 오른쪽 하늘에 더 많이 둔다
+    for _ in range(14):
+        sx = rng.randrange(int(X0 + SK * D) + 6, CW - 6); sy = rng.randrange(6, int(by - RAIL) - 3)
+        px[sx, sy] = tuple(pal[rng.choice('WwWq')][:3]) + (255,)
     def seg(p0, p1, col):
         (x0, y0), (x1, y1) = p0, p1; n = int(max(abs(x1 - x0), abs(y1 - y0))) or 1
         for i in range(n + 1):
             x, y = round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)
             if 0 <= x < CW and 0 <= y < CH: px[x, y] = col
-    by = Y0 - SS * D                                          # 뒤쪽 철창이 서 있는 바닥 높이
     bx0, bx1 = X0 + SK * D, X0 + SK * D + W
     # 뒤쪽 철창(정면): 윗줄 2칸, 아랫줄 1칸, 창살 1칸 간격 5
     seg((bx0, by - RAIL), (bx1, by - RAIL), ML); seg((bx0, by - RAIL + 1), (bx1, by - RAIL + 1), MR)
