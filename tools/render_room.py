@@ -57,6 +57,11 @@ def render_room(path, scale=1):
             col = get(tile(ch), int(x), 15 - int(d % T))
             if d >= D - 4 and rc and ra * T <= x < (rb + 1) * T and extra_dark:           # 알코브 바닥: 안쪽으로 갈수록 검게 사라진다
                 k = max(.14, .6 - (d - (D - 4)) / (RD + 4) * .4); col = (int(col[0] * k), int(col[1] * k), int(col[2] * k), col[3])
+            if rc and extra.get('recess_panel') == 'black':                              # 검은 면 앞 바닥: 안쪽(검은 쪽)으로 갈수록 부드럽게 어두워진다
+                tt = max(0.0, min(1.0, (d - (D - 30)) / (30 + RD)))
+                lo, hi = ra * T, (rb + 1) * T; hx = 1.0 if lo <= x < hi else max(0.0, 1 - (lo - x) / 10 if x < lo else 1 - (x - hi + 1) / 10)
+                kk = 1 - .9 * (tt ** 1.3) * hx
+                col = (int(col[0] * kk), int(col[1] * kk), int(col[2] * kk), col[3])
             px[X, Y] = col
     # 왼쪽 벽
     for X in range(int(X0), int(X0 + SK * D) + 1):
