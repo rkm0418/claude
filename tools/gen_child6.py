@@ -55,7 +55,10 @@ def crescent(c, base, shade, cx, cy, rx, ry, dx, dy):
 def shade_clothes(c, shirt, pants):
     """빛은 왼쪽 위. 몸의 둥근 형태를 따라 오른쪽 아래에 초승달 모양 그늘."""
     sh, ps = SHADE[shirt], SHADE[pants]
-    crescent(c, K.SKIN, 'u', 12, 20.0, 2.6, 1.9, 0, -1.0)                          # 목 위쪽(턱 밑)의 둥근 초승달 그늘
+    for x in range(24):                                                                                    # 턱 밑 그늘: 턱선을 따라 아래로 둥글게 처지는 ∪ 모양
+        yc = 18.2 + 1.7 * max(0.0, 1 - ((x - 12) / 5.2) ** 2) ** .5
+        for y in range(17, 24):
+            if c.g[y][x] == K.SKIN and yc <= y < yc + 1.3 and abs(x - 12) <= 4.6: c.g[y][x] = 'u'
     crescent(c, shirt, sh, 12, 25.2, 6.8, 4.8, 2.6, 1.9)                           # 몸통
     crescent(c, shirt, sh, 17.6, 23.6, 2.7, 2.7, 1.4, 1.1)                         # 오른쪽 어깨 덮개
     crescent(c, shirt, sh, 6.4, 23.6, 2.7, 2.7, 1.2, .9)                           # 왼쪽 어깨 덮개(약하게)
