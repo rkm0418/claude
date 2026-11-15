@@ -1,0 +1,56 @@
+title: 베란다 바깥 (2D, 위를 올려다보는 시점, 아주 깊은 새벽)
+tone: 175 195 255
+ambient: 0.62
+legend:
+# void
+t wall_rail_top_a
+u wall_rail_top_b
+v wall_rail_top_c
+y wall_rail_top_d
+z wall_rail_top_e
+x wall_rail_top_f
+p wall_rail_mid_a
+q wall_rail_mid_b
+r wall_rail_mid_c
+s wall_rail_mid_d
+o wall_rail_mid_e
+n wall_rail_mid_f
+b wall_rail_base
+. floor_kr_bal
+T floor_kr_bal iron_table
+C floor_kr_bal iron_chair_side
+a sky_00
+c sky_01
+d sky_02
+e sky_03
+f sky_04
+g sky_05
+h sky_06
+i sky_07
+j sky_08
+k sky_09
+l sky_10
+m sky_11
+w sky_12
+0 sky_13
+1 sky_14
+2 sky_15
+3 sky_16
+4 sky_17
+5 sky_18
+6 sky_19
+7 sky_20
+8 sky_21
+9 sky_22
+@ sky_23
+map:
+6j@m9@73a1i7
+cgem2iw4e5ia
+@h0jgwgdf661
+ffaahhggklh4
+87hg9hwkam0g
+fjdlk65a689l
+dkmk29lg229g
+qsnqsnqsnqsn
+bbbbbbbbbbbb
+..C..T......
