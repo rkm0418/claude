@@ -1,0 +1,30 @@
+title: 7장 - 시골집 안 (아이 방과 비슷하지만 어딘가 이질감)
+tone: 236 246 224
+ambient: 0.16
+left_wall: kr
+left_add: door_two_knobs@0.3^0 frame_back@2.2^20
+legend:
+# void
+t wall_top_kr
+w wall_kr
+b wall_base_kr
+K wall_kr clock^3
+H wall_kr shelf_toy^3
+Y wall_kr frame_hole^3
+D wall_base_kr door
+. floor_kr
+x floor_kr desk_set
+E floor_kr bed_kr
+Z floor_kr rug_small
+z floor_kr rug
+map:
+##########
+##tttttt##
+##KKHwYw##
+##bbbbbb##
+##x.E.E.##
+##......##
+##.Z..z.##
+##......##
+##########
+##########
