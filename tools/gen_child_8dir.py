@@ -31,17 +31,20 @@ def side(leg_near=0, leg_far=0, arm=0, lift=None):
             if not p[3]: continue
             px[x, y] = A if p == A else (HL if p == HL and x < 12 else HAIR)
     # 옆얼굴: 뒤통수·윗머리는 머리카락, 앞쪽 아래는 얼굴(이마는 앞머리가 덮고, 코가 한 칸 나오고, 턱은 둥글게 들어간다)
-    R = {11: 20, 12: 20, 13: 20, 14: 21, 15: 20, 16: 20, 17: 19, 18: 18, 19: 16}      # 줄마다 얼굴의 오른쪽 끝
-    for yy in range(10, 20):
+    R = {9: 20, 10: 20, 11: 20, 12: 20, 13: 20, 14: 21, 15: 20, 16: 20, 17: 19, 18: 18, 19: 16}      # 줄마다 얼굴의 오른쪽 끝
+    for yy in range(8, 20):
         for x in range(12, 24): px[x, PAD + yy] = CLEAR if x > R.get(yy, 20) + 1 else px[x, PAD + yy]
     for yy, r in R.items():
         for x in range(12, r + 1): px[x, PAD + yy] = SKIN
         px[r + 1, PAD + yy] = A
         if yy >= 15: px[12, PAD + yy] = SKIN2                    # 귀 밑·턱선 그늘
     for x in range(12, R[19] + 2): px[x, PAD + 20] = A           # 턱 밑 윤곽
-    px[R[11] + 1, PAD + 10] = A
-    for x, yy in ((12, 11), (13, 11), (14, 11), (15, 11), (16, 11), (17, 11), (18, 11), (19, 11), (20, 11), (13, 12), (15, 12), (17, 12), (19, 12), (12, 12), (12, 13)): px[x, PAD + yy] = HAIR   # 눈을 덮는 앞머리와 구레나룻
-    px[13, PAD + 14] = SKIN2; px[13, PAD + 15] = SKIN2           # 귀
+    px[R[9] + 1, PAD + 8] = A
+    for x, yy in ((12, 9), (13, 9), (14, 9), (15, 9), (16, 9), (17, 9), (18, 9), (12, 10), (13, 10), (14, 10), (16, 10)): px[x, PAD + yy] = HAIR   # 짧게 올라간 앞머리(이마가 보인다)
+    for x, yy in ((12, 11), (13, 11), (12, 12), (13, 12), (12, 13), (13, 13), (12, 14)): px[x, PAD + yy] = HAIR                                   # 귀 앞으로 가늘어지며 내려오는 구레나룻
+    px[13, PAD + 14] = HL
+    px[14, PAD + 13] = SKIN2; px[14, PAD + 14] = SKIN2; px[13, PAD + 15] = SKIN2     # 귀
+    px[18, PAD + 13] = A; px[18, PAD + 12] = A                                       # 눈(앞머리를 올렸으므로 보인다)
     def leg(off, far, up=0):
         for yy in range(29, 37 - up):
             x0 = 9 + round(off * (yy - 29) / 7)
