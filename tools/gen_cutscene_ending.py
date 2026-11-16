@@ -47,7 +47,7 @@ def kid(pos, spr, layer='front', ang=0): return (pos[0], pos[1], spr, layer, ang
 
 # 자리(화면 좌표): 울타리 앞에서 매달려 보는 곳, 그루터기(의자 역할) 앞과 위, 울타리 윗줄 위
 SPOT = S(56, 44)
-STUMP = S(34, 41); ST_FRONT = (STUMP[0] + 2, STUMP[1] + 6); ST_TOP = (STUMP[0], STUMP[1] - 15); FTOP = (STUMP[0] + 4, TOP)
+STUMP = S(34, 41); ST_FRONT = (STUMP[0] + 2, STUMP[1] + 6); ST_TOP = (STUMP[0], STUMP[1] - 11); FTOP = (STUMP[0] + 4, TOP)
 RUN, WALK_V, CH_V = 3.0, 1.6, 0.7                                    # 속도(칸/프레임): 달리기, 걷기, 나무 머리(느리지만 멈추지 않음)
 chaser_path = [S(-16, -34), S(14, 4), S(30, 30)]
 seg_len = [math.dist(chaser_path[k], chaser_path[k + 1]) for k in range(2)]; total = sum(seg_len)
