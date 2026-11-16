@@ -47,21 +47,21 @@ def side(leg_near=0, leg_far=0, arm=0, lift=None):
     def leg(off, far, up=0):
         for yy in range(29, 37 - up):
             x0 = 8 + round(off * (yy - 29) / 7)
-            cols = (A, PANT2, PANT2, PANT2, PANT2, A) if far else (A, PANT, PANT, PANT, PANT2, A)
+            cols = (A, PANT2, PANT2, PANT2, PANT2, PANT2, A) if far else (A, PANT, PANT, PANT, PANT, PANT2, A)
             for k, c in enumerate(cols): px[x0 + k, PAD + yy] = c
-        x0 = 9 + off
-        for k in range(7): px[x0 + k, PAD + 37 - up] = A        # 신발(앞코가 두 칸 나옴)
-        for k in range(1, 5): px[x0 + k, PAD + 36 - up] = PANT2
-        px[x0 + 5, PAD + 36 - up] = A
+        x0 = 8 + off
+        for k in range(9): px[x0 + k, PAD + 37 - up] = A        # 신발(앞코가 두 칸 나옴)
+        for k in range(1, 7): px[x0 + k, PAD + 36 - up] = PANT2
+        px[x0 + 7, PAD + 36 - up] = A
     leg(leg_far, True, 2 if lift == 'far' else 0); leg(leg_near, False, 2 if lift == 'near' else 0)
-    TOR = {20: (10, 14), 21: (8, 15), 22: (7, 16), 23: (7, 16), 24: (7, 16), 25: (7, 16), 26: (7, 16), 27: (7, 16), 28: (8, 15)}    # 몸통: 어깨·등·배가 둥글게 넘어간다
+    TOR = {20: (9, 15), 21: (7, 16), 22: (6, 17), 23: (6, 17), 24: (6, 17), 25: (6, 17), 26: (6, 17), 27: (6, 17), 28: (7, 16)}    # 몸통: 어깨·등·배가 둥글게 넘어간다
     inside = lambda x, yy: yy in TOR and TOR[yy][0] <= x <= TOR[yy][1]
     for yy, (x0, x1) in TOR.items():
         for x in range(x0, x1 + 1):
             edge = not all(inside(x + dx, yy + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
-            px[x, PAD + yy] = A if edge else (SH2 if x < 10 or yy >= 28 else SH)
+            px[x, PAD + yy] = A if edge else (SH2 if x < 9 or yy >= 28 else SH)
     for x in range(10, 14): px[x, PAD + 20] = SKIN2 if x < 11 else SKIN     # 목
-    CB.limb(im, [(11, PAD + 22), (11 + arm // 2, PAD + 25), (11 + arm, PAD + 28)])       # 가까운 팔(어깨 → 팔꿈치 → 손)
+    CB.limb(im, [(12, PAD + 22), (12 + arm // 2, PAD + 25), (12 + arm, PAD + 28)])       # 가까운 팔(어깨 → 팔꿈치 → 손)
     return im
 SIDE = {'idle': side(), 'w1': side(3, -3, -3), 'w2': side(0, 0, 0, 'far'), 'w3': side(-3, 3, 3), 'w4': side(0, 0, 0, 'near')}
 
