@@ -11,25 +11,46 @@ SK = SS = .5
 W, D, PAD, RAIL, SKY = 80, 48, 6, 26, 40
 CW, CH = int(PAD * 2 + W + SK * D), int(PAD * 2 + SKY + RAIL + SS * D)
 X0, Y0 = PAD, CH - PAD
-WOOD, WOODL, WOODD = (92, 70, 50), (128, 98, 68), (58, 42, 30)
+WOOD, WOODL, WOODD = (70, 58, 92), (100, 86, 128), (40, 32, 58)
 
 def main():
     lib = R.load_library(); rng = random.Random(5); fr = random.Random(33)
     img = Image.new('RGBA', (CW, CH), (0, 0, 0, 255)); px = img.load()
     def put(x, y, c):
         if 0 <= x < CW and 0 <= y < CH: px[int(x), int(y)] = c + (255,) if len(c) == 3 else c
-    # 하늘/배경: 안개 낀 숲(위는 어둡고 아래 지평선 쪽은 안개로 밝음) + 먼 나무 실루엣 + 반딧불
+    # 배경(참고 이미지: 짙은 남보라 밤 숲, 겹겹의 깊이): 안개 낀 먼 나무 → 중간 나무 → 덤불, 위는 큰 나뭇잎 덩어리, 양옆 큰 둥치
     by = Y0 - SS * D; top_rail = by - RAIL
     for y in range(CH):
         t = min(1, max(0, y / (by + 1)))
-        for x in range(CW): put(x, y, (int(10 + 20 * t), int(16 + 28 * t), int(20 + 32 * t)))
-    for x0 in range(int(X0 + SK * D) + 2, CW, 9):                       # 먼 나무 실루엣
-        w = rng.choice((2, 3, 3, 4)); h = rng.randrange(int(by - 6), int(by + 1))
-        for y in range(0, int(by) + 1):
-            for k in range(w): put(x0 + k + rng.randrange(0, 1), y, (14 + (y > h) * 4, 24, 26))
-    for _ in range(10):                                                 # 반딧불
-        sx = rng.randrange(int(X0 + SK * D) + 6, CW - 6); sy = rng.randrange(8, int(top_rail) - 2)
-        put(sx, sy, (210, 230, 150)); put(sx + 1, sy, (120, 150, 80))
+        for x in range(CW): put(x, y, (int(10 + 26 * t), int(12 + 28 * t), int(30 + 46 * t)))              # 위는 어둡고 지평선 쪽은 안개로 밝음
+    def trunk(cx, w, col, hi, y0=0, y1=None, fork=False):
+        y1 = int(by) if y1 is None else y1
+        for y in range(y0, y1 + 1):
+            for k in range(w):
+                put(cx + k, y, hi if k == 0 else col if k < w - 1 else tuple(int(v * .7) for v in col))
+        if fork:                                                        # 가지가 갈라져 위로
+            for d in range(10): put(cx - d, y0 + 12 + d * 0, col) if False else None
+    for x0 in range(int(X0 + SK * D) + 4, CW, 13):                      # 먼 나무: 안개에 묻혀 흐릿
+        trunk(x0 + rng.randrange(-2, 3), rng.choice((4, 5, 6)), (28, 30, 62), (34, 36, 72))
+    for x0 in (int(X0 + SK * D) + 20, int(X0 + SK * D) + 54, CW - 26):  # 중간 나무: 더 짙고 굵음
+        trunk(x0, rng.choice((6, 7)), (20, 20, 44), (26, 26, 56))
+    for yy in range(int(by) - 14, int(by) + 1):                         # 지평선 안개띠
+        for x in range(CW):
+            r_, g_, b_, a_ = px[x, yy]; k = (yy - (by - 14)) / 14 * .45; px[x, yy] = (int(r_ + (60 - r_) * k), int(g_ + (66 - g_) * k), int(b_ + (112 - b_) * k), 255)
+    for _ in range(16):                                                 # 덤불(울타리 뒤): 짙은 잎 덩어리
+        cx = rng.randrange(int(X0 + SK * D), CW); cy = int(by) - rng.randrange(0, 9); rr = rng.randrange(3, 6)
+        for y in range(cy - rr, cy + rr + 1):
+            for x in range(cx - rr, cx + rr + 1):
+                if (x - cx) ** 2 + (y - cy) ** 2 <= rr * rr and y < by: put(x, y, (16, 34, 44) if (x + y) % 3 else (24, 52, 60))
+    for _ in range(30):                                                 # 위쪽 나뭇잎 덩어리(캐노피)
+        cx = rng.randrange(-4, CW + 4); cy = rng.randrange(-4, 22); rr = rng.randrange(5, 11)
+        for y in range(cy - rr, cy + rr + 1):
+            for x in range(cx - rr, cx + rr + 1):
+                if (x - cx) ** 2 + (y - cy) ** 2 <= rr * rr: put(x, y, (12, 28, 40) if (x + y) % 4 else (22, 46, 58))
+    trunk(CW - 14, 12, (24, 22, 48), (40, 36, 72), 18, int(by) + 4)       # 오른쪽 큰 둥치(프레임)
+    for _ in range(8):                                                  # 반딧불: 청록빛
+        sx = rng.randrange(int(X0 + SK * D) + 6, CW - 16); sy = rng.randrange(24, int(top_rail) - 2)
+        put(sx, sy, (170, 220, 230)); put(sx + 1, sy, (80, 120, 150))
     # 뒤쪽 울타리: 부러진 나무 기둥(높이 제각각, 일부는 사라짐), 기울어진 가로대
     bx0, bx1 = int(X0 + SK * D), int(X0 + SK * D + W)
     posts = [x for x in range(bx0 + 2, bx1, 9)]
@@ -48,7 +69,7 @@ def main():
     # 바닥: 썩은 널빤지(가로, 틈과 구멍) + 이끼·낙엽
     rows, d0 = [], 0.0
     while d0 < D: rows.append((d0, d0 + fr.uniform(6, 12))); d0 = rows[-1][1]
-    cols = [(56, 44, 32), (48, 38, 28), (62, 50, 36), (44, 52, 36), (52, 42, 30)]
+    cols = [(52, 48, 76), (44, 40, 66), (58, 54, 86), (38, 54, 66), (48, 44, 72)]
     info = []
     for _ in rows:
         js, xj = [], fr.uniform(-40, 0)
@@ -64,11 +85,11 @@ def main():
             x = X + .5 - X0 - SK * d
             if not (0 <= x < W): continue
             n = next((k for k, jx in enumerate(js) if x < jx), len(js) - 1); c = cl[n]
-            if d - rows[ri][0] < 1.6: c = (24, 18, 14)
-            elif n > 0 and x - js[n - 1] < 1: c = (24, 18, 14)
-            elif fr.random() < .05: c = (36, 62, 36) if fr.random() < .6 else (74, 56, 30)             # 이끼·낙엽
+            if d - rows[ri][0] < 1.6: c = (18, 16, 34)
+            elif n > 0 and x - js[n - 1] < 1: c = (18, 16, 34)
+            elif fr.random() < .05: c = (30, 70, 68) if fr.random() < .6 else (70, 62, 100)             # 이끼·낙엽
             for hx, hd, hw, hh in holes:                                   # 썩어 내려앉은 구멍
-                if hx <= x < hx + hw and hd <= d < hd + hh: c = (6, 8, 8)
+                if hx <= x < hx + hw and hd <= d < hd + hh: c = (4, 4, 12)
             px[X, Y] = c + (255,)
     # 왼쪽 벽: 거대한 나무 둥치
     WH = RAIL + 24
@@ -81,8 +102,8 @@ def main():
             if not (0 <= z < WH): continue
             if z < 10: r_, g_, b_, a_ = barkb.load()[int(d) % 16, 15 - int(z)]
             else:
-                bx = int(d) % 7; c0 = (46, 34, 26) if bx else (30, 22, 18)
-                if (int(d) * 3 + int(z) // 3) % 11 == 0: c0 = (28, 20, 16)
+                bx = int(d) % 7; c0 = (40, 34, 66) if bx else (24, 20, 44)
+                if (int(d) * 3 + int(z) // 3) % 11 == 0: c0 = (20, 16, 38)
                 r_, g_, b_, a_ = c0 + (255,)
             px[X, Y] = (int(r_ * .9), int(g_ * .9), int(b_ * .95), 255)
     # 가구: 부서진 나무 의자·탁자(오른쪽 끝, 의자가 앞)
@@ -92,7 +113,7 @@ def main():
     # 색조(차갑고 푸른 숲 빛)
     for Y in range(CH):
         for X in range(CW):
-            r, g, b, a = px[X, Y]; px[X, Y] = (int(r * .9), int(min(255, g * 1.05)), int(min(255, b * 1.02)), a)
+            r, g, b, a = px[X, Y]; px[X, Y] = (int(r * .95), int(g * .95), int(min(255, b * 1.05)), a)
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'maps', 'out', '4_balcony_forest.png')
     img.save(out); img.resize((CW * 2, CH * 2), Image.NEAREST).save(out.replace('.png', '_x2.png')); img.resize((CW * 5, CH * 5), Image.NEAREST).save(out.replace('.png', '_x5.png')); print(out, CW, CH)
 

@@ -1,5 +1,5 @@
 title: 3장 - 복도 (어둑어둑한 숲 길 버전, 사선 시점)
-tone: 175 215 195
+tone: 185 195 255
 ambient: 0.3
 left_wall: forest
 recess: 3 5
