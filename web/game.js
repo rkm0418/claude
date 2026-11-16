@@ -27,9 +27,9 @@ function route(ax, ad, bx, bd) {
 function updChaser(dt) {
   if (C.st === 'none') return false; C.t += dt;
   if (C.st === 'hidden') { if (sdist(P.x, P.d, C.x, C.d) < R.chaser.radius) { C.st = 'rise'; C.t = 0; C.pl = null; C.trail = []; P.path = []; P.act = null; marker = null; C.face = (P.x - C.x) + (P.d - C.d) / 2 < 0 ? -1 : 1; } }
-  else if (C.st === 'rise' && (STATE.riseKind || 1) > 1) {                         // 등장 후보 2~6: 정해진 길이만큼 재생
-    const K = STATE.riseKind, dur = RDUR[K];
-    if (C.t > dur) { if (C.preview) C.t = dur; else { if (K >= 6) { const [ox, oy] = K === 7 ? blinkOff(dur, 4, 6) : blinkOff(dur), d = -2 * oy; C.x += ox - d / 2; C.d += d; } C.st = 'chase'; C.tp = null; C.t0 = -99; C.lt = 0; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
+  else if (C.st === 'rise' && (STATE.riseKind || 7) > 1) {                         // 등장 후보 2~6: 정해진 길이만큼 재생
+    const K = STATE.riseKind || 7, dur = RDUR[K];
+    if (C.t > dur) { if (C.preview) C.t = dur; else { if (K >= 6) { const [ox, oy] = K === 7 ? blinkOff(9, 4, 6) : blinkOff(dur), d = -2 * oy; C.x += ox - d / 2; C.d += d; } C.st = 'chase'; C.tp = null; C.t0 = -99; C.lt = 0; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
   }
   else if (C.st === 'rise') {
     const t = C.t; if (C.preview && t > 2.6) { C.t = 2.6; return false; }
@@ -69,7 +69,7 @@ function camZoom() {                                                            
 const DASH = [[.75, 64, 42], [1.2, 42, 20], [1.6, 20, 0]];                      // 다다닥 세 번: [시작 시각, 잠긴 깊이 처음, 끝]. 0.2초 동안 다섯 번 잘게 끊어 오른다
 function climb(tt) { let sink = 64, dash = false; for (const [a, s0, s1] of DASH) { if (tt >= a + .2) sink = s1; else if (tt >= a) { sink = s0 + (s1 - s0) * Math.min(1, (Math.floor((tt - a) / .04) + 1) / 5); dash = true; } } return [sink, dash]; }
 // ---------- 등장 후보 2~6 (고르기용) ----------
-const RDUR = { 2: 3.2, 3: 2.9, 4: 2.9, 5: 3.2, 6: 3.1, 7: 3.2 };
+const RDUR = { 2: 3.2, 3: 2.9, 4: 2.9, 5: 3.2, 6: 3.1, 7: 3.8 };
 const nowS = () => performance.now() / 1000;
 function rows(im, r0, r1, base, wob, kf) { const n = nowS(); for (let r = r1 - 2; r >= r0; r -= 2) { const k = kf ? kf(r) : 1; ctx.drawImage(im, 0, r, 30, 2, (-15 * k + (wob ? wob * Math.sin(r * .9 + n * 14) : 0)) * S, (r - base) * S, 30 * k * S, 2 * S + 1); } }   // 스프라이트의 r0~r1행을 2줄씩(base행이 y=0)
 const trunk = (h, a) => { ctx.globalAlpha = a === undefined ? 1 : a; ctx.fillStyle = '#28222e'; ctx.fillRect(-1.5 * S, -h * S, 3 * S, h * S); ctx.fillStyle = '#463c4e'; ctx.fillRect(-1.5 * S, -h * S, S, h * S); ctx.globalAlpha = 1; };
@@ -110,14 +110,18 @@ function drawAlt(K, t) {
   } else if (K === 7) {                                                         // 껍질이 뚜둑, 뚜둑 벌어진다: 깜빡임 없이, 잠깐 떨다가 한 번에 뚝 꺾이고 살짝 되튀는 움직임을 여섯 번
     const [px, py] = scr(P.x, P.d), q = Math.hypot(px - X, py - Y) || 1, st = BLINKS.filter(b => t >= b).length;
     const sv = (arr) => { if (!st) return arr[0]; const b = BLINKS[st - 1], u = t - b, v0 = arr[st - 1], v1 = arr[st]; return u < .07 ? v0 + (v1 - v0) * u / .07 : v1 + (v1 - v0) * .2 * Math.exp(-(u - .07) * 16) * Math.cos((u - .07) * 44); };
-    const nb = BLINKS[st], pre = nb !== undefined && nb - t < .22 ? (1 - (nb - t) / .22) : 0, tj = pre ? Math.sin(n * 190) * pre * 1.2 : 0;                       // 꺾이기 직전의 잔떨림
-    const a = sv([0, .1, .46, 1.45, 1.45, 1.45, 1.45]), k = Math.max(0, sv([0, .22, .62, 1, 1, 1, 1])), m = sv([0, 0, 0, 0, 8, 8, Math.max(0, q - 15)]), ha = sv([0, 0, 0, 0, 0, -1.22, -1.22]), sy = sv([1, 1, 1, 1, 1, 1, 1.15]), ox = (px - X) / q * m, oy = (py - Y) / q * m;
+    const nb = st < 4 ? BLINKS[st] : undefined, pre = nb !== undefined && nb - t < .22 ? (1 - (nb - t) / .22) : 0, tj = pre ? Math.sin(n * 190) * pre * 1.2 : 0;                       // 꺾이기 직전의 잔떨림
+    const a = sv([0, .1, .46, 1.45, 1.45, 1.45, 1.45]), k = Math.max(0, sv([0, .22, .62, 1, 1, 1, 1])), far = Math.max(0, q - 15 - 8), hsh = (i) => { const v = Math.sin(i * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+    const KEY = [[2.3, 0], [2.42, 0], [2.46, .3], [2.7, .3], [2.73, .2], [2.86, .2], [2.9, .62], [3.0, .62], [3.02, .5], [3.06, .5], [3.1, .55], [3.3, .55], [3.34, 1]];   // 다가오는 속도가 뒤죽박죽: 멈춤, 확, 뒷걸음, 찔끔, 확
+    let pr = 0; if (t >= 2.3) { pr = 1; for (let i = 1; i < KEY.length; i++) if (t < KEY[i][0]) { const [t0, v0] = KEY[i - 1], [t1, v1] = KEY[i]; pr = v0 + (v1 - v0) * (t - t0) / (t1 - t0); break; } }
+    const gl = t >= 2.3, gi = Math.floor(t * (hsh(Math.floor(t * 3)) < .5 ? 19 : 7)), gr = hsh(gi);                                                    // 고개가 오류 난 것처럼 꺾였다 돌아왔다 한다(각진 값만, 박자도 제멋대로)
+    const m = gl ? 8 + far * pr : sv([0, 0, 0, 0, 8, 8, 8]), ha = gl ? (gr < .42 ? -1.22 : gr < .7 ? 0 : gr < .86 ? .79 : -1.57) : 0, hx = gl && gr > .8 ? (gr > .9 ? 2 : -2) : 0, sy = t > 3.34 ? 1.15 : 1, mvg = gl && pr > 0 && pr < 1 && t > 2.42, ox = (px - X) / q * m, oy = (py - Y) / q * m;
     const bark = () => { for (const sg of [-1, 1]) { ctx.save(); ctx.translate((sg * (st ? 1 + 3 * Math.min(1, a * 2) : 0) + (st < 3 ? tj : 0)) * S, 0); ctx.rotate(sg * a); ctx.fillStyle = sg < 0 ? '#28222e' : '#3a3242'; ctx.fillRect((sg < 0 ? -2 : 0) * S, -52 * S, 2 * S, 52 * S); if (st) { ctx.fillStyle = '#0c0a10'; ctx.fillRect((sg < 0 ? 0 : -1) * S, -52 * S, S, 52 * S); }
       CAN.forEach(([cx, cy, rr, c], i) => { if ((i % 2 ? 1 : -1) !== sg) return; ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse((cx + sg * (st ? 3 : 0)) * S, cy * S, rr * S, rr * .75 * S, 0, 0, 6.3); ctx.fill(); }); ctx.restore(); } };
     if (st >= 3) bark();
-    if (k > 0) { ctx.save(); ctx.translate((ox + (st >= 3 ? tj : 0)) * S, oy * S); if (face < 0) ctx.scale(-1, 1); ctx.scale(1, sy); rows(chFrames[st === 4 && t - BLINKS[3] < .25 ? 'w2' : 'idle'], 30, 64, 64, 0, () => k); ctx.translate(0, -34 * S); ctx.rotate(ha + (st >= 3 ? tj * .04 : 0)); rows(chFrames.idle, 0, 30, 30, 0, () => Math.min(1, k * 1.15)); ctx.restore(); }
+    if (k > 0) { ctx.save(); ctx.translate((ox + (st >= 3 ? tj : 0)) * S, oy * S); if (face < 0) ctx.scale(-1, 1); ctx.scale(1, sy); rows(chFrames[mvg ? 'w' + (1 + Math.floor(n * 22) % 4) : st === 4 && t - BLINKS[3] < .25 ? 'w2' : 'idle'], 30, 64, 64, 0, () => k); ctx.translate(hx * S, -34 * S); ctx.rotate(ha + (st >= 3 && !gl ? tj * .04 : 0)); rows(chFrames.idle, 0, 30, 30, 0, () => Math.min(1, k * 1.15)); ctx.restore(); }
     if (st < 3) bark();
-    if (st && t - BLINKS[st - 1] < .1) { ctx.fillStyle = 'rgba(216,204,196,.8)'; for (let i = 0; i < 6; i++) ctx.fillRect((ox + (Math.random() - .5) * 26) * S, (oy - Math.random() * 60) * S, S, S); }   // 꺾이는 순간 튀는 부스러기
+    if (st && st < 5 && t - BLINKS[st - 1] < .1) { ctx.fillStyle = 'rgba(216,204,196,.8)'; for (let i = 0; i < 6; i++) ctx.fillRect((ox + (Math.random() - .5) * 26) * S, (oy - Math.random() * 60) * S, S, S); }   // 꺾이는 순간 튀는 부스러기
   } else {                                                                      // 6 깜빡일 때마다: 화면이 꺼졌다 켜질 때마다 달라져 있다. 움직이는 순간은 보이지 않는다
     const [ox, oy, st] = blinkOff(t); C.black = BLINKS.some(b => t >= b && t < b + .08);
     ctx.translate(ox * S, oy * S); if (face < 0) ctx.scale(-1, 1);
@@ -128,7 +132,7 @@ function drawAlt(K, t) {
 }
 const trunkTop = () => { ctx.fillStyle = '#1a1820'; ctx.fillRect(-1.5 * S, -52 * S, 3 * S, 20 * S); };
 function drawChaser() {
-  if ((C.st === 'rise' || C.st === 'hidden') && (STATE.riseKind || 1) > 1) return drawAlt(STATE.riseKind, C.st === 'hidden' ? 0 : C.t);
+  if ((C.st === 'rise' || C.st === 'hidden') && (STATE.riseKind || 7) > 1) return drawAlt(STATE.riseKind || 7, C.st === 'hidden' ? 0 : C.t);
                                                          // 등장: 나무 줄기가 땅속으로 꺼진다 -> 빈 틈 -> 다다닥(머리·어깨) -> 멈춤 -> 다다닥(허리) -> 멈춤 -> 다다닥(전신) -> 키가 늘어나며 한 걸음
   if (C.st === 'none') return;
   const t = C.t, face = C.face || 1, now = performance.now() / 1000; let f = 'idle', flip = C.flip, bend = 0, sx = 1, sy = 1, alpha = 1, can = 0, wob = 0, dash = false, noise = 0, sink = 0, gap = 0, jx = 0, head = { ang: 0, sx: 1, a: 1 };
