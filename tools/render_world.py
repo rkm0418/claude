@@ -170,19 +170,38 @@ def props(name, k, tr, inside, rng):
         for (x, d) in ((130, 130), (250, 190), (350, 96)): k.desk(*T(x, d))
         for (x, d) in ((60, 118), (190, 110), (440, 118)): k.rock(*T(x, d), 4, (150, 120, 90))
     elif name == 'woods':
-        def dtree(x, d, h):                                                     # 어두운 숲의 나무: 가늘고 긴 줄기, 높이 걸린 검푸른 수관
-            fl = rng.random() < .5                                               # 숲의 나무는 전부 추격자의 몸통(줄기)+어두운 수관과 같은 모양이다
+        def dtree(x, d, h):                                                     # 어두운 숲의 나무: 한 그루씩 다르게. 사람 형상을 닮은 줄기(갈라진 뿌리, 늘어진 가지, 옹이구멍), 몇 그루는 잎이 없다
+            r = random.Random(int(x * 7 + d * 131)); w = r.choice((2, 2, 3)); lean = r.choice((-3, -2, 0, 0, 2, 3)); top = r.choice('CCCCBBS'); legs = r.random() < .6; arms = r.choice((0, 1, 1, 2)); knot = r.random() < .45; fl = r.choice((-1, 1))
+            DK, MD, LT = (40, 34, 48), (62, 54, 70), (96, 86, 102)
             def f():
-                X, Y = sc.P(x, d, 0); im = BODY.transpose(Image.FLIP_LEFT_RIGHT) if fl else BODY
-                sc.d.rectangle([X - 2, Y - h - 2, X, Y - 32], fill=(26, 24, 32)); sc.img.paste(im, (X - 15, Y - 33), im)
-                for (ox, oy, rr, c) in ((0, -h, 13, (16, 30, 34)), (-8, -h + 5, 10, (22, 40, 42)), (7.5, -h - 1, 10, (22, 40, 42)), (0, -h - 7, 8, (30, 52, 52))): sc.d.ellipse([X + ox - rr, Y + oy - rr * .75, X + ox + rr, Y + oy + rr * .75], fill=c)
+                X, Y = sc.P(x, d, 0); D_ = sc.d; tx = lambda z: X + round(lean * (z / h) ** 2)
+                sc.d.ellipse([X - 5, Y - 1, X + 5, Y + 1], fill=(22, 28, 32))
+                z0 = 0
+                if legs:                                                        # 밑동이 두 갈래 뿌리로 갈라져 선다
+                    z0 = r.choice((7, 9, 12)); D_.line([(X - w - 2, Y), (X - 1, Y - z0)], fill=DK, width=2); D_.line([(X + w + 2, Y), (X + 1, Y - z0)], fill=DK, width=2); D_.point((X - w - 2, Y - 1), fill=MD)
+                for z in range(z0, h):                                           # 줄기: 위로 갈수록 가늘고, 껍질 결
+                    ww = w if z < h * .7 else max(1, w - 1); cx = tx(z); D_.line([(cx - ww, Y - z), (cx + ww, Y - z)], fill=DK)
+                    if (z * 7 + int(x)) % 5 == 0: D_.point((cx - ww + 1, Y - z), fill=MD)
+                    if (z * 3 + int(d)) % 11 == 0: D_.point((cx + ww - 1, Y - z), fill=LT)
+                sh = int(h * r.uniform(.56, .7))
+                for a_ in range(arms):                                          # 어깨 높이에서 아래로 늘어진 가지
+                    sd_ = fl if a_ == 0 else -fl; ax = tx(sh) + sd_ * w; ln = r.randint(12, 22); ex = ax + sd_ * r.randint(4, 7)
+                    D_.line([(ax, Y - sh), (ex, Y - sh + 3)], fill=DK, width=2); D_.line([(ex, Y - sh + 3), (ex + sd_, Y - sh + ln)], fill=DK); D_.point((ex, Y - sh + ln // 2), fill=MD)
+                    if r.random() < .5: D_.line([(ex + sd_, Y - sh + ln), (ex + sd_ * 2, Y - sh + ln + 3)], fill=MD)
+                if knot: kz = int(h * .5); cx = tx(kz); D_.rectangle([cx - 1, Y - kz - 2, cx + 1, Y - kz + 1], fill=(14, 12, 20)); D_.point((cx - 1, Y - kz - 3), fill=LT); D_.point((cx + 1, Y - kz - 3), fill=LT)
+                cx = tx(h)
+                if top == 'C':                                                  # 수관
+                    for (ox, oy, rr, c) in ((0, 0, h * .26, (16, 30, 34)), (-h * .17, h * .1, h * .2, (22, 40, 42)), (h * .16, -h * .03, h * .2, (22, 40, 42)), (r.choice((-3, 0, 3)), -h * .15, h * .16, (30, 52, 52))): D_.ellipse([cx + ox - rr, Y - h + oy - rr * .75, cx + ox + rr, Y - h + oy + rr * .75], fill=c)
+                elif top == 'B':                                                # 잎 없는 가지 끝
+                    for (bx_, by_) in ((-7, -9), (6, -11), (-2, -14), (9, -5), (-10, -4)): D_.line([(cx, Y - h + 2), (cx + bx_, Y - h + by_)], fill=DK); D_.line([(cx + bx_, Y - h + by_), (cx + bx_ + (2 if bx_ > 0 else -2), Y - h + by_ - 4)], fill=MD)
+                else: D_.polygon([(cx - w, Y - h), (cx + w, Y - h), (cx + w, Y - h - 3), (cx, Y - h - 1), (cx - w, Y - h - 5)], fill=DK); D_.point((cx - w, Y - h - 5), fill=LT)   # 부러진 그루터기 끝
             sc.jobs.append((d, f)); k.block.append((x, d, 3))
         pts = [T(*q) for q in AREAS['woods']['chaser']['spots']]; k.block += [(a, b, 4) for a, b in pts]                                                     # 진짜가 설 자리(엔진이 그린다): 몸통이 줄기처럼 보이고 머리는 어두운 수관에 가려져 있다
         tr_ = list(pts)
         for _ in range(3000):
             x, d = rng.uniform(0, 540), rng.uniform(10, 170); e = inside(x, d)
             lx, ld = T(x, d)
-            if -11 < e < -4 and (inside(x, d - 16) < 0 or rng.random() < .22) and all(math.hypot(lx - a, (ld - b) * 1.6) > 40 for a, b in tr_): tr_.append((lx, ld)); dtree(lx, ld, rng.choice((48, 50, 50, 53)))
+            if -11 < e < -4 and (inside(x, d - 16) < 0 or rng.random() < .22) and all(math.hypot(lx - a, (ld - b) * 1.6) > 26 for a, b in tr_): tr_.append((lx, ld)); dtree(lx, ld, rng.choice((38, 44, 50, 50, 56, 62)))
         for (x, d) in ((140, 88), (300, 68), (420, 106)): k.glow(*T(x, d), 44, (150, 190, 200), .16)
         for (x, d) in ((70, 56), (212, 70), (360, 98), (500, 82)): k.rock(*T(x, d), 3, (60, 66, 72))
     elif name == 'ridge':
