@@ -15,9 +15,9 @@ def fir2(sc, x, d, h):
     """눈 덮인 전나무(다시 그림): 5단 층, 층마다 톱니 모양 아랫단, 왼쪽(빛)은 밝은 초록·오른쪽은 어두운 초록 두 톤, 층 윗면의 눈은 불규칙한 덩어리, 줄기는 짧고 굵게."""
     rr = random.Random(int(x * 13 + d * 7))
     def draw():
-        bx, by = sc.P(x, d, 0); n = 5; trunk = max(4, h // 9)
-        sc.d.rectangle([bx - 2, by - trunk, bx + 1, by], fill=(86, 62, 48)); sc.d.line([(bx + 1, by - trunk), (bx + 1, by)], fill=(62, 44, 36))
-        y = by - trunk + 2; tier_h = (h - trunk) / n
+        bx, by = sc.P(x, d, 0); n = 5; trunk = max(7, h // 5)
+        sc.d.rectangle([bx - 2, by - trunk, bx + 1, by], fill=(104, 74, 56)); sc.d.line([(bx + 1, by - trunk), (bx + 1, by)], fill=(70, 50, 40)); sc.d.line([(bx - 2, by - trunk), (bx - 2, by)], fill=(128, 94, 72)); sc.d.rectangle([bx - 3, by - 1, bx + 2, by], fill=(104, 74, 56))
+        y = by - trunk + 1; tier_h = (h - trunk) / n
         for k in range(n):
             w = int(3 + (n - k) * (h / 22.0) * .55 + 2); top = y - tier_h - 1; base_y = y
             sc.d.polygon([(bx, top - 2), (bx - w, base_y), (bx, base_y - 1)], fill=(52, 98, 84)); sc.d.polygon([(bx, top - 2), (bx + w, base_y), (bx, base_y - 1)], fill=(30, 62, 58))
@@ -99,15 +99,10 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
     hbox = None
     if hollow_end:                                                              # 속 빈 큰 나무(샛길 끝의 쉼터): 굵은 줄기 + 뿌리 + 눈 덮인 가지, 속에서 따뜻한 빛
         ex_, ed_ = tr(hollow_end); hx, hd = ex_ - 12, ed_ + 8; hbox = (hx, hd)
-        def f():
-            for rx, rd, rw in ((-3, 1, 5), (22, 1, 5), (-2, 12, 4), (22, 12, 4)): sc.box(hx + rx, hd + rd, rw, 6, 3, (132, 100, 82), (104, 78, 62), (82, 60, 48))
-            sc.box(hx, hd, 22, 14, 40, (140, 108, 88), (112, 84, 68), (86, 64, 52))
-            for k in range(5): sc.poly([(hx + 3 + k * 4, hd - .1, 4), (hx + 4 + k * 4, hd - .1, 4), (hx + 4 + k * 4, hd - .1, 38), (hx + 3 + k * 4, hd - .1, 38)], (126, 96, 78))
-            sc.poly([(hx + 6, hd - .2, 0), (hx + 16, hd - .2, 0), (hx + 16, hd - .2, 22), (hx + 11, hd - .2, 30), (hx + 6, hd - .2, 22)], (30, 22, 22))
-            sc.poly([(hx + 8, hd - .3, 0), (hx + 14, hd - .3, 0), (hx + 14, hd - .3, 12), (hx + 8, hd - .3, 12)], (236, 200, 124))
-            X, Y = sc.P(hx + 11, hd + 7, 40)
-            for dx, dy, r in ((-14, 4, 11), (14, 5, 11), (0, -6, 14), (-8, 12, 10), (9, 13, 10)): sc.d.ellipse([X + dx - r, Y + dy - r * .7, X + dx + r, Y + dy + r * .7], fill=(52, 98, 84)); sc.d.ellipse([X + dx - r + 2, Y + dy - r * .7, X + dx + r - 6, Y + dy], fill=(78, 130, 108))
-            for dx, dy in ((-16, 0), (-8, -8), (0, -12), (9, -8), (16, 0), (-2, -2), (6, 2)): sc.d.rectangle([X + dx - 3, Y + dy - 2, X + dx + 3, Y + dy + 1], fill=(250, 252, 255))
+        def f():                                                                # 직사각형 줄기(처음 모양)를 크게: 눈 덮인 윗면, 아치 모양 구멍, 안쪽의 따뜻한 빛
+            sc.box(hx, hd, 22, 14, 40, (124, 96, 78), (100, 76, 60), (78, 58, 46)); sc.box(hx - 1.5, hd - 1.5, 25, 17, 4, (246, 250, 255), (226, 234, 248), (190, 202, 226), z0=40)
+            sc.poly([(hx + 6, hd - .1, 0), (hx + 16, hd - .1, 0), (hx + 16, hd - .1, 22), (hx + 11, hd - .1, 30), (hx + 6, hd - .1, 22)], (30, 22, 22))
+            sc.poly([(hx + 8, hd - .2, 0), (hx + 14, hd - .2, 0), (hx + 14, hd - .2, 12), (hx + 8, hd - .2, 12)], (236, 200, 124))
         sc.jobs.append((hd, f)); sc.glow(hx + 11, hd - 2, 34, col=(255, 214, 140), power=.5)
     for (sx, sd) in STONES:                                                     # 징검다리: 나무 그루터기(둥근 단면, 나이테)
         def stump(sx=sx, sd=sd):
