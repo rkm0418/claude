@@ -74,7 +74,8 @@ class K:
 # ---------------- 구역 정의 ----------------
 def park_ground(x, d, e, n):
     t = (np.floor(x / 9) + np.floor(d / 9)) % 2 == 0
-    return col([(t, (122, 104, 132)), (~t, (108, 92, 122)), (nz(x / 3, d / 3, 2) > .9, (150, 130, 150)), (e > -2, (176, 150, 170))], n)
+    crack = (np.abs(x % 9) < .8) | (np.abs(d % 9) < .8); gone = nz(np.floor(x / 9), np.floor(d / 9), 6) > .88                 # 폐놀이공원: 바랜 포장, 금, 빠진 타일, 틈으로 올라온 잡초
+    return col([(t, (66, 60, 76)), (~t, (58, 52, 68)), (crack, (40, 36, 48)), (gone, (36, 32, 42)), (crack & (nz(x, d, 4) > .8), (52, 74, 56)), (nz(x / 3, d / 3, 2) > .93, (84, 76, 92)), (e > -2, (92, 84, 100))], n)
 def reed_ground(x, d, e, n):
     q = nz(x / 2, d / 2, 5)
     return col([(q >= 0, (150, 112, 52)), (q > .45, (170, 128, 58)), (q > .82, (196, 152, 70)), (nz(x / 7, d / 5, 9) > .86, (128, 94, 48)), (e > -2, (206, 166, 86))], n)
@@ -98,7 +99,7 @@ def hall_ground(x, d, e, n):
 BLOCKED = {                                                                     # 걷는 길 밖의 '막힌 바닥'(허공 대신)
     'woods': lambda x, d, n: col([(nz(x, d, 1) >= 0, (14, 20, 22)), (nz(x / 2, d / 2, 2) > .55, (20, 30, 30)), (nz(x, d, 3) > .9, (30, 48, 42)), (nz(x / 5, d / 2, 4) > .88, (30, 24, 38))], n),
     'reed': lambda x, d, n: col([(nz(x, d, 1) >= 0, (104, 72, 36)), (np.floor(x * 2 + d) % 5 == 0, (150, 108, 48)), (nz(x, d, 3) > .9, (176, 132, 60)), (nz(x / 6, d / 3, 4) > .86, (80, 54, 32))], n),
-    'park': lambda x, d, n: col([((np.floor(x / 9) + np.floor(d / 9)) % 2 == 0, (60, 52, 74)), ((np.floor(x / 9) + np.floor(d / 9)) % 2 == 1, (54, 46, 68)), (nz(x / 2, d / 2, 3) > .8, (50, 70, 58)), (nz(x / 12, d / 7, 4) > .9, (38, 42, 72))], n),
+    'park': lambda x, d, n: col([(nz(x, d, 1) >= 0, (30, 28, 38)), ((np.floor(x / 9) + np.floor(d / 9)) % 2 == 1, (26, 24, 34)), (nz(x / 2, d / 2, 3) > .72, (30, 46, 36)), (nz(x / 4, d / 3, 5) > .9, (40, 60, 44)), (nz(x / 12, d / 7, 4) > .9, (22, 26, 48)), (nz(x, d, 8) > .992, (150, 140, 120))], n),
     'hall': lambda x, d, n: col([(nz(x, d, 1) >= 0, (40, 38, 46)), (np.abs(d % 9) < 1, (30, 28, 36)), ((x % 30 < 13) & (d % 24 < 9), (58, 52, 52)), ((x % 30 < 13) & (d % 24 < 9) & ((x % 30 < 1) | (d % 24 < 1)), (80, 70, 64))], n),
 }
 def face_rock(c0, c1):
@@ -114,7 +115,7 @@ def face_building(X, k, ch):                                                    
 P1 = bez((0, 40), (60, 20), (90, 70), (150, 60)); P2 = bez((204, 60), (240, 56), (250, 110), (310, 104)) + bez((310, 104), (350, 100), (360, 60), (410, 64))[1:]; P3 = bez((460, 64), (500, 60), (520, 110), (600, 100))
 AREAS = {
     'park': dict(H=70, shapes=[('circle', 190, 110, 78), ('rect', 164, 0, 216, 50), ('path', [(130, 110), (60, 124), (44, 150)], 24), ('circle', 44, 150, 40), ('path', [(250, 110), (320, 92), (376, 96)], 24), ('path', [(190, 170), (200, 200)], 26), ('circle', 204, 206, 44)],
-                 ground=park_ground, face=face_rock((96, 80, 110), (30, 22, 44)), ch=30, sky=((30, 22, 52), (86, 56, 104)), start=(190, 8), box=dict(wall='tent'),
+                 ground=park_ground, face=face_rock((96, 80, 110), (30, 22, 44)), ch=30, sky=((30, 22, 52), (86, 56, 104)), start=(190, 8), box=dict(wall='tent', vig=.62),
                  exits=[dict(at=(190, 3), to='office', spawn_abs=(71, 46)), dict(at=(372, 96), to='reed', spawn=(10, 104))]),
     'reed': dict(H=64, wob=3, shapes=[('circle', 120, 120, 88), ('circle', 250, 150, 98), ('circle', 370, 112, 80), ('path', [(0, 104), (50, 112)], 24), ('path', [(430, 110), (480, 122), (524, 102)], 24)],
                  ground=reed_ground, face=face_rock((120, 86, 50), (44, 26, 30)), ch=34, sky=((84, 50, 70), (236, 150, 80)), start=(10, 104), box=dict(wall='reeds', vig=.3),
@@ -137,35 +138,52 @@ AREAS = {
 
 def props(name, k, tr, inside, rng):
     sc = k.sc; T = lambda x, d: tr((x, d))
-    if name == 'park':
-        def ferris():                                                           # 멈춘 관람차(뒤쪽 하늘에 크게)
-            cx, cy = sc.P(*T(204, 222), 58); R = 44
-            sc.d.line([sc.P(*T(190, 216), 0), (cx, cy)], fill=(96, 84, 120), width=2); sc.d.line([sc.P(*T(222, 216), 0), (cx, cy)], fill=(96, 84, 120), width=2)
-            sc.d.ellipse([cx - R, cy - R, cx + R, cy + R], outline=(150, 130, 170)); sc.d.ellipse([cx - R + 3, cy - R + 3, cx + R - 3, cy + R - 3], outline=(96, 84, 120))
+    if name == 'park':                                                          # 폐놀이공원: 전부 낡고 꺼져 있고, 불은 몇 군데만 살아 있다
+        def ferris():                                                           # 멈춘 관람차: 칸 하나만 불이 켜져 있고, 하나는 떨어져 나갔다
+            cx, cy = sc.P(*T(204, 222), 40); R = 34; DK = (44, 40, 56)
+            sc.d.line([sc.P(*T(192, 218), 0), (cx, cy)], fill=DK, width=2); sc.d.line([sc.P(*T(218, 218), 0), (cx, cy)], fill=DK, width=2)
+            sc.d.ellipse([cx - R, cy - R, cx + R, cy + R], outline=(62, 56, 76)); sc.d.ellipse([cx - R + 3, cy - R + 3, cx + R - 3, cy + R - 3], outline=DK)
             for i in range(10):
-                a = i * math.tau / 10 + .2; ex, ey = cx + R * math.cos(a), cy + R * math.sin(a); sc.d.line([(cx, cy), (ex, ey)], fill=(110, 96, 136))
-                c = ((214, 90, 100), (240, 200, 110), (110, 160, 200), (150, 110, 170))[i % 4]; sc.d.rectangle([ex - 3, ey, ex + 3, ey + 5], fill=dk(c, .8 if i % 3 else .45)); sc.d.rectangle([ex - 2, ey + 1, ex + 2, ey + 3], fill=(40, 34, 60) if i % 3 else (255, 220, 150))
-        sc.jobs.append((400, ferris))
-        cx, cd = T(44, 156)                                                     # 회전목마: 줄무늬 지붕, 기둥, 멈춘 말
+                a = i * math.tau / 10 + .2; ex, ey = cx + R * math.cos(a), cy + R * math.sin(a); sc.d.line([(cx, cy), (ex, ey)], fill=(50, 46, 62))
+                if i == 3: continue
+                sc.d.rectangle([ex - 3, ey, ex + 3, ey + 5], fill=(56, 44, 56) if i % 2 else (48, 50, 64)); sc.d.rectangle([ex - 2, ey + 1, ex + 2, ey + 3], fill=(255, 220, 150) if i == 7 else (20, 18, 28))
+        sc.jobs.append((400, ferris)); fx, fd = T(204, 222); a7 = 7 * math.tau / 10 + .2; k.glow(fx + 34 * math.cos(a7), fd, 16, (255, 214, 150), .25)
+        cx, cd = T(44, 156)                                                     # 회전목마: 꺼져 있다. 바랜 지붕 한쪽이 처지고 말 하나는 쓰러졌다. 전구 하나만 켜짐
         def carousel():
-            X, Y = sc.P(cx, cd, 0); sc.d.ellipse([X - 22, Y - 7, X + 22, Y + 7], fill=(150, 110, 130)); sc.d.ellipse([X - 20, Y - 8, X + 20, Y + 4], fill=(196, 160, 150))
-            for i in range(-18, 19, 9): sc.d.line([(X + i, Y - 2), (X + i, Y - 30)], fill=(240, 220, 160))
-            for i, c in ((-12, (240, 240, 240)), (2, (214, 150, 150)), (13, (240, 240, 240))): sc.d.rectangle([X + i - 3, Y - 14, X + i + 3, Y - 10], fill=c); sc.d.rectangle([X + i + 2, Y - 17, X + i + 4, Y - 13], fill=c); sc.d.line([(X + i - 2, Y - 10), (X + i - 2, Y - 6)], fill=c); sc.d.line([(X + i + 2, Y - 10), (X + i + 2, Y - 6)], fill=c)
-            for j in range(12): c = (214, 90, 100) if j % 2 else (244, 232, 210); sc.d.polygon([(X, Y - 48), (X - 24 + j * 4, Y - 30), (X - 20 + j * 4, Y - 30)], fill=dk(c, 1 - abs(j - 5.5) * .04))
-            sc.d.rectangle([X - 24, Y - 31, X + 24, Y - 28], fill=(250, 214, 120)); sc.d.rectangle([X - 1, Y - 53, X + 1, Y - 48], fill=(250, 214, 120))
-        sc.jobs.append((cd - 8, carousel)); k.rects.append((cx - 20, cd - 8, 40, 14))
-        for (bx, bd, c) in ((132, 150, (214, 90, 100)), (236, 150, (90, 150, 190)), (140, 62, (240, 200, 110))):       # 줄무늬 가게
-            x, d = T(bx, bd); k.B(x, d, 18, 10, 16, (236, 220, 200)); k.B(x - 1, d - 2, 20, 13, 3, c, z0=16, solid=False)
+            X, Y = sc.P(cx, cd, 0); sc.d.ellipse([X - 22, Y - 7, X + 22, Y + 7], fill=(70, 56, 66)); sc.d.ellipse([X - 20, Y - 8, X + 20, Y + 4], fill=(92, 80, 80))
+            for i in range(-18, 19, 9): sc.d.line([(X + i, Y - 2), (X + i, Y - 30 + (3 if i > 0 else 0))], fill=(120, 110, 90))
+            for i, c in ((-12, (130, 128, 132)), (2, (116, 90, 94))): sc.d.rectangle([X + i - 3, Y - 14, X + i + 3, Y - 10], fill=c); sc.d.rectangle([X + i + 2, Y - 17, X + i + 4, Y - 13], fill=c); sc.d.line([(X + i - 2, Y - 10), (X + i - 2, Y - 6)], fill=c); sc.d.line([(X + i + 2, Y - 10), (X + i + 2, Y - 6)], fill=c)
+            sc.d.rectangle([X + 9, Y - 5, X + 17, Y - 2], fill=(130, 128, 132)); sc.d.rectangle([X + 16, Y - 7, X + 19, Y - 4], fill=(130, 128, 132))                 # 쓰러진 말
+            for j in range(12): c = (110, 52, 60) if j % 2 else (128, 120, 110); sag = 4 if j > 7 else 0; sc.d.polygon([(X, Y - 48), (X - 24 + j * 4, Y - 30 + sag), (X - 20 + j * 4, Y - 30 + sag)], fill=dk(c, 1 - abs(j - 5.5) * .05))
+            sc.d.rectangle([X - 24, Y - 31, X + 8, Y - 28], fill=(120, 104, 64)); sc.d.rectangle([X - 1, Y - 53, X + 1, Y - 48], fill=(120, 104, 64)); sc.d.rectangle([X - 13, Y - 28, X - 11, Y - 26], fill=(255, 224, 150))
+        sc.jobs.append((cd - 8, carousel)); k.rects.append((cx - 20, cd - 8, 40, 14)); k.glow(cx - 12, cd - 6, 20, (255, 214, 150), .3)
+        for n_, (bx, bd, c) in enumerate(((132, 150, (104, 50, 58)), (236, 150, (50, 78, 100)), (140, 62, (120, 100, 60)))):       # 가게: 두 곳은 셔터가 내려가 있고, 한 곳만 안에 불이 켜져 있다
+            x, d = T(bx, bd); lit = n_ == 1; k.B(x, d, 18, 10, 16, (104, 98, 96)); k.B(x - 1, d - 2, 20, 13, 3, c, z0=16, solid=False)
             for i in range(0, 18, 4): k.F(x + i, x + i + 2, 0, 9, c, d)
-            k.F(x + 3, x + 15, 10, 15, (40, 34, 60), d)
-        for (lx, ld) in ((160, 60), (220, 60), (140, 120), (240, 126), (190, 160), (90, 128), (300, 100)):
-            x, d = T(lx, ld); k.post(x, d, 20, (96, 84, 120)); k.B(x - 1, d - 1, 4, 4, 3, (255, 226, 160), z0=20, solid=False); k.glow(x + 1, d, 26, (255, 214, 150), .4)
-        x, d = T(190, 110); k.B(x - 7, d - 5, 14, 10, 4, (150, 130, 160)); k.B(x - 2, d - 1, 4, 3, 10, (176, 156, 186), z0=4, solid=False)   # 마른 분수
-        for (bx, bd, c) in ((176, 84, (214, 90, 100)), (212, 132, (240, 200, 110)), (64, 132, (110, 160, 200))):         # 줄 끊긴 풍선
+            if lit: k.F(x + 3, x + 15, 10, 15, (255, 214, 140), d); k.F(x + 8.5, x + 9.5, 10, 15, (120, 90, 60), d); k.glow(x + 9, d - 5, 24, (255, 206, 130), .5)
+            else:
+                k.F(x + 3, x + 15, 10, 15, (58, 56, 62), d)
+                for z in (11, 13): k.F(x + 3, x + 15, z, z + .6, (40, 38, 46), d)
+                def sign(x=x, d=d, c=c): a = sc.P(x + 2, d - 3, 2); sc.d.polygon([a, (a[0] + 12, a[1] + 3), (a[0] + 12, a[1] + 6), (a[0], a[1] + 3)], fill=dk(c, .8))                   # 떨어진 간판
+                sc.jobs.append((d - 3, sign))
+        for n_, (lx, ld) in enumerate(((160, 60), (220, 60), (140, 120), (240, 126), (190, 160), (90, 128), (300, 100))):                      # 가로등 7개 중 2개만 켜짐. 하나는 기울었다
+            x, d = T(lx, ld); on = n_ in (0, 4)
+            if n_ == 5:
+                def lean(x=x, d=d): b = sc.P(x + 1, d, 0); sc.d.line([b, (b[0] + 7, b[1] - 18)], fill=(52, 48, 66), width=2); sc.d.rectangle([b[0] + 6, b[1] - 21, b[0] + 9, b[1] - 18], fill=(44, 42, 50))
+                sc.jobs.append((d, lean)); k.block.append((x + 1, d + 1, 2)); continue
+            k.post(x, d, 20, (60, 54, 76)); k.B(x - 1, d - 1, 4, 4, 3, (255, 226, 160) if on else (48, 46, 54), z0=20, solid=False)
+            if on: k.glow(x + 1, d, 34, (255, 214, 150), .6)
+        x, d = T(190, 110); k.B(x - 7, d - 5, 14, 10, 4, (76, 70, 86)); k.B(x - 2, d - 1, 4, 3, 10, (88, 82, 98), z0=4, solid=False); k.B(x - 5, d - 3, 3, 2, .6, (120, 80, 50), z0=4, solid=False)   # 마른 분수(낙엽)
+        for (bx, bd, c, up) in ((166, 66, (150, 64, 72), True), (212, 132, (120, 104, 60), False), (64, 132, (60, 84, 104), False)):       # 풍선: 하나만 떠 있고 둘은 바람이 빠져 바닥에
             x, d = T(bx, bd)
-            def bal(x=x, d=d, c=c): X, Y = sc.P(x, d, 0); sc.d.line([(X, Y), (X + 1, Y - 16)], fill=(200, 190, 210)); sc.d.ellipse([X - 3, Y - 24, X + 4, Y - 16], fill=c); sc.d.point((X - 1, Y - 22), fill=(255, 255, 255))
+            def bal(x=x, d=d, c=c, up=up):
+                X, Y = sc.P(x, d, 0)
+                if up: sc.d.line([(X, Y), (X + 1, Y - 16)], fill=(150, 144, 160)); sc.d.ellipse([X - 3, Y - 24, X + 4, Y - 16], fill=c); sc.d.point((X - 1, Y - 22), fill=(255, 240, 220))
+                else: sc.d.ellipse([X - 4, Y - 2, X + 3, Y + 1], fill=dk(c, .7)); sc.d.line([(X + 3, Y), (X + 9, Y + 2)], fill=(110, 104, 120))
             sc.jobs.append((d, bal))
-        x, d = T(176, 44); k.post(x, d, 30, (250, 214, 120)); x2, _ = T(202, 44); k.post(x2, d, 30, (250, 214, 120)); k.F(x, x2 + 2, 30, 36, (214, 90, 100), d); k.F(x + 4, x2 - 2, 31.5, 34.5, (250, 240, 200), d)   # 입구 아치
+        x, d = T(176, 44); k.post(x, d, 30, (120, 104, 64)); x2, _ = T(202, 44); k.post(x2, d, 26, (120, 104, 64))                                          # 입구 아치: 글자판이 한쪽으로 기울었다
+        def arch(x=x, x2=x2, d=d): a = sc.P(x, d, 36); b = sc.P(x2 + 2, d, 31); sc.d.polygon([a, b, (b[0], b[1] + 6), (a[0], a[1] + 6)], fill=(96, 46, 54)); sc.d.polygon([(a[0] + 4, a[1] + 2), (b[0] - 3, b[1] + 2), (b[0] - 3, b[1] + 4), (a[0] + 4, a[1] + 4)], fill=(128, 122, 108))
+        sc.jobs.append((d - .2, arch))
     elif name == 'reed':
         pts = []
         for _ in range(4000):
@@ -273,9 +291,12 @@ def build(name):
             elif wk == 'reeds':
                 c = (np.array((92, 60, 36))[None, None, :] + np.array((60, 40, 14))[None, None, :] * np.clip(z / H_, 0, 1)[..., None]); st = (np.floor(us) % 4 == 0) | (n_ > .93); c = np.where(st[..., None], (186, 140, 58), c)
                 ear = (z > H_ - 14 - 6 * nz(np.floor(us / 2), np.zeros_like(u), 5)) & (np.floor(us) % 2 == 0); c = np.where(ear[..., None], (236, 204, 124), c)
-            elif wk == 'tent':
-                c = np.where((us % 18 < 9)[..., None], (126, 50, 66), (168, 150, 140)).astype(float) * (0.62 + .38 * np.clip(z / H_, 0, 1))[..., None]; sc_ = z > H_ - 6 - 3 * np.abs(np.sin(us / 9 * np.pi)); c = np.where(sc_[..., None], (214, 178, 96), c)
-                bulb = (np.abs(us % 14 - 7) < 1.2) & (np.abs(z - (H_ - 14 + 3 * np.cos(us / 14 * 2 * np.pi))) < 1.2); c = np.where(bulb[..., None], (96, 90, 78), c)
+            elif wk == 'tent':                                                    # 낡은 천막: 바랜 줄무늬, 찢어진 틈, 처진 주름, 거의 다 꺼진 전구 줄
+                c = np.where((us % 18 < 9)[..., None], (78, 34, 44), (104, 94, 90)).astype(float) * (0.5 + .5 * np.clip(z / H_, 0, 1))[..., None] * (1 - .18 * (np.sin(us / 2.6) > .7))[..., None]
+                tear = (nz(np.floor(us / 11), np.zeros_like(u), 21 + seed) > .8) & (np.abs(us % 11 - 5 - 2 * np.sin(z / 5.0)) < 1.6) & (z > 10 + 20 * nz(np.floor(us / 11), np.ones_like(u), 22)) & (z < H_ - 12); c = np.where(tear[..., None], (8, 6, 12), c)
+                sc_ = z > H_ - 6 - 3 * np.abs(np.sin(us / 9 * np.pi)); c = np.where(sc_[..., None], (112, 92, 54), c)
+                bi = np.floor(us / 14); bulb = (np.abs(us % 14 - 7) < 1.3) & (np.abs(z - (H_ - 14 + 3 * np.cos(us / 14 * 2 * np.pi))) < 1.3); on = nz(bi, np.zeros_like(u), 31 + seed) > .9; c = np.where(bulb[..., None], np.where(on[..., None], (255, 220, 140), (50, 46, 44)), c)
+                halo = on & (np.hypot(us % 14 - 7, z - (H_ - 14 + 3 * np.cos(us / 14 * 2 * np.pi))) < 3.2) & ~bulb; c = np.where(halo[..., None], c + np.array((46, 34, 12)), c)
             elif wk == 'class':
                 c = np.where((z < 14)[..., None], (70, 80, 72), (118, 114, 100)).astype(float); k_ = us % 150
                 bd = (k_ > 20) & (k_ < 84) & (z > 18) & (z < 40); c = np.where(bd[..., None], np.where(((k_ < 22) | (k_ > 82) | (z < 20) | (z > 38))[..., None], (120, 92, 60), (30, 52, 46)), c)
