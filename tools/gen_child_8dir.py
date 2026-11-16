@@ -30,14 +30,16 @@ def side(leg_near=0, leg_far=0, arm=0, lift=None):
     HAIRR = {0: [(10, 17)], 1: [(8, 19)], 2: [(7, 20)], 3: [(6, 21)], 4: [(5, 21)], 5: [(5, 21)], 6: [(5, 22)], 7: [(5, 22)], 8: [(5, 21)],
              9: [(5, 15), (17, 18), (20, 20)], 10: [(6, 9), (12, 13), (15, 15), (18, 18)], 11: [(6, 9), (12, 13)], 12: [(7, 9), (12, 12)], 13: [(8, 9)], 14: [(9, 9)]}
     SKINR = {9: (16, 20), 10: (10, 20), 11: (10, 20), 12: (10, 21), 13: (10, 20), 14: (10, 20), 15: (9, 19), 16: (10, 18), 17: (10, 16), 18: (10, 14), 19: (10, 14)}
+    HX = -2                                                     # 머리를 뒤로 2칸: 목이 머리 가운데 아래에 오게 한다(거북목 방지)
+    SKINR[18] = (12, 15); SKINR[19] = (12, 15)                  # 목(옮긴 뒤 x 10..13 = 머리와 몸통의 가운데)
     for yy, (x0, x1) in SKINR.items():
-        for x in range(x0, x1 + 1): px[x, PAD + yy] = SKIN
+        for x in range(x0, x1 + 1): px[x + HX, PAD + yy] = SKIN
     for yy, runs in HAIRR.items():
         for x0, x1 in runs:
-            for x in range(x0, x1 + 1): px[x, PAD + yy] = HAIR
-    for x, yy in ((8, 2), (9, 2), (7, 3), (12, 3), (13, 4), (14, 5), (16, 6), (17, 7), (10, 5), (11, 6), (7, 6), (7, 9), (8, 11)): px[x, PAD + yy] = HL      # 머릿결(뒤에서 앞으로 흐름)
-    for x, yy in ((10, 10), (10, 11), (11, 12), (14, 10), (16, 10), (17, 10), (10, 16), (10, 18), (10, 19), (11, 17), (9, 15)): px[x, PAD + yy] = SKIN2     # 귀 안쪽, 앞머리 그늘, 턱선, 목 그늘
-    px[19, PAD + 15] = SKIN2                                                                                                                  # 입
+            for x in range(x0, x1 + 1): px[x + HX, PAD + yy] = HAIR
+    for x, yy in ((8, 2), (9, 2), (7, 3), (12, 3), (13, 4), (14, 5), (16, 6), (17, 7), (10, 5), (11, 6), (7, 6), (7, 9), (8, 11)): px[x + HX, PAD + yy] = HL      # 머릿결(뒤에서 앞으로 흐름)
+    for x, yy in ((10, 10), (10, 11), (11, 12), (14, 10), (16, 10), (17, 10), (10, 16), (12, 18), (12, 19), (11, 17), (9, 15)): px[x + HX, PAD + yy] = SKIN2     # 귀 안쪽, 앞머리 그늘, 턱선, 목 그늘
+    px[19 + HX, PAD + 15] = SKIN2                                                                                                                # 입
     for yy in range(-1, 20):                                    # 윤곽선: 채운 화소에 맞닿은 빈 화소
         for x in range(1, 23):
             if px[x, PAD + yy][3] == 0 and any(0 <= PAD + yy + dy < im.height and px[x + dx, PAD + yy + dy][3] and px[x + dx, PAD + yy + dy] != A for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)) if PAD + yy + dy >= 0):
@@ -58,7 +60,7 @@ def side(leg_near=0, leg_far=0, arm=0, lift=None):
         for x in range(x0, x1 + 1):
             edge = not all(inside(x + dx, yy + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
             px[x, PAD + yy] = A if edge else (SH2 if x < 10 or yy >= 28 else SH)
-    for x in range(10, 15): px[x, PAD + 20] = SKIN2 if x < 11 else SKIN     # 목
+    for x in range(10, 14): px[x, PAD + 20] = SKIN2 if x < 11 else SKIN     # 목
     CB.limb(im, [(11, PAD + 22), (11 + arm // 2, PAD + 25), (11 + arm, PAD + 28)])       # 가까운 팔(어깨 → 팔꿈치 → 손)
     return im
 SIDE = {'idle': side(), 'w1': side(3, -3, -3), 'w2': side(0, 0, 0, 'far'), 'w3': side(-3, 3, 3), 'w4': side(0, 0, 0, 'near')}
