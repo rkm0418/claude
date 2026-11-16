@@ -75,7 +75,6 @@ def build():
             b = sc.P(x, d, 0); sc.d.polygon([(b[0] - 9, b[1]), (b[0] + 9, b[1]), (b[0] + 3, b[1] - 22), (b[0] - 3, b[1] - 22)], fill=(214, 170, 78))
             for k in range(0, 18, 4): sc.d.line([(b[0] - 8 + k // 3, b[1] - k), (b[0] + 8 - k // 3, b[1] - k)], fill=(176, 132, 56))
         sc.jobs.append((d, f))
-    hay(int(130 * kx), int(70 * kd)); hay(int(145 * kx), int(120 * kd))
     for d in range(6, D - 8, 11): sc.box(W - 10, d, 2, 2, 10, (98, 68, 44), (80, 54, 36), (62, 42, 30)); 
     sc.box(W - 10, 6, 2, D - 14, 1.6, (98, 68, 44), (80, 54, 36), (62, 42, 30), z0=7)
     def house(x, d, w, dp, h):
@@ -99,7 +98,7 @@ def build():
                 z = h + 1 + (rh - 1) * k / 5; ax = (x - o) + (o + o2) * k / 5; bx = (x + w + o) - (o + o2) * k / 5; dd = d - o + (dm - d + o) * k / 5
                 sc.d.line([sc.P(ax, dd, z), sc.P(bx, dd, z)], fill=(84, 82, 102))
         sc.jobs.append((d, f))
-    house(14, D - 34, 40, 22, 16); house(66, D - 24, 28, 14, 12)
+    house(14, D - 34, 40, 22, 16)
     # 나무: 단풍(주황·빨강)·은행(노랑)·감나무
     for x, d, h, k, sp in ((16, 26, 42, 'orange', 11), (8, 56, 46, 'red', 11), (106, 14, 46, 'gold', 12), (102, 62, 42, 'orange', 11), (104, 94, 38, 'red', 10)):
         tree(sc, x, d, h, k, rng, sp)
