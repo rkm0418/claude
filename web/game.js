@@ -10,6 +10,13 @@ const WALK_FPS = 7;
 const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0도(오른쪽)부터 시계 방향 45도씩
 let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
+const STATE = { lit: {}, solved: {}, seq: {} };                                                  // 퍼즐 상태(방을 옮겨도 유지): 켠 등불
+const LANTERN_TOTAL = 3;
+const litCount = () => Object.keys(STATE.lit).length;
+function cellsOf(r, c) { const a = []; for (let j = 0; j < r.gh; j++) for (let i = 0; i < r.gw; i++) { const x = (i + .5) * CELL, d = (j + .5) * CELL; if (((x - c.x) / c.rx) ** 2 + ((d - c.d) / c.rd) ** 2 < 1) a.push(j * r.gw + i); } return a; }
+const inCrack = (c, x, d, pad = 0) => ((x - c.x) / (c.rx + pad)) ** 2 + ((d - c.d) / (c.rd + pad)) ** 2 < 1;
+function restoreCracks() { for (const c of R.cr) { if (c.st === 'broken') for (const k of c.cells) if (R.free0[k]) R.free[k] = 1; c.st = 'ok'; c.t = 0; } }
+function respawn() { P.path = []; P.x = R.start[0]; P.d = R.start[1]; marker = null; cam.init = false; msg = { text: '얼음이 깨져 물에 빠졌다', t: 1.8 }; }
 const cam = { x: 0, y: 0, init: false };                                   // 카메라(그림 px): 지도가 화면보다 크면 아이를 따라간다
 function camTarget() {
   const [fx, fy] = scr(P.x, P.d), vw = VW / S, vh = VH / S, c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -24,7 +31,7 @@ const sdist = (ax, ad, bx, bd) => Math.hypot((bx - ax) + (bd - ad) / 2, (bd - ad
 // ---------- 방 준비: 그림, 깊이 지도, 걸을 수 있는 격자 ----------
 async function prepare(key) {
   const r = G.rooms[key]; if (r.ready) return r;
-  r.im = await img(r.img); const dim = await img(r.depth);
+  r.name = key; r.im = await img(r.img); const dim = await img(r.depth);
   const oc = document.createElement('canvas'); oc.width = r.CW; oc.height = r.CH; const o = oc.getContext('2d'); o.drawImage(dim, 0, 0);
   const px = o.getImageData(0, 0, r.CW, r.CH).data; r.dep = new Float32Array(r.CW * r.CH);
   for (let i = 0; i < r.dep.length; i++) { const v = px[i * 4]; r.dep[i] = v === 255 ? 1e9 : v / 3 - 2; }
@@ -34,9 +41,11 @@ async function prepare(key) {
     const wim = await img(r.walk), wc = document.createElement('canvas'); wc.width = r.gw; wc.height = r.gh; const w = wc.getContext('2d'); w.drawImage(wim, 0, 0);
     const wd = w.getImageData(0, 0, r.gw, r.gh).data; for (let i = 0; i < r.free.length; i++) if (wd[i * 4] < 128) r.free[i] = 0;
   }
+  r.free0 = r.free.slice(); r.start = r.start || [r.W / 2, r.D / 2]; r.objects = r.objects || [];
+  r.cr = (r.cracks || []).map(c => ({ ...c, st: 'ok', t: 0, cells: [] })); r.cr.forEach(c => { c.cells = cellsOf(r, c); });
   r.ready = true; return r;
 }
-function inExit(r, x, d) { return r.exits.find(e => x >= e.zone[0] && x <= e.zone[1] && d >= e.zone[2] && d <= e.zone[3]); }
+function inExit(r, x, d) { return r.exits.find(e => x >= e.zone[0] && x <= e.zone[1] && d >= e.zone[2] && d <= e.zone[3] && !(e.lock === 'order' && !STATE.solved[r.name])); }
 function walkable(r, x, d) {
   if (x < 0 || d < 0 || x > r.W || d > r.D) return false;
   if (!inExit(r, x, d) && (x < BODY.rx - 1 || x > r.W - BODY.rx + 1 || d < 1.5 || d > r.D - 2.5)) return false;   // 벽·단면 가장자리(문 자리는 예외)
@@ -99,6 +108,27 @@ function update(dt) {
   }
   if (marker) { marker.t += dt; if (marker.t > .6 && !P.path.length) marker = null; }
   if (msg) { msg.t -= dt; if (msg.t <= 0) msg = null; }
+  for (const c of R.cr) {                                                      // 약한 얼음: 밟으면 금이 가고, 떠나면 깨져 물이 된다. 오래 서 있으면 빠진다
+    const inside = inCrack(c, P.x, P.d, .5);
+    if (c.st === 'ok' && inside) { c.st = 'armed'; c.t = 0; }
+    else if (c.st === 'armed') { if (inside) { c.t += dt; if (c.t > 2.2) { for (const k of c.cells) R.free[k] = 0; c.st = 'broken'; respawn(); fadeDir = 0; return; } } else { c.st = 'breaking'; c.t = 0; } }
+    else if (c.st === 'breaking') { c.t += dt; if (c.t > .35) { for (const k of c.cells) R.free[k] = 0; c.st = 'broken'; } }
+  }
+  if (P.act && !P.path.length) {                                               // 사물에 다가가 멈추면 조작한다: 등불 켜기
+    const o = P.act; P.act = null;
+    if (sdist(P.x, P.d, o.x, o.d) < 14) {
+      if (STATE.lit[o.id]) msg = { text: '이미 켜져 있다', t: 1.2 };
+      else if (o.order !== undefined) {                                          // 순서 퍼즐: 발자국이 이어 주는 순서대로 켠다
+        const seq = STATE.seq[R.name] = STATE.seq[R.name] || [], total = R.objects.filter(x => x.order !== undefined).length;
+        if (o.order === seq.length) {
+          STATE.lit[o.id] = true; seq.push(o.id);
+          if (seq.length === total) { STATE.solved[R.name] = true; msg = { text: '눈 속에서 쇳소리가 난다. 맨홀 뚜껑이 드러났다', t: 2.8 }; }
+          else msg = { text: `등불이 켜졌다 (${seq.length}/${total})`, t: 1.4 };
+        } else { for (const id of seq) delete STATE.lit[id]; STATE.seq[R.name] = []; msg = { text: '불이 모두 꺼졌다. 발자국을 따라가 보자', t: 2.2 }; }
+      }
+      else { STATE.lit[o.id] = true; restoreCracks(); msg = { text: `등불이 켜졌다 — 얼음이 다시 얼어붙는다`, t: 2.2 }; }
+    }
+  }
   if (!P.path.length) { P.moving = false; P.t = 0; return; }
   let left = SPEED * dt; P.moving = true; P.t += dt;
   while (left > 0 && P.path.length) {
@@ -110,7 +140,8 @@ function update(dt) {
   }
   const e = inExit(R, P.x, P.d);
   if (e && !P.path.length) {
-    if (e.to) { pending = e; fadeDir = 1; } else if (!msg) { msg = { text: '여기서부터는 아직 만들지 않았어요', t: 1.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
+    if (e.lock === 'lanterns3' && litCount() < LANTERN_TOTAL) { if (!msg) { msg = { text: `맨홀이 얼어붙어 있다. 등불을 모두 켜야 한다 (${litCount()}/${LANTERN_TOTAL})`, t: 2.2 }; const s = e.zone; goTo((s[0] + s[1]) / 2 - 12, (s[2] + s[3]) / 2); } }
+    else if (e.to) { pending = e; fadeDir = 1; } else if (!msg) { msg = { text: '여기서부터는 아직 만들지 않았어요', t: 1.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
 async function enter(key, spawn) { R = await prepare(key); room = key; P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; }
@@ -144,7 +175,24 @@ function draw(dt) {
     const [X, Y] = scr(marker.x, marker.d), k = Math.min(1, marker.t / .35), rx = 2 + 5 * k; ctx.strokeStyle = `rgba(255,236,190,${.9 - .6 * k})`; ctx.lineWidth = S;
     ctx.beginPath(); ctx.ellipse((R.ox + X) * S, (R.oy + Y) * S, rx * S, rx * S / 2, 0, 0, Math.PI * 2); ctx.stroke();
   }
+  for (const c of R.cr) {                                                      // 약한 얼음 칸의 상태
+    const [X, Y] = scr(c.x, c.d); const cx = (R.ox + X) * S, cy = (R.oy + Y) * S;
+    if (c.st === 'broken' || (c.st === 'breaking' && c.t > .2)) { ctx.fillStyle = '#3c6088'; ctx.beginPath(); ctx.ellipse(cx, cy, (c.rx + 1) * S, 4.8 * S, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#7fa8d0'; ctx.lineWidth = S; ctx.beginPath(); ctx.ellipse(cx, cy, (c.rx - 2) * S, 2.6 * S, 0, 0, Math.PI * 2); ctx.stroke(); }
+    else if (c.st === 'armed' || c.st === 'breaking') { ctx.strokeStyle = `rgba(255,255,255,${.5 + .4 * Math.sin(performance.now() / 60)})`; ctx.lineWidth = S; ctx.beginPath(); ctx.moveTo(cx - 5 * S, cy); ctx.lineTo(cx - S, cy - 2 * S); ctx.lineTo(cx + 2 * S, cy + S); ctx.lineTo(cx + 5 * S, cy - S); ctx.stroke(); }
+  }
+  for (const e of R.exits) if (e.manhole && e.lock === 'order' && STATE.solved[R.name]) {                       // 드러난 맨홀 뚜껑
+    const [X, Y] = scr(e.mx, e.md), cx = (R.ox + X) * S, cy = (R.oy + Y) * S;
+    ctx.fillStyle = '#ecf2fc'; ctx.beginPath(); ctx.ellipse(cx, cy, 10 * S, 5.4 * S, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#566070'; ctx.beginPath(); ctx.ellipse(cx, cy, 8.6 * S, 4.5 * S, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#8a96aa'; ctx.beginPath(); ctx.ellipse(cx, cy, 7 * S, 3.5 * S, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#5a6478'; ctx.lineWidth = S; for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(cx + k * 2.4 * S - 2 * S, cy - 3 * S); ctx.lineTo(cx + k * 2.4 * S + 2 * S, cy + 3 * S); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(236,244,255,.65)'; for (let k = 0; k < 3; k++) { const yy = cy - (6 + k * 4 + (performance.now() / 120) % 4) * S; ctx.fillRect(cx + (k - 1) * 2 * S, yy, 2 * S, 2 * S); }
+  }
+  for (const o of R.objects) if (STATE.lit[o.id]) {                              // 켜진 등불: 불꽃과 번지는 빛
+    const [X, Y] = scr(o.x, o.d), cx = (R.ox + X) * S, cy = (R.oy + Y - (o.h || 28) + 3) * S;
+    const g = ctx.createRadialGradient(cx, cy + 6 * S, 2, cx, cy + 14 * S, 34 * S); g.addColorStop(0, 'rgba(255,226,150,.55)'); g.addColorStop(1, 'rgba(255,226,150,0)'); ctx.fillStyle = g; ctx.fillRect(cx - 40 * S, cy - 30 * S, 80 * S, 80 * S);
+    ctx.fillStyle = '#ffe6a0'; ctx.fillRect(cx - 2 * S, cy - 3 * S, 4 * S, 4 * S); ctx.fillStyle = '#fff6d6'; ctx.fillRect(cx - S, cy - 2 * S, 2 * S, 2 * S);
+  }
   drawChild();
+  if (R.objects.length) { const n = R.objects.filter(o => STATE.lit[o.id]).length; ctx.font = '11px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#0008'; ctx.fillRect(6, 6, 76, 16); ctx.fillStyle = '#ffe6a0'; ctx.fillText(`등불 ${n}/${R.objects.length}`, 12, 18); }
   if (msg) { ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#000a'; ctx.fillRect(60, VH - 30, 200, 20); ctx.fillStyle = '#fed'; ctx.fillText(msg.text, VW / 2, VH - 16); }
   if (fade > 0) { ctx.fillStyle = `rgba(20,14,16,${fade})`; ctx.fillRect(0, 0, VW, VH); }
 }
@@ -155,7 +203,9 @@ function onDown(ev) {
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
   let [x, d] = world(X, Y);
   x = Math.max(0, Math.min(R.W, x)); d = Math.max(0, Math.min(R.D, d));                // 벽이나 바깥을 눌러도 가장 가까운 바닥으로
-  goTo(x, d);
+  const o = R.objects.find(o => { const [ox, oy] = scr(o.x, o.d); return Math.hypot(X - ox, Y - (oy - (o.h || 28) / 2)) < 12; });   // 등불 기둥 근처를 눌렀는가
+  if (o) { P.act = o; goTo(o.x, o.d + 8); if (!P.path.length && sdist(P.x, P.d, o.x, o.d) < 14) { /* 이미 곁에 있다 */ } return; }
+  P.act = null; goTo(x, d);
 }
 cv.addEventListener('pointerdown', onDown);
 document.getElementById('dbg').addEventListener('click', () => { debug = !debug; });
@@ -169,6 +219,6 @@ addEventListener('resize', fit); fit();
   let last = performance.now();
   const loop = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; update(dt); draw(dt); requestAnimationFrame(loop); };
   requestAnimationFrame(loop);
-  window.__game = { enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
+  window.__game = { STATE, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
 })();
 })();

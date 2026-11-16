@@ -50,7 +50,7 @@ CUTS = [(0, 18), (12, 31), (25, 51), (45, 67), (61, N - 1)]                    #
 NAMES = ['snow_1', 'snow_2', 'snow_3', 'snow_4', 'snow_5']; NAMES_H = 'snow_h'
 MARGIN_W = 20
 
-def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=None):
+def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=None, puzzle=None):
     """lines: 이 구간의 중심선들(세계 좌표), clears: 빈터 [(중심, 반지름)], exits: [(세계좌표 점, 이동할 구간, 도착 세계좌표)]. 구간마다 자기 바탕(안개 허공 위의 지형 조각)을 가진다."""
     pts = [p for ln in lines for p in ln] + [c for c, r in clears]
     x0 = min(p[0] for p in pts) - MARGIN_W; x1 = max(p[0] for p in pts) + MARGIN_W; d0 = min(p[1] for p in pts) - MARGIN_W; d1 = max(p[1] for p in pts) + MARGIN_W
@@ -109,8 +109,33 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
             sc.box(sx - 2.2, sd - 2.2, 4.4, 4.4, 2.6, (186, 140, 96), (122, 88, 60), (96, 68, 46))
             X, Y = sc.P(sx, sd, 2.6); sc.d.ellipse([X - 3, Y - 2, X + 3, Y + 2], fill=(198, 154, 106)); sc.d.ellipse([X - 1, Y - 1, X + 1, Y + 1], outline=(150, 108, 72)); sc.d.point((X, Y), fill=(150, 108, 72))
         sc.jobs.append((sd, stump))
+    objects = []; extra_exits = []
+    if puzzle:                                                                  # 순서 퍼즐: 발자국이 이어 주는 순서대로 등불 3개를 켜면 눈 속의 맨홀 뚜껑이 드러난다
+        pl = [tr(p_) for p_ in puzzle['lanterns']]; mhx, mhd = tr(puzzle['manhole'])
+        walk = [pl[0]]
+        for a_, b_ in zip(pl, pl[1:]): walk += [(a_[0] + (b_[0] - a_[0]) * u, a_[1] + (b_[1] - a_[1]) * u) for u in (.25, .5, .75, 1)]
+        for k_, (fx, fd) in enumerate(walk):                                     # 발자국: 등불에서 등불로(번갈아 좌우)
+            X, Y = sc.P(fx + (1.8 if k_ % 2 else -1.8), fd + (1.2 if k_ % 2 else -1.2), 0); sc.d.ellipse([X - 2, Y - 1, X + 2, Y + 1], fill=(156, 174, 206))
+        sx0, sd0 = pl[0]
+        for k_ in range(6):                                                       # 첫 등불로 이끄는 발자국(샛길 쪽에서)
+            X, Y = sc.P(sx0 - 22 + k_ * 3.5 + (1.6 if k_ % 2 else -1.6), sd0 + 8 - k_ * 1.4, 0); sc.d.ellipse([X - 2, Y - 1, X + 2, Y + 1], fill=(156, 174, 206))
+        for k_, (lx, ld) in enumerate(pl):
+            def lamp(lx=lx, ld=ld):                                                   # 석등(돌 등불): 낮은 받침, 기둥, 불집, 눈 덮인 지붕 - 눈 숲에 어울리는 낮은 돌 등불
+                b = sc.P(lx, ld, 0)
+                sc.d.rectangle([b[0] - 5, b[1] - 3, b[0] + 5, b[1]], fill=(158, 164, 178)); sc.d.rectangle([b[0] - 5, b[1] - 3, b[0] + 5, b[1] - 3], fill=(196, 202, 216))
+                sc.d.rectangle([b[0] - 2, b[1] - 9, b[0] + 2, b[1] - 3], fill=(138, 144, 160)); sc.d.rectangle([b[0] - 2, b[1] - 9, b[0] - 2, b[1] - 3], fill=(176, 182, 198))
+                sc.d.rectangle([b[0] - 4, b[1] - 16, b[0] + 4, b[1] - 9], fill=(150, 156, 172)); sc.d.rectangle([b[0] - 2, b[1] - 14, b[0] + 2, b[1] - 11], fill=(44, 40, 56))
+                sc.d.polygon([(b[0] - 7, b[1] - 16), (b[0] + 7, b[1] - 16), (b[0] + 3, b[1] - 21), (b[0] - 3, b[1] - 21)], fill=(122, 128, 146)); sc.d.polygon([(b[0] - 6, b[1] - 17), (b[0] + 6, b[1] - 17), (b[0] + 3, b[1] - 21), (b[0] - 3, b[1] - 21)], fill=(250, 252, 255))
+            sc.jobs.append((ld, lamp)); objects.append({'id': '%s_L%d' % (name, k_), 'type': 'lantern', 'h': 14, 'x': round(lx, 1), 'd': round(ld, 1), 'order': k_})
+        extra_exits.append({'zone': (mhx - 5, mhx + 5, mhd - 5, mhd + 5), 'to': puzzle['to'], 'spawn': None, 'world_to': None, 'manhole': True, 'lock': 'order', 'mx': round(mhx, 1), 'md': round(mhd, 1)})
     exit_pts = [tr(e[0]) for e in exits]
-    for (ex_, ed_) in exit_pts: sc.glow(ex_, ed_, 20, col=(255, 255, 255), power=.35)                     # 구간 끝: 안개빛이 번진다(이어지는 곳 표시)
+    for (ex_, ed_), e in zip(exit_pts, exits):
+        if len(e) > 3 and e[3] == 'manhole':                                    # 다른 맵으로 가는 곳 = 눈 속에 뚫린 맨홀
+            X, Y = sc.P(ex_, ed_, 0); sc.d.ellipse([X - 9, Y - 5, X + 9, Y + 5], fill=(236, 242, 252)); sc.d.ellipse([X - 8, Y - 4, X + 8, Y + 4], fill=(86, 94, 112)); sc.d.ellipse([X - 7, Y - 3, X + 7, Y + 3], fill=(124, 134, 154)); sc.d.ellipse([X - 5, Y - 3, X + 5, Y + 2], fill=(12, 14, 26)); sc.d.rectangle([X - 1, Y, X + 1, Y + 1], fill=(236, 190, 120))
+            sc.d.ellipse([X + 9, Y + 1, X + 17, Y + 5], fill=(96, 104, 122)); sc.d.ellipse([X + 10, Y, X + 16, Y + 3], fill=(134, 144, 164))
+            for k, (dx, dy) in enumerate(((0, -6), (1, -9), (-1, -12))): sc.d.rectangle([X + dx - 1, Y + dy, X + dx + 1, Y + dy + 1], fill=(236, 244, 255))
+            sc.glow(ex_, ed_, 16, col=(255, 214, 140), power=.3)
+        else: sc.glow(ex_, ed_, 20, col=(255, 255, 255), power=.35)                     # 구간 끝: 안개빛이 번진다(이어지는 곳 표시)
     for _ in range(120): X, Y = rng.randrange(6, sc.CW - 6), rng.randrange(6, sc.CH - 6); sc.d.point((X, Y), fill=(255, 255, 255))
     dep = Image.new('L', sc.img.size, 255)
     for depth, f in sorted(sc.jobs, key=lambda j: -j[0]):
@@ -122,8 +147,9 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
             x, d = (i + .5) * CELL, (j + .5) * CELL
             if in_water(x, d) and not any(math.hypot(x - sx, d - sd) < 3.6 for sx, sd in STONES): continue
             if (dist(x, d) < -4.5 or in_water(x, d)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td, _ in trees) and not (hbox and hbox[0] - 5 < x < hbox[0] + 27 and hbox[1] - 3 < d < hbox[1] + 20): mp[i, j] = 255
-    nav_exits = [{'zone': (ex_ - 4, ex_ + 4, ed_ - 4, ed_ + 4), 'to': e[1], 'spawn': None, 'world_to': e[2]} for (ex_, ed_), e in zip(exit_pts, exits)]
-    return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': [], 'exits': nav_exits, 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
+    nav_exits = [{'zone': (ex_ - 4, ex_ + 4, ed_ - 4, ed_ + 4), 'to': e[1], 'spawn': None, 'world_to': e[2], **({'manhole': True, 'zone': (ex_ - 5, ex_ + 5, ed_ - 5, ed_ + 5)} if len(e) > 3 else {})} for (ex_, ed_), e in zip(exit_pts, exits)]
+    nav_exits += extra_exits
+    return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': [], 'objects': objects, 'exits': nav_exits, 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
 
 def build_all():
     out = {}; bs, be = 4, len(BRANCH) - 1
@@ -140,7 +166,7 @@ def build_all():
             m = MAIN[38]; ta, tb = MAIN[37], MAIN[39]; tx, td = tb[0] - ta[0], tb[1] - ta[1]; ln_ = math.hypot(tx, td) or 1; tx, td = tx / ln_, td / ln_
             stream = ((m[0] - td * 60, m[1] + tx * 60), (m[0] + td * 60, m[1] - tx * 60), [(m[0] + tx * s, m[1] + td * s) for s in (-12, -6, 0, 6, 12)])
         out[NAMES[k]] = make_section(NAMES[k], lines, clears, exits, seed=10 + k, stream=stream)
-    out[NAMES_H] = make_section(NAMES_H, [BRANCH[bs:]], [((166, 38), 28)], [(BRANCH[bs], NAMES[1], BRANCH[7])], hollow_end=(166, 38), seed=30)
+    out[NAMES_H] = make_section(NAMES_H, [BRANCH[bs:]], [((166, 38), 28)], [(BRANCH[bs], NAMES[1], BRANCH[7])], hollow_end=(166, 38), seed=30, puzzle={'lanterns': [(150, 30), (170, 22), (188, 34)], 'manhole': (168, 40), 'to': 'lake_1'})
     return out
 
 def main():
@@ -149,7 +175,7 @@ def main():
         im.save(os.path.join(OUT, 'area_%s.png' % name)); dep.save(os.path.join(OUT, 'area_%s_depth.png' % name)); mask.save(os.path.join(OUT, 'area_%s_walk.png' % name)); nav[name] = meta
     for name, meta in nav.items():                                                 # 도착 세계좌표 -> 도착 구간의 지역 좌표(spawn)
         for e in meta['exits']:
-            wx, wd = e.pop('world_to'); ox, od = nav[e['to']]['origin']; e['spawn'] = (round(wx - ox, 1), round(wd - od, 1))
+            if e.get('world_to') and e['to'] in nav: wx, wd = e.pop('world_to'); ox, od = nav[e['to']]['origin']; e['spawn'] = (round(wx - ox, 1), round(wd - od, 1))
     json.dump(nav, open(os.path.join(OUT, 'dream_nav.json'), 'w'), ensure_ascii=False)
     names = list(secs); ims = [secs[k][0] for k in names]; S = 2; wsum = sum(i.width for i in ims) * S + 10 * (len(ims) + 1); hmax = max(i.height for i in ims) * S + 20
     sheet = Image.new('RGB', (wsum, hmax), (40, 40, 48)); x = 10

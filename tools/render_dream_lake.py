@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""꿈 구역 2: 얼어붙은 호수 — 눈 숲길과 같은 방식(바닥은 평평한 한 장, 길이 휘어지는 구간 여러 장).
+"""꿈 구역 2: 얼어붙은 호수 (퍼즐 기믹: 약한 얼음 / 등불 3개 / 잠긴 맨홀) — 눈 숲길과 같은 방식(바닥은 평평한 한 장, 길이 휘어지는 구간 여러 장).
 두꺼운 얼음 길(걸을 수 있음) 밖은 검푸른 열린 물(못 걷음)과 금 간 얇은 얼음(위험 표시), 얼음 아래로 아파트 창 불빛이 비친다. 길가에 마른 나무와 등불 기둥.
 구간 3장: lake_1 호숫가 시작 → lake_2 갈라진 얼음 들판(추격 자리) → lake_3 등불 나무가 선 섬.
 사용: python3 tools/render_dream_lake.py -> maps/out/area_lake_<1..3>.png, _depth.png, _walk.png, dream_nav_lake.json"""
@@ -31,15 +31,34 @@ def lantern(sc, x, d):
         b = sc.P(x, d, 0); t = sc.P(x, d, 26); sc.d.line([b, t], fill=(70, 62, 86), width=2); sc.d.rectangle([t[0] - 3, t[1] - 5, t[0] + 3, t[1]], fill=(255, 226, 150)); sc.d.rectangle([t[0] - 4, t[1] - 6, t[0] + 4, t[1] - 5], fill=(110, 98, 130))
     sc.jobs.append((d, draw)); sc.glow(x, d, 24, col=(255, 214, 140), power=.35)
 
-def section(name, lines, clears, exits, seed, last=False):
+def section(name, lines, clears, exits, seed, last=False, lanterns=(), islet=False, map_exits=(), margin=MARGIN_W):
     pts = [p for ln in lines for p in ln] + [c for c, r in clears]
-    x0 = min(p[0] for p in pts) - MARGIN_W; x1 = max(p[0] for p in pts) + MARGIN_W; d0 = min(p[1] for p in pts) - MARGIN_W; d1 = max(p[1] for p in pts) + MARGIN_W
+    x0 = min(p[0] for p in pts) - margin; x1 = max(p[0] for p in pts) + margin; d0 = min(p[1] for p in pts) - margin; d1 = max(p[1] for p in pts) + margin
     tr = lambda p: (p[0] - x0, p[1] - d0)
     L = [[tr(p) for p in ln] for ln in lines]; C = [(tr(c), r) for c, r in clears]; Wd, Dd = int(x1 - x0), int(d1 - d0)
     RD.W, RD.D = Wd, Dd; rng = random.Random(seed)
+    def dist0(x, d):
+        r = min(seg_dist(x, d, a, b) for ln in L for a, b in zip(ln, ln[1:])); w = 1.4 * math.sin(d / 5.0 + x / 7.0); inside = r - HW - w
+        for (cx, cd), cr in C: inside = min(inside, math.hypot(x - cx, (d - cd) * 1.15) - cr - w)
+        return inside
+    ISL = None; TILES = []
+    if islet:                                                                    # 외딴 얼음섬(등불 하나): 열린 물 가운데에 두고, 거기로 건너가는 약한 얼음 3칸
+        cc, _ = C[0]; best = None
+        for gx in range(8, Wd - 8, 3):
+            for gd in range(6, Dd - 8, 3):
+                v = dist0(gx, gd)
+                if 20 < v < 30 and gd > cc[1] - 10 and (best is None or math.hypot(gx - cc[0], gd - cc[1]) < math.hypot(best[0] - cc[0], best[1] - cc[1])): best = (gx, gd)
+        ISL = best
+        ex0 = ISL
+        for k in range(60):                                                      # 섬에서 얼음 쪽으로 걸어 나와 얼음 가장자리를 찾는다
+            ex0 = (ISL[0] + (cc[0] - ISL[0]) * k / 60.0, ISL[1] + (cc[1] - ISL[1]) * k / 60.0)
+            if dist0(*ex0) < -1: break
+        for k in (1, 2, 3): TILES.append((ex0[0] + (ISL[0] - ex0[0]) * k / 4.4, ex0[1] + (ISL[1] - ex0[1]) * k / 4.4))
     def dist(x, d):
         r = min(seg_dist(x, d, a, b) for ln in L for a, b in zip(ln, ln[1:])); w = 1.4 * math.sin(d / 5.0 + x / 7.0); inside = r - HW - w
         for (cx, cd), cr in C: inside = min(inside, math.hypot(x - cx, (d - cd) * 1.15) - cr - w)
+        if ISL: inside = min(inside, math.hypot(x - ISL[0], (d - ISL[1]) * 1.15) - 10)
+        for (tx, td) in TILES: inside = min(inside, math.hypot(x - tx, (d - td) * 1.2) - 5.2)
         return inside
     cracks = []                                                                  # 얼음 위의 금(길 쪽에서 물 쪽으로 번지는 지그재그)
     for _ in range(9):
@@ -57,6 +76,9 @@ def section(name, lines, clears, exits, seed, last=False):
     for gx in range(6, Wd - 4, 11):                                              # 얼음 아래로 비치는 아파트 창 불빛
         for gd in range(6, Dd - 4, 11):
             if RD.noise(gx + x0, gd + d0, 7) > .55: X, Y = sc.P(gx, gd, 0); sc.d.rectangle([X - 2, Y - 1, X + 2, Y + 1], fill=(206, 188, 140) if dist(gx, gd) < 0 else (150, 140, 120))
+    for (tx, td) in TILES:                                                       # 약한 얼음 칸: 얇고 금이 많은 얼음(밟으면 깨진다)
+        X, Y = sc.P(tx, td, 0); sc.d.ellipse([X - 7, Y - 4, X + 7, Y + 4], fill=(206, 226, 242), outline=(120, 150, 186))
+        for ax, ay, bx_, by_ in ((-5, 0, -1, -2), (-1, -2, 3, 1), (3, 1, 6, -1), (-2, 1, 0, 3), (1, -2, 2, -4)): sc.d.line([(X + ax, Y + ay), (X + bx_, Y + by_)], fill=(255, 255, 255))
     for seg in cracks:
         for a, b in zip(seg, seg[1:]): sc.d.line([sc.P(*a, 0), sc.P(*b, 0)], fill=(246, 252, 255))
     X, Y = sc.P(Wd * .3, Dd, 48); sc.d.ellipse([X - 9, Y - 9, X + 9, Y + 9], fill=(250, 246, 226)); sc.d.ellipse([X - 4, Y - 9, X + 12, Y + 7], fill=(150, 160, 210))
@@ -67,11 +89,16 @@ def section(name, lines, clears, exits, seed, last=False):
         nx, nd = min(allp, key=lambda p: math.hypot(x - p[0], d - p[1]))
         if d < nd - 2 or any(math.hypot(x - tx, d - td) < 30 for tx, td in trees): continue
         trees.append((x, d)); dead_tree(sc, x, d, rng.choice((30, 36, 42)))
-    for (cx, cd), cr in C[-1:]:
-        if last: lantern(sc, cx + 14, cd - 6)
+    LAN = [tr(p) for p in lanterns] + ([ISL] if ISL else [])
+    for (lx, ld) in LAN:                                                         # 꺼진 등불 기둥(켜진 모습은 엔진이 덧그린다)
+        def draw(lx=lx, ld=ld):
+            b = sc.P(lx, ld, 0); tp = sc.P(lx, ld, 26); sc.d.line([b, tp], fill=(70, 62, 86), width=2); sc.d.rectangle([tp[0] - 3, tp[1] - 5, tp[0] + 3, tp[1]], fill=(58, 54, 74)); sc.d.rectangle([tp[0] - 2, tp[1] - 4, tp[0] + 2, tp[1] - 1], fill=(86, 82, 104)); sc.d.rectangle([tp[0] - 4, tp[1] - 6, tp[0] + 4, tp[1] - 5], fill=(110, 98, 130))
+        sc.jobs.append((ld, draw))
     for _ in range(40): X, Y = rng.randrange(6, sc.CW - 6), rng.randrange(6, sc.CH - 6); (sc.px[X, Y] != RD.MARGIN) and sc.d.point((X, Y), fill=(255, 255, 255))
     exit_pts = [tr(e[0]) for e in exits]
-    for (ex_, ed_) in exit_pts:                                                  # 구간 이음새 = 얼음에 뚫린 맨홀: 쇠 테두리, 어두운 구멍, 옆에 비스듬히 놓인 쇠뚜껑, 올라오는 김
+    for (ex_, ed_) in exit_pts: sc.glow(ex_, ed_, 20, col=(255, 255, 255), power=.35)
+    mh = [tr(m[0]) for m in map_exits]
+    for (ex_, ed_) in mh:                                                        # 다른 맵으로 가는 곳 = 얼음에 뚫린 맨홀: 쇠 테두리, 어두운 구멍, 옆에 비스듬히 놓인 쇠뚜껑, 올라오는 김
         X, Y = sc.P(ex_, ed_, 0)
         sc.d.ellipse([X - 8, Y - 4, X + 8, Y + 4], fill=(86, 94, 112)); sc.d.ellipse([X - 7, Y - 3, X + 7, Y + 3], fill=(124, 134, 154)); sc.d.ellipse([X - 5, Y - 3, X + 5, Y + 2], fill=(12, 14, 26))
         sc.d.ellipse([X - 3, Y - 1, X + 3, Y + 2], fill=(46, 36, 34)); sc.d.rectangle([X - 1, Y, X + 1, Y + 1], fill=(236, 190, 120))                    # 안쪽 따뜻한 빛
@@ -86,9 +113,10 @@ def section(name, lines, clears, exits, seed, last=False):
     for j in range(gh):
         for i in range(gw):
             x, d = (i + .5) * CELL, (j + .5) * CELL
-            if (dist(x, d) < -4.5 or any(math.hypot(x - ex_, d - ed_) < 7 for ex_, ed_ in exit_pts)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td in trees): mp[i, j] = 255
-    nav_exits = [{'zone': (ex_ - 5, ex_ + 5, ed_ - 5, ed_ + 5), 'to': e[1], 'spawn': None, 'world_to': e[2]} for (ex_, ed_), e in zip(exit_pts, exits)]
-    return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': [], 'exits': nav_exits, 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
+            if (dist(x, d) < -4.5 or any(math.hypot(x - ex_, d - ed_) < 7 for ex_, ed_ in exit_pts + mh)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td in trees): mp[i, j] = 255
+    nav_exits = [{'zone': (ex_ - 4, ex_ + 4, ed_ - 4, ed_ + 4), 'to': e[1], 'spawn': None, 'world_to': e[2]} for (ex_, ed_), e in zip(exit_pts, exits)]
+    for (ex_, ed_), m in zip(mh, map_exits): nav_exits.append({'zone': (ex_ - 5, ex_ + 5, ed_ - 5, ed_ + 5), 'to': m[1], 'spawn': m[2], 'world_to': None, 'lock': m[3], 'manhole': True})
+    return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': [], 'exits': nav_exits, 'objects': [{'id': '%s_%d' % (name, k), 'type': 'lantern', 'x': round(lx, 1), 'd': round(ld, 1)} for k, (lx, ld) in enumerate(LAN)], 'cracks': [{'x': round(tx, 1), 'd': round(td, 1), 'rx': 6.5, 'rd': 4.2} for tx, td in TILES], 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
 
 def main():
     nav = {}; secs = {}
@@ -96,12 +124,14 @@ def main():
         exits = []
         if k > 0: exits.append((TRAIL[s], NAMES[k - 1], TRAIL[s + 3]))
         if k < len(CUTS) - 1: exits.append((TRAIL[e], NAMES[k + 1], TRAIL[e - 3]))
-        secs[NAMES[k]] = section(NAMES[k], [TRAIL[s:e + 1]], CLEARS.get(k, []), exits, 40 + k, last=(k == len(CUTS) - 1))
+        lan = [(TRAIL[9][0] + 4, TRAIL[9][1] - 9)] if k == 0 else [(TRAIL[N - 1][0] + 14, TRAIL[N - 1][1] - 6)] if k == 2 else []
+        mex = []
+        secs[NAMES[k]] = section(NAMES[k], [TRAIL[s:e + 1]], CLEARS.get(k, []), exits, 40 + k, last=(k == 2), lanterns=lan, islet=(k == 1), map_exits=mex, margin=(48 if k == 1 else MARGIN_W))
     for name, (im, dep, mask, meta) in secs.items():
         im.save(os.path.join(OUT, 'area_%s.png' % name)); dep.save(os.path.join(OUT, 'area_%s_depth.png' % name)); mask.save(os.path.join(OUT, 'area_%s_walk.png' % name)); nav[name] = meta
     for name, meta in nav.items():
         for e in meta['exits']:
-            wx, wd = e.pop('world_to'); ox, od = nav[e['to']]['origin']; e['spawn'] = (round(wx - ox, 1), round(wd - od, 1))
+            if e.get('world_to') and e['to'] in nav: wx, wd = e.pop('world_to'); ox, od = nav[e['to']]['origin']; e['spawn'] = (round(wx - ox, 1), round(wd - od, 1))
     json.dump(nav, open(os.path.join(OUT, 'dream_nav_lake.json'), 'w'), ensure_ascii=False)
     ims = [secs[k][0] for k in NAMES]; S = 3; wsum = sum(i.width for i in ims) * S + 10 * (len(ims) + 1); hmax = max(i.height for i in ims) * S + 20
     sheet = Image.new('RGB', (wsum, hmax), (40, 40, 48)); x = 10
