@@ -1,0 +1,203 @@
+{
+ "chaser": {
+  "size": [
+   30,
+   64
+  ],
+  "anchor": "bottom-center",
+  "directions": {
+   "d": [
+    "idle",
+    "lurch1",
+    "lurch2",
+    "sway1",
+    "sway2",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "u": [
+    "idle",
+    "sway1",
+    "sway2",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "r": [
+    "idle",
+    "lurch1",
+    "lurch2",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "l": [
+    "idle",
+    "lurch1",
+    "lurch2",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ]
+  },
+  "walk_cycle": [
+   "w1",
+   "w2",
+   "w3",
+   "w4"
+  ],
+  "fps": 4
+ },
+ "rabbit_red": {
+  "size": [
+   24,
+   42
+  ],
+  "anchor": "bottom-center",
+  "directions": {
+   "d": [
+    "face_A",
+    "face_B",
+    "face_C",
+    "face_D",
+    "face_E",
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "u": [
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "r": [
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "l": [
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ]
+  },
+  "walk_cycle": [
+   "w1",
+   "w2",
+   "w3",
+   "w4"
+  ],
+  "fps": 6
+ },
+ "cat_white": {
+  "size": [
+   26,
+   30
+  ],
+  "anchor": "bottom-center",
+  "directions": {
+   "d": [
+    "face_A",
+    "face_B",
+    "face_C",
+    "face_D",
+    "face_E",
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "u": [
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "r": [
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "l": [
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ]
+  },
+  "walk_cycle": [
+   "w1",
+   "w2",
+   "w3",
+   "w4"
+  ],
+  "fps": 6
+ },
+ "bear_green": {
+  "size": [
+   24,
+   32
+  ],
+  "anchor": "bottom-center",
+  "directions": {
+   "d": [
+    "face_A",
+    "face_B",
+    "face_C",
+    "face_D",
+    "face_E",
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "u": [
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "r": [
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ],
+   "l": [
+    "idle",
+    "w1",
+    "w2",
+    "w3",
+    "w4"
+   ]
+  },
+  "walk_cycle": [
+   "w1",
+   "w2",
+   "w3",
+   "w4"
+  ],
+  "fps": 6
+ }
+}
