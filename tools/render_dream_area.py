@@ -34,7 +34,7 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
     tr = lambda p: (p[0] - x0, p[1] - d0)
     L = [[tr(p) for p in ln] for ln in lines]; C = [(tr(c), r) for c, r in clears]; Wd, Dd = int(x1 - x0), int(d1 - d0)
     SA, SB, STONES = (tr(stream[0]), tr(stream[1]), [tr(s) for s in stream[2]]) if stream else (None, None, [])
-    in_water = lambda x, d: bool(stream) and seg_dist(x, d, SA, SB) < 7.5
+    in_water = lambda x, d: bool(stream) and seg_dist(x, d, SA, SB) < 12
     RD.W, RD.D = Wd, Dd; rng = random.Random(seed)
     main = L[0]
     def dist(x, d):
@@ -44,7 +44,7 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
     def ground(x, d):                                                          # 바닥은 구간 전체가 평평한 눈 평면, 다져진 길만 색이 다르다
         n = RD.noise(x + x0, d + d0)
         if in_water(x, d): return (92 + int(n * 14), 150 + int(n * 14), 196) if int((x * .6 + d * 1.3) // 3) % 2 else (112, 170, 210)      # 시냇물(평평한 바닥 위, 물결 줄무늬)
-        if stream and seg_dist(x, d, SA, SB) < 9: return (250, 252, 255)                                                                   # 물가 눈둑
+        if stream and seg_dist(x, d, SA, SB) < 14: return (250, 252, 255)                                                                   # 물가 눈둑
         on = min(seg_dist(x, d, a, b) for ln in L for a, b in zip(ln, ln[1:])) < 6 or any(math.hypot(x - cx, (d - cd) * 1.15) < cr * .55 for (cx, cd), cr in C)
         if on: return (206 + int(n * 8), 216 + int(n * 8), 236)
         c = (238, 242, 250) if n > .3 else (224, 232, 245)
@@ -57,17 +57,15 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
             X, Y = sc.P(px_ - dd / Ln * side, pd_ + dx / Ln * side, 0); sc.d.ellipse([X - 2, Y - 1, X + 2, Y + 1], fill=(156, 174, 206))
     # 땅의 모양은 바닥이 아니라 '나무 벽'이 만든다: 길 밖은 전나무를 빽빽이 심어 막고, 길 앞쪽(화면 아래)은 낮은 어린 나무로 길이 가려지지 않게 한다
     trees = []; drifts = []; allp = [p for ln in L for p in ln]
-    for gd in range(2, Dd - 1, 14):
-        for gx in range(2, Wd - 1, 22):
-            x = gx + rng.uniform(-2.5, 2.5); d = gd + rng.uniform(-2, 2)
-            if dist(x, d) < 1.5 or in_water(x, d): continue
-            nx, nd = min(allp, key=lambda p: math.hypot(x - p[0], d - p[1]))
-            front = d < nd - 2
-            if rng.random() < .5: continue                                        # 듬성듬성(너무 빽빽하지 않게)
-            if front:                                                                # 길 앞쪽(화면 아래)은 나무가 길을 가리므로 낮은 눈더미·바위만 둔다
-                if rng.random() < .12 and dist(x, d) > 5: drifts.append((x - 3, d - 2, rng.choice((6, 8, 10))))
-                continue
-            trees.append((x, d, rng.choice((22, 26, 30)) if front else rng.choice((38, 42, 46))))
+    for _ in range(400):                                                       # 푸아송 원반식: 서로 28 이상 떨어진 곳에만 심어 고르게 띄엄띄엄
+        x = rng.uniform(3, Wd - 3); d = rng.uniform(3, Dd - 3)
+        if dist(x, d) < 1.5 or in_water(x, d) or stream and seg_dist(x, d, SA, SB) < 20: continue
+        nx, nd = min(allp, key=lambda p: math.hypot(x - p[0], d - p[1]))
+        if d < nd - 2:                                                          # 길 앞쪽(화면 아래)은 나무가 길을 가리므로 낮은 눈더미만
+            if rng.random() < .15 and dist(x, d) > 5 and not any(math.hypot(x - a, d - b) < 20 for a, b, _ in drifts): drifts.append((x - 3, d - 2, rng.choice((6, 8, 10))))
+            continue
+        if any(math.hypot(x - tx, d - td) < 28 for tx, td, _ in trees): continue
+        trees.append((x, d, rng.choice((38, 42, 46))))
     for (x, d, h) in trees: RD.fir(sc, x, d, h)
     for (x, d, w) in drifts: sc.jobs.append((d, lambda x=x, d=d, w=w: [sc.box(x, d, w, w * .6, w * .45, (246, 250, 255), (206, 216, 236), (178, 190, 216))]))
     for _ in range(5):                                                          # 길가의 눈 덮인 바위와 쓰러진 통나무(입체 소품)
@@ -82,8 +80,11 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
             sc.box(hx, hd, 14, 10, 36, (124, 96, 78), (100, 76, 60), (78, 58, 46)); sc.box(hx - 1, hd - 1, 16, 12, 3, (246, 250, 255), (226, 234, 248), (190, 202, 226), z0=36)
             sc.poly([(hx + 4, hd - .1, 0), (hx + 10, hd - .1, 0), (hx + 10, hd - .1, 17), (hx + 7, hd - .1, 22), (hx + 4, hd - .1, 17)], (30, 22, 22)); sc.poly([(hx + 5, hd - .2, 0), (hx + 9, hd - .2, 0), (hx + 9, hd - .2, 9), (hx + 5, hd - .2, 9)], (236, 200, 124))
         sc.jobs.append((hd, f)); sc.glow(hx + 7, hd - 2, 26, col=(255, 214, 140), power=.45)
-    for (sx, sd) in STONES:                                                     # 징검다리: 눈 덮인 평평한 돌
-        sc.jobs.append((sd, lambda sx=sx, sd=sd: [sc.box(sx - 2.8, sd - 2.2, 5.6, 4.4, 2, (214, 220, 232), (170, 178, 198), (140, 150, 176)), sc.box(sx - 2.4, sd - 1.9, 4.8, 3.8, .8, (250, 252, 255), (236, 240, 250), (210, 218, 236), z0=2)]))
+    for (sx, sd) in STONES:                                                     # 징검다리: 나무 그루터기(둥근 단면, 나이테)
+        def stump(sx=sx, sd=sd):
+            sc.box(sx - 2.2, sd - 2.2, 4.4, 4.4, 2.6, (186, 140, 96), (122, 88, 60), (96, 68, 46))
+            X, Y = sc.P(sx, sd, 2.6); sc.d.ellipse([X - 3, Y - 2, X + 3, Y + 2], fill=(198, 154, 106)); sc.d.ellipse([X - 1, Y - 1, X + 1, Y + 1], outline=(150, 108, 72)); sc.d.point((X, Y), fill=(150, 108, 72))
+        sc.jobs.append((sd, stump))
     exit_pts = [tr(e[0]) for e in exits]
     for (ex_, ed_) in exit_pts: sc.glow(ex_, ed_, 20, col=(255, 255, 255), power=.35)                     # 구간 끝: 안개빛이 번진다(이어지는 곳 표시)
     for _ in range(120): X, Y = rng.randrange(6, sc.CW - 6), rng.randrange(6, sc.CH - 6); sc.d.point((X, Y), fill=(255, 255, 255))
@@ -95,7 +96,7 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
     for j in range(gh):
         for i in range(gw):
             x, d = (i + .5) * CELL, (j + .5) * CELL
-            if in_water(x, d) and not any(math.hypot(x - sx, d - sd) < 3.4 for sx, sd in STONES): continue
+            if in_water(x, d) and not any(math.hypot(x - sx, d - sd) < 3.6 for sx, sd in STONES): continue
             if (dist(x, d) < -4.5 or in_water(x, d)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td, _ in trees) and not (hbox and hbox[0] - 2 < x < hbox[0] + 16 and hbox[1] - 2 < d < hbox[1] + 12): mp[i, j] = 255
     nav_exits = [{'zone': (ex_ - 4, ex_ + 4, ed_ - 4, ed_ + 4), 'to': e[1], 'spawn': None, 'world_to': e[2]} for (ex_, ed_), e in zip(exit_pts, exits)]
     return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': [], 'exits': nav_exits, 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
@@ -111,9 +112,9 @@ def build_all():
         if k == 1: lines.append(BRANCH[:10]); clears.append(((96, 42), 30)); exits.append((BRANCH[9], NAMES_H, BRANCH[bs + 1]))
         if k == 4: clears.append(((236, 82), 40))
         stream = None
-        if k == 2:                                                              # 징검다리: 길을 가로지르는 시냇물 + 돌 5개
+        if k == 2:                                                              # 징검다리: 길을 가로지르는 시냇물 + 나무 그루터기 5개
             m = MAIN[38]; ta, tb = MAIN[37], MAIN[39]; tx, td = tb[0] - ta[0], tb[1] - ta[1]; ln_ = math.hypot(tx, td) or 1; tx, td = tx / ln_, td / ln_
-            stream = ((m[0] - td * 60, m[1] + tx * 60), (m[0] + td * 60, m[1] - tx * 60), [(m[0] + tx * s, m[1] + td * s) for s in (-10, -5, 0, 5, 10)])
+            stream = ((m[0] - td * 60, m[1] + tx * 60), (m[0] + td * 60, m[1] - tx * 60), [(m[0] + tx * s, m[1] + td * s) for s in (-12, -6, 0, 6, 12)])
         out[NAMES[k]] = make_section(NAMES[k], lines, clears, exits, seed=10 + k, stream=stream)
     out[NAMES_H] = make_section(NAMES_H, [BRANCH[bs:]], [((166, 38), 28)], [(BRANCH[bs], NAMES[1], BRANCH[7])], hollow_end=(166, 38), seed=30)
     return out
