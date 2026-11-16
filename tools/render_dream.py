@@ -119,10 +119,10 @@ def reeds():
     cx = lambda d: 56 + 22 * math.sin(d / 20.0)
     def ground(x, d):
         n = noise(x, d); a = abs(x - cx(d))
-        if a < 8: return (96, 78, 60)                                              # 데크 밑
-        if noise(int(x // 6), int(d // 6), 4) > .72: return (150 + int(n * 12), 126, 92)   # 진흙 섬
-        return (74 + int(n * 14), 96 + int(n * 14), 112 + int(n * 14)) if int(d // 4 + x // 9) % 3 else (96, 118, 130)   # 얕은 물(결 줄무늬)
-    sc = base((176, 190, 206), (244, 220, 170), ground); rng = random.Random(12)
+        if a < 8: return (112, 84, 48)                                             # 데크 밑
+        if noise(int(x // 6), int(d // 6), 4) > .72: return (182 + int(n * 12), 140, 78)   # 진흙 섬
+        return (150 + int(n * 14), 120 + int(n * 12), 62 + int(n * 10)) if int(d // 4 + x // 9) % 3 else (184, 146, 78)   # 금빛 얕은 물(결 줄무늬)
+    sc = base((244, 206, 104), (255, 232, 150), ground); rng = random.Random(12)
     for d in range(0, D, 5):                                                       # 데크 널빤지
         x = cx(d) - 6
         def plank(x=x, d=d): sc.box(x, d, 12, 4, 2.5, (176, 140, 100), (150, 116, 82), (120, 90, 64), z0=1)
@@ -132,21 +132,62 @@ def reeds():
         if abs(x - cx(d)) < 9.5: continue
         def reed(x=x, d=d, i=i):
             b = sc.P(x, d, 0); h = 22 + int(noise(x, d, 4) * 14); lean = 2 + int(noise(x, d, 9) * 3)
-            stem = ((128, 112, 74), (150, 128, 82), (112, 98, 66))[i % 3]; top = (b[0] + lean, b[1] - h)
+            stem = ((196, 150, 56), (222, 176, 66), (170, 128, 46))[i % 3]; top = (b[0] + lean, b[1] - h)
             sc.d.line([b, (b[0] + lean // 2, b[1] - h // 2), top], fill=stem)
-            for dx, dy, c in ((0, 0, (236, 226, 204)), (1, -1, (250, 244, 228)), (-1, 1, (214, 202, 176)), (2, -2, (246, 238, 216)), (0, 2, (220, 208, 182))): sc.d.point((top[0] + dx, top[1] + dy), fill=c)   # 솜털 이삭
-            sc.d.line([(top[0], top[1] - 1), (top[0] + 1, top[1] + 4)], fill=(232, 220, 196))
+            for dx, dy, c in ((0, 0, (252, 220, 120)), (1, -1, (255, 240, 164)), (-1, 1, (234, 190, 84)), (2, -2, (255, 232, 140)), (0, 2, (240, 204, 100))): sc.d.point((top[0] + dx, top[1] + dy), fill=c)   # 솜털 이삭
+            sc.d.line([(top[0], top[1] - 1), (top[0] + 1, top[1] + 4)], fill=(244, 206, 110))
         sc.jobs.append((d, reed))
     for _ in range(30):                                                            # 날아다니는 솜털
-        X, Y = rng.randrange(8, sc.CW - 8), rng.randrange(8, sc.CH - 12); (sc.px[X, Y] != MARGIN) and sc.d.point((X, Y), fill=(255, 250, 236))
+        X, Y = rng.randrange(8, sc.CW - 8), rng.randrange(8, sc.CH - 12); (sc.px[X, Y] != MARGIN) and sc.d.point((X, Y), fill=(255, 246, 190))
     sc.run(); return sc.img
 
+def park():
+    """밤의 놀이공원: 불 꺼진 회전목마와 천천히 도는 관람차, 전구 줄. 목마 둘레를 도는 둥근 길 = 순환 추격(돌아서 따돌림)."""
+    cx0, cd0 = 56, 52
+    def ground(x, d):
+        r = math.hypot(x - cx0, (d - cd0)); n = noise(x, d)
+        if 25 < r < 38: return (96 + int(n * 8), 88 + int(n * 8), 112)           # 목마를 도는 길(밝은 포장)
+        return (52 + int(n * 8), 48 + int(n * 8), 72) if noise(int(x // 8), int(d // 8)) > .4 else (46, 42, 66)
+    sc = base((30, 22, 64), (112, 70, 120), ground); rng = random.Random(6)
+    for _ in range(60): X, Y = rng.randrange(8, sc.CW - 8), rng.randrange(8, sc.CH - 30); (sc.px[X, Y] != MARGIN) and sc.d.point((X, Y), fill=(255, 246, 220))
+    def wheel():                                                                   # 관람차(뒤 평면): 바퀴, 바큇살, 곤돌라, 다리
+        X, Y = sc.P(82, D, 36); R = 27; sc.d.ellipse([X - R, Y - R, X + R, Y + R], outline=(214, 190, 226)); sc.d.ellipse([X - R + 3, Y - R + 3, X + R - 3, Y + R - 3], outline=(150, 120, 170))
+        for k in range(12):
+            a = k * math.pi / 6 + .2; sc.d.line([(X, Y), (X + R * math.cos(a), Y + R * math.sin(a))], fill=(170, 140, 190))
+            gx, gy = X + R * math.cos(a), Y + R * math.sin(a); c = ((226, 120, 120), (240, 200, 110), (120, 170, 220))[k % 3]; sc.d.rectangle([gx - 2, gy, gx + 2, gy + 4], fill=c)
+        sc.d.line([(X, Y), (X - 14, Y + 40)], fill=(130, 104, 150), width=2); sc.d.line([(X, Y), (X + 14, Y + 40)], fill=(130, 104, 150), width=2); sc.d.ellipse([X - 3, Y - 3, X + 3, Y + 3], fill=(226, 200, 230))
+    sc.jobs.append((D, wheel))
+    def carousel():
+        X, Y = sc.P(cx0, cd0, 0); sc.d.ellipse([X - 22, Y - 11, X + 22, Y + 11], fill=(84, 66, 96)); sc.d.ellipse([X - 20, Y - 12, X + 20, Y + 9], fill=(124, 96, 130))     # 바닥판
+        sc.d.ellipse([X - 20, Y - 15, X + 20, Y + 5], fill=(104, 76, 110))
+        for k in range(8):                                                           # 기둥 + 목마
+            a = k * math.pi / 4; px_, py_ = X + 15 * math.cos(a), Y - 5 + 7 * math.sin(a); sc.d.line([(px_, py_), (px_, py_ - 26)], fill=(226, 200, 130))
+            hy = py_ - 8 - (k % 2) * 4; c = ((236, 226, 220), (226, 150, 150), (170, 190, 226), (240, 216, 130))[k % 4]
+            sc.d.rectangle([px_ - 3, hy, px_ + 3, hy + 4], fill=c); sc.d.rectangle([px_ + 1, hy - 3, px_ + 4, hy], fill=c); sc.d.point((px_ + 3, hy - 2), fill=(40, 30, 40))
+        sc.d.ellipse([X - 22, Y - 36, X + 22, Y - 20], fill=(206, 80, 90))                                         # 지붕(줄무늬 챙)
+        for k in range(8): sc.d.polygon([(X, Y - 52), (X - 22 + k * 44 // 8, Y - 28), (X - 22 + (k + 1) * 44 // 8, Y - 28)], fill=(206, 80, 90) if k % 2 == 0 else (240, 226, 206))
+        sc.d.ellipse([X - 22, Y - 34, X + 22, Y - 22], outline=(236, 214, 150)); sc.d.rectangle([X - 1, Y - 58, X + 1, Y - 52], fill=(236, 214, 150))
+        for k in range(11):                                                          # 지붕 끝 전구(꺼져 있음)
+            a = k * math.pi * 2 / 11; sc.d.point((X + 22 * math.cos(a), Y - 28 + 6 * math.sin(a)), fill=(236, 230, 190))
+    sc.jobs.append((cd0, carousel))
+    def booth(x=12, d=18):
+        sc.box(x, d, 14, 10, 20, (206, 120, 110), (226, 140, 126), (166, 96, 90)); sc.poly([(x + 3, d - .1, 6), (x + 11, d - .1, 6), (x + 11, d - .1, 15), (x + 3, d - .1, 15)], (40, 30, 50))
+        sc.box(x - 1, d - 2, 16, 3, 2, (240, 226, 206), (226, 212, 192), (190, 176, 158), z0=20)
+    sc.jobs.append((18, booth))
+    for (x, d) in ((18, 86), (96, 24), (20, 50), (96, 88)):                          # 가로등과 전구 불빛
+        def lamp(x=x, d=d):
+            b = sc.P(x, d, 0); t_ = sc.P(x, d, 32); sc.d.line([b, t_], fill=(70, 60, 90), width=2); sc.d.ellipse([t_[0] - 3, t_[1] - 3, t_[0] + 3, t_[1] + 3], fill=(255, 226, 150))
+        sc.jobs.append((d, lamp)); sc.glow(x, d, 26, col=(255, 214, 140), power=.35)
+    X, Y = sc.P(90, 46, 0)
+    def balloon(): sc.d.line([(X, Y), (X + 2, Y - 22)], fill=(200, 200, 210)); sc.d.ellipse([X - 5, Y - 36, X + 7, Y - 20], fill=(236, 110, 130))
+    sc.jobs.append((46, balloon)); sc.run(); return sc.img
+
 def main():
-    scenes = {'snow': snow, 'lake': lake, 'grass': grass, 'reeds': reeds, 'library': library, 'stairs': stairs}; imgs = {}
+    scenes = {'snow': snow, 'lake': lake, 'grass': grass, 'reeds': reeds, 'park': park, 'library': library, 'stairs': stairs}; imgs = {}
     for k, f in scenes.items():
         im = f(); imgs[k] = im; im.save(os.path.join(OUT, 'dream_%s.png' % k)); im.resize((im.width * 3, im.height * 3), Image.NEAREST).save(os.path.join(OUT, 'dream_%s_x3.png' % k))
     S = 2; pad = 10; w = imgs['snow'].width * S; h = imgs['snow'].height * S
-    sheet = Image.new('RGB', (w * 3 + pad * 4, h * 2 + pad * 3), (40, 40, 48))
+    sheet = Image.new('RGB', (w * 3 + pad * 4, h * 3 + pad * 4), (40, 40, 48))
     for i, k in enumerate(scenes): sheet.paste(imgs[k].resize((w, h), Image.NEAREST), (pad + (i % 3) * (w + pad), pad + (i // 3) * (h + pad)))
     sheet.save(os.path.join(OUT, 'dream_sheet.png')); print('dream ok', imgs['snow'].size)
 if __name__ == '__main__': main()
