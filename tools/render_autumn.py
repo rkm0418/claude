@@ -76,19 +76,6 @@ def build():
             for k in range(0, 18, 4): sc.d.line([(b[0] - 8 + k // 3, b[1] - k), (b[0] + 8 - k // 3, b[1] - k)], fill=(176, 132, 56))
         sc.jobs.append((d, f))
     hay(int(130 * kx), int(70 * kd)); hay(int(145 * kx), int(120 * kd))
-    def jang(x, d):
-        def f():
-            b = sc.P(x, d, 0); sc.d.rectangle([b[0] - 3, b[1] - 28, b[0] + 3, b[1]], fill=(98, 68, 44)); sc.d.rectangle([b[0] - 4, b[1] - 34, b[0] + 4, b[1] - 24], fill=(122, 86, 56))
-            sc.d.point((b[0] - 2, b[1] - 30), fill=(30, 20, 16)); sc.d.point((b[0] + 2, b[1] - 30), fill=(30, 20, 16)); sc.d.line([(b[0] - 2, b[1] - 27), (b[0] + 2, b[1] - 27)], fill=(30, 20, 16))
-        sc.jobs.append((d, f))
-    jang(int(112 * kx), int(34 * kd)); jang(int(112 * kx), int(150 * kd))
-    def scarecrow(x, d):
-        def f():
-            b = sc.P(x, d, 0); sc.d.line([(b[0], b[1]), (b[0], b[1] - 30)], fill=(98, 68, 44), width=2); sc.d.line([(b[0] - 9, b[1] - 22), (b[0] + 9, b[1] - 22)], fill=(98, 68, 44), width=2)
-            sc.d.ellipse([b[0] - 4, b[1] - 36, b[0] + 4, b[1] - 28], fill=(224, 190, 120)); sc.d.polygon([(b[0] - 6, b[1] - 36), (b[0] + 6, b[1] - 36), (b[0], b[1] - 42)], fill=(150, 104, 56))
-            sc.d.rectangle([b[0] - 4, b[1] - 26, b[0] + 4, b[1] - 12], fill=(120, 86, 70))
-        sc.jobs.append((d, f))
-    scarecrow(int(138 * kx), int(170 * kd))
     for d in range(6, D - 8, 11): sc.box(W - 10, d, 2, 2, 10, (98, 68, 44), (80, 54, 36), (62, 42, 30)); 
     sc.box(W - 10, 6, 2, D - 14, 1.6, (98, 68, 44), (80, 54, 36), (62, 42, 30), z0=7)
     def house(x, d, w, dp, h):
@@ -99,9 +86,9 @@ def build():
             sc.poly([(x + w + 3, d - 2, h), (x + w + 3, d + dp + 2, h), (x + w / 2 + 3, d + dp / 2 + 3, h + rh), (x + w / 2 + 3, d + dp / 2, h + rh)], (62, 60, 76))
             sc.poly([(x + 4, d, 2), (x + 11, d, 2), (x + 11, d, h - 4), (x + 4, d, h - 4)], (110, 78, 52))
         sc.jobs.append((d, f))
-    house(30, D - 16, 20, 12, 9); house(62, D - 12, 18, 9, 8)
+    house(22, D - 28, 30, 18, 13); house(62, D - 22, 26, 14, 11)
     # 나무: 단풍(주황·빨강)·은행(노랑)·감나무
-    for x, d, h, k, sp in ((16, 26, 42, 'orange', 11), (20, 66, 46, 'red', 12), (18, 98, 40, 'gold', 11), (98, 24, 46, 'gold', 13), (96, 62, 42, 'orange', 11), (84, 100, 38, 'red', 10), (46, 88, 34, 'orange', 9)):
+    for x, d, h, k, sp in ((16, 26, 42, 'orange', 11), (20, 66, 46, 'red', 12), (98, 24, 46, 'gold', 13), (102, 62, 42, 'orange', 11), (104, 94, 38, 'red', 10)):
         tree(sc, x, d, h, k, rng, sp)
     sc.run()
     # 감나무의 감(주황 점)과 떨어지는 낙엽(공중)
