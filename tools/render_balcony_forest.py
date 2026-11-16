@@ -60,6 +60,23 @@ def main():
         for x in range(xa, xb + 2):
             y = int(by - RAIL + 3 + (x - xa) * (1 if a == 4 else 0) // 6)
             put(x, y, WOODL); put(x, y + 1, WOOD)
+    # 부서진 울타리 조각(기둥 사이사이): 기울어진 기둥, 한쪽만 걸려 늘어진 가로대, 들쭉날쭉 부러진 그루터기, 쓰러져 기댄 널빤지
+    def beam(x0, y0, x1, y1, th=2):                                      # 두께 th 의 나무 막대(밝은 면 + 어두운 면)
+        n = int(max(abs(x1 - x0), abs(y1 - y0))) or 1
+        for s in range(n + 1):
+            xx, yy = round(x0 + (x1 - x0) * s / n), round(y0 + (y1 - y0) * s / n)
+            put(xx, yy, WOODL)
+            for k in range(1, th): put(xx + (1 if abs(x1 - x0) < abs(y1 - y0) else 0), yy + (0 if abs(x1 - x0) < abs(y1 - y0) else k), WOOD if k == th - 1 else WOODL)
+    def jag(x, y, w=3):                                                  # 부러진 끝의 들쭉날쭉한 단면
+        for k in range(w): put(x + k, y - (k % 2) * 2, WOODD); put(x + k, y - 1 - (k % 2), WOODL)
+    g3, g6 = posts[3], posts[6]
+    beam(g3 + 1, int(by), g3 + 9, int(by - RAIL + 4)); jag(g3 + 9, int(by - RAIL + 4))                  # 빠진 기둥 자리에 비스듬히 기운 기둥
+    beam(posts[1] + 2, int(by - RAIL + 3), posts[1] + 12, int(by - RAIL + 14), 2); jag(posts[1] + 12, int(by - RAIL + 14))    # 한쪽만 걸려 아래로 늘어진 가로대
+    beam(posts[4] + 2, int(by - RAIL + 6), posts[4] + 8, int(by - 6), 1)                                  # 가로대 조각이 기둥에 기대 늘어짐
+    for dx, hh in ((0, 5), (2, 8), (4, 3)): [put(g6 + dx, int(by) - k, WOODL if dx == 2 else WOOD) for k in range(hh)]      # 들쭉날쭉 부러진 그루터기
+    jag(g6, int(by) - 5, 2); jag(g6 + 2, int(by) - 8, 2)
+    beam(posts[7] + 4, int(by), posts[7] + 14, int(by - 9), 2)                                           # 쓰러져 다른 기둥에 기댄 널빤지
+    for k in range(5): put(posts[2] + 3 + k, int(by - RAIL + 4 + k // 2), WOODD)                          # 부러진 기둥 옆 갈라진 파편
     # 땅: 숲 바닥이 지평선 아래 전체에 이어진다(판 아래·앞·오른쪽으로 계속): 흙 + 이끼 + 풀 + 가는 길
     gr = random.Random(9)
     for Y in range(int(by) - 2, CH):
