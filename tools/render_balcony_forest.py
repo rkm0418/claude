@@ -102,7 +102,7 @@ def main():
     def put_sprite(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
     put_sprite('torch_stand', 30, 30); put_sprite('broken_table', 66, 26); put_sprite('broken_chair', 58, 18); put_sprite('plank_piece', 44, 12); put_sprite('plank_piece', 28, 34)
-    tx, ty = int(X0 + 30 + SK * 30), int(Y0 - SS * 30 - 22)          # 횃불 불꽃 위치
+    tx, ty = int(X0 + 30 + SK * 30), int(Y0 - SS * 30 - 33)          # 횃불 불꽃 위치
     for Y in range(max(0, ty - 34), min(CH, ty + 34)):
         for X in range(max(0, tx - 34), min(CW, tx + 34)):
             dd = ((X - tx) ** 2 + (Y - ty) ** 2) ** .5
