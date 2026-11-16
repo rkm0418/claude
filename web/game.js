@@ -4,7 +4,7 @@
 const G = window.GAME_DATA, cv = document.getElementById('c'), ctx = cv.getContext('2d');
 const VW = 320, VH = 240, S = 2;            // 논리 화면, 그림 배율
 const CELL = 2;                              // 길찾기 격자 한 칸 = 바닥 2px
-const BODY = { rx: 5, rd: 2.5 };             // 아이 발 자리(가구와 벽에서 띄우는 여유)
+const BODY = { rx: 4, rd: 2.2 };             // 아이 발 자리(가구와 벽에서 띄우는 여유)
 const SPEED = 46;                            // 화면에서 느끼는 걸음 속도(그림 px/초)
 const WALK_FPS = 7;
 const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0도(오른쪽)부터 시계 방향 45도씩
