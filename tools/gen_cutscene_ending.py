@@ -2,7 +2,7 @@
 """수미상관 컷신(본편 끝, 숲 베란다, 게임 모드 사선 시점).  사용: python3 tools/gen_cutscene_ending.py
 출력: maps/out/ending_cutscene.gif (10fps, 320x240), maps/out/ending_cutscene_sheet.png
 프롤로그(아파트 베란다 추락)와 같은 순서를 숲에서 되풀이한다: 달려 들어옴 → 무너진 울타리에 막혀 매달려 보며 낑낑 →
-뒤에서 나무 머리가 다가옴 → 기울어진 옆의 그루터기를 발견해 밟고 울타리에 오름 → 울타리 위에서 잠깐 멈춤 → 기울어지며 울타리 너머로 떨어짐 → 흰 화면."""
+뒤를 돌아봄(추격자는 화면에 없음) → 기울어진 옆의 그루터기를 발견해 밟고 울타리에 오름 → 울타리 위에서 잠깐 멈춤 → 기울어지며 울타리 너머로 떨어짐 → 흰 화면."""
 import math, os, sys
 from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -75,9 +75,9 @@ for k in range(2):
     hold(SPOT, BREACH, 3, '3 울타리에 막혀 낑낑' if k == 0 else '')
     for i in range(8): hold((SPOT[0] + (1 if i % 2 else 0), SPOT[1] - 4), BHANG[(i // 2) % 2], 1)
 hold(SPOT, BREACH, 4)
-# 4. 뒤에서 나무 머리가 나타남(이때부터 끝까지 같은 속도로 다가온다). 아이가 돌아봄
-CD[0] = 0.0
-hold(SPOT, BIDLE, 6, '4 나무 머리가 다가옴, 돌아봄'); hold(SPOT, FIDLE, 12)
+# 4. 아이가 뒤를 돌아봄(추격자는 화면에 넣지 않음)
+# (추격자는 일단 넣지 않는다: CD[0] 을 0.0 으로 두면 이 시점부터 나타나 다가온다)
+hold(SPOT, BIDLE, 6, '4 뒤를 돌아봄'); hold(SPOT, FIDLE, 12)
 # 5. 옆의 그루터기를 발견(느낌표) → 그루터기로 걸음을 재촉
 hold(SPOT, BIDLE, 6, '5 그루터기를 발견', bang=(SPOT[0] + 10, SPOT[1] - 46))
 go(SPOT, ST_FRONT, WALK_V * 1.4, FWALK)
