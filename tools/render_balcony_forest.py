@@ -179,11 +179,11 @@ def scene(actors=None, flick=0):
     wd, wz = 22, 22                                                   # 벽 횃불: 왼쪽 벽(깊이 22칸), 바닥에서 22칸 위
     tspr = lib['torch_wall_b' if flick else 'torch_wall']; img.alpha_composite(tspr, (int(X0 + SK * wd - 4), int(Y0 - SS * wd - wz - 14)))
     tx, ty = int(X0 + SK * wd + 1), int(Y0 - SS * wd - wz - 8)          # 횃불 불꽃 위치
-    for Y in range(max(0, ty - 34), min(CH, ty + 34)):
-        for X in range(max(0, tx - 34), min(CW, tx + 34)):
+    for Y in range(max(0, ty - 24), min(CH, ty + 24)):
+        for X in range(max(0, tx - 24), min(CW, tx + 24)):
             dd = ((X - tx) ** 2 + (Y - ty) ** 2) ** .5
-            if dd < 34:
-                f = (1 - dd / 34) ** 1.6 * (.55 if not flick else .48); r_, g_, b_, a_ = px[X, Y]; px[X, Y] = (int(r_ + (240 - r_) * f), int(g_ + (150 - g_) * f), int(b_ + (70 - b_) * f), a_)
+            if dd < 24:                                                 # 횃불 빛: 좁고 약하게
+                f = (1 - dd / 24) ** 1.6 * (.34 if not flick else .28); r_, g_, b_, a_ = px[X, Y]; px[X, Y] = (int(r_ + (240 - r_) * f), int(g_ + (150 - g_) * f), int(b_ + (70 - b_) * f), a_)
     # 색조(차갑고 푸른 숲 빛)
     for Y in range(CH):
         for X in range(CW):

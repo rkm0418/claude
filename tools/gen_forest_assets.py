@@ -228,14 +228,29 @@ def torch_stand(frame=0):
 for name, fn in (('stump_torch', stump_torch), ('torch_wall', torch_wall), ('torch_stand', torch_stand)):
     fn(0).save(os.path.join(OUT, name + '.png')); fn(1).save(os.path.join(OUT, name + '_b.png'))          # _b: 불꽃이 다른 한 장(흔들림용)
 
-def stump_plain():                                               # 횃불이 없는 그루터기(방)
-    im = new(24, 14)
-    for y in range(4, 13):
-        for x in range(2, 22):
-            if (x - 12) ** 2 / 100 + (y - 8) ** 2 / 40 <= 1:
-                put(im, x, y, C['barkl'] if x < 6 else C['barkd'] if x > 17 else C['bark'])
-    for y in range(2, 7):
-        for x in range(2, 22):
-            if ((x - 12) / 10) ** 2 + ((y - 4) / 3) ** 2 <= 1: put(im, x, y, (84, 70, 108) if ((x - 12) // 2 + y) % 3 else (102, 86, 128))
+def stump_plain():
+    """참고 사진의 그루터기: 평평하게 잘린 밝은 윗면(갈라진 금, 나이테), 세로로 깊게 팬 껍질, 아래로 넓게 벌어진 뿌리, 밑동의 작은 구멍. (30x22)"""
+    im = new(30, 22); r = random.Random(12)
+    TOPL, TOPM, TOPD = (100, 88, 120), (82, 72, 102), (56, 48, 76)
+    for y in range(7, 21):                                       # 몸통 + 뿌리: 아래로 갈수록 벌어진다
+        t = (y - 7) / 13; half = 9.5 + 4.5 * t ** 2
+        for x in range(30):
+            if abs(x - 14.5) <= half:
+                k = (x * 7 + (x // 3)) % 5                       # 세로 골: 열마다 밝기가 다르다
+                c = C['barkl'] if k == 0 else C['barkd'] if k in (2, 4) else C['bark']
+                if x - 14.5 > half - 2: c = C['barkd']           # 오른쪽 그늘
+                if x - 14.5 < -half + 1.5: c = C['barkl']
+                put(im, x, y, c)
+    for x0, w in ((0, 3), (5, 2), (11, 3), (19, 2), (25, 4)):    # 뿌리 발가락: 바닥에서 갈라져 뻗음
+        for dx in range(w): put(im, x0 + dx, 20, C['bark'] if dx % 2 else C['barkd']); put(im, x0 + dx, 21, C['barkd'])
+    for x in (3, 4, 8, 9, 10, 15, 16, 17, 18, 22, 23, 24): put(im, x, 20, (0, 0, 0, 0)[:3]) if False else None
+    for yy in range(16, 20):                                     # 밑동의 작은 구멍
+        for xx in range(13, 16): put(im, xx, yy, (10, 8, 20))
+    for y in range(1, 10):                                       # 윗면(잘린 면): 살짝 울퉁불퉁한 타원
+        for x in range(30):
+            e = ((x - 14.5) / (10.5 + (1 if y % 2 else 0))) ** 2 + ((y - 5) / 4.2) ** 2
+            if e <= 1: put(im, x, y, TOPL if e < .35 else TOPM if y < 7 else TOPD)
+    for (x, y) in ((14, 3), (15, 4), (16, 4), (17, 5), (18, 5), (19, 6), (11, 5), (10, 6), (9, 6), (14, 6), (14, 7)): put(im, x, y, TOPD)   # 갈라진 금
+    for x in range(7, 23): put(im, x, 9, C['barkd']) if im.getpixel((x, 9))[3] else None                                                    # 윗면 아래 가장자리
     return im
 save(stump_plain(), 'stump_plain')

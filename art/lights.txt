@@ -24,6 +24,6 @@ stump_lamp 44 0.9 e8b060
 lantern_hang 46 0.8 e8b060
 forest_edge 40 0.5 9ab8c8
 mushrooms 12 0.3 8fa0d0
-stump_torch 60 1.0 f09a40
-torch_wall 56 0.9 f09a40
-torch_stand 60 1.0 f09a40
+stump_torch 40 0.6 f09a40
+torch_wall 38 0.55 f09a40
+torch_stand 40 0.6 f09a40
