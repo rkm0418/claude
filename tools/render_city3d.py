@@ -189,13 +189,14 @@ def street():
         s.jobs.append((56, sig)); s.glow(x, 56, 18, col=(230, 60, 60), power=.35, z=3)
     s.wall_left(0, D, 72, seed=4); s.wall_back(0, W, D, 60, seed=6)
     # 왼쪽 건물 벽에 골목 입구: 광장으로 이어지는 통로(아래) + 골목 3개. 모두 어둡다.
-    alley(s, 14, 44, 'link', depth=34); alley(s, 214, 240, 'pipes'); alley(s, 468, 494, 'door'); alley_right(s, 250, 276)
+    alley(s, 14, 44, 'link', depth=34); alley(s, 420, 446, 'pipes'); alley(s, 468, 494, 'door')
+    s.box(176, 236, 40, 56, 30, (22, 24, 44), (16, 18, 34), (12, 14, 28)); s.box(176, 292, 40, 30, 20, (22, 24, 44), (16, 18, 34), (12, 14, 28))   # 오른쪽: 골목 대신 막힌 구조물
     for x, d, side in [(30, 170, 1), (146, 240, -1), (30, 330, 1), (146, 400, -1), (30, 490, 1)]: s.lamp(x, d, 50, side)
     s.box(12, 200, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(12, 202, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(12, 214, 3, 2, 4, POLE, POLE, POLE, z0=3)
     s.box(158, 270, 8, 8, 10, (60, 64, 88), (50, 54, 78), (40, 44, 66), z0=3)
     s.box(14, 420, 5, 5, 9, (70, 70, 96), (96, 40, 40), (70, 30, 30), z0=3)
     for d in range(30, D, 60):
-        if not (250 - 4 <= d <= 276 + 4): s.box(172, d, 2, 2, 12, POLE, POLE, POLE, z0=3)
+        s.box(172, d, 2, 2, 12, POLE, POLE, POLE, z0=3)
     s.run(); return s.save('city3d_street')
 
 def main():
