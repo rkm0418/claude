@@ -15,11 +15,14 @@ def main():
         if not os.path.exists(os.path.join(OUT, navf)): continue
         for k, m in json.load(open(os.path.join(OUT, navf))).items():
             m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'area_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'area_%s_depth.png' % k)).convert('RGB')); m['walk'] = uri(Image.open(os.path.join(OUT, 'area_%s_walk.png' % k)).convert('RGB')); m['group'] = k.split('_')[0]; rooms[k] = m
+    if os.path.exists(os.path.join(OUT, 'tree_nav.json')):                       # 건물 안(나무 속 방)
+        for k, m in json.load(open(os.path.join(OUT, 'tree_nav.json'))).items():
+            m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'tree_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'tree_%s_depth.png' % k)).convert('RGB')); m['group'] = 'tree'; rooms[k] = m
     for name, m in rooms.items():                                              # 다른 맵으로 가는 맨홀: 도착 맵의 짝 맨홀 곁(없으면 시작점)에 선다
         for e in m['exits']:
             if e.get('spawn') is None and e.get('to') in rooms:
-                tgt = rooms[e['to']]; back = [x for x in tgt['exits'] if x.get('to') == name and x.get('manhole')]
-                e['spawn'] = [round((back[0]['zone'][0] + back[0]['zone'][1]) / 2 - 10, 1), round((back[0]['zone'][2] + back[0]['zone'][3]) / 2 + 2, 1)] if back else list(tgt['start'])
+                tgt = rooms[e['to']]; back = [x for x in tgt['exits'] if x.get('to') == name and (x.get('manhole') or x.get('door'))]
+                e['spawn'] = ([round((back[0]['zone'][0] + back[0]['zone'][1]) / 2, 1), round(back[0]['zone'][3] + 6 if back[0].get('indoor') else back[0]['zone'][2] - 6, 1)] if back[0].get('door') else [round((back[0]['zone'][0] + back[0]['zone'][1]) / 2 - 10, 1), round((back[0]['zone'][2] + back[0]['zone'][3]) / 2 + 2, 1)]) if back else list(tgt['start'])
     man = json.load(open(os.path.join(SPR, 'manifest.json'))); child = {}
     for d in man['directions']:
         for f in man['frames']: child['%s_%s' % (d, f)] = uri(Image.open(os.path.join(SPR, 'child_%s_%s.png' % (d, f))).convert('RGBA').resize(CHILD, Image.NEAREST))

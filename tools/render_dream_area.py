@@ -50,7 +50,7 @@ CUTS = [(0, 18), (12, 31), (25, 51), (45, 67), (61, N - 1)]                    #
 NAMES = ['snow_1', 'snow_2', 'snow_3', 'snow_4', 'snow_5']; NAMES_H = 'snow_h'
 MARGIN_W = 20
 
-def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=None, puzzle=None):
+def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=None, puzzle=None, door=False):
     """lines: 이 구간의 중심선들(세계 좌표), clears: 빈터 [(중심, 반지름)], exits: [(세계좌표 점, 이동할 구간, 도착 세계좌표)]. 구간마다 자기 바탕(안개 허공 위의 지형 조각)을 가진다."""
     pts = [p for ln in lines for p in ln] + [c for c, r in clears]
     x0 = min(p[0] for p in pts) - MARGIN_W; x1 = max(p[0] for p in pts) + MARGIN_W; d0 = min(p[1] for p in pts) - MARGIN_W; d1 = max(p[1] for p in pts) + MARGIN_W
@@ -149,6 +149,8 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
             if (dist(x, d) < -4.5 or in_water(x, d)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td, _ in trees) and not (hbox and hbox[0] - 5 < x < hbox[0] + 27 and hbox[1] - 3 < d < hbox[1] + 20): mp[i, j] = 255
     nav_exits = [{'zone': (ex_ - 4, ex_ + 4, ed_ - 4, ed_ + 4), 'to': e[1], 'spawn': None, 'world_to': e[2], **({'manhole': True, 'zone': (ex_ - 5, ex_ + 5, ed_ - 5, ed_ + 5)} if len(e) > 3 else {})} for (ex_, ed_), e in zip(exit_pts, exits)]
     nav_exits += extra_exits
+    if door and hollow_end:                                                     # 속 빈 나무의 구멍 = 건물 입구: 구멍 앞에 서면 나무 속 방으로 들어간다
+        nav_exits.append({'zone': (hbox[0] + 5, hbox[0] + 17, hbox[1] - 5, hbox[1] + 1), 'to': 'tree_main', 'spawn': None, 'world_to': None, 'door': True})
     return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': [], 'objects': objects, 'exits': nav_exits, 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
 
 def build_all():
@@ -166,7 +168,7 @@ def build_all():
             m = MAIN[38]; ta, tb = MAIN[37], MAIN[39]; tx, td = tb[0] - ta[0], tb[1] - ta[1]; ln_ = math.hypot(tx, td) or 1; tx, td = tx / ln_, td / ln_
             stream = ((m[0] - td * 60, m[1] + tx * 60), (m[0] + td * 60, m[1] - tx * 60), [(m[0] + tx * s, m[1] + td * s) for s in (-12, -6, 0, 6, 12)])
         out[NAMES[k]] = make_section(NAMES[k], lines, clears, exits, seed=10 + k, stream=stream)
-    out[NAMES_H] = make_section(NAMES_H, [BRANCH[bs:]], [((166, 38), 28)], [(BRANCH[bs], NAMES[1], BRANCH[7])], hollow_end=(166, 38), seed=30, puzzle={'lanterns': [(150, 30), (170, 22), (188, 34)], 'manhole': (168, 40), 'to': 'lake_1'})
+    out[NAMES_H] = make_section(NAMES_H, [BRANCH[bs:]], [((166, 38), 28)], [(BRANCH[bs], NAMES[1], BRANCH[7])], hollow_end=(166, 38), seed=30, door=True)
     return out
 
 def main():

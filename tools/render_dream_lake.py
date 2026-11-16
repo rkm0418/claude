@@ -126,7 +126,7 @@ def main():
         if k < len(CUTS) - 1: exits.append((TRAIL[e], NAMES[k + 1], TRAIL[e - 3]))
         lan = [(TRAIL[9][0] + 4, TRAIL[9][1] - 9)] if k == 0 else [(TRAIL[N - 1][0] + 14, TRAIL[N - 1][1] - 6)] if k == 2 else []
         mex = []
-        secs[NAMES[k]] = section(NAMES[k], [TRAIL[s:e + 1]], CLEARS.get(k, []), exits, 40 + k, last=(k == 2), lanterns=lan, islet=(k == 1), map_exits=mex, margin=(48 if k == 1 else MARGIN_W))
+        secs[NAMES[k]] = section(NAMES[k], [TRAIL[s:e + 1]], CLEARS.get(k, []), exits, 40 + k, last=(k == 2), lanterns=[], islet=False, map_exits=mex, margin=(48 if k == 1 else MARGIN_W))
     for name, (im, dep, mask, meta) in secs.items():
         im.save(os.path.join(OUT, 'area_%s.png' % name)); dep.save(os.path.join(OUT, 'area_%s_depth.png' % name)); mask.save(os.path.join(OUT, 'area_%s_walk.png' % name)); nav[name] = meta
     for name, meta in nav.items():
