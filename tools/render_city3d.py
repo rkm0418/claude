@@ -93,8 +93,6 @@ def landing():
     W, D = 150, 80; s = Scene(W, D, 70); rng = random.Random(5)
     s.floor(paving)
     s.floor(lambda x, d: (CURBT if d < 1 else asphalt(x, d)), x0=96, x1=W)                     # 오른쪽 차도(출구)
-    for k in range(0, D - 8, 10):                                                                 # 횡단보도 줄
-        s.poly([(100, k + 2, 0), (W, k + 2, 0), (W, k + 7, 0), (100, k + 2 + 5, 0)], PAINT)
     s.poly([(82, 36, 0), (88, 36, 0), (88, 33, 0), (94, 40, 0), (88, 47, 0), (88, 44, 0), (82, 44, 0)], (150, 150, 138))  # 출구 화살표(바닥)
     s.glow(30, 30, 70, power=.35); s.glow(100, 40, 44, power=.5)
     s.wall_back(0, W, D, 60, sign=True); s.wall_left(0, D, 60)
@@ -123,28 +121,36 @@ def landing():
     s.box(96, 62, 16, 5, 4, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=5); s.box(98, 62, 2, 4, 5, POLE, POLE, POLE); s.box(110, 62, 2, 4, 5, POLE, POLE, POLE)
     s.run(); return s.save('city3d_landing')
 
-# ---------------- 장면 2: 긴 거리 ----------------
+# ---------------- 장면 2: 긴 거리 (새벽 직전의 큰 도시: 길고 넓다) ----------------
 def street():
-    W, D = 112, 360; s = Scene(W, D, 80); rng = random.Random(9)
-    s.floor(paving, x0=0, x1=28, z=3); s.floor(paving, x0=84, x1=W, z=3)                          # 인도(연석만큼 높음)
-    s.floor(asphalt, x0=28, x1=84)
-    s.poly([(28, 0, 0), (28, 0, 3), (28, D, 3), (28, D, 0)], CURBF); s.poly([(84, 0, 0), (84, 0, 3), (84, D, 3), (84, D, 0)], CURBR)
-    # 도로 표시: 가운데의 큰 직사각형 네 개(맨 위 하나는 비스듬히)
-    quads = [(120, 38), (190, 40), (250, 36), (304, 42)]
-    for i, (d, ln) in enumerate(quads):
-        sk = 5 if i == 0 else 0
-        s.poly([(51 + sk, d, 0), (61 + sk, d, 0), (61, d + ln, 0), (51, d + ln, 0)] if i == 0 else [(51, d, 0), (61, d, 0), (61, d + ln, 0), (51, d + ln, 0)], PAINT)
-    for k in range(10, 360, 24): s.poly([(31, k, 0), (32.5, k, 0), (32.5, k + 8, 0), (31, k + 8, 0)], (150, 150, 130)); s.poly([(79.5, k, 0), (81, k, 0), (81, k + 8, 0), (79.5, k + 8, 0)], (150, 150, 130))
-    for k in range(0, 40, 8): s.poly([(30, 4 + k, 0), (82, 4 + k, 0), (82, 8 + k, 0), (30, 8 + k, 0)], PAINT)   # 아래쪽 횡단보도(광장 쪽)
-    for ld in (70, 160, 250, 330): s.glow(26 if ld % 160 else 70, ld, 40, power=.5)
-    s.wall_left(0, D, 68, seed=4); s.wall_back(0, W, D, 56, seed=6)
-    for i, (x, d, side) in enumerate([(24, 70, 1), (88, 130, -1), (24, 220, 1), (88, 290, -1), (24, 340, 1)]): s.lamp(x, d, 46, side)
-    s.glow(88, 130, 40, power=.5); s.glow(88, 290, 40, power=.5)
-    s.box(10, 100, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(10, 102, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(10, 114, 3, 2, 4, POLE, POLE, POLE, z0=3)
-    s.box(96, 190, 8, 8, 10, (60, 64, 88), (50, 54, 78), (40, 44, 66), z0=3)                      # 쓰레기통
-    s.box(14, 270, 5, 5, 9, (70, 70, 96), (96, 40, 40), (70, 30, 30), z0=3)                       # 소화전
-    for d in range(30, 360, 60):                                                                   # 오른쪽 가장자리 난간(잘린 단면 쪽)
-        s.box(108, d, 2, 2, 12, POLE, POLE, POLE, z0=3)
+    W, D = 176, 520; s = Scene(W, D, 84); rng = random.Random(9)
+    for Y in range(s.CH):                                                    # 새벽 직전: 아래(먼 쪽 아님) 가장자리로 갈수록 살짝 밝은 남색
+        f = Y / s.CH; c = (int(14 + 12 * f), int(16 + 14 * f), int(36 + 30 * f))
+        s.d.line([(0, Y), (s.CW, Y)], fill=c)
+    LS, RS = 36, 140                                                          # 도로 x 범위 36..140 (폭 104, 4차로 느낌)
+    s.floor(paving, x0=0, x1=LS, z=3); s.floor(paving, x0=RS, x1=W, z=3); s.floor(asphalt, x0=LS, x1=RS)
+    s.poly([(LS, 0, 0), (LS, 0, 3), (LS, D, 3), (LS, D, 0)], CURBF); s.poly([(RS, 0, 0), (RS, 0, 3), (RS, D, 3), (RS, D, 0)], CURBR)
+    # 도로 표시: 얇고 길고 간격이 넓은 네 개(맨 위 하나만 비스듬히)
+    for i, d in enumerate((150, 250, 350, 450)):
+        ln, sk = 62, (9 if i == 3 else 0)
+        s.poly([(86 + sk, d, 0), (90 + sk, d, 0), (90, d + ln, 0), (86, d + ln, 0)], PAINT)
+    for k in range(10, D, 28):                                                # 차로 점선(가장자리 선, 얇게)
+        for x in (LS + 3, RS - 4): s.poly([(x, k, 0), (x + 1.5, k, 0), (x + 1.5, k + 9, 0), (x, k + 9, 0)], (150, 150, 130))
+        for x in (62, 114): s.poly([(x, k, 0), (x + 1.5, k, 0), (x + 1.5, k + 7, 0), (x, k + 7, 0)], (110, 110, 100))
+    # 횡단보도 + 신호등(첫 가로등 자리): 얇은 줄 여러 개, 줄은 차가 가는 방향
+    for x in range(LS + 4, RS - 4, 7): s.poly([(x, 56, 0), (x + 3, 56, 0), (x + 3, 74, 0), (x, 74, 0)], PAINT)
+    s.poly([(LS, 52, 0), (RS, 52, 0), (RS, 53, 0), (LS, 53, 0)], (150, 150, 130))        # 정지선
+    for x, c in ((LS - 6, (230, 60, 60)), (RS + 6, (230, 60, 60))):               # 보행 신호등(빨간불 점등)
+        def sig(x=x, c=c):
+            b = s.P(x, 56, 3); t = s.P(x, 56, 30)
+            s.d.line([b, t], fill=POLE, width=2); s.d.rectangle([t[0] - 3, t[1] - 8, t[0] + 3, t[1] + 1], fill=(30, 32, 48)); s.d.rectangle([t[0] - 1, t[1] - 7, t[0] + 1, t[1] - 5], fill=c); s.d.point((t[0], t[1] - 2), fill=(30, 90, 50))
+        s.jobs.append((56, sig)); s.glow(x, 56, 18, col=(230, 60, 60), power=.35, z=3)
+    s.wall_left(0, D, 72, seed=4); s.wall_back(0, W, D, 60, seed=6)
+    for x, d, side in [(30, 170, 1), (146, 240, -1), (30, 330, 1), (146, 400, -1), (30, 490, 1)]: s.lamp(x, d, 50, side)
+    s.box(12, 200, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(12, 202, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(12, 214, 3, 2, 4, POLE, POLE, POLE, z0=3)
+    s.box(158, 270, 8, 8, 10, (60, 64, 88), (50, 54, 78), (40, 44, 66), z0=3)
+    s.box(14, 420, 5, 5, 9, (70, 70, 96), (96, 40, 40), (70, 30, 30), z0=3)
+    for d in range(30, D, 60): s.box(172, d, 2, 2, 12, POLE, POLE, POLE, z0=3)
     s.run(); return s.save('city3d_street')
 
 def main():
