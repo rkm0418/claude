@@ -44,15 +44,15 @@ def side(leg_near=0, leg_far=0, arm=0, lift=None):
                 px[x, PAD + yy] = A
     def leg(off, far, up=0):
         for yy in range(29, 37 - up):
-            x0 = 9 + round(off * (yy - 29) / 7)
-            cols = (A, PANT2, PANT2, PANT2, A) if far else (A, PANT, PANT, PANT2, A)
+            x0 = 8 + round(off * (yy - 29) / 7)
+            cols = (A, PANT2, PANT2, PANT2, PANT2, A) if far else (A, PANT, PANT, PANT, PANT2, A)
             for k, c in enumerate(cols): px[x0 + k, PAD + yy] = c
         x0 = 9 + off
         for k in range(7): px[x0 + k, PAD + 37 - up] = A        # 신발(앞코가 두 칸 나옴)
         for k in range(1, 5): px[x0 + k, PAD + 36 - up] = PANT2
         px[x0 + 5, PAD + 36 - up] = A
     leg(leg_far, True, 2 if lift == 'far' else 0); leg(leg_near, False, 2 if lift == 'near' else 0)
-    TOR = {20: (10, 14), 21: (9, 15), 22: (8, 15), 23: (8, 15), 24: (8, 15), 25: (8, 15), 26: (8, 15), 27: (8, 15), 28: (8, 15)}    # 몸통: 어깨·등·배가 둥글게 넘어간다
+    TOR = {20: (10, 14), 21: (8, 15), 22: (7, 16), 23: (7, 16), 24: (7, 16), 25: (7, 16), 26: (7, 16), 27: (7, 16), 28: (8, 15)}    # 몸통: 어깨·등·배가 둥글게 넘어간다
     inside = lambda x, yy: yy in TOR and TOR[yy][0] <= x <= TOR[yy][1]
     for yy, (x0, x1) in TOR.items():
         for x in range(x0, x1 + 1):
