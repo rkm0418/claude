@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>역상 이동 시험</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #14101a; overflow: hidden; touch-action: none; }
+  #wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  canvas { image-rendering: pixelated; image-rendering: crisp-edges; background: #1e1618; }
+  #dbg { position: fixed; right: 8px; top: 8px; font: 12px sans-serif; color: #cbb; background: #0006; border: 1px solid #655; border-radius: 6px; padding: 6px 10px; }
+</style></head>
+<body><div id="wrap"><canvas id="c" width="320" height="240"></canvas></div><button id="dbg">경로 보기</button>
+<script src="data.js"></script><script src="game.js"></script></body></html>

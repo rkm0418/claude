@@ -4,7 +4,8 @@
 문: 거실(왼쪽 벽 -> 침실, 뒷벽 -> 부엌, 오른쪽 -> 서재, 앞 중앙 = 현관) / 부엌(앞) / 침실(오른쪽) / 서재(왼쪽 벽).
 사용: python3 tools/render_country_house.py -> maps/out/house_<방>.png, house_sheet.png (+_x3)"""
 import math, os, random, sys
-from PIL import Image, ImageDraw
+import json
+from PIL import Image, ImageChops, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 from render_city3d import Scene, dk, OUT
 
@@ -14,6 +15,15 @@ WHITE, GRAY = (236, 234, 228), (150, 152, 158)
 ROOM = {  # 크기 (W, D), 벽지색, 바닥 종류
     'living':  ((112, 64), (236, 226, 204), 'wood'), 'kitchen': ((80, 44), (214, 228, 214), 'tile'),
     'bedroom': ((60, 44), (212, 218, 226), 'wood'), 'study': ((52, 40), (230, 216, 212), 'wood'),
+}
+
+# 문(나가는 곳): zone = 바닥 좌표 (x0, x1, d0, d1) 안에 들어서면 to 방의 spawn (x, d) 로 넘어간다
+EXITS = {
+    'living':  [{'zone': (0, 5, 30, 46), 'to': 'bedroom', 'spawn': (52, 20)}, {'zone': (74, 90, 60, 64), 'to': 'kitchen', 'spawn': (59, 7)},
+                {'zone': (107, 112, 12, 26), 'to': 'study', 'spawn': (8, 15)}, {'zone': (70, 86, 0, 3), 'to': None, 'spawn': None}],
+    'kitchen': [{'zone': (51, 67, 0, 3), 'to': 'living', 'spawn': (82, 56)}],
+    'bedroom': [{'zone': (56, 60, 13, 28), 'to': 'living', 'spawn': (9, 38)}],
+    'study':   [{'zone': (0, 4, 8, 22), 'to': 'living', 'spawn': (103, 19)}],
 }
 
 def make(key):
@@ -45,7 +55,9 @@ def make(key):
         sc.poly([(x0, 0, 0), (x1, 0, 0), (x1, 5, 0), (x0, 5, 0)], (232, 208, 166))
         sc.jobs.append((-1, lambda: [sc.box(x0 - 1.5, 0, 1.5, 2, 6, (246, 242, 234), (246, 242, 234), (206, 202, 194)), sc.box(x1, 0, 1.5, 2, 6, (246, 242, 234), (246, 242, 234), (206, 202, 194))]))
     # ---- 가구 도우미(뒤 d 큰 것부터 그려지게 jobs 로) ----
+    rects = []                                                 # 이동을 막는 가구 바닥 자리 (x, d, w, dp)
     def B(x, d, w, dp, h, c, z0=0, sh=(.86, .72)):
+        if z0 < 28: rects.append((round(x, 1), round(d, 1), round(w, 1), round(dp, 1)))
         sc.jobs.append((d, lambda: sc.box(x, d, w, dp, h, c, dk(c, sh[0]), dk(c, sh[1]), z0=z0)))
     def legs(x, d, w, dp, h, c=(120, 96, 72), t=1.4):
         for (lx, ld) in ((x + .6, d + .6), (x + w - t - .6, d + .6), (x + .6, d + dp - t - .6), (x + w - t - .6, d + dp - t - .6)): B(lx, ld, t, t, h, c, sh=(.9, .8))
@@ -111,14 +123,21 @@ def make(key):
         table(28, 14, 20, 11, 12); B(32, 18, 8, 1, 8, (60, 62, 66), z0=12, sh=(.9, .8)); B(35, 18.4, 2, 2, 1, (80, 82, 86), z0=12, sh=(.9, .8)); B(41, 17, 3, 3, 4, (226, 214, 174), z0=12, sh=(.9, .8))
         chair(34, 5, False); plant(44, 30); rug(14, 6, 18, 14, (150, 168, 182))
         glows((30, 18, 40, (255, 226, 170), .32))
-    sc.run()
+    # 그리면서 깊이 지도도 만든다: 화소마다 '그 화소를 덮은 가구의 앞쪽 깊이'(바닥·벽·러그는 255 = 가리지 않음). 엔진이 아이를 가구 뒤로 가릴 때 쓴다
+    dep = Image.new('L', sc.img.size, 255)
+    for depth, f in sorted(sc.jobs, key=lambda j: -j[0]):
+        before = sc.img.copy(); f()
+        if depth < D - .5:
+            diff = ImageChops.difference(sc.img, before).convert('L').point(lambda v: 255 if v else 0)
+            dep.paste(int(max(0, min(254, round((depth + 2) * 3)))), (0, 0), diff)
+    sc.jobs = []
     ov = Image.new('RGB', sc.img.size, (255, 200, 130)); sc.img = Image.blend(sc.img, ov, .03)
-    return sc.img
+    return sc.img, dep, {'W': W, 'D': D, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': rects, 'exits': EXITS[key]}
 
 def main():
-    imgs = {}
+    imgs = {}; nav = {}
     for k in ROOM:
-        im = make(k); imgs[k] = im; im.save(os.path.join(OUT, 'house_%s.png' % k)); im.resize((im.width * 4, im.height * 4), Image.NEAREST).save(os.path.join(OUT, 'house_%s_x4.png' % k))
+        im, dep, meta = make(k); imgs[k] = im; nav[k] = meta; dep.save(os.path.join(OUT, 'house_%s_depth.png' % k)); im.save(os.path.join(OUT, 'house_%s.png' % k)); im.resize((im.width * 4, im.height * 4), Image.NEAREST).save(os.path.join(OUT, 'house_%s_x4.png' % k))
     order = ['living', 'kitchen', 'bedroom', 'study']; S = 3; pad = 12
     w = sum(imgs[k].width * S for k in order[:2]) + pad * 3; h = max(imgs['living'].height, imgs['kitchen'].height) * S + max(imgs['bedroom'].height, imgs['study'].height) * S + pad * 3
     sheet = Image.new('RGB', (max(imgs['living'].width * S + imgs['kitchen'].width * S, imgs['bedroom'].width * S + imgs['study'].width * S) + pad * 3, h), (40, 40, 48))
@@ -126,5 +145,6 @@ def main():
     for k in order[:2]: sheet.paste(imgs[k].resize((imgs[k].width * S, imgs[k].height * S), Image.NEAREST), (x, y)); x += imgs[k].width * S + pad
     y += max(imgs['living'].height, imgs['kitchen'].height) * S + pad; x = pad
     for k in order[2:]: sheet.paste(imgs[k].resize((imgs[k].width * S, imgs[k].height * S), Image.NEAREST), (x, y)); x += imgs[k].width * S + pad
+    json.dump(nav, open(os.path.join(OUT, 'house_nav.json'), 'w'), ensure_ascii=False)
     sheet.save(os.path.join(OUT, 'house_sheet.png')); print('house ok', {k: v.size for k, v in imgs.items()})
 if __name__ == '__main__': main()
