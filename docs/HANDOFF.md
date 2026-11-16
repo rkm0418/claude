@@ -18,6 +18,7 @@
 | 주인공 8방향(서기+걷기4) | `tools/gen_child_8dir.py` | 실행 | `art/out/sprites/child8/` + `manifest.json`, `maps/out/child_8dir_sheet.png`, `child_8dir_walk.gif` |
 | 주인공 뒷모습 동작(걷기·밀기·잡기·발 올리기·매달리기) | `tools/gen_child_back.py` (`pose()`, `hold()`, `limb()`) | 실행 | `art/out/sprites/child_b_*.png`, `maps/out/child_back_poses.png` |
 | 괴물·조력자 방향별 움직임 | `tools/gen_actor_dirs.py` | 실행 | `art/out/sprites/actors/` + `manifest.json`, `maps/out/actors_sheet.png` |
+| 괴물의 기괴한 움직임(경련 걸음·고개 꺾임·늘어남·끊김·기어옴) | `tools/gen_chaser_creepy.py` | 실행 | `art/out/sprites/actors/chaser_<방향>_<동작><번호>.png`, `chaser_creepy.json`(장당 시간), `maps/out/chaser_creepy.gif` |
 | 쇠 의자·탁자 | `tools/gen_iron_chair.py [배율 이름]`, `tools/gen_iron_table.py [지름 높이 이름]` | 실행 | `art/objects.txt` 에 기록 |
 | 숲 타일·사물·횃불·그루터기 | `tools/gen_forest_assets.py` (+ `tools/forest_draw.py`: 잎·둥치·전나무) | 실행 | `art/forest/*.png` |
 

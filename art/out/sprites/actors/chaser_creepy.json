@@ -1,0 +1,188 @@
+{
+ "size": [
+  50,
+  78
+ ],
+ "anchor": "bottom-center",
+ "note": "캔버스가 기본 스프라이트(30x64)보다 크다: 좌우 10칸, 위 14칸 여유",
+ "sequences": {
+  "tw": [
+   {
+    "frame": "tw1",
+    "ms": 260
+   },
+   {
+    "frame": "tw2",
+    "ms": 60
+   },
+   {
+    "frame": "tw3",
+    "ms": 60
+   },
+   {
+    "frame": "tw4",
+    "ms": 300
+   },
+   {
+    "frame": "tw5",
+    "ms": 60
+   },
+   {
+    "frame": "tw6",
+    "ms": 60
+   },
+   {
+    "frame": "tw7",
+    "ms": 420
+   },
+   {
+    "frame": "tw8",
+    "ms": 80
+   }
+  ],
+  "tilt": [
+   {
+    "frame": "tilt1",
+    "ms": 500
+   },
+   {
+    "frame": "tilt2",
+    "ms": 220
+   },
+   {
+    "frame": "tilt3",
+    "ms": 220
+   },
+   {
+    "frame": "tilt4",
+    "ms": 260
+   },
+   {
+    "frame": "tilt5",
+    "ms": 60
+   },
+   {
+    "frame": "tilt6",
+    "ms": 90
+   },
+   {
+    "frame": "tilt7",
+    "ms": 90
+   },
+   {
+    "frame": "tilt8",
+    "ms": 600
+   },
+   {
+    "frame": "tilt9",
+    "ms": 90
+   },
+   {
+    "frame": "tilt10",
+    "ms": 400
+   }
+  ],
+  "st": [
+   {
+    "frame": "st1",
+    "ms": 400
+   },
+   {
+    "frame": "st2",
+    "ms": 160
+   },
+   {
+    "frame": "st3",
+    "ms": 160
+   },
+   {
+    "frame": "st4",
+    "ms": 200
+   },
+   {
+    "frame": "st5",
+    "ms": 500
+   },
+   {
+    "frame": "st6",
+    "ms": 60
+   },
+   {
+    "frame": "st7",
+    "ms": 90
+   },
+   {
+    "frame": "st8",
+    "ms": 300
+   }
+  ],
+  "gl": [
+   {
+    "frame": "gl1",
+    "ms": 240
+   },
+   {
+    "frame": "gl2",
+    "ms": 50
+   },
+   {
+    "frame": "gl3",
+    "ms": 50
+   },
+   {
+    "frame": "gl4",
+    "ms": 240
+   },
+   {
+    "frame": "gl5",
+    "ms": 50
+   },
+   {
+    "frame": "gl6",
+    "ms": 60
+   },
+   {
+    "frame": "gl7",
+    "ms": 120
+   },
+   {
+    "frame": "gl8",
+    "ms": 40
+   }
+  ],
+  "cr": [
+   {
+    "frame": "cr1",
+    "ms": 300
+   },
+   {
+    "frame": "cr2",
+    "ms": 140
+   },
+   {
+    "frame": "cr3",
+    "ms": 140
+   },
+   {
+    "frame": "cr4",
+    "ms": 220
+   },
+   {
+    "frame": "cr5",
+    "ms": 140
+   },
+   {
+    "frame": "cr6",
+    "ms": 220
+   },
+   {
+    "frame": "cr7",
+    "ms": 140
+   },
+   {
+    "frame": "cr8",
+    "ms": 300
+   }
+  ]
+ }
+}
