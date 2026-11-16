@@ -25,16 +25,23 @@ flip = lambda im: im.transpose(Image.FLIP_LEFT_RIGHT)
 def side(leg_near=0, leg_far=0, arm=0, lift=None):
     """leg_*: 발이 앞(+)/뒤(-)로 나간 칸 수. arm: 가까운 팔 손의 앞뒤 위치. lift: 'near'|'far' 이면 그 발을 2칸 든다(지나가는 자세)."""
     im = Image.new('RGBA', (24, 38 + PAD), CLEAR); px = im.load(); f = FRONT['idle'].load()
-    for y in range(PAD, PAD + 20):                              # 머리: 정면과 같은 윤곽, 얼굴은 오른쪽 아래에만
+    for y in range(PAD, PAD + 20):                              # 머리: 정면과 같은 둥근 윤곽에 머리카락을 채운다
         for x in range(24):
             p = f[x, y]
             if not p[3]: continue
-            if p == A: px[x, y] = A
-            else:
-                yy = y - PAD
-                face = yy >= 13 and x >= 14
-                px[x, y] = (SKIN2 if x == 14 else SKIN) if face else (HL if p == HL and x < 12 else HAIR)
-    for x in (16, 18, 20): px[x, PAD + 12] = HL                 # 눈을 덮는 앞머리 끝
+            px[x, y] = A if p == A else (HL if p == HL and x < 12 else HAIR)
+    # 옆얼굴: 뒤통수·윗머리는 머리카락, 앞쪽 아래는 얼굴(이마는 앞머리가 덮고, 코가 한 칸 나오고, 턱은 둥글게 들어간다)
+    R = {11: 20, 12: 20, 13: 20, 14: 21, 15: 20, 16: 20, 17: 19, 18: 18, 19: 16}      # 줄마다 얼굴의 오른쪽 끝
+    for yy in range(10, 20):
+        for x in range(12, 24): px[x, PAD + yy] = CLEAR if x > R.get(yy, 20) + 1 else px[x, PAD + yy]
+    for yy, r in R.items():
+        for x in range(12, r + 1): px[x, PAD + yy] = SKIN
+        px[r + 1, PAD + yy] = A
+        if yy >= 15: px[12, PAD + yy] = SKIN2                    # 귀 밑·턱선 그늘
+    for x in range(12, R[19] + 2): px[x, PAD + 20] = A           # 턱 밑 윤곽
+    px[R[11] + 1, PAD + 10] = A
+    for x, yy in ((12, 11), (13, 11), (14, 11), (15, 11), (16, 11), (17, 11), (18, 11), (19, 11), (20, 11), (13, 12), (15, 12), (17, 12), (19, 12), (12, 12), (12, 13)): px[x, PAD + yy] = HAIR   # 눈을 덮는 앞머리와 구레나룻
+    px[13, PAD + 14] = SKIN2; px[13, PAD + 15] = SKIN2           # 귀
     def leg(off, far, up=0):
         for yy in range(29, 37 - up):
             x0 = 9 + round(off * (yy - 29) / 7)
