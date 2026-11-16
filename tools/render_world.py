@@ -80,6 +80,9 @@ def reed_ground(x, d, e, n):
 def ridge_ground(x, d, e, n):
     q = nz(x / 2, d / 2, 3); leaf = nz(x, d, 8)
     return col([(q >= 0, (150, 110, 78)), (q > .5, (164, 122, 84)), (leaf > .9, (226, 130, 56)), (leaf > .96, (240, 176, 70)), (e > -2, (190, 150, 104))], n)
+def woods_ground(x, d, e, n):
+    q = nz(x / 2, d / 2, 7)
+    return col([(q >= 0, (34, 46, 48)), (q > .5, (40, 54, 54)), (q > .86, (52, 70, 62)), (nz(x / 6, d / 4, 3) > .84, (28, 36, 42)), (nz(x, d, 11) > .975, (120, 130, 110)), (e > -2, (62, 80, 72))], n)
 def plank_ground(x, d, e, n):
     return col([(np.floor(x / 5) % 2 == 0, (150, 108, 70)), (np.floor(x / 5) % 2 == 1, (132, 94, 62)), (np.abs(x % 5) < .8, (84, 58, 42))], n)
 def plank_ground_v(x, d, e, n):
@@ -103,23 +106,26 @@ def face_building(X, k, ch):                                                    
 
 P1 = bez((0, 40), (60, 20), (90, 70), (150, 60)); P2 = bez((204, 60), (240, 56), (250, 110), (310, 104)) + bez((310, 104), (350, 100), (360, 60), (410, 64))[1:]; P3 = bez((460, 64), (500, 60), (520, 110), (600, 100))
 AREAS = {
-    'park': dict(H=70, shapes=[('circle', 190, 110, 68), ('rect', 176, 0, 204, 50), ('path', [(130, 110), (60, 124), (44, 150)], 13), ('circle', 44, 150, 30), ('path', [(250, 110), (320, 92), (376, 96)], 12), ('path', [(190, 170), (200, 200)], 15), ('circle', 204, 206, 34)],
+    'park': dict(H=70, shapes=[('circle', 190, 110, 78), ('rect', 164, 0, 216, 50), ('path', [(130, 110), (60, 124), (44, 150)], 24), ('circle', 44, 150, 40), ('path', [(250, 110), (320, 92), (376, 96)], 24), ('path', [(190, 170), (200, 200)], 26), ('circle', 204, 206, 44)],
                  ground=park_ground, face=face_rock((96, 80, 110), (30, 22, 44)), ch=30, sky=((30, 22, 52), (86, 56, 104)), start=(190, 8),
                  exits=[dict(at=(190, 3), to='office', spawn_abs=(71, 46)), dict(at=(372, 96), to='reed', spawn=(10, 104))]),
-    'reed': dict(H=64, wob=3, shapes=[('circle', 120, 120, 88), ('circle', 250, 150, 98), ('circle', 370, 112, 80), ('path', [(0, 104), (50, 112)], 12), ('path', [(430, 110), (480, 122), (524, 102)], 11)],
+    'reed': dict(H=64, wob=3, shapes=[('circle', 120, 120, 88), ('circle', 250, 150, 98), ('circle', 370, 112, 80), ('path', [(0, 104), (50, 112)], 24), ('path', [(430, 110), (480, 122), (524, 102)], 24)],
                  ground=reed_ground, face=face_rock((120, 86, 50), (44, 26, 30)), ch=34, sky=((84, 50, 70), (236, 150, 80)), start=(10, 104),
-                 exits=[dict(at=(4, 104), to='park', spawn=(364, 96)), dict(at=(520, 102), to='ridge', spawn=(10, 38))], chaser=dict(x=296, d=176, radius=72)),
-    'ridge': dict(H=64, wob=1.5, mood='dark', chase=True, shapes=[('path', P1, 10), ('path', P2, 10), ('path', P3, 10), ('rect', 146, 54, 208, 66), ('rect', 406, 58, 464, 70), ('circle', 92, 52, 22), ('circle', 310, 104, 24), ('circle', 522, 92, 22)],
-                  zones=[(('rect', 158, 55, 196, 65), plank_ground), (('rect', 418, 59, 452, 69), plank_ground)],
+                 exits=[dict(at=(4, 104), to='park', spawn=(364, 96)), dict(at=(520, 102), to='woods', spawn=(10, 60))]),
+    'woods': dict(H=84, wob=3, shapes=[('path', bez((0, 60), (60, 40), (90, 100), (140, 90)) + bez((140, 90), (200, 80), (230, 40), (300, 66))[1:] + bez((300, 66), (350, 80), (370, 120), (420, 106))[1:] + bez((420, 106), (470, 96), (490, 70), (530, 80))[1:], 28), ('circle', 140, 88, 50), ('circle', 300, 68, 46), ('circle', 420, 106, 58)],
+                  ground=woods_ground, face=face_rock((40, 44, 50), (8, 8, 14)), ch=34, sky=((6, 8, 14), (22, 34, 40)), start=(10, 60),
+                  exits=[dict(at=(4, 60), to='reed', spawn=(510, 104)), dict(at=(526, 80), to='ridge', spawn=(10, 38))], chaser=dict(x=436, d=126, radius=62)),
+    'ridge': dict(H=64, wob=1.5, mood='dark', chase=True, shapes=[('path', P1, 19), ('path', P2, 19), ('path', P3, 19), ('rect', 146, 50, 208, 70), ('rect', 406, 54, 464, 74), ('circle', 92, 52, 32), ('circle', 310, 104, 34), ('circle', 522, 92, 32)],
+                  zones=[(('rect', 172, 49, 184, 71), plank_ground), (('rect', 432, 53, 444, 75), plank_ground)],
                   ground=ridge_ground, face=face_rock((132, 92, 62), (36, 20, 30)), ch=46, sky=((40, 22, 48), (170, 70, 60)), start=(10, 38),
-                  exits=[dict(at=(4, 40), to='reed', spawn=(510, 104)), dict(at=(596, 100), to='roofs', spawn=(10, 36))]),
-    'roofs': dict(H=70, shapes=[('rect', 0, 0, 90, 70), ('rect', 84, 28, 124, 40), ('rect', 118, 10, 190, 90), ('rect', 148, 84, 160, 126), ('rect', 110, 120, 230, 180), ('rect', 224, 138, 268, 150), ('rect', 262, 110, 330, 170)],
-                  zones=[(('rect', 90, 27, 118, 41), plank_ground), (('rect', 147, 90, 161, 120), plank_ground_v), (('rect', 230, 137, 262, 151), plank_ground)],
+                  exits=[dict(at=(4, 40), to='woods', spawn=(516, 80)), dict(at=(596, 100), to='roofs', spawn=(10, 36))]),
+    'roofs': dict(H=70, shapes=[('rect', 0, 0, 90, 70), ('rect', 84, 24, 124, 44), ('rect', 118, 10, 190, 90), ('rect', 144, 84, 164, 126), ('rect', 110, 120, 230, 180), ('rect', 224, 134, 268, 154), ('rect', 262, 110, 330, 170)],
+                  zones=[(('rect', 90, 23, 118, 45), plank_ground), (('rect', 143, 90, 165, 120), plank_ground_v), (('rect', 230, 133, 262, 155), plank_ground)],
                   ground=roof_ground, face=face_building, ch=90, sky=((10, 12, 30), (40, 46, 86)), start=(10, 36),
-                  exits=[dict(at=(4, 36), to='ridge', spawn=(586, 100)), dict(at=(324, 140), to='hall', spawn=(10, 14))]),
-    'hall': dict(H=70, mood='dark', chase=True, shapes=[('rect', 0, 0, 420, 28), ('rect', 392, 28, 420, 150), ('rect', 392, 150, 700, 178)],
-                 ground=hall_ground, face=face_rock((70, 76, 70), (10, 8, 14)), ch=26, sky=((8, 6, 12), (20, 16, 26)), start=(10, 14),
-                 exits=[dict(at=(4, 14), to='roofs', spawn=(314, 140)), dict(at=(694, 164), to=None, endMsg='복도 끝의 문 — 여기서부터는 아직 만들지 않았어요', side='right')]),
+                  exits=[dict(at=(4, 36), to='ridge', spawn=(586, 100)), dict(at=(324, 140), to='hall', spawn=(10, 22))]),
+    'hall': dict(H=70, mood='dark', chase=True, shapes=[('rect', 0, 0, 440, 46), ('rect', 392, 46, 440, 150), ('rect', 392, 150, 700, 196)],
+                 ground=hall_ground, face=face_rock((70, 76, 70), (10, 8, 14)), ch=26, sky=((8, 6, 12), (20, 16, 26)), start=(10, 22),
+                 exits=[dict(at=(4, 22), to='roofs', spawn=(314, 140)), dict(at=(694, 172), to=None, endMsg='복도 끝의 문 — 여기서부터는 아직 만들지 않았어요', side='right')]),
 }
 
 def props(name, k, tr, inside, rng):
@@ -160,13 +166,26 @@ def props(name, k, tr, inside, rng):
             if inside(x, d) < -5 and all(abs(x - a) > 11 or abs(d - b) > 7 for a, b in pts): pts.append((x, d))
             if len(pts) > 230: break
         for (x, d) in pts: k.reed(*T(x, d), rng.choice((9, 11, 13, 16)))
-        for (x, d) in ((96, 150), (150, 84), (196, 200), (262, 96), (296, 176), (372, 160), (404, 76), (166, 176)):
-            if (x, d) != (296, 176): k.pale_tree(*T(x, d))                      # (296,176) 자리는 진짜: 엔진이 그린다
         for (x, d) in ((130, 130), (250, 190), (350, 96)): k.desk(*T(x, d))
         for (x, d) in ((60, 118), (190, 110), (440, 118)): k.rock(*T(x, d), 4, (150, 120, 90))
+    elif name == 'woods':
+        def dtree(x, d, h):                                                     # 어두운 숲의 나무: 가늘고 긴 줄기, 높이 걸린 검푸른 수관
+            def f():
+                X, Y = sc.P(x, d, 0); sc.d.rectangle([X - 1, Y - h, X + 1, Y], fill=(26, 24, 32)); sc.d.line([(X - 1, Y - h), (X - 1, Y)], fill=(48, 46, 56)); sc.d.ellipse([X - 4, Y - 1, X + 4, Y + 1], fill=(22, 28, 32))
+                for (ox, oy, rr, c) in ((0, -h, h * .26, (16, 30, 34)), (-h * .16, -h * .9, h * .2, (22, 40, 42)), (h * .15, -h * 1.02, h * .2, (22, 40, 42)), (0, -h * 1.14, h * .16, (30, 52, 52))): sc.d.ellipse([X + ox - rr, Y + oy - rr * .75, X + ox + rr, Y + oy + rr * .75], fill=c)
+                for (bx_, by_) in ((-5, -h * .55), (5, -h * .66)): sc.d.line([(X, Y + by_), (X + bx_, Y + by_ - 4)], fill=(26, 24, 32))
+            sc.jobs.append((d, f)); k.block.append((x, d, 3))
+        pts = [T(436, 126)]                                                     # 진짜가 설 자리(엔진이 그린다): 몸통이 줄기처럼 보이고 머리는 어두운 수관에 가려져 있다
+        tr_ = list(pts)
+        for _ in range(3000):
+            x, d = rng.uniform(0, 540), rng.uniform(10, 170); e = inside(x, d)
+            lx, ld = T(x, d)
+            if -11 < e < -4 and (inside(x, d - 16) < 0 or rng.random() < .22) and all(math.hypot(lx - a, (ld - b) * 1.6) > 20 for a, b in tr_): tr_.append((lx, ld)); dtree(lx, ld, rng.choice((40, 48, 56)))
+        for (x, d) in ((140, 88), (300, 68), (420, 106)): k.glow(*T(x, d), 44, (150, 190, 200), .16)
+        for (x, d) in ((70, 56), (212, 70), (360, 98), (500, 82)): k.rock(*T(x, d), 3, (60, 66, 72))
     elif name == 'ridge':
         for (x, d, h) in ((84, 66, 34), (104, 44, 28), (298, 120, 36), (326, 96, 28), (514, 106, 34), (536, 84, 28)): k.atree(*T(x, d), h, pal=((150, 60, 44), (196, 96, 50), (104, 40, 44)))
-        for (x, d) in ((158, 53), (158, 65), (196, 53), (196, 65), (418, 57), (418, 69), (452, 57), (452, 69)): k.post(*T(x, d), 9)
+        for (x, d) in ((171, 48), (171, 70), (184, 48), (184, 70), (431, 52), (431, 74), (444, 52), (444, 74)): k.post(*T(x, d), 9)
         for (x, d) in ((60, 34), (240, 72), (360, 76), (470, 60), (570, 104)): k.rock(*T(x, d), 3, (130, 104, 96))
         for (x, d) in ((92, 52), (310, 104), (522, 92)): k.glow(*T(x, d), 30, (255, 150, 90), .22)
     elif name == 'roofs':
@@ -192,12 +211,12 @@ def props(name, k, tr, inside, rng):
                 elif kind == 'D': k.F(x, x + 13, 0, 36, (70, 60, 56), dd, back=True); k.F(x + 1, x + 12, 0, 35, (120, 92, 70), dd, back=True); k.F(x + 3, x + 10, 22, 32, (24, 26, 40), dd, back=True); x += 22
                 else: k.F(x, x + 20, 18, 36, (210, 206, 186), dd, back=True); k.F(x + 1, x + 19, 19, 35, (14, 16, 34), dd, back=True); k.F(x + 9.6, x + 10.4, 19, 35, (210, 206, 186), dd, back=True); x += 30
                 x += r.choice((6, 10, 16))
-        wall(0, 392, 28, 1); wall(392, 700, 178, 2)
-        x, d0 = T(392, 28); _, d1 = T(392, 150); k.L(d0, d1, 0, 46, dk(WALL, .86), x); k.L(d0, d1, 0, 14, dk(WD, .86), x); k.L(d0, d1, 44, 46, (80, 86, 78), x)
-        for (x, d) in ((60, 14), (200, 14), (340, 14), (406, 90), (480, 164), (620, 164)): k.glow(*T(x, d), 34, (220, 236, 200), .34)
-        for (x, d) in ((150, 22), (300, 6), (410, 60), (560, 172)):               # 실내화, 넘어진 의자
+        wall(0, 392, 46, 1); wall(392, 700, 196, 2)
+        x, d0 = T(392, 46); _, d1 = T(392, 150); k.L(d0, d1, 0, 46, dk(WALL, .86), x); k.L(d0, d1, 0, 14, dk(WD, .86), x); k.L(d0, d1, 44, 46, (80, 86, 78), x)
+        for (x, d) in ((60, 22), (200, 22), (340, 22), (416, 96), (480, 172), (620, 172)): k.glow(*T(x, d), 34, (220, 236, 200), .34)
+        for (x, d) in ((150, 36), (300, 8), (420, 70), (560, 186)):               # 실내화, 넘어진 의자
             xx, dd = T(x, d); k.B(xx, dd, 3, 2, 1, (240, 240, 240), solid=False); k.B(xx + 4, dd + 1, 3, 2, 1, (240, 240, 240), solid=False)
-        xx, dd = T(686, 152); k.B(xx, dd, 12, 3, 30, (120, 92, 70), solid=False); k.F(xx + 2, xx + 10, 3, 27, (255, 232, 180), dd); k.glow(xx + 6, dd - 4, 30, (255, 226, 170), .5)   # 끝의 문
+        xx, dd = T(686, 160); k.B(xx, dd, 12, 3, 30, (120, 92, 70), solid=False); k.F(xx + 2, xx + 10, 3, 27, (255, 232, 180), dd); k.glow(xx + 6, dd - 4, 30, (255, 226, 170), .5)   # 끝의 문
 
 def build(name):
     A = AREAS[name]; sh = A['shapes']; xs, ds = [], []

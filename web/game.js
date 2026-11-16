@@ -25,8 +25,8 @@ function route(ax, ad, bx, bd) {
 }
 function updChaser(dt) {
   if (C.st === 'none') return false; C.t += dt;
-  if (C.st === 'hidden') { if (sdist(P.x, P.d, C.x, C.d) < R.chaser.radius) { C.st = 'rise'; C.t = 0; msg = { text: '…나무가, 움직인다', t: 2.4 }; } }
-  else if (C.st === 'rise') { if (C.t > 2.7) { C.st = 'chase'; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
+  if (C.st === 'hidden') { if (sdist(P.x, P.d, C.x, C.d) < R.chaser.radius) { C.st = 'rise'; C.t = 0; msg = { text: '…나무가, 움직인다', t: 2.6 }; } }
+  else if (C.st === 'rise') { if (C.t > 3) { C.st = 'chase'; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
   else if (C.st === 'wait') { if (C.t > 2.2) C.st = 'chase'; }
   else if (C.st === 'chase') {
     C.rep -= dt; if (C.rep <= 0) { C.rep = .4; C.path = route(C.x, C.d, P.x, P.d); }
@@ -38,13 +38,19 @@ function updChaser(dt) {
 }
 function drawChaser() {
   if (C.st === 'none' || (C.st === 'wait' && C.t < .5)) return;
-  const [X, Y] = scr(C.x, C.d), t = C.t; let rows = 64, jx = 0, f = 'idle', flip = C.flip;
-  if (C.st === 'hidden') rows = 30;
-  else if (C.st === 'rise') { const st = Math.floor(t / .3); rows = Math.min(64, 30 + st * 4.5); jx = (t % .3) < .09 ? (st % 2 ? 2 : -2) : 0; flip = st % 3 === 2; if (rows >= 64) f = 'w' + (1 + st % 4); }
+  const [X, Y] = scr(C.x, C.d), t = C.t; let jx = 0, f = 'idle', flip = C.flip, head = 30, canopy = 0;
+  if (C.st === 'hidden') { head = 0; canopy = 1; jx = Math.sin(performance.now() / 1700) > .995 ? 1 : 0; }              // 몸통만 줄기처럼 서 있다. 아주 가끔 움찔한다
+  else if (C.st === 'rise') {                                                    // 1) 줄기가 떤다 -> 2) 수관이 흩어지며 창백한 머리가 아래부터 드러난다 -> 3) 돌아본다
+    const st = Math.floor(t / .22); jx = (t % .22) < .08 ? (st % 2 ? 2 : -2) : 0;
+    const k = Math.max(0, Math.min(1, (t - 1.1) / 1.3)); head = Math.floor(k * 6) * 5; canopy = 1 - k; flip = t > 2.5 ? st % 2 === 0 : false; if (t > 2.4) f = 'w' + (1 + st % 4);
+  }
   else if (C.st === 'chase') { const k = Math.floor(t * 6); f = 'w' + (1 + (k % 7 === 5 ? (k + 2) % 4 : k % 4)); jx = Math.sin(t * 23) > .9 ? 1 : 0; }
-  const im = chFrames[f]; if (!im) return; rows = Math.round(rows);
+  const im = chFrames[f]; if (!im) return;
   ctx.save(); ctx.translate((R.ox + X + jx) * S, (R.oy + Y + 1) * S); if (flip) ctx.scale(-1, 1);
-  ctx.drawImage(im, 0, 0, 30, rows, -15 * S, -rows * S, 30 * S, rows * S);
+  if (canopy > 0) { ctx.fillStyle = '#1a1820'; ctx.fillRect(-1.5 * S, -52 * S, 3 * S, 20 * S); }                         // 몸 위로 이어지는 줄기
+  ctx.drawImage(im, 0, 30, 30, 34, -15 * S, -34 * S, 30 * S, 34 * S);
+  if (head > 0) ctx.drawImage(im, 0, 30 - head, 30, head, -15 * S, -(34 + head) * S, 30 * S, head * S);
+  if (canopy > 0) { ctx.globalAlpha = Math.min(1, canopy * 1.4); const h = 50, sh = (1 - canopy) * 10; for (const [ox, oy, rr, c] of [[0, -h, h * .26, '#101e22'], [-h * .16 - sh, -h * .9, h * .2, '#16282a'], [h * .15 + sh, -h * 1.02, h * .2, '#16282a'], [0, -h * 1.14 - sh, h * .16, '#1e3434']]) { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(ox * S, oy * S, rr * S, rr * .75 * S, 0, 0, 6.3); ctx.fill(); } ctx.globalAlpha = 1; }
   if (C.st !== 'hidden') { ctx.fillStyle = 'rgba(10,6,16,.5)'; ctx.beginPath(); ctx.ellipse(0, 0, 9 * S, 2.4 * S, 0, 0, 6.3); ctx.fill(); }
   ctx.restore();
 }
@@ -256,7 +262,7 @@ function draw(dt) {
   }
   if (C.d >= P.d) { drawChaser(); drawChild(); } else { drawChild(); drawChaser(); }
   if (R.mood === 'dark' || C.st === 'rise' || C.st === 'chase' || C.st === 'wait') {                                                     // 추격 구간의 꺼림칙한 분위기: 어둡게 가라앉히고, 아이 둘레만 흐릿하게 보이며, 가장자리가 맥박처럼 숨 쉰다
-    const [fx0, fy0] = scr(P.x, P.d), rs = C.st === 'rise', [qx, qy] = rs ? scr(C.x, C.d) : [fx0, fy0], fx = (fx0 + qx) / 2, fy = (fy0 + qy) / 2, px = (R.ox + fx) * S, py = (R.oy + fy - 14) * S, t = performance.now() / 1000, br = (rs ? 1.5 : 1) * (1 + .06 * Math.sin(t * 2.2) + (Math.sin(t * 13) > .96 ? .12 : 0));
+    const [fx0, fy0] = scr(P.x, P.d), rs = C.st === 'rise', [qx, qy] = rs ? scr(C.x, C.d) : [fx0, fy0], fx = (fx0 + qx) / 2, fy = (fy0 + qy) / 2, px = (R.ox + fx) * S, py = (R.oy + fy - 14) * S, t = performance.now() / 1000, br = (rs ? 2.4 : 1) * (1 + .06 * Math.sin(t * 2.2) + (Math.sin(t * 13) > .96 ? .12 : 0));
     ctx.fillStyle = 'rgba(14,10,30,.38)'; ctx.fillRect(0, 0, VW, VH);
     const g = ctx.createRadialGradient(px, py, 18 * S * br, px, py, 70 * S * br); g.addColorStop(0, 'rgba(6,2,14,0)'); g.addColorStop(.6, 'rgba(6,2,14,.55)'); g.addColorStop(1, 'rgba(4,0,10,.93)'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
     ctx.fillStyle = 'rgba(120,20,40,.05)'; ctx.fillRect(0, 0, VW, VH);
