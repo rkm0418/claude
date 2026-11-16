@@ -56,7 +56,7 @@ def render(st, cam):
     c = view.resize((320, 240), Image.LANCZOS)              # 도트를 다시 찍지 않는 화면 확대 효과
     if st.get('fade'): c = Image.blend(c, Image.new('RGB', c.size, (0, 0, 0)), st['fade'])
     if st.get('title'):
-        d = ImageDraw.Draw(c); txt = '멈춘 시계'; w = d.textlength(txt, font=FONT)
+        d = ImageDraw.Draw(c); txt = '역상'; w = d.textlength(txt, font=FONT)
         d.text(((320 - w) / 2, 104), txt, font=FONT, fill=tuple(int(v * st['title']) for v in (230, 225, 205)))
     return c
 
