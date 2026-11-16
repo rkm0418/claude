@@ -1,0 +1,38 @@
+title: 3장 - 복도 (어둑어둑한 숲 길 버전, 사선 시점)
+tone: 175 215 195
+ambient: 0.3
+left_wall: forest
+recess: 3 5
+recess_depth: 1
+recess_side: dark
+recess_panel: black
+recess_triangle: on
+recess_endface: off
+recess_feather: 1
+left_add: hollow@0.2^0
+legend:
+# void
+t wall_top_forest_a
+u wall_top_forest_b
+v wall_top_forest_c
+w wall_forest_a
+x wall_forest_b
+y wall_forest_c
+b wall_base_forest_a
+c wall_base_forest_b
+G wall_forest_c
+S wall_forest_b lantern_hang^8
+O wall_base_forest_a forest_edge
+. floor_forest
+e floor_forest_path
+R floor_forest rocks
+E floor_forest_path mushrooms
+map:
+##############
+##tuvtuvtuvt##
+##wGxwywxSwy##
+##bcbcbbcbOb##
+##Re......ee##
+##Ee......ee##
+##############
+##############

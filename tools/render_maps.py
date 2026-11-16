@@ -18,6 +18,10 @@ def load_library():
         path = os.path.join(render.ROOT, name + '.txt')
         for sp in render.load_sprites(path):
             lib[sp['name']] = render.to_image(sp, pal, path)
+    fd = os.path.join(render.ROOT, 'forest')                 # 숲 버전 타일·사물(PNG, 파일 이름 = 이름)
+    if os.path.isdir(fd):
+        for fn in os.listdir(fd):
+            if fn.endswith('.png'): lib[fn[:-4]] = Image.open(os.path.join(fd, fn)).convert('RGBA')
     import boxes
     lib.update(boxes.load_all(render.ROOT))      # 입체 가구가 같은 이름의 평면 스프라이트를 대체
     return lib

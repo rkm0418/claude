@@ -20,3 +20,7 @@ tv 60 0.8 cfe4ff
 radio_on 64 0.8 f2d28a
 desk_set 70 1.0 ffd890
 wall_light_kr 90 1.0 ffe0a0
+stump_lamp 44 0.9 e8b060
+lantern_hang 46 0.8 e8b060
+forest_edge 40 0.5 9ab8c8
+mushrooms 12 0.3 8fa0d0

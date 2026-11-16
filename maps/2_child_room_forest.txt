@@ -1,0 +1,33 @@
+title: 2장 - 아이 방 (어둑어둑한 숲 버전, 수미상관 마지막 장면, 사선 시점)
+tone: 175 215 195
+ambient: 0.34
+left_wall: forest
+left_add: hollow@0.3^0 drawing@2.2^20
+legend:
+# void
+t wall_top_forest_a
+u wall_top_forest_b
+v wall_top_forest_c
+w wall_forest_a
+x wall_forest_b
+y wall_forest_c
+b wall_base_forest_a
+c wall_base_forest_b
+K wall_forest_a clock^3
+H wall_forest_b shelf_toy^3
+. floor_forest
+S floor_forest stump_lamp
+E floor_forest fallen_log
+J floor_forest rocks
+M floor_forest mushrooms
+map:
+########
+##tuvt##
+##wHyK##
+##bcbc##
+##S.E.##
+##....##
+##.M.J##
+##....##
+########
+########
