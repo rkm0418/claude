@@ -131,9 +131,7 @@ def street():
     s.floor(paving, x0=0, x1=LS, z=3); s.floor(paving, x0=RS, x1=W, z=3); s.floor(asphalt, x0=LS, x1=RS)
     s.poly([(LS, 0, 0), (LS, 0, 3), (LS, D, 3), (LS, D, 0)], CURBF); s.poly([(RS, 0, 0), (RS, 0, 3), (RS, D, 3), (RS, D, 0)], CURBR)
     # 도로 표시: 얇고 길고 간격이 넓은 네 개(맨 위 하나만 비스듬히)
-    for i, d in enumerate((150, 250, 350, 450)):
-        ln, sk = 62, 0
-        s.poly([(86 + sk, d, 0), (90 + sk, d, 0), (90, d + ln, 0), (86, d + ln, 0)], PAINT)
+    for x in (87, 89): s.poly([(x, 76, 0), (x + 1, 76, 0), (x + 1, D, 0), (x, D, 0)], (196, 170, 90))   # 얇은 이중 중앙선(횡단보도 뒤부터 끝까지)
     for k in range(10, D, 28):                                                # 차로 점선(가장자리 선, 얇게)
         for x in (LS + 3, RS - 4): s.poly([(x, k, 0), (x + 1.5, k, 0), (x + 1.5, k + 9, 0), (x, k + 9, 0)], (150, 150, 130))
         for x in (62, 114): s.poly([(x, k, 0), (x + 1.5, k, 0), (x + 1.5, k + 7, 0), (x, k + 7, 0)], (110, 110, 100))
