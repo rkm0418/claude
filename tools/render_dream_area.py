@@ -19,13 +19,13 @@ def bez(p0, p1, p2, p3, n=16): return [tuple((1 - u) ** 3 * p0[i] + 3 * (1 - u) 
 MAIN = bez((14, 8), (60, 4), (84, 26), (96, 42)) + bez((96, 42), (104, 56), (70, 66), (90, 82))[1:] + bez((90, 82), (112, 96), (150, 90), (176, 96))[1:] + bez((176, 96), (204, 102), (214, 84), (236, 82))[1:] + bez((236, 82), (262, 80), (268, 108), (296, 124))[1:]
 BRANCH = bez((96, 42), (120, 34), (140, 46), (166, 38))                      # 갈림 샛길 -> 속 빈 나무
 CLEAR = [((96, 42), 17), ((166, 38), 17), ((236, 82), 25), ((14, 8), 12)]    # 빈터(중심, 반지름)
-HW = 10                                                                       # 길 반폭
+HW = 19                                                                       # 길 반폭
 H = 58
 RD.H = H
 N = len(MAIN)
 CUTS = [(0, 18), (12, 31), (25, 51), (45, 67), (61, N - 1)]                    # 구간(MAIN 점 번호 범위): 서로 6점씩 겹쳐서 길이 끊기지 않는다
 NAMES = ['snow_1', 'snow_2', 'snow_3', 'snow_4', 'snow_5']; NAMES_H = 'snow_h'
-MARGIN_W = 16
+MARGIN_W = 20
 
 def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=None):
     """lines: 이 구간의 중심선들(세계 좌표), clears: 빈터 [(중심, 반지름)], exits: [(세계좌표 점, 이동할 구간, 도착 세계좌표)]. 구간마다 자기 바탕(안개 허공 위의 지형 조각)을 가진다."""
@@ -45,7 +45,7 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
         n = RD.noise(x + x0, d + d0)
         if in_water(x, d): return (92 + int(n * 14), 150 + int(n * 14), 196) if int((x * .6 + d * 1.3) // 3) % 2 else (112, 170, 210)      # 시냇물(평평한 바닥 위, 물결 줄무늬)
         if stream and seg_dist(x, d, SA, SB) < 9: return (250, 252, 255)                                                                   # 물가 눈둑
-        on = min(seg_dist(x, d, a, b) for ln in L for a, b in zip(ln, ln[1:])) < 5.5 or any(math.hypot(x - cx, (d - cd) * 1.15) < cr * .7 for (cx, cd), cr in C)
+        on = min(seg_dist(x, d, a, b) for ln in L for a, b in zip(ln, ln[1:])) < 6 or any(math.hypot(x - cx, (d - cd) * 1.15) < cr * .55 for (cx, cd), cr in C)
         if on: return (206 + int(n * 8), 216 + int(n * 8), 236)
         c = (238, 242, 250) if n > .3 else (224, 232, 245)
         return (202, 214, 234) if RD.noise(x + x0, d + d0, 5) > .93 else c
@@ -57,15 +57,15 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
             X, Y = sc.P(px_ - dd / Ln * side, pd_ + dx / Ln * side, 0); sc.d.ellipse([X - 2, Y - 1, X + 2, Y + 1], fill=(156, 174, 206))
     # 땅의 모양은 바닥이 아니라 '나무 벽'이 만든다: 길 밖은 전나무를 빽빽이 심어 막고, 길 앞쪽(화면 아래)은 낮은 어린 나무로 길이 가려지지 않게 한다
     trees = []; drifts = []; allp = [p for ln in L for p in ln]
-    for gd in range(2, Dd - 1, 11):
-        for gx in range(2, Wd - 1, 15):
+    for gd in range(2, Dd - 1, 14):
+        for gx in range(2, Wd - 1, 22):
             x = gx + rng.uniform(-2.5, 2.5); d = gd + rng.uniform(-2, 2)
             if dist(x, d) < 1.5 or in_water(x, d): continue
             nx, nd = min(allp, key=lambda p: math.hypot(x - p[0], d - p[1]))
             front = d < nd - 2
-            if rng.random() < .35: continue                                        # 듬성듬성(너무 빽빽하지 않게)
+            if rng.random() < .5: continue                                        # 듬성듬성(너무 빽빽하지 않게)
             if front:                                                                # 길 앞쪽(화면 아래)은 나무가 길을 가리므로 낮은 눈더미·바위만 둔다
-                if rng.random() < .25 and dist(x, d) > 5: drifts.append((x - 3, d - 2, rng.choice((6, 8, 10))))
+                if rng.random() < .12 and dist(x, d) > 5: drifts.append((x - 3, d - 2, rng.choice((6, 8, 10))))
                 continue
             trees.append((x, d, rng.choice((22, 26, 30)) if front else rng.choice((38, 42, 46))))
     for (x, d, h) in trees: RD.fir(sc, x, d, h)
@@ -107,15 +107,15 @@ def build_all():
         lines = [MAIN[s:e + 1]]; clears = []; exits = []
         if k > 0: exits.append((MAIN[s], NAMES[k - 1], MAIN[s + 3]))
         if k < len(CUTS) - 1: exits.append((MAIN[e], NAMES[k + 1], MAIN[e - 3]))
-        if k == 0: clears.append(((14, 8), 12))
-        if k == 1: lines.append(BRANCH[:10]); clears.append(((96, 42), 17)); exits.append((BRANCH[9], NAMES_H, BRANCH[bs + 1]))
-        if k == 4: clears.append(((236, 82), 25))
+        if k == 0: clears.append(((14, 8), 26))
+        if k == 1: lines.append(BRANCH[:10]); clears.append(((96, 42), 30)); exits.append((BRANCH[9], NAMES_H, BRANCH[bs + 1]))
+        if k == 4: clears.append(((236, 82), 40))
         stream = None
         if k == 2:                                                              # 징검다리: 길을 가로지르는 시냇물 + 돌 5개
             m = MAIN[38]; ta, tb = MAIN[37], MAIN[39]; tx, td = tb[0] - ta[0], tb[1] - ta[1]; ln_ = math.hypot(tx, td) or 1; tx, td = tx / ln_, td / ln_
             stream = ((m[0] - td * 60, m[1] + tx * 60), (m[0] + td * 60, m[1] - tx * 60), [(m[0] + tx * s, m[1] + td * s) for s in (-10, -5, 0, 5, 10)])
         out[NAMES[k]] = make_section(NAMES[k], lines, clears, exits, seed=10 + k, stream=stream)
-    out[NAMES_H] = make_section(NAMES_H, [BRANCH[bs:]], [((166, 38), 17)], [(BRANCH[bs], NAMES[1], BRANCH[7])], hollow_end=(166, 38), seed=30)
+    out[NAMES_H] = make_section(NAMES_H, [BRANCH[bs:]], [((166, 38), 28)], [(BRANCH[bs], NAMES[1], BRANCH[7])], hollow_end=(166, 38), seed=30)
     return out
 
 def main():
