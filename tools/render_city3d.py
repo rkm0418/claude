@@ -129,7 +129,7 @@ def alley_right(s, d0, d1, x0=176, ln=36):
     s.box(x0 - 6, d0 + 3, 5, 5, 8, (40, 44, 68), (30, 34, 54), (24, 28, 44), z0=3)    # 입구 곁 쓰레기통
     s.box(x0 - 6, d1 - 9, 5, 5, 10, (46, 50, 76), (34, 38, 60), (26, 30, 48), z0=3)
 
-def alley_back(s, x0, x1, h=42, z=3, depth=18):
+def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
     """거리 맨 위 끝 벽(정면을 향한 면)의 왼쪽 끝에 뚫린 어두운 골목. 정면이라 안쪽(바닥·먼 벽·배관·문)이 보인다."""
     D = s.D; mask = Image.new('L', s.img.size, 0)
     ImageDraw.Draw(mask).polygon([s.P(x0, D, z), s.P(x1, D, z), s.P(x1, D, h), s.P(x0, D, h)], fill=255)
@@ -138,6 +138,11 @@ def alley_back(s, x0, x1, h=42, z=3, depth=18):
     poly([(x0, D, z), (x1, D, z), (x1, D + depth, z), (x0, D + depth, z)], (20, 22, 40))                 # 바닥
     poly([(x0, D + depth, z), (x1, D + depth, z), (x1, D + depth, h), (x0, D + depth, h)], (11, 12, 26))  # 먼 벽
     poly([(x0, D, z), (x0, D + depth, z), (x0, D + depth, h), (x0, D, h)], (8, 9, 20))                  # 왼쪽 안벽
+    if road:                                                                                             # 도로가 벽 밑으로 이어지는 연결 지점: 중앙선이 어둠 속으로 사라진다
+        poly([(x0, D + depth, z), (x1, D + depth, z), (x1, D + depth, h), (x0, D + depth, h)], (20, 24, 48))
+        for x in (87, 89): poly([(x, D, z), (x + 1, D, z), (x + 1, D + depth * .6, z), (x, D + depth * .6, z)], (130, 112, 60))
+        for k in range(0, 12): poly([(x0, D + k * depth / 12, z), (x1, D + k * depth / 12, z), (x1, D + (k + 1) * depth / 12, z), (x0, D + (k + 1) * depth / 12, z)], (int(26 - k * 1.8), int(28 - k * 1.8), int(44 - k * 2.5)))
+        s.img.paste(lay, (0, 0), mask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img); return
     for xx in (x0 + 4, x0 + 7): poly([(xx, D + depth, z), (xx + 1.5, D + depth, z), (xx + 1.5, D + depth, h), (xx, D + depth, h)], (34, 38, 60))   # 배관
     poly([(x0 + 14, D + depth, z), (x0 + 23, D + depth, z), (x0 + 23, D + depth, z + 24), (x0 + 14, D + depth, z + 24)], (22, 20, 34))           # 막다른 문
     poly([(x0 + 18, D + depth, z + 26), (x0 + 20, D + depth, z + 26), (x0 + 20, D + depth, z + 28), (x0 + 18, D + depth, z + 28)], (58, 54, 46))  # 꺼진 전구
@@ -203,7 +208,7 @@ def street():
         s.jobs.append((56, sig)); s.glow(x, 56, 18, col=(230, 60, 60), power=.35, z=3)
     s.wall_left(0, D, 72, seed=4); s.wall_back(0, W, D, 60, seed=6)
     # 왼쪽 건물 벽에 골목 입구: 광장으로 이어지는 통로(아래) + 골목 3개. 모두 어둡다.
-    alley(s, 14, 44, 'link', depth=34); alley_back(s, 8, 36)
+    alley(s, 14, 44, 'link', depth=34); alley_back(s, 36, 140, h=46, z=0, depth=40, road=True)
     s.box(176, 236, 40, 56, 30, (22, 24, 44), (16, 18, 34), (12, 14, 28)); s.box(176, 292, 40, 30, 20, (22, 24, 44), (16, 18, 34), (12, 14, 28))   # 오른쪽: 골목 대신 막힌 구조물
     for x, d, side in [(30, 170, 1), (146, 240, -1), (30, 330, 1), (146, 400, -1), (30, 452, 1)]: s.lamp(x, d, 50, side)
     s.box(12, 200, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(12, 202, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(12, 214, 3, 2, 4, POLE, POLE, POLE, z0=3)
