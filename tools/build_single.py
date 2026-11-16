@@ -3,7 +3,8 @@
 import os
 W = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'web'); r = lambda n: open(os.path.join(W, n)).read()
 h = r('index.html'); btn = ''.join('<button class="go" data-k="%s">%s</button>' % kv for kv in (('snow', '눈 숲길'), ('lake', '얼음 호수'), ('house', '집 안'), ('park', '놀이공원'), ('reed', '갈대밭'), ('woods', '어두운 숲'), ('ridge', '능선'), ('roofs', '옥상'), ('hall', '복도'), ('tree', '나무 속'), ('cabin', '통나무집'), ('library', '도서관'), ('office', '매표소')))
-css = '<style>#bar{position:fixed;left:6px;top:6px;display:flex;gap:4px;flex-wrap:wrap;max-width:70%}.go{font:12px sans-serif;color:#cbb;background:#0006;border:1px solid #655;border-radius:6px;padding:5px 8px}</style>'
+css = '<style>#bar{position:fixed;left:6px;top:6px;display:flex;gap:4px;flex-wrap:wrap;max-width:70%}.go,.pv{font:12px sans-serif;color:#cbb;background:#0006;border:1px solid #655;border-radius:6px;padding:5px 8px}</style>'
+btn += '<span style="color:#a99;font:12px sans-serif;align-self:center;margin-left:6px">등장</span>' + ''.join('<button class="pv" data-k="%d">%d</button>' % (k, k) for k in range(1, 7))
 h = h.replace('</head>', css + '</head>').replace('<button id="dbg">', '<div id="bar">' + btn + '</div><button id="dbg">')
-h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + r('data.js') + '</script><script>' + r('game.js') + '</script><script>document.querySelectorAll(".go").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();window.__game&&window.__game.start(b.dataset.k)}));</script>')
+h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + r('data.js') + '</script><script>' + r('game.js') + '</script><script>document.querySelectorAll(".go").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();window.__game&&window.__game.start(b.dataset.k)}));document.querySelectorAll(".pv").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();window.__game&&window.__game.preview(+b.dataset.k)}));</script>')
 open(os.path.join(W, 'yeoksang.html'), 'w').write(h); print('web/yeoksang.html', len(h) // 1024, 'KB')
