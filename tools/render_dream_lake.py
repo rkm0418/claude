@@ -31,7 +31,7 @@ def lantern(sc, x, d):
         b = sc.P(x, d, 0); t = sc.P(x, d, 26); sc.d.line([b, t], fill=(70, 62, 86), width=2); sc.d.rectangle([t[0] - 3, t[1] - 5, t[0] + 3, t[1]], fill=(255, 226, 150)); sc.d.rectangle([t[0] - 4, t[1] - 6, t[0] + 4, t[1] - 5], fill=(110, 98, 130))
     sc.jobs.append((d, draw)); sc.glow(x, d, 24, col=(255, 214, 140), power=.35)
 
-def section(name, lines, clears, exits, seed, last=False, lanterns=(), islet=False, map_exits=(), margin=MARGIN_W):
+def section(name, lines, clears, exits, seed, last=False, cabin=None, lanterns=(), islet=False, map_exits=(), margin=MARGIN_W):
     pts = [p for ln in lines for p in ln] + [c for c, r in clears]
     x0 = min(p[0] for p in pts) - margin; x1 = max(p[0] for p in pts) + margin; d0 = min(p[1] for p in pts) - margin; d1 = max(p[1] for p in pts) + margin
     tr = lambda p: (p[0] - x0, p[1] - d0)
@@ -95,6 +95,18 @@ def section(name, lines, clears, exits, seed, last=False, lanterns=(), islet=Fal
             b = sc.P(lx, ld, 0); tp = sc.P(lx, ld, 26); sc.d.line([b, tp], fill=(70, 62, 86), width=2); sc.d.rectangle([tp[0] - 3, tp[1] - 5, tp[0] + 3, tp[1]], fill=(58, 54, 74)); sc.d.rectangle([tp[0] - 2, tp[1] - 4, tp[0] + 2, tp[1] - 1], fill=(86, 82, 104)); sc.d.rectangle([tp[0] - 4, tp[1] - 6, tp[0] + 4, tp[1] - 5], fill=(110, 98, 130))
         sc.jobs.append((ld, draw))
     for _ in range(40): X, Y = rng.randrange(6, sc.CW - 6), rng.randrange(6, sc.CH - 6); (sc.px[X, Y] != RD.MARGIN) and sc.d.point((X, Y), fill=(255, 255, 255))
+    cab_rects = []; cab_exit = []
+    if cabin:                                                                    # 호숫가 통나무집: 통나무 벽, 눈 덮인 지붕, 불 켜진 창, 앞면 가운데 문(안으로 들어가는 건물)
+        cx, cd = tr(cabin); bx, bd, bw, bp, bh = cx - 16, cd, 32, 18, 32
+        def drawcab():
+            sc.box(bx, bd, bw, bp, bh, (96, 66, 46), (120, 84, 58), (80, 56, 40))
+            for z in range(0, bh, 5): sc.poly([(bx, bd, z + 4), (bx + bw, bd, z + 4), (bx + bw, bd, z + 5), (bx, bd, z + 5)], (70, 48, 34))
+            sc.box(bx - 3, bd - 3, bw + 6, bp + 6, 5, (236, 244, 255), (214, 226, 242), (170, 190, 214), z0=bh)
+            sc.poly([(cx - 5, bd, 0), (cx + 5, bd, 0), (cx + 5, bd, 20), (cx - 5, bd, 20)], (60, 38, 28)); sc.poly([(cx - 4, bd, 0), (cx + 4, bd, 0), (cx + 4, bd, 19), (cx - 4, bd, 19)], (255, 206, 130))
+            for wx in (bx + 4, bx + bw - 11): sc.poly([(wx, bd, 12), (wx + 7, bd, 12), (wx + 7, bd, 24), (wx, bd, 24)], (255, 214, 140)); sc.poly([(wx + 3, bd, 12), (wx + 4, bd, 12), (wx + 4, bd, 24), (wx + 3, bd, 24)], (96, 66, 46))
+            sc.box(bx + bw - 7, bd + 6, 5, 5, 12, (120, 110, 120), (140, 130, 140), (100, 90, 100), z0=bh)
+        sc.jobs.append((bd, drawcab)); sc.glow(cx, bd - 4, 26, col=(255, 200, 120), power=.5)
+        cab_rects = [(round(bx, 1), round(bd, 1), bw, bp)]; cab_exit = [(cx, bd - 4)]
     exit_pts = [tr(e[0]) for e in exits]
     for (ex_, ed_) in exit_pts: sc.glow(ex_, ed_, 20, col=(255, 255, 255), power=.35)
     mh = [tr(m[0]) for m in map_exits]
@@ -113,10 +125,11 @@ def section(name, lines, clears, exits, seed, last=False, lanterns=(), islet=Fal
     for j in range(gh):
         for i in range(gw):
             x, d = (i + .5) * CELL, (j + .5) * CELL
-            if (dist(x, d) < -4.5 or any(math.hypot(x - ex_, d - ed_) < 7 for ex_, ed_ in exit_pts + mh)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td in trees): mp[i, j] = 255
+            if (dist(x, d) < -4.5 or any(math.hypot(x - ex_, d - ed_) < 7 for ex_, ed_ in exit_pts + mh + cab_exit)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td in trees): mp[i, j] = 255
     nav_exits = [{'zone': (ex_ - 4, ex_ + 4, ed_ - 4, ed_ + 4), 'to': e[1], 'spawn': None, 'world_to': e[2]} for (ex_, ed_), e in zip(exit_pts, exits)]
     for (ex_, ed_), m in zip(mh, map_exits): nav_exits.append({'zone': (ex_ - 5, ex_ + 5, ed_ - 5, ed_ + 5), 'to': m[1], 'spawn': m[2], 'world_to': None, 'lock': m[3], 'manhole': True})
-    return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': [], 'exits': nav_exits, 'objects': [{'id': '%s_%d' % (name, k), 'type': 'lantern', 'x': round(lx, 1), 'd': round(ld, 1)} for k, (lx, ld) in enumerate(LAN)], 'cracks': [{'x': round(tx, 1), 'd': round(td, 1), 'rx': 6.5, 'rd': 4.2} for tx, td in TILES], 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
+    for (ex_, ed_) in cab_exit: nav_exits.append({'zone': (ex_ - 5, ex_ + 5, ed_ - 3, ed_ + 2), 'to': 'cabin_main', 'spawn': None, 'world_to': None, 'door': True})
+    return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': cab_rects, 'exits': nav_exits, 'objects': [{'id': '%s_%d' % (name, k), 'type': 'lantern', 'x': round(lx, 1), 'd': round(ld, 1)} for k, (lx, ld) in enumerate(LAN)], 'cracks': [{'x': round(tx, 1), 'd': round(td, 1), 'rx': 6.5, 'rd': 4.2} for tx, td in TILES], 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
 
 def main():
     nav = {}; secs = {}
@@ -126,7 +139,7 @@ def main():
         if k < len(CUTS) - 1: exits.append((TRAIL[e], NAMES[k + 1], TRAIL[e - 3]))
         lan = [(TRAIL[9][0] + 4, TRAIL[9][1] - 9)] if k == 0 else [(TRAIL[N - 1][0] + 14, TRAIL[N - 1][1] - 6)] if k == 2 else []
         mex = []
-        secs[NAMES[k]] = section(NAMES[k], [TRAIL[s:e + 1]], CLEARS.get(k, []), exits, 40 + k, last=(k == 2), lanterns=[], islet=False, map_exits=mex, margin=(48 if k == 1 else MARGIN_W))
+        secs[NAMES[k]] = section(NAMES[k], [TRAIL[s:e + 1]], CLEARS.get(k, []), exits, 40 + k, last=(k == 2), cabin=((TRAIL[N - 1][0] + 6, TRAIL[N - 1][1] + 14) if k == 2 else None), lanterns=[], islet=False, map_exits=mex, margin=(48 if k == 1 else 40 if k == 2 else MARGIN_W))
     for name, (im, dep, mask, meta) in secs.items():
         im.save(os.path.join(OUT, 'area_%s.png' % name)); dep.save(os.path.join(OUT, 'area_%s_depth.png' % name)); mask.save(os.path.join(OUT, 'area_%s_walk.png' % name)); nav[name] = meta
     for name, meta in nav.items():

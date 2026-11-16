@@ -18,6 +18,11 @@ def main():
     if os.path.exists(os.path.join(OUT, 'tree_nav.json')):                       # 건물 안(나무 속 방)
         for k, m in json.load(open(os.path.join(OUT, 'tree_nav.json'))).items():
             m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'tree_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'tree_%s_depth.png' % k)).convert('RGB')); m['group'] = 'tree'; rooms[k] = m
+    if os.path.exists(os.path.join(OUT, 'bld_nav.json')):                         # 건물 안: 통나무집·도서관·매표소
+        for k, m in json.load(open(os.path.join(OUT, 'bld_nav.json'))).items():
+            m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'bld_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'bld_%s_depth.png' % k)).convert('RGB')); m['group'] = 'bld'; rooms[k] = m
+    for k in ('lake_2', 'snow_3'):
+        if k in rooms: rooms[k]['mood'] = 'dark'                                  # 추격 구간: 어둡고 꺼림칙한 분위기
     for name, m in rooms.items():                                              # 다른 맵으로 가는 맨홀: 도착 맵의 짝 맨홀 곁(없으면 시작점)에 선다
         for e in m['exits']:
             if e.get('spawn') is None and e.get('to') in rooms:
@@ -27,6 +32,6 @@ def main():
     for d in man['directions']:
         for f in man['frames']: child['%s_%s' % (d, f)] = uri(Image.open(os.path.join(SPR, 'child_%s_%s.png' % (d, f))).convert('RGBA').resize(CHILD, Image.NEAREST))
     os.makedirs(WEB, exist_ok=True)
-    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'rooms': rooms, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}, 'lake': {'room': 'lake_1', 'x': rooms['lake_1']['start'][0], 'd': rooms['lake_1']['start'][1]}}}) + ';\n')
+    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'rooms': rooms, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}, 'lake': {'room': 'lake_1', 'x': rooms['lake_1']['start'][0], 'd': rooms['lake_1']['start'][1]}, **{k: {'room': r, 'x': rooms[r]['start'][0], 'd': rooms[r]['start'][1]} for k, r in (('tree', 'tree_main'), ('cabin', 'cabin_main'), ('library', 'library'), ('office', 'office')) if r in rooms}}}) + ';\n')
     print('web/data.js', os.path.getsize(os.path.join(WEB, 'data.js')) // 1024, 'KB')
 if __name__ == '__main__': main()

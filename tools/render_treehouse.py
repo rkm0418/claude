@@ -12,8 +12,15 @@ BARK, BARK_D, PLANK, PLANK_D = (118, 86, 62), (92, 66, 48), (170, 126, 86), (140
 ROOM = {'tree_main': (104, 60), 'tree_back': (68, 48)}
 EXITS = {
     'tree_main': [{'zone': (44, 62, 0, 3), 'to': 'snow_h', 'spawn': None, 'door': True, 'indoor': True}, {'zone': (0, 5, 22, 38), 'to': 'tree_back', 'spawn': (56, 30)}],
-    'tree_back': [{'zone': (62, 68, 14, 30), 'to': 'tree_main', 'spawn': (10, 30)}],
+    'tree_back': [{'zone': (62, 68, 14, 30), 'to': 'tree_main', 'spawn': (10, 30)},
+                  {'zone': (22, 34, 12, 24), 'to': 'lake_1', 'spawn': None, 'manhole': True, 'hidden': True, 'need': 'tree_open', 'mx': 28, 'md': 18}],
 }
+OBJECTS = {'tree_main': [
+    {'id': 'tm_note', 'type': 'note', 'x': 50, 'd': 33, 'z': 12, 'h': 6, 'reach': 26, 'text': '쪽지: "책장의 책이 꽂힌 순서대로 촛불을 밝혀라."'},
+    {'id': 'tm_c0', 'type': 'candle', 'order': 0, 'x': 32, 'd': 48, 'h': 18, 'reach': 16, 'color': [176, 90, 80]},
+    {'id': 'tm_c1', 'type': 'candle', 'order': 1, 'x': 66, 'd': 46, 'h': 18, 'reach': 16, 'color': [90, 120, 150]},
+    {'id': 'tm_c2', 'type': 'candle', 'order': 2, 'x': 88, 'd': 30, 'h': 18, 'reach': 16, 'color': [210, 180, 90]}]}
+PUZZLE = {'tree_main': {'flag': 'tree_open', 'hud': True, 'solvedMsg': '곳간 쪽에서 쇳소리가 났다. 바닥에 무언가 드러났을 것이다'}}
 
 def make(key):
     W, D = ROOM[key]; sc = Scene(W, D, H + 2); sc.img.paste((30, 22, 24), (0, 0, sc.CW, sc.CH)); sc.d = ImageDraw.Draw(sc.img)
@@ -87,7 +94,7 @@ def make(key):
             diff = ImageChops.difference(sc.img, before).convert('L').point(lambda v: 255 if v else 0)
             dep.paste(int(max(0, min(254, round((depth + 2) * 3)))), (0, 0), diff)
     sc.jobs = []; img = sc.img
-    return img, dep, {'W': W, 'D': D, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': rects, 'exits': EXITS[key], 'start': [W / 2, 8]}
+    return img, dep, {'W': W, 'D': D, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': rects, 'exits': EXITS[key], 'start': [W / 2, 8], 'objects': OBJECTS.get(key, []), 'puzzle': PUZZLE.get(key)}
 
 def main():
     nav = {}
