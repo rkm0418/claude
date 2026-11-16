@@ -174,7 +174,7 @@ def scene(actors=None, flick=0):
     # 가구: 부서진 나무 의자·탁자(오른쪽 끝, 의자가 앞)
     def put_sprite(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
-    pass   # 바닥 위 나무 물건(부서진 의자·탁자·널빤지)은 두지 않는다
+    put_sprite('stump_plain', 34, 41)                                   # 울타리 앞 나무 그루터기(프롤로그의 의자 역할)
     if actors: actors(img, 'front')
     wd, wz = 22, 22                                                   # 벽 횃불: 왼쪽 벽(깊이 22칸), 바닥에서 22칸 위
     tspr = lib['torch_wall_b' if flick else 'torch_wall']; img.alpha_composite(tspr, (int(X0 + SK * wd - 4), int(Y0 - SS * wd - wz - 14)))
