@@ -41,9 +41,13 @@ function updChaser(dt) {
   else if (C.st === 'chase') {
     C.rep -= dt; if (C.rep <= 0) { C.rep = .4; C.path = route(C.x, C.d, P.x, P.d); }
     if (!C.tp || C.t > C.tp.until) { const r = Math.random(), u = Math.random();                 // 템포가 제멋대로: 뚝 멈춤 / 느릿느릿 / 보통 / 확 달려듦
-      C.tp = r < .15 ? { v: 0, until: C.t + .3 + u * .5 } : r < .45 ? { v: .35 + u * .25, until: C.t + .6 + u * .9 } : r < .75 ? { v: .9 + u * .2, until: C.t + .6 + u * .8 } : { v: 1.8 + u * .6, until: C.t + .3 + u * .4 }; }
-    C.an = (C.an || 0) + dt * (2 + C.tp.v * 7); C.lt = (C.lt || 0) + ((C.tp.v === 0 ? .52 : 0) - (C.lt || 0)) * Math.min(1, dt * 2.4);   // 멈출 때마다 고개가 천천히 기운다
-    let left = CSPEED * dt * C.tp.v;                        // 걸음이 고르지 않다: 멈칫하다가 훅 다가온다
+      C.tp = r < .1 ? { v: -.8, until: C.t + .12 + u * .14 } : r < .24 ? { v: 0, until: C.t + .2 + u * .5 } : r < .45 ? { v: .35 + u * .25, until: C.t + .6 + u * .9 } : r < .75 ? { v: .9 + u * .2, until: C.t + .6 + u * .8 } : { v: 1.8 + u * .6, until: C.t + .3 + u * .4 }; }
+    const cq = sdist(C.x, C.d, P.x, P.d); let cv = C.tp.v;                                             // 바로 뒤에 붙어 따라온다: 멀어지면 따라붙고, 등 뒤(약 22px)에서는 늦춘다. 확 달려들 때만 예외
+    if (cq > 34) cv = cq > 110 ? 3.4 : cq > 70 ? 2.4 : Math.max(cv, 1.5);                              // 멀어진 걸 알아채면 멈춤·뒷걸음 없이 빠르게 따라붙는다(멀수록 더 빠르게)
+    else if (cv > 0 && cq < 22 && cv < 1.7) cv *= .25;
+    C.an = (C.an || 0) + dt * (2 + Math.abs(cv) * 7); C.lt = (C.lt || 0) + ((C.tp.v === 0 ? .52 : 0) - (C.lt || 0)) * Math.min(1, dt * 2.4);   // 멈출 때마다 고개가 천천히 기운다
+    if (cv < 0 && cq > 1) { const k = cv * CSPEED * dt / cq, nx = C.x + (P.x - C.x) * k, nd = C.d + (P.d - C.d) * k; if (isFree(...cellOf(nx, nd))) { C.x = nx; C.d = nd; } }   // 뒷걸음
+    let left = CSPEED * dt * Math.max(0, cv);                        // 걸음이 고르지 않다: 멈칫하다가 훅 다가온다
     while (left > 0 && C.path.length) { const [tx, td] = C.path[0], dist = sdist(C.x, C.d, tx, td); if (Math.abs(tx - C.x + (td - C.d) / 2) > .3) C.flip = (tx - C.x) + (td - C.d) / 2 < 0; if (dist <= left) { C.x = tx; C.d = td; C.path.shift(); left -= dist; } else { const k = left / dist; C.x += (tx - C.x) * k; C.d += (td - C.d) * k; left = 0; } }
     if (sdist(C.x, C.d, P.x, P.d) < 7) { msg = { text: '붙잡혔다…', t: 1.8 }; P.path = []; P.act = null; C.st = 'none'; pending = { to: room, spawn: R.start }; fadeDir = 1; return true; }
   }
@@ -58,7 +62,7 @@ function figure(im, bend, sx, sy, head, wob, glitch, sink) {                    
   const now = performance.now() / 1000, w = (r) => (wob ? wob * Math.sin(r * .9 + now * 14) : 0) + (glitch && ((r * 7 + Math.floor(now * 30)) % 11 === 0) ? (r % 4 ? 3 : -3) : 0);
   ctx.save(); ctx.beginPath(); ctx.rect(-70 * S, -170 * S, 140 * S, 170 * S); ctx.clip(); ctx.translate(0, (sink || 0) * S); ctx.scale(sx, sy);
   for (let r = 62; r >= 30; r -= 2) ctx.drawImage(im, 0, r, 30, 2, (-15 + bend * Math.pow((64 - r) / 34, 1.7) + w(r)) * S, -(64 - r) * S, 30 * S, 2 * S + 1);
-  if (head && head.a > 0) { ctx.globalAlpha *= head.a; ctx.translate(bend * S, -33 * S); ctx.rotate(head.ang); ctx.scale(head.sx / sx, 1 / sy); for (let r = 28; r >= 0; r -= 2) ctx.drawImage(im, 0, r, 30, 2, (-15 + w(r) * 1.3) * S, -(30 - r) * S, 30 * S, 2 * S + 1); }
+  if (head && head.a > 0) { ctx.globalAlpha *= head.a; ctx.translate((bend + (head.dx || 0)) * S, -33 * S); ctx.rotate(head.ang); ctx.scale(head.sx / sx, 1 / sy); for (let r = 28; r >= 0; r -= 2) ctx.drawImage(im, 0, r, 30, 2, (-15 + w(r) * 1.3) * S, -(30 - r) * S, 30 * S, 2 * S + 1); }
   ctx.restore();
 }
 function camZoom() {                                                            // 마지막 한 걸음에 카메라가 살짝 당겨졌다 돌아온다
@@ -148,7 +152,8 @@ function drawChaser() {
   }
   else if (C.st === 'chase') {
     f = 'w' + (1 + Math.floor(C.an || 0) % 4); bend = C.tp ? Math.min(4, C.tp.v * 2) : 0; const back = 1 - ease((t - C.t0) / 2), fs = flip === (face < 0) ? 1 : -1;
-    sy = 1 + .15 * back; head.ang = -1.22 * back * fs + (C.lt || 0); wob = 3 * Math.max(0, 1 - (t - C.t0) / .4);
+    const hsh = (i) => { const v = Math.sin(i * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); }, gi = Math.floor(t * (hsh(Math.floor(t * 3)) < .5 ? 19 : 7)), gr = hsh(gi);   // 쫓아오는 내내 목이 오류 난 것처럼 꺾였다 돌아왔다 한다
+    sy = 1 + .15 * back; head.ang = (gr < .42 ? -1.22 : gr < .7 ? 0 : gr < .86 ? .79 : -1.57) * fs; head.dx = gr > .8 ? (gr > .9 ? 2 : -2) : 0; wob = 3 * Math.max(0, 1 - (t - C.t0) / .4);
   }
   const im = chFrames[f]; if (!im) return; const [X, Y] = scr(C.x, C.d);
   const pose = (sk, a) => { ctx.save(); ctx.globalAlpha = a; ctx.translate((R.ox + X + jx) * S, (R.oy + Y + 1) * S); if (flip) ctx.scale(-1, 1);
