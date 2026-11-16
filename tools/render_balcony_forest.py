@@ -44,26 +44,12 @@ def main():
         leafy(lambda x, y, c: put(x, y, c) if y < by else None, cx, cy, rng.randrange(4, 7), rng, (12, 26, 38), (20, 44, 54), (32, 66, 74))
     for cx in (CW - 6,):                                                   # 오른쪽 끝 활엽수 둥치
         tdraw(put, cx, 8, 24, int(by) + 4, (28, 24, 54), (44, 38, 80), (18, 16, 36), rng, root=12)
-    canopy(put, 26, 8, 46, 22, rng, (10, 22, 34), (20, 44, 56), (36, 74, 82))                        # 위 양옆 수관(참고 이미지의 참나무): 가운데는 열려 안개가 보인다
-    canopy(put, CW - 22, 10, 44, 24, rng, (10, 22, 34), (20, 44, 56), (36, 74, 82), flip=True)
     for _ in range(6):                                                     # 반딧불: 청록빛
         sx = rng.randrange(int(X0 + SK * D) + 6, CW - 16); sy = rng.randrange(24, int(top_rail) - 2)
         put(sx, sy, (170, 220, 230)); put(sx + 1, sy, (80, 120, 150))
     # 뒤쪽 울타리: 부러진 나무 기둥(높이 제각각, 일부는 사라짐), 기울어진 가로대
     bx0, bx1 = int(X0 + SK * D), int(X0 + SK * D + W)
-    posts = [x for x in range(bx0 + 2, bx1, 9)]
-    for i, x in enumerate(posts):
-        if i in (3, 6): continue                                        # 빠진 기둥
-        h = RAIL if i not in (2, 5, 7) else RAIL - rng.randrange(7, 14)    # 부러진 기둥은 짧음
-        for y in range(int(by - h), int(by)):
-            for k in range(2): put(x + k, y, WOODL if k == 0 else WOOD)
-        if h < RAIL:
-            put(x, int(by - h) - 1, WOODD); put(x + 1, int(by - h) - 2, WOODL)     # 부러진 끝
-    for a, b2 in ((0, 2), (4, 5), (7, 8)):                              # 남은 가로대(끊겨 있음, 기울어짐)
-        xa, xb = posts[a], posts[b2]
-        for x in range(xa, xb + 2):
-            y = int(by - RAIL + 3 + (x - xa) * (1 if a == 4 else 0) // 6)
-            put(x, y, WOODL); put(x, y + 1, WOOD)
+    # (울타리는 그리지 않는다: 바닥 끝이 바로 숲으로 열려 있음)
     # 바닥: 썩은 널빤지(가로, 틈과 구멍) + 이끼·낙엽
     rows, d0 = [], 0.0
     while d0 < D: rows.append((d0, d0 + fr.uniform(6, 12))); d0 = rows[-1][1]
@@ -73,7 +59,7 @@ def main():
         js, xj = [], fr.uniform(-40, 0)
         while xj < W + 40: xj += fr.uniform(20, 56); js.append(xj)
         info.append((js, [tuple(max(0, v + fr.randint(-4, 4)) for v in fr.choice(cols)) for _ in js]))
-    holes = [(30, 18, 9, 5), (58, 8, 7, 4)]                             # (x, 깊이 d, 가로, 세로) 구멍
+    holes = []                             # (x, 깊이 d, 가로, 세로) 구멍
     for Y in range(int(Y0 - SS * D), int(Y0) + 1):
         d = (Y0 - Y - .5) / SS
         if not (0 <= d < D): continue
@@ -107,7 +93,7 @@ def main():
     # 가구: 부서진 나무 의자·탁자(오른쪽 끝, 의자가 앞)
     def put_sprite(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
-    put_sprite('broken_table', 66, 26); put_sprite('broken_chair', 58, 18); put_sprite('plank_piece', 44, 12); put_sprite('plank_piece', 28, 34)
+    put_sprite('broken_table', 66, 26); put_sprite('broken_chair', 58, 18)
     wd, wz = 22, 22                                                   # 벽 횃불: 왼쪽 벽(깊이 22칸), 바닥에서 22칸 위
     tspr = lib['torch_wall']; img.alpha_composite(tspr, (int(X0 + SK * wd - 4), int(Y0 - SS * wd - wz - 14)))
     tx, ty = int(X0 + SK * wd + 1), int(Y0 - SS * wd - wz - 8)          # 횃불 불꽃 위치
