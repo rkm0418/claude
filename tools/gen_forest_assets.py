@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """어둑어둑한 숲 버전 배경 타일·사물(수미상관의 마지막 장면). art/forest/*.png 로 쓴다(이름 = 파일 이름).
 방·복도·베란다와 같은 사선 렌더러가 이름으로 불러 쓴다(render_maps.load_library 가 art/forest/*.png 를 읽는다).  사용: python3 tools/gen_forest_assets.py"""
-import os, random
+import os, random, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from forest_draw import leafy, trunk
 from PIL import Image
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'art', 'forest')
 os.makedirs(OUT, exist_ok=True)
@@ -24,15 +26,9 @@ def wall(variant, seed):
     r = random.Random(seed); im = new()
     for y in range(16):
         for x in range(16): put(im, x, y, C['bg'] if (x * 3 + y * 5) % 11 else C['bg2'])
-    trunks = {'a': [(2, 5)], 'b': [(9, 5), (0, 2)], 'c': [(5, 4), (12, 3)]}[variant]
-    for x0, w in trunks:
-        for y in range(16):
-            for k in range(w):
-                x = (x0 + k) % 16
-                c = C['barkl'] if k == 0 else C['barkd'] if k == w - 1 else C['bark']
-                if k not in (0, w - 1) and (y + x * 3) % 7 == 0: c = C['barkd']
-                put(im, x, y, c)
-    for _ in range(5):                                           # 이끼·덩굴
+    spec = {'a': [(2, 7)], 'b': [(9, 6), (0, 3)], 'c': [(4, 5), (11, 4)]}[variant]
+    for x0, w in spec: trunk(lambda x, y, c: put(im, x, y, c), x0, w, 0, 15, C['bark'], C['barkl'], C['barkd'], r, wrap=16)
+    for _ in range(6):                                           # 이끼·덩굴
         x, y = r.randrange(16), r.randrange(16)
         for dy in range(r.randrange(2, 6)): put(im, x, (y + dy) % 16, C['moss'] if dy % 2 == 0 else C['leaf'])
     return im
@@ -42,8 +38,10 @@ def base(variant, seed):
         for x in range(16): put(im, x, y, C['bg'])
     for y in range(11, 16):
         for x in range(16): put(im, x, y, C['dirt'] if (x + y) % 5 else C['dirt2'])
-    for x in range(0, 16, 2 if variant == 'a' else 3):          # 고사리·풀잎
-        h = r.randrange(3, 8)
+    for _ in range(3 if variant == 'a' else 4):                  # 덤불(큰 잎 덩어리)
+        leafy(lambda x, y, c: (put(im, x % 16, y, c) if y < 14 else None), r.randrange(16), r.randrange(8, 12), r.randrange(3, 5), r, (14, 32, 40), C['leaf'], C['leafl'])
+    for x in range(0, 16, 2 if variant == 'a' else 3):          # 풀잎
+        h = r.randrange(3, 7)
         for dy in range(h): put(im, (x + dy // 3) % 16, 11 - dy, C['leaf'] if dy % 2 else C['leafl'])
     for x in range(16): put(im, x, 11, C['barkd'])
     return im
@@ -51,11 +49,8 @@ def top(variant, seed):
     r = random.Random(seed); im = new()
     for y in range(16):
         for x in range(16): put(im, x, y, (8, 10, 26))
-    for _ in range(18):
-        cx, cy, rr = r.randrange(16), r.randrange(16), r.randrange(2, 5)
-        for y in range(cy - rr, cy + rr + 1):
-            for x in range(cx - rr, cx + rr + 1):
-                if (x - cx) ** 2 + (y - cy) ** 2 <= rr * rr: put(im, x % 16, y % 16, C['leaf'] if (x + y) % 3 else C['leafl'])
+    for _ in range(7):
+        leafy(lambda x, y, c: put(im, x % 16, y, c), r.randrange(16), r.randrange(-2, 14), r.randrange(4, 7), r, (14, 30, 38), C['leaf'], C['leafl'], wrap=None)
     return im
 def floor(seed, path=False):
     r = random.Random(seed); im = new(); b = C['dirtl'] if path else C['dirt']
@@ -186,3 +181,42 @@ def vine():
         if y % 5 == 2: put(im, 2 + (y // 5) % 3, y, C['leafl']); put(im, 6 - (y // 5) % 3, y + 1, C['leaf'])
     return im
 save(bracket_fungus(), 'bracket_fungus'); save(vine(), 'vine_hang')
+
+# ---- 횃불(불 밝히는 것은 모두 횃불) ----
+FL, FC, FT, HD, WD = (240, 140, 56), (255, 214, 110), (200, 70, 40), (50, 34, 28), (96, 64, 44)
+def flame(im, cx, y):                                            # 불꽃: 바깥 주황, 안쪽 노랑, 끝은 붉게(7칸 높이)
+    rows = [(0, 1, FT), (1, 2, FL), (2, 3, FL), (3, 3, FL), (4, 3, FL), (5, 2, FC)]
+    for k, (dy, w, c) in enumerate(rows):
+        for dx in range(-(w // 2), w // 2 + 1 if w % 2 else w // 2): put(im, cx + dx, y + dy, c)
+    for dy in (3, 4): put(im, cx, y + dy, FC)
+def torch_stick(im, cx, y0, y1):
+    for y in range(y0, y1):
+        put(im, cx, y, WD); put(im, cx + 1, y, (70, 46, 34))
+    for dx in (-1, 0, 1, 2): put(im, cx + dx, y0, HD); put(im, cx + dx, y0 - 1, HD)      # 천을 감은 머리
+def stump_torch():                                               # 책상 자리: 그루터기 + 위에 꽂힌 횃불
+    im = new(24, 34)
+    for y in range(18, 32):
+        for x in range(2, 22):
+            if (x - 12) ** 2 / 100 + (y - 24) ** 2 / 60 <= 1:
+                put(im, x, y, C['barkl'] if x < 6 else C['barkd'] if x > 17 else C['bark'])
+    for y in range(16, 21):
+        for x in range(2, 22):
+            if ((x - 12) / 10) ** 2 + ((y - 18) / 3) ** 2 <= 1: put(im, x, y, (84, 70, 108) if ((x - 12) // 2 + y) % 3 else (102, 86, 128))
+    torch_stick(im, 12, 9, 19); flame(im, 12, 1)
+    return im
+def torch_wall():                                                # 벽에 걸린 횃불(쇠 고리에 기대어 세운)
+    im = new(8, 20)
+    torch_stick(im, 3, 10, 19); flame(im, 3, 2)
+    for dx in (-1, 0, 1, 2, 3): put(im, 3 + dx, 15, (60, 60, 80))
+    return im
+def torch_stand():                                               # 바닥에 박힌 횃불(베란다)
+    im = new(10, 28)
+    torch_stick(im, 4, 11, 27); flame(im, 4, 3)
+    for dx in (-2, -1, 0, 1, 2, 3): put(im, 4 + dx, 27, (40, 36, 60))
+    return im
+for name, im in (('stump_torch', stump_torch()), ('torch_wall', torch_wall()), ('torch_stand', torch_stand())):
+    px = im.load()
+    for y in range(im.height):
+        for x in range(im.width):
+            pass
+    im.save(os.path.join(OUT, name + '.png'))                      # 밝기 보정 없이 그대로 저장

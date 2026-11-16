@@ -6,6 +6,7 @@ import os, random, sys
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import render_maps as R
+from forest_draw import leafy, trunk as tdraw
 
 SK = SS = .5
 W, D, PAD, RAIL, SKY = 80, 48, 6, 26, 40
@@ -23,31 +24,22 @@ def main():
     for y in range(CH):
         t = min(1, max(0, y / (by + 1)))
         for x in range(CW): put(x, y, (int(10 + 26 * t), int(12 + 28 * t), int(30 + 46 * t)))              # 위는 어둡고 지평선 쪽은 안개로 밝음
-    def trunk(cx, w, col, hi, y0=0, y1=None, fork=False):
+    def trunk(cx, w, col, hi, y0=0, y1=None, root=0):
         y1 = int(by) if y1 is None else y1
-        for y in range(y0, y1 + 1):
-            for k in range(w):
-                put(cx + k, y, hi if k == 0 else col if k < w - 1 else tuple(int(v * .7) for v in col))
-        if fork:                                                        # 가지가 갈라져 위로
-            for d in range(10): put(cx - d, y0 + 12 + d * 0, col) if False else None
+        tdraw(put, cx, w, y0, y1, col, hi, tuple(int(v * .65) for v in col), rng, root=root)
     for x0 in range(int(X0 + SK * D) + 4, CW, 13):                      # 먼 나무: 안개에 묻혀 흐릿
         trunk(x0 + rng.randrange(-2, 3), rng.choice((4, 5, 6)), (28, 30, 62), (34, 36, 72))
     for x0 in (int(X0 + SK * D) + 20, int(X0 + SK * D) + 54, CW - 26):  # 중간 나무: 더 짙고 굵음
-        trunk(x0, rng.choice((6, 7)), (20, 20, 44), (26, 26, 56))
+        trunk(x0, rng.choice((6, 7)), (20, 20, 44), (30, 30, 62), root=6)
     for yy in range(int(by) - 14, int(by) + 1):                         # 지평선 안개띠
         for x in range(CW):
             r_, g_, b_, a_ = px[x, yy]; k = (yy - (by - 14)) / 14 * .45; px[x, yy] = (int(r_ + (60 - r_) * k), int(g_ + (66 - g_) * k), int(b_ + (112 - b_) * k), 255)
-    for _ in range(16):                                                 # 덤불(울타리 뒤): 짙은 잎 덩어리
-        cx = rng.randrange(int(X0 + SK * D), CW); cy = int(by) - rng.randrange(0, 9); rr = rng.randrange(3, 6)
-        for y in range(cy - rr, cy + rr + 1):
-            for x in range(cx - rr, cx + rr + 1):
-                if (x - cx) ** 2 + (y - cy) ** 2 <= rr * rr and y < by: put(x, y, (16, 34, 44) if (x + y) % 3 else (24, 52, 60))
-    for _ in range(30):                                                 # 위쪽 나뭇잎 덩어리(캐노피)
-        cx = rng.randrange(-4, CW + 4); cy = rng.randrange(-4, 22); rr = rng.randrange(5, 11)
-        for y in range(cy - rr, cy + rr + 1):
-            for x in range(cx - rr, cx + rr + 1):
-                if (x - cx) ** 2 + (y - cy) ** 2 <= rr * rr: put(x, y, (12, 28, 40) if (x + y) % 4 else (22, 46, 58))
-    trunk(CW - 14, 12, (24, 22, 48), (40, 36, 72), 18, int(by) + 4)       # 오른쪽 큰 둥치(프레임)
+    for _ in range(14):                                                 # 덤불(울타리 뒤): 잎 덩어리
+        cx = rng.randrange(int(X0 + SK * D), CW); cy = int(by) - rng.randrange(1, 8)
+        leafy(lambda x, y, c: put(x, y, c) if y < by else None, cx, cy, rng.randrange(4, 7), rng, (12, 28, 40), (22, 50, 58), (38, 80, 84))
+    for _ in range(26):                                                 # 위쪽 나뭇잎 덩어리(캐노피)
+        leafy(put, rng.randrange(-4, CW + 4), rng.randrange(-6, 20), rng.randrange(6, 11), rng, (12, 26, 38), (22, 46, 58), (38, 78, 82))
+    trunk(CW - 16, 13, (28, 24, 54), (46, 40, 84), 18, int(by) + 4, root=14)       # 오른쪽 큰 둥치(프레임)
     for _ in range(8):                                                  # 반딧불: 청록빛
         sx = rng.randrange(int(X0 + SK * D) + 6, CW - 16); sy = rng.randrange(24, int(top_rail) - 2)
         put(sx, sy, (170, 220, 230)); put(sx + 1, sy, (80, 120, 150))
@@ -109,7 +101,13 @@ def main():
     # 가구: 부서진 나무 의자·탁자(오른쪽 끝, 의자가 앞)
     def put_sprite(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
-    put_sprite('broken_table', 66, 26); put_sprite('broken_chair', 58, 18); put_sprite('plank_piece', 44, 12); put_sprite('plank_piece', 28, 34)
+    put_sprite('torch_stand', 30, 30); put_sprite('broken_table', 66, 26); put_sprite('broken_chair', 58, 18); put_sprite('plank_piece', 44, 12); put_sprite('plank_piece', 28, 34)
+    tx, ty = int(X0 + 30 + SK * 30), int(Y0 - SS * 30 - 22)          # 횃불 불꽃 위치
+    for Y in range(max(0, ty - 34), min(CH, ty + 34)):
+        for X in range(max(0, tx - 34), min(CW, tx + 34)):
+            dd = ((X - tx) ** 2 + (Y - ty) ** 2) ** .5
+            if dd < 34:
+                f = (1 - dd / 34) ** 1.6 * .55; r_, g_, b_, a_ = px[X, Y]; px[X, Y] = (int(r_ + (240 - r_) * f), int(g_ + (150 - g_) * f), int(b_ + (70 - b_) * f), a_)
     # 색조(차갑고 푸른 숲 빛)
     for Y in range(CH):
         for X in range(CW):

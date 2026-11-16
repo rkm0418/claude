@@ -21,7 +21,7 @@ y wall_forest_c
 b wall_base_forest_a
 c wall_base_forest_b
 G wall_forest_c
-S wall_forest_b lantern_hang^8
+S wall_forest_b torch_wall^8
 O wall_base_forest_a forest_edge
 . floor_forest
 e floor_forest_path
