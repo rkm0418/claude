@@ -15,6 +15,7 @@ from render_dream_area import bez, CELL
 SPR = os.path.join(HERE, '..', 'art', 'out', 'sprites')
 CROWN = Image.open(os.path.join(SPR, 'chaser.png')).convert('RGBA').crop((0, 0, 30, 30))   # 추격자의 나무 머리(수관+목): 가짜 나무도 똑같이 생겼다
 PAD = 34
+BODY = Image.open(os.path.join(SPR, 'chaser.png')).convert('RGBA').crop((0, 30, 30, 64))
 
 def mixa(a, b, f): return tuple(int(a[i] + (b[i] - a[i]) * max(0, min(1, f))) for i in range(3))
 def nz(x, d, s=0):                                                              # 격자 잡음(배열)
@@ -114,7 +115,7 @@ AREAS = {
                  exits=[dict(at=(4, 104), to='park', spawn=(364, 96)), dict(at=(520, 102), to='woods', spawn=(10, 60))]),
     'woods': dict(H=84, wob=3, shapes=[('path', bez((0, 60), (60, 40), (90, 100), (140, 90)) + bez((140, 90), (200, 80), (230, 40), (300, 66))[1:] + bez((300, 66), (350, 80), (370, 120), (420, 106))[1:] + bez((420, 106), (470, 96), (490, 70), (530, 80))[1:], 28), ('circle', 140, 88, 50), ('circle', 300, 68, 46), ('circle', 420, 106, 58)],
                   ground=woods_ground, face=face_rock((40, 44, 50), (8, 8, 14)), ch=34, sky=((6, 8, 14), (22, 34, 40)), start=(10, 60),
-                  exits=[dict(at=(4, 60), to='reed', spawn=(510, 104)), dict(at=(526, 80), to='ridge', spawn=(10, 38))], chaser=dict(spots=((120, 112), (164, 68), (204, 88), (252, 58), (300, 94), (332, 52), (380, 102), (436, 126), (452, 84), (484, 98)), radius=52)),
+                  exits=[dict(at=(4, 60), to='reed', spawn=(510, 104)), dict(at=(526, 80), to='ridge', spawn=(10, 38))], chaser=dict(spots=((120, 112), (164, 68), (252, 58), (300, 94), (380, 102), (436, 126), (484, 98)), radius=52)),
     'ridge': dict(H=64, wob=1.5, mood='dark', chase=True, shapes=[('path', P1, 19), ('path', P2, 19), ('path', P3, 19), ('rect', 146, 50, 208, 70), ('rect', 406, 54, 464, 74), ('circle', 92, 52, 32), ('circle', 310, 104, 34), ('circle', 522, 92, 32)],
                   zones=[(('rect', 172, 49, 184, 71), plank_ground), (('rect', 432, 53, 444, 75), plank_ground)],
                   ground=ridge_ground, face=face_rock((132, 92, 62), (36, 20, 30)), ch=46, sky=((40, 22, 48), (170, 70, 60)), start=(10, 38),
@@ -170,17 +171,18 @@ def props(name, k, tr, inside, rng):
         for (x, d) in ((60, 118), (190, 110), (440, 118)): k.rock(*T(x, d), 4, (150, 120, 90))
     elif name == 'woods':
         def dtree(x, d, h):                                                     # 어두운 숲의 나무: 가늘고 긴 줄기, 높이 걸린 검푸른 수관
+            fl = rng.random() < .5                                               # 숲의 나무는 전부 추격자의 몸통(줄기)+어두운 수관과 같은 모양이다
             def f():
-                X, Y = sc.P(x, d, 0); sc.d.rectangle([X - 1, Y - h, X + 1, Y], fill=(26, 24, 32)); sc.d.line([(X - 1, Y - h), (X - 1, Y)], fill=(48, 46, 56)); sc.d.ellipse([X - 4, Y - 1, X + 4, Y + 1], fill=(22, 28, 32))
-                for (ox, oy, rr, c) in ((0, -h, h * .26, (16, 30, 34)), (-h * .16, -h * .9, h * .2, (22, 40, 42)), (h * .15, -h * 1.02, h * .2, (22, 40, 42)), (0, -h * 1.14, h * .16, (30, 52, 52))): sc.d.ellipse([X + ox - rr, Y + oy - rr * .75, X + ox + rr, Y + oy + rr * .75], fill=c)
-                for (bx_, by_) in ((-5, -h * .55), (5, -h * .66)): sc.d.line([(X, Y + by_), (X + bx_, Y + by_ - 4)], fill=(26, 24, 32))
+                X, Y = sc.P(x, d, 0); im = BODY.transpose(Image.FLIP_LEFT_RIGHT) if fl else BODY
+                sc.d.rectangle([X - 2, Y - h - 2, X, Y - 32], fill=(26, 24, 32)); sc.img.paste(im, (X - 15, Y - 33), im)
+                for (ox, oy, rr, c) in ((0, -h, 13, (16, 30, 34)), (-8, -h + 5, 10, (22, 40, 42)), (7.5, -h - 1, 10, (22, 40, 42)), (0, -h - 7, 8, (30, 52, 52))): sc.d.ellipse([X + ox - rr, Y + oy - rr * .75, X + ox + rr, Y + oy + rr * .75], fill=c)
             sc.jobs.append((d, f)); k.block.append((x, d, 3))
         pts = [T(*q) for q in AREAS['woods']['chaser']['spots']]; k.block += [(a, b, 4) for a, b in pts]                                                     # 진짜가 설 자리(엔진이 그린다): 몸통이 줄기처럼 보이고 머리는 어두운 수관에 가려져 있다
         tr_ = list(pts)
         for _ in range(3000):
             x, d = rng.uniform(0, 540), rng.uniform(10, 170); e = inside(x, d)
             lx, ld = T(x, d)
-            if -11 < e < -4 and (inside(x, d - 16) < 0 or rng.random() < .22) and all(math.hypot(lx - a, (ld - b) * 1.6) > 20 for a, b in tr_): tr_.append((lx, ld)); dtree(lx, ld, rng.choice((40, 48, 56)))
+            if -11 < e < -4 and (inside(x, d - 16) < 0 or rng.random() < .22) and all(math.hypot(lx - a, (ld - b) * 1.6) > 40 for a, b in tr_): tr_.append((lx, ld)); dtree(lx, ld, rng.choice((48, 50, 50, 53)))
         for (x, d) in ((140, 88), (300, 68), (420, 106)): k.glow(*T(x, d), 44, (150, 190, 200), .16)
         for (x, d) in ((70, 56), (212, 70), (360, 98), (500, 82)): k.rock(*T(x, d), 3, (60, 66, 72))
     elif name == 'ridge':

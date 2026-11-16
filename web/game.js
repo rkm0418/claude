@@ -14,7 +14,7 @@ const STATE = { lit: {}, solved: {}, seq: {}, flags: {}, got: {}, sw: {} };     
 const C = { st: 'none', x: 0, d: 0, t: 0, path: [], rep: 0, flip: false };    // 추격자(나무 머리): hidden(나무인 척) -> rise(일어남) -> chase / wait(뒤따라 들어옴)
 const CSPEED = 38, chFrames = {};
 function setupChaser() {
-  C.path = []; C.t = 0; C.rep = 0;
+  C.path = []; C.t = 0; C.rep = 0; C.tp = null;
   if (R.chaser && STATE.real === undefined) STATE.real = 2 + Math.floor(Math.random() * (R.chaser.spots.length - 2));   // 어느 나무가 진짜인지는 판마다 다르다
   if (R.chaser && !STATE.flags.met) { [C.x, C.d] = R.chaser.spots[STATE.real]; C.st = 'hidden'; }
   else if ((R.chase || R.chaser) && STATE.flags.met) { C.x = P.x; C.d = P.d; C.st = 'wait'; }
@@ -31,7 +31,10 @@ function updChaser(dt) {
   else if (C.st === 'wait') { if (C.t > 2.2) C.st = 'chase'; }
   else if (C.st === 'chase') {
     C.rep -= dt; if (C.rep <= 0) { C.rep = .4; C.path = route(C.x, C.d, P.x, P.d); }
-    let left = CSPEED * dt * (Math.sin(C.t * 9) > .8 ? 1.7 : .85);                        // 걸음이 고르지 않다: 멈칫하다가 훅 다가온다
+    if (!C.tp || C.t > C.tp.until) { const r = Math.random(), u = Math.random();                 // 템포가 제멋대로: 뚝 멈춤 / 느릿느릿 / 보통 / 확 달려듦
+      C.tp = r < .15 ? { v: 0, until: C.t + .3 + u * .5 } : r < .45 ? { v: .35 + u * .25, until: C.t + .6 + u * .9 } : r < .75 ? { v: .9 + u * .2, until: C.t + .6 + u * .8 } : { v: 1.8 + u * .6, until: C.t + .3 + u * .4 }; }
+    C.an = (C.an || 0) + dt * (2 + C.tp.v * 7);
+    let left = CSPEED * dt * C.tp.v;                        // 걸음이 고르지 않다: 멈칫하다가 훅 다가온다
     while (left > 0 && C.path.length) { const [tx, td] = C.path[0], dist = sdist(C.x, C.d, tx, td); if (Math.abs(tx - C.x + (td - C.d) / 2) > .3) C.flip = (tx - C.x) + (td - C.d) / 2 < 0; if (dist <= left) { C.x = tx; C.d = td; C.path.shift(); left -= dist; } else { const k = left / dist; C.x += (tx - C.x) * k; C.d += (td - C.d) * k; left = 0; } }
     if (sdist(C.x, C.d, P.x, P.d) < 7) { msg = { text: '붙잡혔다…', t: 1.8 }; P.path = []; P.act = null; C.st = 'none'; pending = { to: room, spawn: R.start }; fadeDir = 1; return true; }
   }
@@ -68,7 +71,7 @@ function drawChaser() {
     else { const k = (t - 3.4); sy = k < .35 ? 1 + k * 1.3 : k < .6 ? .62 : 1; flip = st % 2 === 0; wave = k < .6 ? 2 : 0; ang = (st % 4 === 1 ? .5 : st % 4 === 3 ? -.5 : 0); f = 'w' + (1 + st % 4); flash = (st % 5 === 0) ? .22 : 0; }   // 4) 길게 늘어났다가 푹 꺼지고, 좌우로 뒤집히며 돌아본다
   }
   else if (C.st === 'wait') { const k = Math.min(1, (t - .5) / 1.4); sy = .15 + .85 * k; wave = 4 * (1 - k); head = Math.floor(k * 5) * 6; ang = (1 - k) * 2.4 * (Math.floor(t / .1) % 2 ? 1 : -1); }   // 바닥에서 솟아오른다
-  else if (C.st === 'chase') { const k = Math.floor(t * 6); f = 'w' + (1 + (k % 7 === 5 ? (k + 2) % 4 : k % 4)); jx = Math.sin(t * 23) > .9 ? 1 : 0; ang = Math.sin(t * 17) > .93 ? .45 : 0; }
+  else if (C.st === 'chase') { const k = Math.floor(C.an || 0); if (C.tp && C.tp.v === 0) { wave = 2; sy = 1 + .05 * Math.sin(t * 40); } if (C.tp && C.tp.v > 1.7) sy = 1.1; f = 'w' + (1 + (k % 7 === 5 ? (k + 2) % 4 : k % 4)); jx = Math.sin(t * 23) > .9 ? 1 : 0; ang = Math.sin(t * 17) > .93 ? .45 : 0; }
   const im = chFrames[f]; if (!im) return;
   ctx.save(); ctx.translate((R.ox + X + jx) * S, (R.oy + Y + 1) * S); if (flip) ctx.scale(-1, 1);
   if (C.st !== 'hidden') { ctx.fillStyle = 'rgba(10,6,16,.5)'; ctx.beginPath(); ctx.ellipse(0, 0, 9 * S, 2.4 * S, 0, 0, 6.3); ctx.fill(); }
