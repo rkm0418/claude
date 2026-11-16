@@ -15,7 +15,8 @@ const C = { st: 'none', x: 0, d: 0, t: 0, path: [], rep: 0, flip: false };    //
 const CSPEED = 38, chFrames = {};
 function setupChaser() {
   C.path = []; C.t = 0; C.rep = 0;
-  if (R.chaser && !STATE.flags.met) { C.x = R.chaser.x; C.d = R.chaser.d; C.st = 'hidden'; }
+  if (R.chaser && STATE.real === undefined) STATE.real = 2 + Math.floor(Math.random() * (R.chaser.spots.length - 2));   // 어느 나무가 진짜인지는 판마다 다르다
+  if (R.chaser && !STATE.flags.met) { [C.x, C.d] = R.chaser.spots[STATE.real]; C.st = 'hidden'; }
   else if ((R.chase || R.chaser) && STATE.flags.met) { C.x = P.x; C.d = P.d; C.st = 'wait'; }
   else C.st = 'none';
 }
@@ -25,8 +26,8 @@ function route(ax, ad, bx, bd) {
 }
 function updChaser(dt) {
   if (C.st === 'none') return false; C.t += dt;
-  if (C.st === 'hidden') { if (sdist(P.x, P.d, C.x, C.d) < R.chaser.radius) { C.st = 'rise'; C.t = 0; msg = { text: '…나무가, 움직인다', t: 2.6 }; } }
-  else if (C.st === 'rise') { if (C.t > 3) { C.st = 'chase'; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
+  if (C.st === 'hidden') { if (sdist(P.x, P.d, C.x, C.d) < R.chaser.radius) { C.st = 'rise'; C.t = 0; msg = { text: '…나무가, 움직인다', t: 3.4 }; } }
+  else if (C.st === 'rise') { if (C.t > 4.4) { C.st = 'chase'; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
   else if (C.st === 'wait') { if (C.t > 2.2) C.st = 'chase'; }
   else if (C.st === 'chase') {
     C.rep -= dt; if (C.rep <= 0) { C.rep = .4; C.path = route(C.x, C.d, P.x, P.d); }
@@ -36,23 +37,46 @@ function updChaser(dt) {
   }
   return false;
 }
+const CAN = [[0, -50, 13, '#101e22'], [-8, -45, 10, '#16282a'], [7.5, -51, 10, '#16282a'], [0, -57, 8, '#1e3434']];
+function canopy(alpha, spread, drop) {                                          // 어두운 수관(머리를 가린다). spread: 흩어짐, drop: 조각이 떨어짐
+  ctx.fillStyle = '#1a1820'; ctx.globalAlpha = Math.min(1, alpha * 1.5); ctx.fillRect(-1.5 * S, -52 * S, 3 * S, 20 * S);
+  CAN.forEach(([ox, oy, rr, c], i) => { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse((ox + Math.sign(ox || (i ? 1 : -1)) * spread * (i + 1) * .5) * S, (oy + drop * (i % 2 ? 1.6 : .7) * (i + 1)) * S, rr * S, rr * .75 * S, 0, 0, 6.3); ctx.fill(); });
+  ctx.globalAlpha = 1;
+}
+function body(im, wave, ph, sy) {                                               // 몸통을 2줄씩 잘라 좌우로 어긋나게 그린다(척추가 꿈틀거림)
+  for (let r = 30; r < 64; r += 2) { const dx = wave ? Math.round(wave * Math.sin(r * .55 + ph) * (1 - (r - 30) / 40)) : 0; ctx.drawImage(im, 0, r, 30, 2, (-15 + dx) * S, -(64 - r) * S * sy, 30 * S, 2 * S * sy + 1); }
+}
+function drawDecoys(behind) {                                                   // 진짜와 똑같이 생긴 나무들. 가끔 가짜도 움찔한다
+  if (!R.chaser) return; const im = chFrames.idle; if (!im) return; const now = performance.now();
+  R.chaser.spots.forEach(([x, d], i) => {
+    if (i === STATE.real || (d >= P.d) !== behind) return; const [X, Y] = scr(x, d), tw = Math.sin(now / (1300 + i * 370) + i * 2.1) > .996 ? (i % 2 ? 1 : -1) : 0;
+    ctx.save(); ctx.translate((R.ox + X + tw) * S, (R.oy + Y + 1) * S); if (i % 2) ctx.scale(-1, 1); body(im, 0, 0, 1); canopy(1, 0, 0); ctx.restore();
+  });
+}
 function drawChaser() {
   if (C.st === 'none' || (C.st === 'wait' && C.t < .5)) return;
-  const [X, Y] = scr(C.x, C.d), t = C.t; let jx = 0, f = 'idle', flip = C.flip, head = 30, canopy = 0;
-  if (C.st === 'hidden') { head = 0; canopy = 1; jx = Math.sin(performance.now() / 1700) > .995 ? 1 : 0; }              // 몸통만 줄기처럼 서 있다. 아주 가끔 움찔한다
-  else if (C.st === 'rise') {                                                    // 1) 줄기가 떤다 -> 2) 수관이 흩어지며 창백한 머리가 아래부터 드러난다 -> 3) 돌아본다
-    const st = Math.floor(t / .22); jx = (t % .22) < .08 ? (st % 2 ? 2 : -2) : 0;
-    const k = Math.max(0, Math.min(1, (t - 1.1) / 1.3)); head = Math.floor(k * 6) * 5; canopy = 1 - k; flip = t > 2.5 ? st % 2 === 0 : false; if (t > 2.4) f = 'w' + (1 + st % 4);
+  const [X, Y] = scr(C.x, C.d), t = C.t; let jx = 0, f = 'idle', flip = C.flip, head = 30, can = 0, spread = 0, drop = 0, wave = 0, sy = 1, ang = 0, flash = 0;
+  if (C.st === 'hidden') { head = 0; can = 1; jx = Math.sin(performance.now() / 1700 + 1) > .996 ? 1 : 0; flip = STATE.real % 2 === 1; }
+  else if (C.st === 'rise') {
+    const st = Math.floor(t / .12); flip = false;
+    if (t < 1.2) { head = 0; can = 1; jx = (st % 9 === 0 || st % 9 === 1) ? (st % 2 ? 3 : -3) : 0; sy = st % 11 === 3 ? 1.12 : 1; }                       // 1) 줄기가 뚝, 뚝 어긋난다
+    else if (t < 2.2) { const k = (t - 1.2); head = 0; can = 1; wave = 2 + k * 5; spread = k * 3; sy = 1 + .1 * Math.sin(t * 31); jx = st % 2 ? 1 : -1; }      // 2) 몸통이 뱀처럼 꿈틀거리고 수관이 벌어진다
+    else if (t < 3.4) {                                                                                                                      // 3) 수관이 떨어져 내리고, 거꾸로 꺾인 머리가 뚝뚝 돌아온다
+      const k = (t - 2.2) / 1.2; can = 1 - k; spread = 3 + k * 8; drop = k * 9; wave = 5 * (1 - k) + 1; head = Math.min(30, 6 + Math.floor(k * 5) * 6);
+      ang = [180, 150, 164, 110, 124, 70, 84, 30, 44, -18, 0][Math.min(10, Math.floor(k * 11))] * Math.PI / 180; jx = st % 3 === 0 ? 2 : 0;
+    }
+    else { const k = (t - 3.4); sy = k < .35 ? 1 + k * 1.3 : k < .6 ? .62 : 1; flip = st % 2 === 0; wave = k < .6 ? 2 : 0; ang = (st % 4 === 1 ? .5 : st % 4 === 3 ? -.5 : 0); f = 'w' + (1 + st % 4); flash = (st % 5 === 0) ? .22 : 0; }   // 4) 길게 늘어났다가 푹 꺼지고, 좌우로 뒤집히며 돌아본다
   }
-  else if (C.st === 'chase') { const k = Math.floor(t * 6); f = 'w' + (1 + (k % 7 === 5 ? (k + 2) % 4 : k % 4)); jx = Math.sin(t * 23) > .9 ? 1 : 0; }
+  else if (C.st === 'wait') { const k = Math.min(1, (t - .5) / 1.4); sy = .15 + .85 * k; wave = 4 * (1 - k); head = Math.floor(k * 5) * 6; ang = (1 - k) * 2.4 * (Math.floor(t / .1) % 2 ? 1 : -1); }   // 바닥에서 솟아오른다
+  else if (C.st === 'chase') { const k = Math.floor(t * 6); f = 'w' + (1 + (k % 7 === 5 ? (k + 2) % 4 : k % 4)); jx = Math.sin(t * 23) > .9 ? 1 : 0; ang = Math.sin(t * 17) > .93 ? .45 : 0; }
   const im = chFrames[f]; if (!im) return;
   ctx.save(); ctx.translate((R.ox + X + jx) * S, (R.oy + Y + 1) * S); if (flip) ctx.scale(-1, 1);
-  if (canopy > 0) { ctx.fillStyle = '#1a1820'; ctx.fillRect(-1.5 * S, -52 * S, 3 * S, 20 * S); }                         // 몸 위로 이어지는 줄기
-  ctx.drawImage(im, 0, 30, 30, 34, -15 * S, -34 * S, 30 * S, 34 * S);
-  if (head > 0) ctx.drawImage(im, 0, 30 - head, 30, head, -15 * S, -(34 + head) * S, 30 * S, head * S);
-  if (canopy > 0) { ctx.globalAlpha = Math.min(1, canopy * 1.4); const h = 50, sh = (1 - canopy) * 10; for (const [ox, oy, rr, c] of [[0, -h, h * .26, '#101e22'], [-h * .16 - sh, -h * .9, h * .2, '#16282a'], [h * .15 + sh, -h * 1.02, h * .2, '#16282a'], [0, -h * 1.14 - sh, h * .16, '#1e3434']]) { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(ox * S, oy * S, rr * S, rr * .75 * S, 0, 0, 6.3); ctx.fill(); } ctx.globalAlpha = 1; }
   if (C.st !== 'hidden') { ctx.fillStyle = 'rgba(10,6,16,.5)'; ctx.beginPath(); ctx.ellipse(0, 0, 9 * S, 2.4 * S, 0, 0, 6.3); ctx.fill(); }
+  body(im, wave, t * 26, sy);
+  if (head > 0) { ctx.save(); ctx.translate(0, -34 * S * sy); ctx.rotate(ang); ctx.drawImage(im, 0, 30 - head, 30, head, -15 * S, -head * S, 30 * S, head * S); ctx.restore(); }
+  if (can > 0) canopy(can, spread, drop);
   ctx.restore();
+  if (flash) { ctx.fillStyle = `rgba(200,30,50,${flash})`; ctx.fillRect(0, 0, VW, VH); }
 }
 function cellsOf(r, c) { const a = []; for (let j = 0; j < r.gh; j++) for (let i = 0; i < r.gw; i++) { const x = (i + .5) * CELL, d = (j + .5) * CELL; if (((x - c.x) / c.rx) ** 2 + ((d - c.d) / c.rd) ** 2 < 1) a.push(j * r.gw + i); } return a; }
 const inCrack = (c, x, d, pad = 0) => ((x - c.x) / (c.rx + pad)) ** 2 + ((d - c.d) / (c.rd + pad)) ** 2 < 1;
@@ -213,6 +237,7 @@ function draw(dt) {
   ctx.imageSmoothingEnabled = false; ctx.fillStyle = '#1e1618'; ctx.fillRect(0, 0, VW, VH); if (!R) return;
   const [tx, ty] = camTarget(); if (!cam.init) { cam.x = tx; cam.y = ty; cam.init = true; } else { const k = 1 - Math.exp(-(dt || .016) * 7); cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; }
   R.ox = -Math.round(cam.x); R.oy = -Math.round(cam.y);
+  if (C.st === 'rise' && C.t > 1.2) { const a = C.t > 3.4 ? 3 : 1.5; R.ox += Math.round((Math.random() - .5) * a); R.oy += Math.round((Math.random() - .5) * a); }   // 화면이 떨린다
   ctx.drawImage(R.im, R.ox * S, R.oy * S, R.CW * S, R.CH * S);
   const dot = (x, d, c, r = 1) => { const [X, Y] = scr(x, d); ctx.fillStyle = c; ctx.fillRect((R.ox + X - r / 2) * S, (R.oy + Y - r / 2) * S, r * S, r * S); };
   if (debug) {
@@ -260,9 +285,9 @@ function draw(dt) {
       else if (sp > .8) { ctx.fillStyle = '#fff'; ctx.fillRect(bx + 3 * S, by - 14 * S, S, S); }
     }
   }
-  if (C.d >= P.d) { drawChaser(); drawChild(); } else { drawChild(); drawChaser(); }
+  drawDecoys(true); if (C.d >= P.d) { drawChaser(); drawChild(); } else { drawChild(); drawChaser(); } drawDecoys(false);
   if (R.mood === 'dark' || C.st === 'rise' || C.st === 'chase' || C.st === 'wait') {                                                     // 추격 구간의 꺼림칙한 분위기: 어둡게 가라앉히고, 아이 둘레만 흐릿하게 보이며, 가장자리가 맥박처럼 숨 쉰다
-    const [fx0, fy0] = scr(P.x, P.d), rs = C.st === 'rise', [qx, qy] = rs ? scr(C.x, C.d) : [fx0, fy0], fx = (fx0 + qx) / 2, fy = (fy0 + qy) / 2, px = (R.ox + fx) * S, py = (R.oy + fy - 14) * S, t = performance.now() / 1000, br = (rs ? 2.4 : 1) * (1 + .06 * Math.sin(t * 2.2) + (Math.sin(t * 13) > .96 ? .12 : 0));
+    const [fx0, fy0] = scr(P.x, P.d), rs = C.st === 'rise', [qx, qy] = rs ? scr(C.x, C.d - 30) : [fx0, fy0], fx = (fx0 + qx) / 2, fy = (fy0 + qy) / 2, px = (R.ox + fx) * S, py = (R.oy + fy - 14) * S, t = performance.now() / 1000, br = (rs ? 2.4 : 1) * (1 + .06 * Math.sin(t * 2.2) + (Math.sin(t * 13) > .96 ? .12 : 0));
     ctx.fillStyle = 'rgba(14,10,30,.38)'; ctx.fillRect(0, 0, VW, VH);
     const g = ctx.createRadialGradient(px, py, 18 * S * br, px, py, 70 * S * br); g.addColorStop(0, 'rgba(6,2,14,0)'); g.addColorStop(.6, 'rgba(6,2,14,.55)'); g.addColorStop(1, 'rgba(4,0,10,.93)'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
     ctx.fillStyle = 'rgba(120,20,40,.05)'; ctx.fillRect(0, 0, VW, VH);

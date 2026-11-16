@@ -114,7 +114,7 @@ AREAS = {
                  exits=[dict(at=(4, 104), to='park', spawn=(364, 96)), dict(at=(520, 102), to='woods', spawn=(10, 60))]),
     'woods': dict(H=84, wob=3, shapes=[('path', bez((0, 60), (60, 40), (90, 100), (140, 90)) + bez((140, 90), (200, 80), (230, 40), (300, 66))[1:] + bez((300, 66), (350, 80), (370, 120), (420, 106))[1:] + bez((420, 106), (470, 96), (490, 70), (530, 80))[1:], 28), ('circle', 140, 88, 50), ('circle', 300, 68, 46), ('circle', 420, 106, 58)],
                   ground=woods_ground, face=face_rock((40, 44, 50), (8, 8, 14)), ch=34, sky=((6, 8, 14), (22, 34, 40)), start=(10, 60),
-                  exits=[dict(at=(4, 60), to='reed', spawn=(510, 104)), dict(at=(526, 80), to='ridge', spawn=(10, 38))], chaser=dict(x=436, d=126, radius=62)),
+                  exits=[dict(at=(4, 60), to='reed', spawn=(510, 104)), dict(at=(526, 80), to='ridge', spawn=(10, 38))], chaser=dict(spots=((120, 112), (164, 68), (204, 88), (252, 58), (300, 94), (332, 52), (380, 102), (436, 126), (452, 84), (484, 98)), radius=52)),
     'ridge': dict(H=64, wob=1.5, mood='dark', chase=True, shapes=[('path', P1, 19), ('path', P2, 19), ('path', P3, 19), ('rect', 146, 50, 208, 70), ('rect', 406, 54, 464, 74), ('circle', 92, 52, 32), ('circle', 310, 104, 34), ('circle', 522, 92, 32)],
                   zones=[(('rect', 172, 49, 184, 71), plank_ground), (('rect', 432, 53, 444, 75), plank_ground)],
                   ground=ridge_ground, face=face_rock((132, 92, 62), (36, 20, 30)), ch=46, sky=((40, 22, 48), (170, 70, 60)), start=(10, 38),
@@ -175,7 +175,7 @@ def props(name, k, tr, inside, rng):
                 for (ox, oy, rr, c) in ((0, -h, h * .26, (16, 30, 34)), (-h * .16, -h * .9, h * .2, (22, 40, 42)), (h * .15, -h * 1.02, h * .2, (22, 40, 42)), (0, -h * 1.14, h * .16, (30, 52, 52))): sc.d.ellipse([X + ox - rr, Y + oy - rr * .75, X + ox + rr, Y + oy + rr * .75], fill=c)
                 for (bx_, by_) in ((-5, -h * .55), (5, -h * .66)): sc.d.line([(X, Y + by_), (X + bx_, Y + by_ - 4)], fill=(26, 24, 32))
             sc.jobs.append((d, f)); k.block.append((x, d, 3))
-        pts = [T(436, 126)]                                                     # 진짜가 설 자리(엔진이 그린다): 몸통이 줄기처럼 보이고 머리는 어두운 수관에 가려져 있다
+        pts = [T(*q) for q in AREAS['woods']['chaser']['spots']]; k.block += [(a, b, 4) for a, b in pts]                                                     # 진짜가 설 자리(엔진이 그린다): 몸통이 줄기처럼 보이고 머리는 어두운 수관에 가려져 있다
         tr_ = list(pts)
         for _ in range(3000):
             x, d = rng.uniform(0, 540), rng.uniform(10, 170); e = inside(x, d)
@@ -262,7 +262,7 @@ def build(name):
     meta = {'W': W, 'D': D, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': CW, 'CH': CH, 'rects': k.rects, 'exits': ex, 'start': tr(A['start']), 'origin': (x0, d0), 'open': True}
     if A.get('mood'): meta['mood'] = A['mood']
     if A.get('chase'): meta['chase'] = True
-    if A.get('chaser'): c = A['chaser']; cx, cd = tr((c['x'], c['d'])); meta['chaser'] = {'x': cx, 'd': cd, 'radius': c['radius']}
+    if A.get('chaser'): c = A['chaser']; meta['chaser'] = {'spots': [tr(q) for q in c['spots']], 'radius': c['radius']}
     return sc.img, dep, mask, meta
 
 def main():
