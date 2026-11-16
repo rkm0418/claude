@@ -52,12 +52,12 @@ def side(leg_near=0, leg_far=0, arm=0, lift=None):
         for k in range(1, 5): px[x0 + k, PAD + 36 - up] = PANT2
         px[x0 + 5, PAD + 36 - up] = A
     leg(leg_far, True, 2 if lift == 'far' else 0); leg(leg_near, False, 2 if lift == 'near' else 0)
-    TOR = {20: (9, 14), 21: (8, 15), 22: (7, 15), 23: (7, 16), 24: (7, 16), 25: (7, 16), 26: (7, 16), 27: (8, 16), 28: (9, 15)}    # 몸통: 어깨·등·배가 둥글게 넘어간다
+    TOR = {20: (10, 14), 21: (9, 15), 22: (8, 15), 23: (8, 15), 24: (8, 15), 25: (8, 15), 26: (8, 15), 27: (8, 15), 28: (8, 15)}    # 몸통: 어깨·등·배가 둥글게 넘어간다
     inside = lambda x, yy: yy in TOR and TOR[yy][0] <= x <= TOR[yy][1]
     for yy, (x0, x1) in TOR.items():
         for x in range(x0, x1 + 1):
             edge = not all(inside(x + dx, yy + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
-            px[x, PAD + yy] = A if edge else (SH2 if x < 10 or yy >= 27 else SH)
+            px[x, PAD + yy] = A if edge else (SH2 if x < 10 or yy >= 28 else SH)
     for x in range(10, 15): px[x, PAD + 20] = SKIN2 if x < 11 else SKIN     # 목
     CB.limb(im, [(11, PAD + 22), (11 + arm // 2, PAD + 25), (11 + arm, PAD + 28)])       # 가까운 팔(어깨 → 팔꿈치 → 손)
     return im
