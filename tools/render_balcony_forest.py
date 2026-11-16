@@ -77,17 +77,16 @@ def main():
     jag(g6, int(by) - 5, 2); jag(g6 + 2, int(by) - 8, 2)
     beam(posts[7] + 4, int(by), posts[7] + 14, int(by - 9), 2)                                           # 쓰러져 다른 기둥에 기댄 널빤지
     for k in range(5): put(posts[2] + 3 + k, int(by - RAIL + 4 + k // 2), WOODD)                          # 부러진 기둥 옆 갈라진 파편
-    # 더 극적으로: 울타리 전체가 무너져 얽힌 바리케이드(한눈에 지나갈 수 없게). 굵은 대각 들보, 빽빽한 잔해 더미, 갈라진 끝, 덩굴
+    # 무너진 울타리: 굵은 대각 들보 셋, 드문 잔해, 갈라진 끝, 덩굴(너무 지저분하지 않게 절제)
     hb = int(by)
-    for xa, ya, xb2, yb2, th in ((posts[0], hb, posts[2] + 6, hb - RAIL + 2, 3), (posts[2], hb - 2, posts[4] + 4, hb - RAIL + 5, 3), (posts[1] + 4, hb - RAIL + 4, posts[3] + 8, hb - 3, 3),
-                                 (posts[3] + 2, hb, posts[5] + 6, hb - RAIL + 8, 3), (posts[5], hb - RAIL + 3, posts[7] + 2, hb - 1, 3), (posts[6] + 6, hb, posts[8], hb - RAIL + 6, 3),
-                                 (posts[4] - 2, hb - 6, posts[6] + 3, hb - RAIL + 10, 2), (posts[7] + 6, hb - RAIL + 5, posts[8] + 6, hb - 4, 2)):
+    for xa, ya, xb2, yb2, th in ((posts[0], hb, posts[2] + 6, hb - RAIL + 2, 3), (posts[3] + 2, hb, posts[5] + 6, hb - RAIL + 8, 3),
+                                 (posts[5], hb - RAIL + 3, posts[7] + 2, hb - 1, 3)):
         beam(xa, ya, xb2, yb2, th); jag(xb2, yb2, 3)
     rr = random.Random(44)
-    for k in range(34):                                                  # 바닥에 쌓인 부러진 널빤지 더미(울타리 아래 전체)
+    for k in range(9):                                                   # 바닥에 쌓인 부러진 널빤지 더미(울타리 아래 전체)
         x0 = rr.randrange(bx0, bx1 - 4); y0 = hb - rr.randrange(0, 4); ln = rr.randrange(5, 12)
         ang = rr.choice((-.9, -.5, -.2, .2, .5, .9)); beam(x0, y0, x0 + int(ln), y0 - int(ln * abs(ang) * 1.1) - 1, rr.choice((1, 2)))
-    for x in range(bx0 + 3, bx1, 7):                                     # 걸린 덩굴(청록)
+    for x in range(bx0 + 3, bx1, 19):                                    # 걸린 덩굴(청록)
         for yy in range(int(hb - RAIL + 2), int(hb - RAIL + 2 + rr.randrange(8, 16))): put(x + (yy // 4) % 2, yy, (30, 70, 64) if yy % 3 else (46, 96, 84))
     # 땅: 숲 바닥이 지평선 아래 전체에 이어진다(판 아래·앞·오른쪽으로 계속): 흙 + 이끼 + 풀 + 가는 길
     gr = random.Random(9)
