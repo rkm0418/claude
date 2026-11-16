@@ -12,14 +12,13 @@ let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null,
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
 const STATE = { lit: {}, solved: {}, seq: {}, flags: {}, got: {}, sw: {} };                                                  // 퍼즐 상태(방을 옮겨도 유지): 켠 등불
 const C = { st: 'none', x: 0, d: 0, t: 0, path: [], rep: 0, flip: false };    // 추격자(나무 머리): hidden(나무인 척) -> rise(일어남) -> chase / wait(뒤따라 들어옴)
-const SEG = 4, CSPEED = 38, chFrames = {};
+const CSPEED = 38, chFrames = {};
 function setupChaser() {
   C.path = []; C.t = 0; C.rep = 0; C.tp = null;
   if (R.chaser && STATE.real === undefined) STATE.real = 2 + Math.floor(Math.random() * (R.chaser.spots.length - 2));   // 어느 나무가 진짜인지는 판마다 다르다
   if (R.chaser && !STATE.flags.met) { [C.x, C.d] = R.chaser.spots[STATE.real]; C.st = 'hidden'; }
   else if ((R.chase || R.chaser) && STATE.flags.met) { C.x = P.x; C.d = P.d; C.st = 'wait'; }
   else C.st = 'none';
-  if (C.st !== 'none') { const [X, Y] = scr(C.x, C.d), sk = C.st === 'hidden' ? 8 : 64; C.hole = [X, Y]; C.out = false; C.ch = []; for (let i = 0; i < 12; i++) C.ch.push([X, Y - 33 + sk + i * SEG]); }
 }
 function route(ax, ad, bx, bd) {
   if (clear(ax, ad, bx, bd)) return [[bx, bd]];
@@ -27,17 +26,9 @@ function route(ax, ad, bx, bd) {
 }
 function updChaser(dt) {
   if (C.st === 'none') return false; C.t += dt;
-  C.sk = C.st === 'hidden' ? 8 : C.st === 'rise' ? 8 * (1 - ease(C.t / .7)) : C.st === 'wait' ? 64 * (1 - ease((C.t - .5) / 1.3)) : 0;
-  if (C.st !== 'hidden' && C.ch) {                                             // 목에서 이어진 척추 줄: 몸이 먼저 움직이고, 줄 끝의 머리는 땅속에서 끌려 나와 뒤따라온다(줄다리기처럼 당겨지는 만큼만)
-    const [X, Y] = scr(C.x, C.d), ch = C.ch; ch[0] = [X, Y - 33 + C.sk];
-    for (let i = 1; i < ch.length; i++) {
-      if (C.out) { ch[i][1] += 46 * dt; ch[i][1] = Math.min(ch[i][1], Y - (i === ch.length - 1 ? 3 : 1)); }
-      const dx = ch[i][0] - ch[i - 1][0], dy = ch[i][1] - ch[i - 1][1], q = Math.hypot(dx, dy) || 1; if (q > SEG) { ch[i][0] = ch[i - 1][0] + dx / q * SEG; ch[i][1] = ch[i - 1][1] + dy / q * SEG; }
-    }
-    if (!C.out && ch[ch.length - 1][1] < C.hole[1] - 3) C.out = true;
-  }
+  C.sk = C.st === 'hidden' ? 8 : C.st === 'rise' ? 8 * (1 - ease(C.t / .7)) : C.st === 'wait' ? 64 * (1 - ease((C.t - .5) / .8)) : 0;
   if (C.st === 'hidden') { if (sdist(P.x, P.d, C.x, C.d) < R.chaser.radius) { C.st = 'rise'; C.t = 0; msg = { text: '…!', t: 1.5 }; } }
-  else if (C.st === 'rise') { if (C.t > 1.7) { C.st = 'chase'; C.tp = null; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
+  else if (C.st === 'rise') { if (C.t > 2.3) { C.st = 'chase'; C.tp = null; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
   else if (C.st === 'wait') { if (C.t > 2.5) { C.st = 'chase'; C.tp = null; } }
   else if (C.st === 'chase') {
     C.rep -= dt; if (C.rep <= 0) { C.rep = .4; C.path = route(C.x, C.d, P.x, P.d); }
@@ -61,34 +52,39 @@ function figure(im, bend, sink) {                                               
   for (let r = 62; r >= 30; r -= 2) ctx.drawImage(im, 0, r, 30, 2, (-15 + bend * Math.pow((64 - r) / 34, 1.7)) * S, -(64 - r) * S, 30 * S, 2 * S + 1);
   ctx.restore();
 }
-function drawNeck(im) {                                                         // 척추 줄과 그 끝에 매달려 끌려오는 머리(방 좌표로 그린다)
-  const ch = C.ch; if (!ch || C.st === 'hidden') return; ctx.save();
-  if (!C.out) { ctx.beginPath(); ctx.rect(0, 0, VW, (R.oy + C.hole[1] + 1) * S); ctx.clip(); }                 // 아직 땅속에 있는 부분은 가린다
-  for (let i = ch.length - 1; i >= 1; i--) { const px = (R.ox + ch[i][0]) * S, py = (R.oy + ch[i][1]) * S, big = i % 2 === 0;
-    ctx.fillStyle = '#3a2830'; ctx.fillRect(px - S, py - S, 2 * S, 3 * S); ctx.fillStyle = big ? '#d8ccc4' : '#a89a98'; ctx.fillRect(px - (big ? 3 : 2) * S, py - S, (big ? 6 : 4) * S, 2 * S);
-    if (big) { ctx.fillStyle = '#efe6dc'; ctx.fillRect(px - 4 * S, py - 2 * S, S, S); ctx.fillRect(px + 3 * S, py - 2 * S, S, S); } }
-  const e = ch[ch.length - 1], b = ch[ch.length - 3]; ctx.translate((R.ox + e[0]) * S, (R.oy + e[1]) * S); ctx.rotate(Math.atan2(e[1] - b[1], e[0] - b[0]) - Math.PI / 2 + Math.PI);
-  ctx.drawImage(im, 0, 0, 30, 30, -15 * S, -30 * S, 30 * S, 30 * S); ctx.restore();
+function drawSpine(im, tt, nx, ny) {                                            // 가는 척추: 옆 땅의 구멍에서 솟아 활처럼 휘어 목에 닿고, 목 속으로 감겨 들어가며 끝에 매달린 머리를 끌어 올린다. 반환값: 머리가 목에 붙었는가
+  if (tt >= 1.6) return true; if (tt < .5) return false;
+  const HX = 24, g = ease((tt - .5) / .5), uh = tt > 1 ? 1 - ease((tt - 1) / .6) : -1;
+  const pt = (u) => { const w = 1.5 * Math.sin(u * 11 - tt * 9) * Math.sin(u * Math.PI); return [(1 - u) * (1 - u) * nx + 2 * u * (1 - u) * 15 + u * u * HX + w, (1 - u) * (1 - u) * ny + 2 * u * (1 - u) * -84]; };
+  ctx.fillStyle = '#0c0a10'; ctx.beginPath(); ctx.ellipse(HX * S, 0, 6 * S, 2 * S, 0, 0, 6.3); ctx.fill();
+  const u0 = uh >= 0 ? 0 : 1 - g, u1 = uh >= 0 ? uh : 1, n = 30;
+  for (let i = 0; i <= n; i++) { const u = i / n; if (u < u0 || u > u1) continue; const [px, py] = pt(u), big = i % 2 === 0;
+    ctx.fillStyle = '#3a2830'; ctx.fillRect((px - .5) * S, (py - 1) * S, S, 3 * S);
+    ctx.fillStyle = big ? '#d8ccc4' : '#a89a98'; ctx.fillRect((px - (big ? 1.5 : 1)) * S, (py - .5) * S, (big ? 3 : 2) * S, S);
+    if (big) { ctx.fillStyle = '#efe6dc'; ctx.fillRect((px - 2.5) * S, (py - 1) * S, S, S); } }
+  if (uh >= 0) { const [hx, hy] = pt(uh), [qx, qy] = pt(Math.max(0, uh - .04)), a = uh < .03 ? 0 : Math.atan2(qy - hy, qx - hx) - Math.PI / 2;
+    ctx.save(); ctx.beginPath(); ctx.rect(-60 * S, -160 * S, 120 * S, 160 * S); ctx.clip(); ctx.translate(hx * S, hy * S); ctx.rotate(a); ctx.drawImage(im, 0, 0, 30, 30, -15 * S, -30 * S, 30 * S, 30 * S); ctx.restore(); }
+  return false;
 }
 function drawChaser() {
   if (C.st === 'none' || (C.st === 'wait' && C.t < .5)) return;
-  const [X, Y] = scr(C.x, C.d), t = C.t, sink = C.sk === undefined ? 8 : C.sk; let f = 'idle', flip = C.flip, bend = 0, can = 0, fall = 0, dirt = 0;
-  if (C.st === 'hidden') { can = 1; flip = false; }
-  else if (C.st === 'rise') {                                                    // 부드럽게: 수관이 미끄러져 떨어지고, 머리 없는 몸이 땅에서 올라와 천천히 흔들리다 걸음을 뗀다
-    flip = false; can = 1 - ease(t / .6); fall = t / .7; dirt = 1; bend = 5 * Math.sin(t * 3.4) * ease(t / .5); if (t > .9) f = 'w' + (1 + Math.floor((t - .9) * 4) % 4);
-  }
-  else if (C.st === 'wait') { dirt = 1; bend = 4 * Math.sin(t * 3.4); }
-  else if (C.st === 'chase') { f = 'w' + (1 + Math.floor(C.an || 0) % 4); bend = C.tp ? Math.min(4, C.tp.v * 2) : 0; if (!C.out) dirt = 1; }
+  const [X, Y] = scr(C.x, C.d), t = C.t, sink = C.sk === undefined ? 8 : C.sk; let f = 'idle', flip = C.flip, bend = 0, can = 0, fall = 0, dirt = 0, tt = 9;
+  if (C.st === 'hidden') { can = 1; flip = false; tt = 0; }
+  else if (C.st === 'rise') { flip = false; tt = t; can = 1 - ease(t / .6); fall = t / .7; dirt = 1; bend = 4 * Math.sin(t * 3) * ease(t / .5) * (1 - ease((t - 1.4) / .4)); if (t > 1.8) f = 'w' + (1 + Math.floor((t - 1.8) * 5) % 4); }
+  else if (C.st === 'wait') { flip = false; tt = .5 + Math.max(0, t - 1.1) * 1.5; dirt = 1; bend = 3 * Math.sin(t * 3) * (1 - ease((t - 1.5) / .4)); }
+  else if (C.st === 'chase') { f = 'w' + (1 + Math.floor(C.an || 0) % 4); bend = C.tp ? Math.min(4, C.tp.v * 2) : 0; }
   const im = chFrames[f]; if (!im) return;
-  if (dirt && C.hole) { const hx = (R.ox + C.hole[0]) * S, hy = (R.oy + C.hole[1] + 1) * S; ctx.fillStyle = '#12161a'; ctx.beginPath(); ctx.ellipse(hx, hy, 9 * S, 2.6 * S, 0, 0, 6.3); ctx.fill(); ctx.fillStyle = '#3c5048'; for (const [dx, dy] of [[-10, -1], [-6, 2], [7, 1], [11, -1]]) ctx.fillRect(hx + dx * S, hy + dy * S, 2 * S, S); }
-  const back = !C.out; if (back) drawNeck(chFrames.idle);                   // 막 올라올 때는 척추가 몸 뒤에 있다
   ctx.save(); ctx.translate((R.ox + X) * S, (R.oy + Y + 1) * S); if (flip) ctx.scale(-1, 1);
-  if (C.st !== 'hidden') { ctx.fillStyle = 'rgba(10,6,16,.5)'; ctx.beginPath(); ctx.ellipse(0, 0, 9 * S, 2.4 * S, 0, 0, 6.3); ctx.fill(); }
+  if (dirt) { ctx.fillStyle = '#2a3a38'; ctx.beginPath(); ctx.ellipse(0, 0, 10 * S, 2.6 * S, 0, 0, 6.3); ctx.fill(); ctx.fillStyle = '#3c5048'; for (const [dx, dy] of [[-9, -1], [-5, 1], [6, 0], [10, -1]]) ctx.fillRect(dx * S, dy * S, 2 * S, S); }
+  else if (C.st !== 'hidden') { ctx.fillStyle = 'rgba(10,6,16,.5)'; ctx.beginPath(); ctx.ellipse(0, 0, 9 * S, 2.4 * S, 0, 0, 6.3); ctx.fill(); }
   if (can > 0) { ctx.fillStyle = '#1a1820'; ctx.globalAlpha = can; ctx.fillRect(-1.5 * S, (-52 + sink) * S, 3 * S, 22 * S); ctx.globalAlpha = 1; }
   figure(im, bend, sink);
   if (can > 0) canopy(can, 0, fall);
+  if (C.st !== 'hidden' && drawSpine(chFrames.idle, tt, bend, -34 + sink)) {          // 머리가 목에 붙어 한 몸이 된다(붙는 순간 살짝 눌렸다 펴짐)
+    const q = tt - 1.6, sq = q < 1 ? 1 - .14 * Math.exp(-q * 9) * Math.cos(q * 26) : 1;
+    ctx.save(); ctx.translate(bend * S, (-34 + sink) * S); ctx.scale(2 - sq, sq); ctx.drawImage(im, 0, 0, 30, 30, -15 * S, -30 * S, 30 * S, 30 * S); ctx.restore();
+  }
   ctx.restore();
-  if (!back) drawNeck(chFrames.idle);
 }
 function cellsOf(r, c) { const a = []; for (let j = 0; j < r.gh; j++) for (let i = 0; i < r.gw; i++) { const x = (i + .5) * CELL, d = (j + .5) * CELL; if (((x - c.x) / c.rx) ** 2 + ((d - c.d) / c.rd) ** 2 < 1) a.push(j * r.gw + i); } return a; }
 const inCrack = (c, x, d, pad = 0) => ((x - c.x) / (c.rx + pad)) ** 2 + ((d - c.d) / (c.rd + pad)) ** 2 < 1;
