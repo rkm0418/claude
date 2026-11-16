@@ -135,6 +135,19 @@ def main():
                 if (int(d) * 3 + int(z) // 3) % 11 == 0: c0 = (20, 16, 38)
                 r_, g_, b_, a_ = c0 + (255,)
             px[X, Y] = (int(r_ * .9), int(g_ * .9), int(b_ * .95), 255)
+    # 왼쪽 벽 마감: 윗면 뚜껑(두께 6칸, 위에서 보이는 면)과 앞쪽 단면(둥치를 잘라 낸 면)
+    CAP, CAPH, CAPD = (78, 70, 118), (104, 94, 148), (40, 34, 66)
+    for d in range(0, int(D) + 1):
+        X = int(X0 + SK * d); yt = int(Y0 - SS * d - WH)
+        for dx in range(0, 7):
+            put(X + dx, yt, CAPH if dx < 2 else CAPD if dx > 5 else CAP)
+            if dx in (1, 3, 5): put(X + dx, yt - 1 + (dx // 3), CAP if dx != 3 else CAPH)          # 윗면 가장자리가 울퉁불퉁한 가지 자국
+    for X in range(int(X0), int(X0) + 7):                                    # 앞쪽 단면: 나이테가 보이는 잘린 면
+        for Y in range(int(Y0 - WH), int(Y0) + 1):
+            k = (X - int(X0)); c0 = (52, 44, 84) if k < 5 else (30, 26, 52)
+            if (Y - int(Y0 - WH)) % 9 == 0 and 0 < k < 6: c0 = (66, 58, 100)    # 나이테 선
+            put(X, Y, c0)
+    for dx in range(0, 7): put(int(X0) + dx, int(Y0 - WH) - 1, CAPH if dx < 5 else CAP)      # 단면 위 모서리 하이라이트
     # 가구: 부서진 나무 의자·탁자(오른쪽 끝, 의자가 앞)
     def put_sprite(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
