@@ -60,7 +60,9 @@ def build():
     def ground(x, d):
         c = 78 + int(noise(x, d) * 14); n = noise(x, d, 3)
         grass = (c + 40, c + 22, 40) if n < .55 else (c + 66, c + 28, 30) if n < .8 else (c + 20, c + 10, 34)
-        k = max(0.0, 1 - d / 40.0); px = 56 + 8 * math.sin(d / 16.0) + 3 * math.sin(d / 7.0) - 34 * k * k
+        px = 56 + 8 * math.sin(d / 16.0) + 3 * math.sin(d / 7.0)
+        if 22 <= x < 62 and abs(d - 20) < 6.5 + (0 if x < 50 else (x - 50) * .6): return (150 + int(noise(x, d, 1) * 18), 106 + int(noise(x, d, 2) * 14), 70)   # 터널 입구에서 곧장 뻗는 길
+        if d < 14: return grass
         a = abs(x - px)
         if a < 11: return (150 + int(noise(x, d, 1) * 18), 106 + int(noise(x, d, 2) * 14), 70)
         if a < 13: return (122, 90, 56)
@@ -122,6 +124,13 @@ def build():
         sc.img.paste(lay, (0, 0), mask); sc.px = sc.img.load(); sc.d = ImageDraw.Draw(sc.img)
         for k in range(21):                                                                                          # 아치 테두리(밝은 콘크리트)
             a = sc.P(x1, cx - hw * math.cos(math.pi * k / 20), 12 + 9 * math.sin(math.pi * k / 20)); sc.d.rectangle([a[0], a[1] - 2, a[0] + 1, a[1]], fill=(150, 148, 138))
+        LC2 = [(214, 104, 44), (236, 160, 60), (170, 56, 36), (246, 206, 92), (190, 80, 40)]; rl = random.Random(77)
+        for _ in range(520):                                                                                         # 언덕 위에 쌓인 낙엽(윗면을 거의 덮는다)
+            X, Y = sc.P(rl.uniform(x0, x1), rl.uniform(d0, d1), h); sc.d.rectangle([X, Y, X + 1, Y + 1], fill=rl.choice(LC2))
+        for _ in range(150):                                                                                         # 아치 윗부분으로 흘러내린 낙엽: 입구 윗선을 가린다
+            q = sc.P(x1, cx + rl.uniform(-hw, hw), 21 + rl.uniform(-4, 5)); y0_ = q[1] + rl.randint(-4, 0); sc.d.rectangle([q[0], y0_, q[0] + 1, y0_ + rl.randint(1, 3)], fill=rl.choice(LC2))
+        for _ in range(110):                                                                                         # 입구 오른쪽 바닥 모서리의 낙엽 더미
+            q = sc.P(x1 + rl.uniform(0, 3), cx + hw * rl.uniform(.15, 1.1), rl.uniform(0, 5)); sc.d.rectangle([q[0], q[1], q[0] + 1, q[1] + 1], fill=rl.choice(LC2))
     sc.jobs.append((20, portal))
     sc.run()
     # 감나무의 감(주황 점)과 떨어지는 낙엽(공중)
