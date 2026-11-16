@@ -114,8 +114,35 @@ def stairs():
     for (x, d, z, k) in ((24, 40, 34, 0), (84, 44, 40, 1), (60, 86, 30, 0), (40, 90, 38, 1)): thing(x, d, z, k)
     sc.run(); return sc.img
 
+def reeds():
+    """갈대숲: 얕은 물 위 나무 데크 길이 갈대 사이로 구불구불 이어진다. 바람에 한쪽으로 누운 갈대와 솜털 이삭. 좁은 길 추격(양옆이 막힘)."""
+    cx = lambda d: 56 + 22 * math.sin(d / 20.0)
+    def ground(x, d):
+        n = noise(x, d); a = abs(x - cx(d))
+        if a < 8: return (96, 78, 60)                                              # 데크 밑
+        if noise(int(x // 6), int(d // 6), 4) > .72: return (150 + int(n * 12), 126, 92)   # 진흙 섬
+        return (74 + int(n * 14), 96 + int(n * 14), 112 + int(n * 14)) if int(d // 4 + x // 9) % 3 else (96, 118, 130)   # 얕은 물(결 줄무늬)
+    sc = base((176, 190, 206), (244, 220, 170), ground); rng = random.Random(12)
+    for d in range(0, D, 5):                                                       # 데크 널빤지
+        x = cx(d) - 6
+        def plank(x=x, d=d): sc.box(x, d, 12, 4, 2.5, (176, 140, 100), (150, 116, 82), (120, 90, 64), z0=1)
+        sc.jobs.append((d, plank))
+    for i in range(520):                                                           # 갈대: 길 가장자리는 비우고 그 밖에 빽빽하게
+        x, d = rng.uniform(1, W - 1), rng.uniform(2, D - 1)
+        if abs(x - cx(d)) < 9.5: continue
+        def reed(x=x, d=d, i=i):
+            b = sc.P(x, d, 0); h = 22 + int(noise(x, d, 4) * 14); lean = 2 + int(noise(x, d, 9) * 3)
+            stem = ((128, 112, 74), (150, 128, 82), (112, 98, 66))[i % 3]; top = (b[0] + lean, b[1] - h)
+            sc.d.line([b, (b[0] + lean // 2, b[1] - h // 2), top], fill=stem)
+            for dx, dy, c in ((0, 0, (236, 226, 204)), (1, -1, (250, 244, 228)), (-1, 1, (214, 202, 176)), (2, -2, (246, 238, 216)), (0, 2, (220, 208, 182))): sc.d.point((top[0] + dx, top[1] + dy), fill=c)   # 솜털 이삭
+            sc.d.line([(top[0], top[1] - 1), (top[0] + 1, top[1] + 4)], fill=(232, 220, 196))
+        sc.jobs.append((d, reed))
+    for _ in range(30):                                                            # 날아다니는 솜털
+        X, Y = rng.randrange(8, sc.CW - 8), rng.randrange(8, sc.CH - 12); (sc.px[X, Y] != MARGIN) and sc.d.point((X, Y), fill=(255, 250, 236))
+    sc.run(); return sc.img
+
 def main():
-    scenes = {'snow': snow, 'lake': lake, 'grass': grass, 'library': library, 'stairs': stairs}; imgs = {}
+    scenes = {'snow': snow, 'lake': lake, 'grass': grass, 'reeds': reeds, 'library': library, 'stairs': stairs}; imgs = {}
     for k, f in scenes.items():
         im = f(); imgs[k] = im; im.save(os.path.join(OUT, 'dream_%s.png' % k)); im.resize((im.width * 3, im.height * 3), Image.NEAREST).save(os.path.join(OUT, 'dream_%s_x3.png' % k))
     S = 2; pad = 10; w = imgs['snow'].width * S; h = imgs['snow'].height * S
