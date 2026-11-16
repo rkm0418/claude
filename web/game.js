@@ -11,6 +11,43 @@ const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0�
 let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
 const STATE = { lit: {}, solved: {}, seq: {}, flags: {}, got: {}, sw: {} };                                                  // 퍼즐 상태(방을 옮겨도 유지): 켠 등불
+const C = { st: 'none', x: 0, d: 0, t: 0, path: [], rep: 0, flip: false };    // 추격자(나무 머리): hidden(나무인 척) -> rise(일어남) -> chase / wait(뒤따라 들어옴)
+const CSPEED = 38, chFrames = {};
+function setupChaser() {
+  C.path = []; C.t = 0; C.rep = 0;
+  if (R.chaser && !STATE.flags.met) { C.x = R.chaser.x; C.d = R.chaser.d; C.st = 'hidden'; }
+  else if ((R.chase || R.chaser) && STATE.flags.met) { C.x = P.x; C.d = P.d; C.st = 'wait'; }
+  else C.st = 'none';
+}
+function route(ax, ad, bx, bd) {
+  if (clear(ax, ad, bx, bd)) return [[bx, bd]];
+  const a = nearestFree(...cellOf(ax, ad)), b = nearestFree(...cellOf(bx, bd)); if (!a || !b) return []; const raw = astar(a[0], a[1], b[0], b[1]); return raw ? smooth(raw).slice(1) : [];
+}
+function updChaser(dt) {
+  if (C.st === 'none') return false; C.t += dt;
+  if (C.st === 'hidden') { if (sdist(P.x, P.d, C.x, C.d) < R.chaser.radius) { C.st = 'rise'; C.t = 0; msg = { text: '…나무가, 움직인다', t: 2.4 }; } }
+  else if (C.st === 'rise') { if (C.t > 2.7) { C.st = 'chase'; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
+  else if (C.st === 'wait') { if (C.t > 2.2) C.st = 'chase'; }
+  else if (C.st === 'chase') {
+    C.rep -= dt; if (C.rep <= 0) { C.rep = .4; C.path = route(C.x, C.d, P.x, P.d); }
+    let left = CSPEED * dt * (Math.sin(C.t * 9) > .8 ? 1.7 : .85);                        // 걸음이 고르지 않다: 멈칫하다가 훅 다가온다
+    while (left > 0 && C.path.length) { const [tx, td] = C.path[0], dist = sdist(C.x, C.d, tx, td); if (Math.abs(tx - C.x + (td - C.d) / 2) > .3) C.flip = (tx - C.x) + (td - C.d) / 2 < 0; if (dist <= left) { C.x = tx; C.d = td; C.path.shift(); left -= dist; } else { const k = left / dist; C.x += (tx - C.x) * k; C.d += (td - C.d) * k; left = 0; } }
+    if (sdist(C.x, C.d, P.x, P.d) < 7) { msg = { text: '붙잡혔다…', t: 1.8 }; P.path = []; P.act = null; C.st = 'none'; pending = { to: room, spawn: R.start }; fadeDir = 1; return true; }
+  }
+  return false;
+}
+function drawChaser() {
+  if (C.st === 'none' || (C.st === 'wait' && C.t < .5)) return;
+  const [X, Y] = scr(C.x, C.d), t = C.t; let rows = 64, jx = 0, f = 'idle', flip = C.flip;
+  if (C.st === 'hidden') rows = 30;
+  else if (C.st === 'rise') { const st = Math.floor(t / .3); rows = Math.min(64, 30 + st * 4.5); jx = (t % .3) < .09 ? (st % 2 ? 2 : -2) : 0; flip = st % 3 === 2; if (rows >= 64) f = 'w' + (1 + st % 4); }
+  else if (C.st === 'chase') { const k = Math.floor(t * 6); f = 'w' + (1 + (k % 7 === 5 ? (k + 2) % 4 : k % 4)); jx = Math.sin(t * 23) > .9 ? 1 : 0; }
+  const im = chFrames[f]; if (!im) return; rows = Math.round(rows);
+  ctx.save(); ctx.translate((R.ox + X + jx) * S, (R.oy + Y + 1) * S); if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(im, 0, 0, 30, rows, -15 * S, -rows * S, 30 * S, rows * S);
+  if (C.st !== 'hidden') { ctx.fillStyle = 'rgba(10,6,16,.5)'; ctx.beginPath(); ctx.ellipse(0, 0, 9 * S, 2.4 * S, 0, 0, 6.3); ctx.fill(); }
+  ctx.restore();
+}
 function cellsOf(r, c) { const a = []; for (let j = 0; j < r.gh; j++) for (let i = 0; i < r.gw; i++) { const x = (i + .5) * CELL, d = (j + .5) * CELL; if (((x - c.x) / c.rx) ** 2 + ((d - c.d) / c.rd) ** 2 < 1) a.push(j * r.gw + i); } return a; }
 const inCrack = (c, x, d, pad = 0) => ((x - c.x) / (c.rx + pad)) ** 2 + ((d - c.d) / (c.rd + pad)) ** 2 < 1;
 function restoreCracks() { for (const c of R.cr) { if (c.st === 'broken') for (const k of c.cells) if (R.free0[k]) R.free[k] = 1; c.st = 'ok'; c.t = 0; } }
@@ -112,6 +149,7 @@ function update(dt) {
     else if (c.st === 'armed') { if (inside) { c.t += dt; if (c.t > 2.2) { for (const k of c.cells) R.free[k] = 0; c.st = 'broken'; respawn(); fadeDir = 0; return; } } else { c.st = 'breaking'; c.t = 0; } }
     else if (c.st === 'breaking') { c.t += dt; if (c.t > .35) { for (const k of c.cells) R.free[k] = 0; c.st = 'broken'; } }
   }
+  if (updChaser(dt)) return;
   if (P.act && !P.path.length) {                                               // 사물에 다가가 멈추면 조작한다: 쪽지·열쇠·책·레버·촛불
     const o = P.act; P.act = null; const pz = R.puzzle || {};
     if (sdist(P.x, P.d, o.x, o.d) < (o.reach || 18)) {
@@ -149,7 +187,7 @@ function update(dt) {
     else if (e.to) { pending = e; fadeDir = 1; } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { R = await prepare(key); room = key; P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; }
+async function enter(key, spawn) { R = await prepare(key); room = key; P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
@@ -216,9 +254,9 @@ function draw(dt) {
       else if (sp > .8) { ctx.fillStyle = '#fff'; ctx.fillRect(bx + 3 * S, by - 14 * S, S, S); }
     }
   }
-  drawChild();
-  if (R.mood === 'dark') {                                                     // 추격 구간의 꺼림칙한 분위기: 어둡게 가라앉히고, 아이 둘레만 흐릿하게 보이며, 가장자리가 맥박처럼 숨 쉰다
-    const [fx, fy] = scr(P.x, P.d), px = (R.ox + fx) * S, py = (R.oy + fy - 14) * S, t = performance.now() / 1000, br = 1 + .06 * Math.sin(t * 2.2) + (Math.sin(t * 13) > .96 ? .12 : 0);
+  if (C.d >= P.d) { drawChaser(); drawChild(); } else { drawChild(); drawChaser(); }
+  if (R.mood === 'dark' || C.st === 'rise' || C.st === 'chase' || C.st === 'wait') {                                                     // 추격 구간의 꺼림칙한 분위기: 어둡게 가라앉히고, 아이 둘레만 흐릿하게 보이며, 가장자리가 맥박처럼 숨 쉰다
+    const [fx0, fy0] = scr(P.x, P.d), rs = C.st === 'rise', [qx, qy] = rs ? scr(C.x, C.d) : [fx0, fy0], fx = (fx0 + qx) / 2, fy = (fy0 + qy) / 2, px = (R.ox + fx) * S, py = (R.oy + fy - 14) * S, t = performance.now() / 1000, br = (rs ? 1.5 : 1) * (1 + .06 * Math.sin(t * 2.2) + (Math.sin(t * 13) > .96 ? .12 : 0));
     ctx.fillStyle = 'rgba(14,10,30,.38)'; ctx.fillRect(0, 0, VW, VH);
     const g = ctx.createRadialGradient(px, py, 18 * S * br, px, py, 70 * S * br); g.addColorStop(0, 'rgba(6,2,14,0)'); g.addColorStop(.6, 'rgba(6,2,14,.55)'); g.addColorStop(1, 'rgba(4,0,10,.93)'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
     ctx.fillStyle = 'rgba(120,20,40,.05)'; ctx.fillRect(0, 0, VW, VH);
@@ -247,11 +285,12 @@ addEventListener('resize', fit); fit();
 
 (async () => {
   for (const k in G.child) frames[k] = await img(G.child[k]);
+  for (const k in (G.chaser || {})) chFrames[k] = await img(G.chaser[k]);
   const sk = (location.hash || '#snow').slice(1), st = G.starts[sk] || G.starts.snow;
   await enter(st.room, [st.x, st.d]);
   let last = performance.now();
   const loop = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; update(dt); draw(dt); requestAnimationFrame(loop); };
   requestAnimationFrame(loop);
-  window.__game = { STATE, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
+  window.__game = { STATE, C, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
 })();
 })();

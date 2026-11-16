@@ -19,7 +19,7 @@ EXITS = {
     'library': [{'zone': (46, 64, 0, 3), 'to': 'cabin_main', 'spawn': (49, 48)},
                 {'zone': (86, 102, 59, 62), 'to': 'office', 'spawn': (45, 8), 'need': 'lib_open', 'needMsg': '책장이 꿈쩍도 않는다', 'side': 'back', 'open': {'x0': 86, 'x1': 102, 'z1': 40}}],
     'office': [{'zone': (36, 54, 0, 3), 'to': 'library', 'spawn': (94, 52)},
-               {'zone': (62, 80, 53, 56), 'to': None, 'need': 'office_open', 'needMsg': '개찰구가 막혀 있다. 레버가 있는 것 같다', 'side': 'back', 'open': {'x0': 62, 'x1': 80, 'z1': 30}, 'endMsg': '개찰구 너머 — 여기서부터는 아직 만들지 않았어요'}],
+               {'zone': (62, 80, 53, 56), 'to': 'park', 'spawn': None, 'need': 'office_open', 'needMsg': '개찰구가 막혀 있다. 레버가 있는 것 같다', 'side': 'back', 'open': {'x0': 62, 'x1': 80, 'z1': 30}, 'endMsg': '개찰구 너머 — 여기서부터는 아직 만들지 않았어요'}],
 }
 OBJECTS = {
     'cabin_main': [{'id': 'cm_note', 'type': 'note', 'x': 72, 'd': 31, 'z': 12, 'h': 6, 'reach': 26, 'text': '쪽지: "열쇠는 비린내 나는 곳에 있다. 곳간의 양동이를 보라."'}],
