@@ -10,6 +10,29 @@ import render_dream as RD
 from render_city3d import Scene, dk, OUT
 
 CELL = 2
+
+def fir2(sc, x, d, h):
+    """눈 덮인 전나무(다시 그림): 5단 층, 층마다 톱니 모양 아랫단, 왼쪽(빛)은 밝은 초록·오른쪽은 어두운 초록 두 톤, 층 윗면의 눈은 불규칙한 덩어리, 줄기는 짧고 굵게."""
+    rr = random.Random(int(x * 13 + d * 7))
+    def draw():
+        bx, by = sc.P(x, d, 0); n = 5; trunk = max(4, h // 9)
+        sc.d.rectangle([bx - 2, by - trunk, bx + 1, by], fill=(86, 62, 48)); sc.d.line([(bx + 1, by - trunk), (bx + 1, by)], fill=(62, 44, 36))
+        y = by - trunk + 2; tier_h = (h - trunk) / n
+        for k in range(n):
+            w = int(3 + (n - k) * (h / 22.0) * .55 + 2); top = y - tier_h - 1; base_y = y
+            sc.d.polygon([(bx, top - 2), (bx - w, base_y), (bx, base_y - 1)], fill=(52, 98, 84)); sc.d.polygon([(bx, top - 2), (bx + w, base_y), (bx, base_y - 1)], fill=(30, 62, 58))
+            for j in range(-w, w + 1, 3):
+                jx = bx + j; c = (52, 98, 84) if j < 0 else (30, 62, 58); sc.d.polygon([(jx - 2, base_y - 1), (jx + 2, base_y - 1), (jx, base_y + 2)], fill=c)
+            sc.d.line([(bx - w + 1, base_y - 1), (bx - 1, top)], fill=(78, 130, 108))
+            for j in range(-w + 2, w - 1, 2):
+                frac = abs(j) / float(w); yy = top + 2 + (base_y - top - 4) * frac - rr.randint(0, 1)
+                if rr.random() < .8: sc.d.rectangle([bx + j - 1, yy - 1, bx + j + 1, yy + (1 if frac > .5 else 0)], fill=(250, 252, 255)); sc.d.point((bx + j + 1, yy + 1), fill=(206, 218, 240))
+            for j in range(-w + 3, w - 2, 4):
+                if rr.random() < .6: sc.d.point((bx + j, base_y + 1), fill=(226, 236, 250))
+            y = base_y - int(tier_h * .72)
+        sc.d.polygon([(bx - 1, y - 2), (bx + 1, y - 2), (bx, y - 6)], fill=(250, 252, 255))
+    sc.jobs.append((d, draw))
+RD.fir = fir2
 def seg_dist(x, d, a, b):
     ax, ad = a; bx, bd = b; dx, dd = bx - ax, bd - ad; L2 = dx * dx + dd * dd or 1
     t = max(0, min(1, ((x - ax) * dx + (d - ad) * dd) / L2)); return math.hypot(x - (ax + dx * t), d - (ad + dd * t))
@@ -74,12 +97,18 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
         if rng.random() < .5: sc.jobs.append((d, lambda x=x, d=d: sc.box(x, d, 7, 5, 4, (246, 250, 255), (176, 188, 210), (150, 162, 188))))
         else: sc.jobs.append((d, lambda x=x, d=d: [sc.box(x, d, 12, 3.5, 3, (136, 106, 88), (104, 80, 66), (82, 62, 52)), sc.box(x - .5, d - .3, 13, 4.2, 1, (246, 250, 255), (226, 234, 248), (190, 202, 226), z0=3)]))
     hbox = None
-    if hollow_end:                                                              # 속 빈 나무(샛길 끝의 쉼터)
-        ex_, ed_ = tr(hollow_end); hx, hd = ex_ - 7, ed_ + 7; hbox = (hx, hd)
+    if hollow_end:                                                              # 속 빈 큰 나무(샛길 끝의 쉼터): 굵은 줄기 + 뿌리 + 눈 덮인 가지, 속에서 따뜻한 빛
+        ex_, ed_ = tr(hollow_end); hx, hd = ex_ - 12, ed_ + 8; hbox = (hx, hd)
         def f():
-            sc.box(hx, hd, 14, 10, 36, (124, 96, 78), (100, 76, 60), (78, 58, 46)); sc.box(hx - 1, hd - 1, 16, 12, 3, (246, 250, 255), (226, 234, 248), (190, 202, 226), z0=36)
-            sc.poly([(hx + 4, hd - .1, 0), (hx + 10, hd - .1, 0), (hx + 10, hd - .1, 17), (hx + 7, hd - .1, 22), (hx + 4, hd - .1, 17)], (30, 22, 22)); sc.poly([(hx + 5, hd - .2, 0), (hx + 9, hd - .2, 0), (hx + 9, hd - .2, 9), (hx + 5, hd - .2, 9)], (236, 200, 124))
-        sc.jobs.append((hd, f)); sc.glow(hx + 7, hd - 2, 26, col=(255, 214, 140), power=.45)
+            for rx, rd, rw in ((-3, 1, 5), (22, 1, 5), (-2, 12, 4), (22, 12, 4)): sc.box(hx + rx, hd + rd, rw, 6, 3, (132, 100, 82), (104, 78, 62), (82, 60, 48))
+            sc.box(hx, hd, 22, 14, 40, (140, 108, 88), (112, 84, 68), (86, 64, 52))
+            for k in range(5): sc.poly([(hx + 3 + k * 4, hd - .1, 4), (hx + 4 + k * 4, hd - .1, 4), (hx + 4 + k * 4, hd - .1, 38), (hx + 3 + k * 4, hd - .1, 38)], (126, 96, 78))
+            sc.poly([(hx + 6, hd - .2, 0), (hx + 16, hd - .2, 0), (hx + 16, hd - .2, 22), (hx + 11, hd - .2, 30), (hx + 6, hd - .2, 22)], (30, 22, 22))
+            sc.poly([(hx + 8, hd - .3, 0), (hx + 14, hd - .3, 0), (hx + 14, hd - .3, 12), (hx + 8, hd - .3, 12)], (236, 200, 124))
+            X, Y = sc.P(hx + 11, hd + 7, 40)
+            for dx, dy, r in ((-14, 4, 11), (14, 5, 11), (0, -6, 14), (-8, 12, 10), (9, 13, 10)): sc.d.ellipse([X + dx - r, Y + dy - r * .7, X + dx + r, Y + dy + r * .7], fill=(52, 98, 84)); sc.d.ellipse([X + dx - r + 2, Y + dy - r * .7, X + dx + r - 6, Y + dy], fill=(78, 130, 108))
+            for dx, dy in ((-16, 0), (-8, -8), (0, -12), (9, -8), (16, 0), (-2, -2), (6, 2)): sc.d.rectangle([X + dx - 3, Y + dy - 2, X + dx + 3, Y + dy + 1], fill=(250, 252, 255))
+        sc.jobs.append((hd, f)); sc.glow(hx + 11, hd - 2, 34, col=(255, 214, 140), power=.5)
     for (sx, sd) in STONES:                                                     # 징검다리: 나무 그루터기(둥근 단면, 나이테)
         def stump(sx=sx, sd=sd):
             sc.box(sx - 2.2, sd - 2.2, 4.4, 4.4, 2.6, (186, 140, 96), (122, 88, 60), (96, 68, 46))
@@ -97,7 +126,7 @@ def make_section(name, lines, clears, exits, hollow_end=None, seed=1, stream=Non
         for i in range(gw):
             x, d = (i + .5) * CELL, (j + .5) * CELL
             if in_water(x, d) and not any(math.hypot(x - sx, d - sd) < 3.6 for sx, sd in STONES): continue
-            if (dist(x, d) < -4.5 or in_water(x, d)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td, _ in trees) and not (hbox and hbox[0] - 2 < x < hbox[0] + 16 and hbox[1] - 2 < d < hbox[1] + 12): mp[i, j] = 255
+            if (dist(x, d) < -4.5 or in_water(x, d)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td, _ in trees) and not (hbox and hbox[0] - 5 < x < hbox[0] + 27 and hbox[1] - 3 < d < hbox[1] + 20): mp[i, j] = 255
     nav_exits = [{'zone': (ex_ - 4, ex_ + 4, ed_ - 4, ed_ + 4), 'to': e[1], 'spawn': None, 'world_to': e[2]} for (ex_, ed_), e in zip(exit_pts, exits)]
     return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': [], 'exits': nav_exits, 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
 
