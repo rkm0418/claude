@@ -11,13 +11,14 @@ def main():
     nav = json.load(open(os.path.join(OUT, 'house_nav.json'))); rooms = {}
     for k, m in nav.items():
         m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'house_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'house_%s_depth.png' % k)).convert('RGB')); m['group'] = 'house'; rooms[k] = m
-    if os.path.exists(os.path.join(OUT, 'dream_nav.json')):                       # 꿈 구역(화면 여러 장): maps/out/area_<이름>.png
-        for k, m in json.load(open(os.path.join(OUT, 'dream_nav.json'))).items():
-            m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'area_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'area_%s_depth.png' % k)).convert('RGB')); m['walk'] = uri(Image.open(os.path.join(OUT, 'area_%s_walk.png' % k)).convert('RGB')); m['group'] = 'snow'; rooms[k] = m
+    for navf in ('dream_nav.json', 'dream_nav_lake.json'):                       # 꿈 구역(구간 여러 장): maps/out/area_<이름>.png
+        if not os.path.exists(os.path.join(OUT, navf)): continue
+        for k, m in json.load(open(os.path.join(OUT, navf))).items():
+            m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'area_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'area_%s_depth.png' % k)).convert('RGB')); m['walk'] = uri(Image.open(os.path.join(OUT, 'area_%s_walk.png' % k)).convert('RGB')); m['group'] = k.split('_')[0]; rooms[k] = m
     man = json.load(open(os.path.join(SPR, 'manifest.json'))); child = {}
     for d in man['directions']:
         for f in man['frames']: child['%s_%s' % (d, f)] = uri(Image.open(os.path.join(SPR, 'child_%s_%s.png' % (d, f))).convert('RGBA').resize(CHILD, Image.NEAREST))
     os.makedirs(WEB, exist_ok=True)
-    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'rooms': rooms, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}}}) + ';\n')
+    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'rooms': rooms, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}, 'lake': {'room': 'lake_1', 'x': rooms['lake_1']['start'][0], 'd': rooms['lake_1']['start'][1]}}}) + ';\n')
     print('web/data.js', os.path.getsize(os.path.join(WEB, 'data.js')) // 1024, 'KB')
 if __name__ == '__main__': main()
