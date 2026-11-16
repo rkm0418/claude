@@ -6,7 +6,7 @@ import os, random, sys
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import render_maps as R
-from forest_draw import leafy, trunk as tdraw, fir
+from forest_draw import leafy, trunk as tdraw, fir, canopy
 
 SK = SS = .5
 W, D, PAD, RAIL, SKY = 80, 48, 6, 26, 40
@@ -24,22 +24,28 @@ def main():
     for y in range(CH):
         t = min(1, max(0, y / (by + 1)))
         for x in range(CW): put(x, y, (int(12 + 20 * t), int(14 + 24 * t), int(34 + 40 * t)))
-    xl, xr = int(X0 + SK * D) + 6, CW - 4
-    for cx in range(xl - 4, xr + 6, 14):                                           # 먼 전나무(아주 흐림, 크게)
-        fir(put, cx + rng.randrange(-3, 4), int(by) - 4, rng.randrange(38, 50), 28, (30, 34, 70), (34, 38, 78), (40, 44, 88))
-    for cx in range(xl + 2, xr + 4, 20):                                       # 중간 전나무(조금 진함)
-        fir(put, cx + rng.randrange(-3, 4), int(by) - 1, rng.randrange(30, 40), 26, (20, 24, 52), (26, 30, 62), (34, 40, 76), (20, 18, 36))
+    xl, xr = int(X0 + SK * D) + 4, CW - 4
+    def scatter(n, hmin, hmax, wr, base_lo, base_hi, cols, trunkc=None, margin=6):
+        """원근법: 멀수록(base 가 높을수록) 작고 흐리며, 위치·높이·너비·단 수가 제각각이다."""
+        xs = sorted(rng.randrange(xl - margin, xr + margin) for _ in range(n))
+        for cx in xs:
+            base = rng.randrange(base_lo, base_hi + 1); depth = (by - base) / max(1, by - base_lo)     # 1=가장 멀다, 0=가까움
+            h = int(rng.randrange(hmin, hmax + 1) * (1 - .35 * depth)); w = int(h * rng.uniform(.5, .75))
+            fir(put, cx, base, h, w, *cols, trunkc, rng=rng, n=rng.choice((4, 5, 6)))
+    scatter(9, 22, 34, .7, int(by) - 18, int(by) - 9, ((30, 34, 70), (34, 38, 78), (40, 44, 88)))          # 먼 전나무: 작고 흐리며 높은 곳에
+    scatter(6, 30, 42, .7, int(by) - 10, int(by) - 3, ((20, 24, 52), (26, 30, 62), (34, 40, 76)), (20, 18, 36))   # 중간
     for yy in range(int(by) - 30, int(by) + 1):                            # 안개띠: 지평선 쪽이 밝아져 뒤쪽 나무가 묻힘
         for x in range(CW):
             r_, g_, b_, a_ = px[x, yy]; k = ((yy - (by - 30)) / 30) ** 1.5 * .5; px[x, yy] = (int(r_ + (52 - r_) * k), int(g_ + (58 - g_) * k), int(b_ + (104 - b_) * k), 255)
-    fir(put, CW - 36, int(by) + 2, 54, 40, (14, 28, 40), (20, 40, 54), (30, 58, 72), (30, 24, 40))     # 오른쪽 큰 전나무(앞)
+    fir(put, CW - 40, int(by) + 3, 60, 40, (14, 28, 40), (20, 40, 54), (30, 58, 72), (30, 24, 40), rng=rng, n=6)     # 앞쪽 큰 전나무(가장 크고 진함)
+    fir(put, int(X0 + SK * D) + 20, int(by) + 1, 44, 30, (14, 28, 40), (20, 40, 54), (30, 58, 72), (30, 24, 40), rng=rng, n=5)
     for _ in range(12):                                                    # 덤불(울타리 뒤)
         cx = rng.randrange(int(X0 + SK * D), CW); cy = int(by) - rng.randrange(1, 7)
         leafy(lambda x, y, c: put(x, y, c) if y < by else None, cx, cy, rng.randrange(4, 7), rng, (12, 26, 38), (20, 44, 54), (32, 66, 74))
     for cx in (CW - 6,):                                                   # 오른쪽 끝 활엽수 둥치
         tdraw(put, cx, 8, 24, int(by) + 4, (28, 24, 54), (44, 38, 80), (18, 16, 36), rng, root=12)
-    for cx, cy, r in ((CW - 4, 12, 10), (CW - 18, 6, 9), (CW - 28, 14, 7), (6, 4, 9), (20, 2, 8)):          # 위쪽 큰 잎: 양끝에만(가운데는 열려 안개가 보임)
-        leafy(put, cx, cy, r, rng, (12, 26, 38), (22, 46, 58), (36, 72, 80))
+    canopy(put, 26, 8, 46, 22, rng, (10, 22, 34), (20, 44, 56), (36, 74, 82))                        # 위 양옆 수관(참고 이미지의 참나무): 가운데는 열려 안개가 보인다
+    canopy(put, CW - 22, 10, 44, 24, rng, (10, 22, 34), (20, 44, 56), (36, 74, 82), flip=True)
     for _ in range(6):                                                     # 반딧불: 청록빛
         sx = rng.randrange(int(X0 + SK * D) + 6, CW - 16); sy = rng.randrange(24, int(top_rail) - 2)
         put(sx, sy, (170, 220, 230)); put(sx + 1, sy, (80, 120, 150))

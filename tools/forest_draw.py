@@ -25,16 +25,31 @@ def trunk(put, x0, w, y0, y1, bark, hi, shade, rng, root=0, wrap=None):
             else: c = bark
             xx = x0 + k; put(xx % wrap if wrap else xx, y, c)
 
-def fir(put, cx, base_y, h, w, dark, mid, light, trunk_c=None, rng=None):
-    """삼각형 침엽수(전나무): 5단 가지층이 계단식으로 넓어지는 삼각형. 단이 바뀔 때마다 가장자리가 안으로 들어가 톱니 모양이 된다.
-    왼쪽 면 밝게, 가운데 mid, 오른쪽 어둡게."""
-    n = 5; top = base_y - h; tr = trunk_c or dark
+def fir(put, cx, base_y, h, w, dark, mid, light, trunk_c=None, rng=None, n=5):
+    """삼각형 침엽수(전나무): n단 가지층이 계단식으로 넓어지는 삼각형. 단마다 가장자리가 들어가 톱니 모양. 왼쪽 면 밝게, 오른쪽 어둡게.
+    rng 가 있으면 단마다 좌우로 1칸 안팎 어긋나 모양이 제각각이 된다."""
+    top = base_y - h; tr = trunk_c or dark
     for y in range(int(base_y - h * .1), int(base_y) + 1):
         for x in range(cx - 1, cx + 2): put(x, y, tr)
-    body = h * .92
+    body = h * .92; off = [0] * (n + 1)
+    if rng:
+        for k in range(1, n + 1): off[k] = off[k - 1] + rng.choice((-1, 0, 0, 1)) * (1 if w > 14 else 0)
     for y in range(int(top), int(top + body) + 1):
         u = (y - top) / body * n; tier = min(n - 1, int(u)); f = u - tier
-        half = (w / 2) * (tier + .22 + .78 * f) / n
-        for x in range(int(cx - half), int(cx + half) + 1):
-            d = (x - cx) / max(1.0, half)
+        half = (w / 2) * (tier + .22 + .78 * f) / n; c0 = cx + off[tier]
+        for x in range(int(c0 - half), int(c0 + half) + 1):
+            d = (x - c0) / max(1.0, half)
             put(x, y, light if d < -.3 else dark if d > .4 else mid)
+
+def canopy(put, cx, cy, w, h, rng, dark, mid, light, flip=False):
+    """큰 활엽수 수관(참고 이미지의 참나무): 둥근 잎 덩어리를 겹쳐 쌓은 큰 덩어리. 뒤쪽 어두운 덩어리 → 가운데 → 위쪽 밝은 덩어리 순으로 그려 덩어리마다 윤곽이 보이고,
+    아래 가장자리는 물결 모양. flip 은 좌우 반대(빛이 오른쪽 위에서 옴)."""
+    def blobs(n, rmin, rmax, yscale, tone):
+        for _ in range(n):
+            bx = cx + rng.randrange(-w // 2, w // 2 + 1); by = cy + int(rng.randrange(-h // 2, h // 2 + 1) * yscale)
+            r = rng.randrange(rmin, rmax + 1)
+            d, m, l = tone
+            leafy(put, bx, by, r, rng, d, m, l if not flip else l)
+    blobs(10, 6, 10, 1.0, (dark, dark, mid))                        # 뒤: 어두운 큰 덩어리
+    blobs(12, 5, 8, .9, (dark, mid, light))                         # 가운데
+    blobs(8, 4, 6, .6, (mid, light, light))                         # 위쪽 밝은 작은 덩어리(윗면이 달빛을 받음)
