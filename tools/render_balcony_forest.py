@@ -49,8 +49,8 @@ def main():
     bx0, bx1 = int(X0 + SK * D), int(X0 + SK * D + W)
     posts = [x for x in range(bx0 + 2, bx1, 9)]
     for i, x in enumerate(posts):
-        if i in (3, 6): continue                                        # 빠진 기둥
         h = RAIL if i not in (2, 5, 7) else RAIL - rng.randrange(7, 14)    # 부러진 기둥은 짧음
+        if i in (3, 6): h = 12                                            # 기둥이 부러져도 밑동은 남아 빈틈이 없다
         for y in range(int(by - h), int(by)):
             for k in range(2): put(x + k, y, WOODL if k == 0 else WOOD)
         if h < RAIL:
@@ -60,6 +60,13 @@ def main():
         for x in range(xa, xb + 2):
             y = int(by - RAIL + 3 + (x - xa) * (1 if a == 4 else 0) // 6)
             put(x, y, WOODL); put(x, y + 1, WOOD)
+    # 빈틈 없음: 기둥 사이를 가로대가 끊김 없이 이어 막는다(처지거나 갈라질 뿐, 사람이 지나갈 틈은 없다)
+    for xx in range(bx0 + 1, bx1 + 2):
+        sag = int(2.5 * abs(((xx - bx0) % 36) / 36 - .5))                     # 구간마다 살짝 처짐
+        for yy, c in ((int(by - 4), WOOD), (int(by - 3), WOODD), (int(by - 13) + sag, WOODL), (int(by - 12) + sag, WOOD), (int(by - RAIL + 3) + sag // 2, WOODL), (int(by - RAIL + 4) + sag // 2, WOOD)):
+            put(xx, yy, c)
+    for xx in range(bx0 + 2, bx1, 3):                                         # 가로대 사이는 얇은 창살 조각으로 채움
+        for yy in range(int(by - 11), int(by - 5)): put(xx, yy, WOODD)
     # 부서진 울타리 조각(기둥 사이사이): 기울어진 기둥, 한쪽만 걸려 늘어진 가로대, 들쭉날쭉 부러진 그루터기, 쓰러져 기댄 널빤지
     def beam(x0, y0, x1, y1, th=2):                                      # 두께 th 의 나무 막대(밝은 면 + 어두운 면)
         n = int(max(abs(x1 - x0), abs(y1 - y0))) or 1
