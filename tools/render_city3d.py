@@ -63,7 +63,7 @@ class Scene:
         for z in range(10, int(h) - 4, 12): s.poly([(x, d0, z), (x, d1, z), (x, d1, z + .8), (x, d0, z + .8)], WALLD)
         for dd in range(int(d0) + 6, int(d1) - 8, 16):
             for z in range(14, int(h) - 8, 12):
-                c = WIN_W if (q := r.random()) < .25 else WIN_B if q < .33 else WIN_OFF
+                c = WIN_OFF
                 s.poly([(x, dd, z), (x, dd + 8, z), (x, dd + 8, z + 6), (x, dd, z + 6)], c)
         s.poly([(x, d0, h - 3), (x, d1, h - 3), (x, d1, h), (x, d0, h)], dk(WALL, .7))
     def wall_back(s, x0, x1, d, h, seed=2, sign=False):
@@ -72,7 +72,7 @@ class Scene:
         for z in range(10, int(h) - 4, 12): s.poly([(x0, d, z), (x1, d, z), (x1, d, z + .8), (x0, d, z + .8)], WALLD)
         for xx in range(int(x0) + 6, int(x1) - 10, 16):
             for z in range(14, int(h) - 8, 12):
-                c = WIN_W if (q := r.random()) < .25 else WIN_B if q < .33 else WIN_OFF
+                c = WIN_OFF
                 s.poly([(xx, d, z), (xx + 9, d, z), (xx + 9, d, z + 6), (xx, d, z + 6)], c)
         if sign:                                                    # 분홍 네온(정지, 깜빡임 없음)
             sx = x0 + (x1 - x0) * .62
@@ -92,10 +92,10 @@ def asphalt(x, d): return ASPH2 if (int(x * 7 + d * 3) % 11 == 0) else ASPH
 def landing():
     W, D = 150, 80; s = Scene(W, D, 70); rng = random.Random(5)
     s.floor(paving)
-    s.floor(lambda x, d: (CURBT if d < 1 else asphalt(x, d)), x0=118, x1=W)                     # 오른쪽 차도(출구)
+    s.floor(lambda x, d: (CURBT if d < 1 else asphalt(x, d)), x0=96, x1=W)                     # 오른쪽 차도(출구)
     for k in range(0, D - 8, 10):                                                                 # 횡단보도 줄
-        s.poly([(122, k + 2, 0), (W, k + 2, 0), (W, k + 7, 0), (122, k + 7, 0)], PAINT)
-    s.poly([(106, 36, 0), (112, 36, 0), (112, 33, 0), (118, 40, 0), (112, 47, 0), (112, 44, 0), (106, 44, 0)], (150, 150, 138))  # 출구 화살표(바닥)
+        s.poly([(100, k + 2, 0), (W, k + 2, 0), (W, k + 7, 0), (100, k + 2 + 5, 0)], PAINT)
+    s.poly([(82, 36, 0), (88, 36, 0), (88, 33, 0), (94, 40, 0), (88, 47, 0), (88, 44, 0), (82, 44, 0)], (150, 150, 138))  # 출구 화살표(바닥)
     s.glow(30, 30, 70, power=.35); s.glow(100, 40, 44, power=.5)
     s.wall_back(0, W, D, 60, sign=True); s.wall_left(0, D, 60)
     s.lamp(100, 56, 44, -1); s.lamp(132, 18, 44, -1)
@@ -125,26 +125,26 @@ def landing():
 
 # ---------------- 장면 2: 긴 거리 ----------------
 def street():
-    W, D = 96, 360; s = Scene(W, D, 80); rng = random.Random(9)
-    s.floor(paving, x0=0, x1=28, z=3); s.floor(paving, x0=68, x1=W, z=3)                          # 인도(연석만큼 높음)
-    s.floor(asphalt, x0=28, x1=68)
-    s.poly([(28, 0, 0), (28, 0, 3), (28, D, 3), (28, D, 0)], CURBF); s.poly([(68, 0, 0), (68, 0, 3), (68, D, 3), (68, D, 0)], CURBR)
+    W, D = 112, 360; s = Scene(W, D, 80); rng = random.Random(9)
+    s.floor(paving, x0=0, x1=28, z=3); s.floor(paving, x0=84, x1=W, z=3)                          # 인도(연석만큼 높음)
+    s.floor(asphalt, x0=28, x1=84)
+    s.poly([(28, 0, 0), (28, 0, 3), (28, D, 3), (28, D, 0)], CURBF); s.poly([(84, 0, 0), (84, 0, 3), (84, D, 3), (84, D, 0)], CURBR)
     # 도로 표시: 가운데의 큰 직사각형 네 개(맨 위 하나는 비스듬히)
     quads = [(120, 38), (190, 40), (250, 36), (304, 42)]
     for i, (d, ln) in enumerate(quads):
         sk = 5 if i == 0 else 0
-        s.poly([(44 + sk, d, 0), (52 + sk, d, 0), (52, d + ln, 0), (44, d + ln, 0)] if i == 0 else [(44, d, 0), (52, d, 0), (52, d + ln, 0), (44, d + ln, 0)], PAINT)
-    for k in range(10, 360, 24): s.poly([(31, k, 0), (32.5, k, 0), (32.5, k + 8, 0), (31, k + 8, 0)], (150, 150, 130)); s.poly([(63.5, k, 0), (65, k, 0), (65, k + 8, 0), (63.5, k + 8, 0)], (150, 150, 130))
-    for k in range(0, 40, 8): s.poly([(30, 4 + k, 0), (66, 4 + k, 0), (66, 8 + k, 0), (30, 8 + k, 0)], PAINT)   # 아래쪽 횡단보도(광장 쪽)
+        s.poly([(51 + sk, d, 0), (61 + sk, d, 0), (61, d + ln, 0), (51, d + ln, 0)] if i == 0 else [(51, d, 0), (61, d, 0), (61, d + ln, 0), (51, d + ln, 0)], PAINT)
+    for k in range(10, 360, 24): s.poly([(31, k, 0), (32.5, k, 0), (32.5, k + 8, 0), (31, k + 8, 0)], (150, 150, 130)); s.poly([(79.5, k, 0), (81, k, 0), (81, k + 8, 0), (79.5, k + 8, 0)], (150, 150, 130))
+    for k in range(0, 40, 8): s.poly([(30, 4 + k, 0), (82, 4 + k, 0), (82, 8 + k, 0), (30, 8 + k, 0)], PAINT)   # 아래쪽 횡단보도(광장 쪽)
     for ld in (70, 160, 250, 330): s.glow(26 if ld % 160 else 70, ld, 40, power=.5)
     s.wall_left(0, D, 68, seed=4); s.wall_back(0, W, D, 56, seed=6)
-    for i, (x, d, side) in enumerate([(24, 70, 1), (72, 130, -1), (24, 220, 1), (72, 290, -1), (24, 340, 1)]): s.lamp(x, d, 46, side)
-    s.glow(72, 130, 40, power=.5); s.glow(72, 290, 40, power=.5)
+    for i, (x, d, side) in enumerate([(24, 70, 1), (88, 130, -1), (24, 220, 1), (88, 290, -1), (24, 340, 1)]): s.lamp(x, d, 46, side)
+    s.glow(88, 130, 40, power=.5); s.glow(88, 290, 40, power=.5)
     s.box(10, 100, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(10, 102, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(10, 114, 3, 2, 4, POLE, POLE, POLE, z0=3)
-    s.box(80, 190, 8, 8, 10, (60, 64, 88), (50, 54, 78), (40, 44, 66), z0=3)                      # 쓰레기통
+    s.box(96, 190, 8, 8, 10, (60, 64, 88), (50, 54, 78), (40, 44, 66), z0=3)                      # 쓰레기통
     s.box(14, 270, 5, 5, 9, (70, 70, 96), (96, 40, 40), (70, 30, 30), z0=3)                       # 소화전
     for d in range(30, 360, 60):                                                                   # 오른쪽 가장자리 난간(잘린 단면 쪽)
-        s.box(92, d, 2, 2, 12, POLE, POLE, POLE, z0=3)
+        s.box(108, d, 2, 2, 12, POLE, POLE, POLE, z0=3)
     s.run(); return s.save('city3d_street')
 
 def main():
