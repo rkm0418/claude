@@ -60,7 +60,7 @@ def build():
     def ground(x, d):
         c = 78 + int(noise(x, d) * 14); n = noise(x, d, 3)
         grass = (c + 40, c + 22, 40) if n < .55 else (c + 66, c + 28, 30) if n < .8 else (c + 20, c + 10, 34)
-        px = 56 + 8 * math.sin(d / 16.0) + 3 * math.sin(d / 7.0)
+        k = max(0.0, 1 - d / 40.0); px = 56 + 8 * math.sin(d / 16.0) + 3 * math.sin(d / 7.0) - 34 * k * k
         a = abs(x - px)
         if a < 11: return (150 + int(noise(x, d, 1) * 18), 106 + int(noise(x, d, 2) * 14), 70)
         if a < 13: return (122, 90, 56)
@@ -107,8 +107,22 @@ def build():
         sc.jobs.append((d, f))
     house(14, D - 34, 40, 22, 16)
     # 나무: 단풍(주황·빨강)·은행(노랑)·감나무
-    for x, d, h, k, sp in ((10, 18, 44, 'orange', 11), (30, 10, 30, 'gold', 8), (6, 62, 50, 'red', 12), (94, 38, 38, 'orange', 10), (97, 12, 48, 'gold', 12), (101, 70, 42, 'red', 10), (104, 98, 34, 'orange', 9)):
+    for x, d, h, k, sp in ((6, 62, 50, 'red', 12), (94, 38, 38, 'orange', 10), (97, 12, 48, 'gold', 12), (101, 70, 42, 'red', 10), (104, 98, 34, 'orange', 9)):
         tree(sc, x, d, h, k, rng, sp)
+    # 터널 출구(약간만 보임): 왼쪽 앞 구석, 풀이 덮인 언덕 속 콘크리트 아치. 오른쪽 면에 아치 입구, 흙길이 거기서 시작한다
+    def portal():
+        x0, x1, d0, d1, h = 4, 22, 2, 38, 28
+        sc.box(x0, d0, x1 - x0, d1 - d0, h, (86, 96, 58), (120, 118, 108), (98, 98, 90))                      # 언덕(윗면 풀색) + 콘크리트 벽
+        mask = Image.new('L', sc.img.size, 0); cx, hw = (d0 + d1) / 2, 11
+        pts = [(x1, cx - hw, 0)] + [(x1, cx - hw * math.cos(math.pi * k / 20), 12 + 9 * math.sin(math.pi * k / 20)) for k in range(21)] + [(x1, cx + hw, 0)]
+        ImageDraw.Draw(mask).polygon([sc.P(*q) for q in pts], fill=255)
+        lay = sc.img.copy(); ld = ImageDraw.Draw(lay)
+        ld.polygon([sc.P(x1, d0, 0), sc.P(x1, d1, 0), sc.P(x1, d1, h), sc.P(x1, d0, h)], fill=(18, 20, 34))
+        ld.polygon([sc.P(x1 - 14, cx - hw, 0), sc.P(x1, cx - hw, 0), sc.P(x1, cx + hw, 0), sc.P(x1 - 14, cx + hw, 0)], fill=(30, 34, 56))   # 안쪽 바닥(차가운 푸른 기운)
+        sc.img.paste(lay, (0, 0), mask); sc.px = sc.img.load(); sc.d = ImageDraw.Draw(sc.img)
+        for k in range(21):                                                                                          # 아치 테두리(밝은 콘크리트)
+            a = sc.P(x1, cx - hw * math.cos(math.pi * k / 20), 12 + 9 * math.sin(math.pi * k / 20)); sc.d.rectangle([a[0], a[1] - 2, a[0] + 1, a[1]], fill=(150, 148, 138))
+    sc.jobs.append((20, portal))
     sc.run()
     # 감나무의 감(주황 점)과 떨어지는 낙엽(공중)
     for _ in range(36):

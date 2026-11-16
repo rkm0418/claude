@@ -132,7 +132,11 @@ def alley_right(s, d0, d1, x0=176, ln=36):
 def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
     """거리 맨 위 끝 벽(정면을 향한 면)의 왼쪽 끝에 뚫린 어두운 골목. 정면이라 안쪽(바닥·먼 벽·배관·문)이 보인다."""
     D = s.D; mask = Image.new('L', s.img.size, 0)
-    ImageDraw.Draw(mask).polygon([s.P(x0, D, z), s.P(x1, D, z), s.P(x1, D, h), s.P(x0, D, h)], fill=255)
+    if road:                                                                                             # 터널 입구는 위가 둥근 아치로 깎는다
+        cx, hw, base, rise = (x0 + x1) / 2, (x1 - x0) / 2, h - 18, 18
+        pts = [(x0, D, z)] + [(cx - hw * math.cos(math.pi * k / 24), D, base + rise * math.sin(math.pi * k / 24)) for k in range(0, 25)] + [(x1, D, z)]
+    else: pts = [(x0, D, z), (x1, D, z), (x1, D, h), (x0, D, h)]
+    ImageDraw.Draw(mask).polygon([s.P(*q) for q in pts], fill=255)
     lay = s.img.copy(); ld = ImageDraw.Draw(lay)
     def poly(pts, col): ld.polygon([s.P(*q) for q in pts], fill=col)
     poly([(x0, D, z), (x1, D, z), (x1, D + depth, z), (x0, D + depth, z)], (20, 22, 40))                 # 바닥
@@ -142,7 +146,10 @@ def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
         poly([(x0, D + depth, z), (x1, D + depth, z), (x1, D + depth, h), (x0, D + depth, h)], (20, 24, 48))
         for x in (87, 89): poly([(x, D, z), (x + 1, D, z), (x + 1, D + depth * .6, z), (x, D + depth * .6, z)], (130, 112, 60))
         for k in range(0, 12): poly([(x0, D + k * depth / 12, z), (x1, D + k * depth / 12, z), (x1, D + (k + 1) * depth / 12, z), (x0, D + (k + 1) * depth / 12, z)], (int(26 - k * 1.8), int(28 - k * 1.8), int(44 - k * 2.5)))
-        s.img.paste(lay, (0, 0), mask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img); return
+        s.img.paste(lay, (0, 0), mask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
+        for q in pts[1:-1]:                                                                                  # 아치 테두리(밝은 콘크리트 띠)
+            a = s.P(*q); s.d.rectangle([a[0], a[1] - 3, a[0] + 1, a[1]], fill=(74, 80, 112))
+        return
     for xx in (x0 + 4, x0 + 7): poly([(xx, D + depth, z), (xx + 1.5, D + depth, z), (xx + 1.5, D + depth, h), (xx, D + depth, h)], (34, 38, 60))   # 배관
     poly([(x0 + 14, D + depth, z), (x0 + 23, D + depth, z), (x0 + 23, D + depth, z + 24), (x0 + 14, D + depth, z + 24)], (22, 20, 34))           # 막다른 문
     poly([(x0 + 18, D + depth, z + 26), (x0 + 20, D + depth, z + 26), (x0 + 20, D + depth, z + 28), (x0 + 18, D + depth, z + 28)], (58, 54, 46))  # 꺼진 전구
