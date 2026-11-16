@@ -14,8 +14,12 @@ CW, CH = int(PAD * 2 + W + SK * D), int(PAD * 2 + SKY + RAIL + SS * D)
 X0, Y0 = PAD, CH - PAD
 WOOD, WOODL, WOODD = (70, 58, 92), (100, 86, 128), (40, 32, 58)
 
-def main():
-    lib = R.load_library(); rng = random.Random(5); fr = random.Random(33)
+_LIB = None
+def scene(actors=None, flick=0):
+    """숲 베란다 한 장(RGBA 116x102). actors(img, 'behind'|'front') 로 울타리 뒤/바닥 위에 배우를 그린다(컷신용). flick: 횃불 흔들림 프레임(0|1)."""
+    global _LIB
+    if _LIB is None: _LIB = R.load_library()
+    lib = _LIB; rng = random.Random(5); fr = random.Random(33)
     img = Image.new('RGBA', (CW, CH), (0, 0, 0, 255)); px = img.load()
     def put(x, y, c):
         if 0 <= x < CW and 0 <= y < CH: px[int(x), int(y)] = c + (255,) if len(c) == 3 else c
@@ -45,6 +49,7 @@ def main():
     for _ in range(6):                                                     # 반딧불: 청록빛
         sx = rng.randrange(int(X0 + SK * D) + 6, CW - 16); sy = rng.randrange(24, int(top_rail) - 2)
         put(sx, sy, (170, 220, 230)); put(sx + 1, sy, (80, 120, 150))
+    if actors: actors(img, 'behind')
     # 뒤쪽 울타리: 부러진 나무 기둥(높이 제각각, 일부는 사라짐), 기울어진 가로대
     bx0, bx1 = int(X0 + SK * D), int(X0 + SK * D + W)
     posts = [x for x in range(bx0 + 2, bx1, 9)]
@@ -170,18 +175,23 @@ def main():
     def put_sprite(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
     pass   # 바닥 위 나무 물건(부서진 의자·탁자·널빤지)은 두지 않는다
+    if actors: actors(img, 'front')
     wd, wz = 22, 22                                                   # 벽 횃불: 왼쪽 벽(깊이 22칸), 바닥에서 22칸 위
-    tspr = lib['torch_wall']; img.alpha_composite(tspr, (int(X0 + SK * wd - 4), int(Y0 - SS * wd - wz - 14)))
+    tspr = lib['torch_wall_b' if flick else 'torch_wall']; img.alpha_composite(tspr, (int(X0 + SK * wd - 4), int(Y0 - SS * wd - wz - 14)))
     tx, ty = int(X0 + SK * wd + 1), int(Y0 - SS * wd - wz - 8)          # 횃불 불꽃 위치
     for Y in range(max(0, ty - 34), min(CH, ty + 34)):
         for X in range(max(0, tx - 34), min(CW, tx + 34)):
             dd = ((X - tx) ** 2 + (Y - ty) ** 2) ** .5
             if dd < 34:
-                f = (1 - dd / 34) ** 1.6 * .55; r_, g_, b_, a_ = px[X, Y]; px[X, Y] = (int(r_ + (240 - r_) * f), int(g_ + (150 - g_) * f), int(b_ + (70 - b_) * f), a_)
+                f = (1 - dd / 34) ** 1.6 * (.55 if not flick else .48); r_, g_, b_, a_ = px[X, Y]; px[X, Y] = (int(r_ + (240 - r_) * f), int(g_ + (150 - g_) * f), int(b_ + (70 - b_) * f), a_)
     # 색조(차갑고 푸른 숲 빛)
     for Y in range(CH):
         for X in range(CW):
             r, g, b, a = px[X, Y]; px[X, Y] = (int(r * .95), int(g * .95), int(min(255, b * 1.05)), a)
+    return img
+
+def main():
+    img = scene()
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'maps', 'out', '4_balcony_forest.png')
     img.save(out); img.resize((CW * 2, CH * 2), Image.NEAREST).save(out.replace('.png', '_x2.png')); img.resize((CW * 5, CH * 5), Image.NEAREST).save(out.replace('.png', '_x5.png')); print(out, CW, CH)
 
