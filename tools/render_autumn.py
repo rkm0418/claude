@@ -57,15 +57,16 @@ def build():
         pts = [(0, 0, 0)] + [(0, dd, base - 4 + amp * (.5 + .5 * math.sin(dd / 30 + ph))) for dd in range(0, D + 1, 4)] + [(0, D, 0)]
         sc.poly(pts, col)
     # 땅: 가을 풀밭 + 구불구불한 흙길
+    pxm = lambda d: 56 + 8 * math.sin(d / 16.0) + 3 * math.sin(d / 7.0)
+    P0, P3 = (22.0, 20.0), (pxm(48), 48.0); P1, P2 = (P0[0] + 26, 20.0), (P3[0], 26.0)               # 터널 입구에서 시작해 부드럽게 위쪽 길과 이어지는 곡선
+    bez = [tuple((1 - u) ** 3 * P0[i] + 3 * (1 - u) ** 2 * u * P1[i] + 3 * (1 - u) * u * u * P2[i] + u ** 3 * P3[i] for i in (0, 1)) for u in [k / 60.0 for k in range(61)]]
     def ground(x, d):
         c = 78 + int(noise(x, d) * 14); n = noise(x, d, 3)
         grass = (c + 40, c + 22, 40) if n < .55 else (c + 66, c + 28, 30) if n < .8 else (c + 20, c + 10, 34)
-        px = 56 + 8 * math.sin(d / 16.0) + 3 * math.sin(d / 7.0)
-        if 22 <= x < 62 and abs(d - 20) < 6.5 + (0 if x < 50 else (x - 50) * .6): return (150 + int(noise(x, d, 1) * 18), 106 + int(noise(x, d, 2) * 14), 70)   # 터널 입구에서 곧장 뻗는 길
-        if d < 14: return grass
-        a = abs(x - px)
-        if a < 11: return (150 + int(noise(x, d, 1) * 18), 106 + int(noise(x, d, 2) * 14), 70)
-        if a < 13: return (122, 90, 56)
+        a = min(math.hypot(x - bx, d - bd) for bx, bd in bez)
+        if d >= 48: a = abs(x - pxm(d))
+        if a < 7.5 + 2.5 * min(1.0, d / 40.0): return (150 + int(noise(x, d, 1) * 18), 106 + int(noise(x, d, 2) * 14), 70)
+        if a < 9.5 + 2.5 * min(1.0, d / 40.0): return (122, 90, 56)
         return grass
     sc.floor(ground)
     # 단면(앞·오른쪽) 흙 두께
@@ -109,7 +110,7 @@ def build():
         sc.jobs.append((d, f))
     house(14, D - 34, 40, 22, 16)
     # 나무: 단풍(주황·빨강)·은행(노랑)·감나무
-    for x, d, h, k, sp in ((6, 62, 50, 'red', 12), (94, 38, 38, 'orange', 10), (97, 12, 48, 'gold', 12), (101, 70, 42, 'red', 10), (104, 98, 34, 'orange', 9)):
+    for x, d, h, k, sp in ((27, 33, 36, 'red', 10), (94, 38, 38, 'orange', 10), (97, 12, 48, 'gold', 12), (101, 70, 42, 'red', 10), (104, 98, 34, 'orange', 9)):
         tree(sc, x, d, h, k, rng, sp)
     # 터널 출구(약간만 보임): 왼쪽 앞 구석, 풀이 덮인 언덕 속 콘크리트 아치. 오른쪽 면에 아치 입구, 흙길이 거기서 시작한다
     def portal():
