@@ -2,7 +2,7 @@ title: 2장 - 아이 방 (어둑어둑한 숲 버전, 수미상관 마지막 장
 tone: 185 195 255
 ambient: 0.34
 left_wall: forest
-left_add: hollow@0.3^0 drawing@2.2^20
+left_add: hollow@0.3^0 vine_hang@2.4^14
 legend:
 # void
 t wall_top_forest_a
@@ -13,8 +13,8 @@ x wall_forest_b
 y wall_forest_c
 b wall_base_forest_a
 c wall_base_forest_b
-K wall_forest_a clock^3
-H wall_forest_b shelf_toy^3
+K wall_forest_a bracket_fungus^3
+H wall_forest_b vine_hang^8
 . floor_forest
 S floor_forest stump_lamp
 E floor_forest fallen_log

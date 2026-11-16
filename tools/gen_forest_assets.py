@@ -169,3 +169,20 @@ def plank():
     put(im, 13, 1, (0, 0, 0, 0)[:3]) if False else None
     return im
 for name, im in (('broken_chair', broken_chair()), ('broken_table', broken_table()), ('plank_piece', plank())): save(im, name)
+
+# ---- 벽 장식(곰돌이·시계·그림 대신): 나무에 붙은 버섯, 늘어진 덩굴 ----
+def bracket_fungus():
+    im = new(12, 8)
+    for k, (cx, cy, rw) in enumerate(((4, 5, 5), (8, 2, 4))):
+        for dx in range(-rw, rw + 1):
+            for dy in range(0, 3 if abs(dx) < rw - 1 else 2):
+                put(im, cx + dx, cy + dy, (96, 104, 150) if dy == 0 else (60, 66, 108))
+        put(im, cx - rw + 1, cy, (160, 176, 220))
+    return im
+def vine():
+    im = new(8, 16)
+    for y in range(16):
+        put(im, 3 + (y // 6) % 2, y, C['leaf']); put(im, 4 + (y // 6) % 2, y, C['moss'])
+        if y % 5 == 2: put(im, 2 + (y // 5) % 3, y, C['leafl']); put(im, 6 - (y // 5) % 3, y + 1, C['leaf'])
+    return im
+save(bracket_fungus(), 'bracket_fungus'); save(vine(), 'vine_hang')
