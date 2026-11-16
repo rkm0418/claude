@@ -54,7 +54,8 @@ def build():
     for layer, (col, base, amp, ph) in enumerate(((  (190, 130, 100), 22, 14, 0), ((164, 104, 84), 14, 12, 2), ((132, 84, 70), 6, 10, 4))):   # 먼 산 능선 3겹
         pts = [(0, D, 0)] + [(x, D, base + amp * (.5 + .5 * math.sin(x / 26 + ph) * math.cos(x / 61 + ph))) for x in range(0, W + 1, 4)] + [(W, D, 0)]
         sc.poly(pts, col)
-        pts = [(0, 0, 0)] + [(0, dd, base - 4 + amp * (.5 + .5 * math.sin(dd / 30 + ph))) for dd in range(0, D + 1, 4)] + [(0, D, 0)]
+        rid = lambda u: base + amp * (.5 + .5 * math.sin(u / 26 + ph) * math.cos(u / 61 + ph))                 # 뒤 평면 능선식을 왼쪽 평면으로 그대로 이어 편다(꺾이는 모서리에서 끊김 없음)
+        pts = [(0, 0, 0)] + [(0, dd, rid(-(D - dd))) for dd in range(0, D + 1, 2)] + [(0, D, 0)]
         sc.poly(pts, col)
     # 땅: 가을 풀밭 + 구불구불한 흙길
     pxm = lambda d: 56 + 8 * math.sin(d / 16.0) + 3 * math.sin(d / 7.0)
