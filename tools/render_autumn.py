@@ -25,7 +25,7 @@ FALL = {'red': ((120, 40, 30), (176, 66, 40), (222, 110, 56), (240, 160, 80)),
 
 def tree(sc, x, d, h, kind, rng, spread=14):
     def draw():
-        b = sc.P(x, d, 0); t = sc.P(x, d, h * .55); pxs = sc.px
+        b = sc.P(x, d, 0); t = (sc.P(x, d, 0)[0], sc.P(x, d, h)[1] + 8); pxs = sc.px     # 줄기는 잎덩어리 속까지 올라가 가려진다
         for yy in range(b[1] - 3, b[1] + 4):                                                                  # 땅에 드리운 그늘: 풀 질감은 두고 어둡게만 한다
             for xx in range(b[0] - 11, b[0] + 12):
                 if ((xx - b[0]) / 11.0) ** 2 + ((yy - b[1]) / 3.5) ** 2 < 1: r_, g_, b_ = pxs[xx, yy]; pxs[xx, yy] = (int(r_ * .72), int(g_ * .72), int(b_ * .75))
