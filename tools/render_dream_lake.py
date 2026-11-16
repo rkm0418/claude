@@ -71,7 +71,13 @@ def section(name, lines, clears, exits, seed, last=False):
         if last: lantern(sc, cx + 14, cd - 6)
     for _ in range(40): X, Y = rng.randrange(6, sc.CW - 6), rng.randrange(6, sc.CH - 6); (sc.px[X, Y] != RD.MARGIN) and sc.d.point((X, Y), fill=(255, 255, 255))
     exit_pts = [tr(e[0]) for e in exits]
-    for (ex_, ed_) in exit_pts: sc.glow(ex_, ed_, 20, col=(255, 255, 255), power=.35)
+    for (ex_, ed_) in exit_pts:                                                  # 구간 이음새 = 얼음에 뚫린 맨홀: 쇠 테두리, 어두운 구멍, 옆에 비스듬히 놓인 쇠뚜껑, 올라오는 김
+        X, Y = sc.P(ex_, ed_, 0)
+        sc.d.ellipse([X - 8, Y - 4, X + 8, Y + 4], fill=(86, 94, 112)); sc.d.ellipse([X - 7, Y - 3, X + 7, Y + 3], fill=(124, 134, 154)); sc.d.ellipse([X - 5, Y - 3, X + 5, Y + 2], fill=(12, 14, 26))
+        sc.d.ellipse([X - 3, Y - 1, X + 3, Y + 2], fill=(46, 36, 34)); sc.d.rectangle([X - 1, Y, X + 1, Y + 1], fill=(236, 190, 120))                    # 안쪽 따뜻한 빛
+        sc.d.ellipse([X + 8, Y + 1, X + 16, Y + 5], fill=(96, 104, 122)); sc.d.ellipse([X + 9, Y, X + 15, Y + 3], fill=(134, 144, 164)); sc.d.line([(X + 9, Y + 2), (X + 15, Y + 2)], fill=(96, 104, 122))   # 뚜껑
+        for k, (dx, dy) in enumerate(((0, -6), (1, -9), (-1, -12), (0, -15))): sc.d.rectangle([X + dx - 1, Y + dy, X + dx + 1, Y + dy + 1], fill=(236, 244, 255) if k < 3 else (206, 218, 238))   # 김
+        sc.glow(ex_, ed_, 16, col=(255, 214, 140), power=.3)
     dep = Image.new('L', sc.img.size, 255)
     for depth, f in sorted(sc.jobs, key=lambda j: -j[0]):
         before = sc.img.copy(); f(); diff = ImageChops.difference(sc.img, before).convert('L').point(lambda v: 255 if v else 0)
@@ -80,8 +86,8 @@ def section(name, lines, clears, exits, seed, last=False):
     for j in range(gh):
         for i in range(gw):
             x, d = (i + .5) * CELL, (j + .5) * CELL
-            if dist(x, d) < -4.5 and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td in trees): mp[i, j] = 255
-    nav_exits = [{'zone': (ex_ - 4, ex_ + 4, ed_ - 4, ed_ + 4), 'to': e[1], 'spawn': None, 'world_to': e[2]} for (ex_, ed_), e in zip(exit_pts, exits)]
+            if (dist(x, d) < -4.5 or any(math.hypot(x - ex_, d - ed_) < 7 for ex_, ed_ in exit_pts)) and not any(abs(x - tx) < 4 and abs(d - td) < 3.5 for tx, td in trees): mp[i, j] = 255
+    nav_exits = [{'zone': (ex_ - 5, ex_ + 5, ed_ - 5, ed_ + 5), 'to': e[1], 'spawn': None, 'world_to': e[2]} for (ex_, ed_), e in zip(exit_pts, exits)]
     return sc.img, dep, mask, {'W': Wd, 'D': Dd, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': sc.CW, 'CH': sc.CH, 'rects': [], 'exits': nav_exits, 'start': tr(lines[0][min(3, len(lines[0]) - 1)]), 'origin': (x0, d0)}
 
 def main():
