@@ -25,26 +25,23 @@ flip = lambda im: im.transpose(Image.FLIP_LEFT_RIGHT)
 def side(leg_near=0, leg_far=0, arm=0, lift=None):
     """leg_*: 발이 앞(+)/뒤(-)로 나간 칸 수. arm: 가까운 팔 손의 앞뒤 위치. lift: 'near'|'far' 이면 그 발을 2칸 든다(지나가는 자세)."""
     im = Image.new('RGBA', (24, 38 + PAD), CLEAR); px = im.load(); f = FRONT['idle'].load()
-    for y in range(PAD, PAD + 20):                              # 머리: 정면과 같은 둥근 윤곽에 머리카락을 채운다
-        for x in range(24):
-            p = f[x, y]
-            if not p[3]: continue
-            px[x, y] = A if p == A else (HL if p == HL and x < 12 else HAIR)
-    # 옆얼굴: 뒤통수·윗머리는 머리카락, 앞쪽 아래는 얼굴(이마는 앞머리가 덮고, 코가 한 칸 나오고, 턱은 둥글게 들어간다)
-    R = {9: 20, 10: 20, 11: 20, 12: 20, 13: 20, 14: 21, 15: 20, 16: 20, 17: 19, 18: 18, 19: 16}      # 줄마다 얼굴의 오른쪽 끝
-    for yy in range(8, 20):
-        for x in range(12, 24): px[x, PAD + yy] = CLEAR if x > R.get(yy, 20) + 1 else px[x, PAD + yy]
-    for yy, r in R.items():
-        for x in range(12, r + 1): px[x, PAD + yy] = SKIN
-        px[r + 1, PAD + yy] = A
-        if yy >= 15: px[12, PAD + yy] = SKIN2                    # 귀 밑·턱선 그늘
-    for x in range(12, R[19] + 2): px[x, PAD + 20] = A           # 턱 밑 윤곽
-    px[R[9] + 1, PAD + 8] = A
-    for x, yy in ((12, 9), (13, 9), (14, 9), (15, 9), (16, 9), (17, 9), (18, 9), (12, 10), (13, 10), (14, 10), (16, 10)): px[x, PAD + yy] = HAIR   # 짧게 올라간 앞머리(이마가 보인다)
-    for x, yy in ((12, 11), (13, 11), (12, 12), (13, 12), (12, 13), (13, 13), (12, 14)): px[x, PAD + yy] = HAIR                                   # 귀 앞으로 가늘어지며 내려오는 구레나룻
-    px[13, PAD + 14] = HL
-    px[14, PAD + 13] = SKIN2; px[14, PAD + 14] = SKIN2; px[13, PAD + 15] = SKIN2     # 귀
-    px[18, PAD + 13] = A; px[18, PAD + 12] = A                                       # 눈(앞머리를 올렸으므로 보인다)
+    # 옆머리(사용자 참고 사진): 헬멧처럼 덮지 않는다. 윗머리는 볼륨, 앞머리는 이마로 흘러내린 가닥, 귀가 보이고 귀 앞에 뾰족한 구레나룻,
+    # 뒷머리는 목덜미로 짧게 좁아진다. 눈은 그리지 않는다.
+    HAIRR = {0: [(8, 17)], 1: [(6, 19)], 2: [(5, 20)], 3: [(4, 21)], 4: [(4, 21)], 5: [(3, 21)], 6: [(3, 22)], 7: [(3, 22)], 8: [(3, 21)],
+             9: [(4, 15), (17, 18), (20, 20)], 10: [(4, 9), (12, 13), (15, 15), (18, 18)], 11: [(5, 9), (12, 13)], 12: [(6, 9), (12, 12)], 13: [(7, 9)], 14: [(8, 9)]}
+    SKINR = {9: (16, 20), 10: (10, 20), 11: (10, 20), 12: (10, 21), 13: (10, 20), 14: (10, 20), 15: (9, 19), 16: (10, 18), 17: (10, 16), 18: (10, 14), 19: (10, 14)}
+    for yy, (x0, x1) in SKINR.items():
+        for x in range(x0, x1 + 1): px[x, PAD + yy] = SKIN
+    for yy, runs in HAIRR.items():
+        for x0, x1 in runs:
+            for x in range(x0, x1 + 1): px[x, PAD + yy] = HAIR
+    for x, yy in ((8, 2), (9, 2), (7, 3), (12, 3), (13, 4), (14, 5), (16, 6), (17, 7), (10, 5), (11, 6), (6, 6), (6, 9), (7, 11)): px[x, PAD + yy] = HL      # 머릿결(뒤에서 앞으로 흐름)
+    for x, yy in ((10, 10), (10, 11), (11, 12), (14, 10), (16, 10), (17, 10), (10, 16), (10, 18), (10, 19), (11, 17), (9, 15)): px[x, PAD + yy] = SKIN2     # 귀 안쪽, 앞머리 그늘, 턱선, 목 그늘
+    px[19, PAD + 15] = SKIN2                                                                                                                  # 입
+    for yy in range(-1, 20):                                    # 윤곽선: 채운 화소에 맞닿은 빈 화소
+        for x in range(1, 23):
+            if px[x, PAD + yy][3] == 0 and any(0 <= PAD + yy + dy < im.height and px[x + dx, PAD + yy + dy][3] and px[x + dx, PAD + yy + dy] != A for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)) if PAD + yy + dy >= 0):
+                px[x, PAD + yy] = A
     def leg(off, far, up=0):
         for yy in range(29, 37 - up):
             x0 = 9 + round(off * (yy - 29) / 7)
