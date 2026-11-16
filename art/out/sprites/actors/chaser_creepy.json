@@ -183,6 +183,120 @@
     "frame": "cr8",
     "ms": 300
    }
+  ],
+  "ooze": [
+   {
+    "frame": "ooze1",
+    "ms": 500
+   },
+   {
+    "frame": "ooze2",
+    "ms": 220
+   },
+   {
+    "frame": "ooze3",
+    "ms": 220
+   },
+   {
+    "frame": "ooze4",
+    "ms": 300
+   },
+   {
+    "frame": "ooze5",
+    "ms": 60
+   },
+   {
+    "frame": "ooze6",
+    "ms": 90
+   },
+   {
+    "frame": "ooze7",
+    "ms": 200
+   },
+   {
+    "frame": "ooze8",
+    "ms": 110
+   },
+   {
+    "frame": "ooze9",
+    "ms": 110
+   },
+   {
+    "frame": "ooze10",
+    "ms": 110
+   },
+   {
+    "frame": "ooze11",
+    "ms": 110
+   },
+   {
+    "frame": "ooze12",
+    "ms": 110
+   },
+   {
+    "frame": "ooze13",
+    "ms": 110
+   },
+   {
+    "frame": "ooze14",
+    "ms": 110
+   },
+   {
+    "frame": "ooze15",
+    "ms": 110
+   },
+   {
+    "frame": "ooze16",
+    "ms": 110
+   },
+   {
+    "frame": "ooze17",
+    "ms": 110
+   },
+   {
+    "frame": "ooze18",
+    "ms": 110
+   },
+   {
+    "frame": "ooze19",
+    "ms": 110
+   },
+   {
+    "frame": "ooze20",
+    "ms": 110
+   },
+   {
+    "frame": "ooze21",
+    "ms": 110
+   },
+   {
+    "frame": "ooze22",
+    "ms": 110
+   },
+   {
+    "frame": "ooze23",
+    "ms": 110
+   },
+   {
+    "frame": "ooze24",
+    "ms": 110
+   },
+   {
+    "frame": "ooze25",
+    "ms": 110
+   },
+   {
+    "frame": "ooze26",
+    "ms": 110
+   },
+   {
+    "frame": "ooze27",
+    "ms": 110
+   },
+   {
+    "frame": "ooze28",
+    "ms": 900
+   }
   ]
  }
 }

@@ -3,7 +3,8 @@
 출력: art/out/sprites/actors/chaser_d_<동작><번호>.png (+ 옆모습 chaser_r_/chaser_l_), art/out/sprites/actors/chaser_creepy.json(프레임 순서와 장당 시간),
       maps/out/chaser_creepy.gif, maps/out/chaser_creepy_strip.png
 동작: tw(경련 걸음: 몸이 좌우로 꺾이며 불규칙한 박자) / tilt(고개 꺾임: 나무 머리가 천천히 기울다 툭 꺾임) /
-      st(늘어남: 몸이 위로 길게 늘어났다가 툭 떨어짐) / gl(끊김: 가로줄이 어긋나는 화면 깨짐, 라디오 잡음과 짝) / cr(기어옴: 허리가 꺾여 낮게 다가옴)"""
+      st(늘어남: 몸이 위로 길게 늘어났다가 툭 떨어짐) / gl(끊김: 가로줄이 어긋나는 화면 깨짐, 라디오 잡음과 짝) / cr(기어옴: 허리가 꺾여 낮게 다가옴) /
+      ooze(목이 꺾이며 안에서 탁한 청록빛 진액이 흘러나와 몸을 타고 발밑에 고임)"""
 import json, os, random, sys
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -55,6 +56,40 @@ SEQ['gl'] = [(canvas(w[0]), 240), (glitch(w[0], 1), 50), (glitch(w[1], 2, 8), 50
 # 기어옴: 허리가 꺾여 낮아지며 다가옴(걸음마다 더 낮아졌다 조금 일어남)
 SEQ['cr'] = [(crawl(w[k % 4], kk), ms) for k, (kk, ms) in enumerate(((0, 300), (.35, 140), (.7, 140), (1, 220), (.85, 140), (1, 220), (.8, 140), (1, 300)))]
 
+# 목이 꺾이며 안에서 이상한 액체가 흘러나옴: 꺾인 목 틈에서 탁한 청록빛 진액이 몸을 타고 흘러 발밑에 고인다. 방울이 떨어지고, 머리 아래 끝에서도 맺혀 떨어진다
+import math
+LQ, LQL, LQD = (70, 150, 130, 255), (160, 225, 195, 255), (30, 72, 70, 255)
+def ooze(im, n):
+    """n: 0부터 커지는 진행 단계. 줄기 세 가닥이 목(가운데)에서 아래로 자라고, 발에 닿으면 웅덩이가 넓어진다."""
+    out = im.copy(); px = out.load(); nx, ny = PADX + W // 2, PADT + NECK_Y - 1; foot = CHh - 2
+    def put(x, y, c):
+        if 0 <= x < CW and 0 <= y < CHh: px[x, y] = c
+    for k, (ox, delay, speed, ph) in enumerate(((-2, 0, 5, 0.0), (2, 2, 4, 1.7), (5, 5, 3, 3.1))):
+        ln = max(0, (n - delay) * speed)
+        if ln <= 0: continue
+        end = min(foot, ny + ln)
+        for y in range(ny, int(end) + 1):
+            x = nx + ox + round(1.2 * math.sin((y - ny) * .35 + ph))
+            put(x, y, LQ); put(x + 1, y, LQD if (y + k) % 3 else LQ)               # 줄기(2칸, 한쪽은 어두운 가장자리)
+            if y % 9 == k * 3 % 9: put(x, y, LQL)                                   # 드문 반짝임
+        if end < foot: x = nx + ox + round(1.2 * math.sin((end - ny) * .35 + ph)); put(x, int(end) + 1, LQL); put(x + 1, int(end) + 1, LQL); put(x, int(end) + 2, LQ)    # 줄기 끝의 맺힌 방울
+    reach = max(0, n - 10)                                                            # 첫 줄기가 발에 닿은 뒤: 웅덩이
+    if reach:
+        rx = min(16, 3 + reach * 2)
+        for x in range(nx - rx, nx + rx + 1):
+            put(x, foot, LQ); put(x, foot + 1, LQD)
+            if abs(x - nx) < rx - 2 and (x + n) % 5 == 0: put(x, foot, LQL)
+    for k, (dx, t0) in enumerate(((9, 3), (12, 8), (7, 13))):                      # 꺾인 머리 아래 끝에서 맺혀 떨어지는 방울
+        t = n - t0
+        if t >= 0:
+            y = ny - 6 + min(60, t * t // 2 + t * 2)
+            if y < foot: put(nx + dx, y, LQL); put(nx + dx, y - 1, LQ)
+    for dx in (-1, 0, 1, 2):                                                          # 목 틈에 고여 번들거림
+        put(nx + dx, ny, LQL if (dx + n) % 2 else LQ)
+    return out
+snap = [(tilt_head(base['idle'], a), ms) for a, ms in ((0, 500), (-6, 220), (-12, 220), (-18, 300), (-54, 60), (-50, 90), (-54, 200))]
+SEQ['ooze'] = snap + [(ooze(tilt_head(base['idle'], -52 + (1 if n % 4 == 0 else 0)), n), 110) for n in range(20)] + [(ooze(tilt_head(base['idle'], -52), 20), 900)]
+
 if __name__ == '__main__':
     man = {'size': [CW, CHh], 'anchor': 'bottom-center', 'note': '캔버스가 기본 스프라이트(30x64)보다 크다: 좌우 10칸, 위 14칸 여유', 'sequences': {}}
     for name, seq in SEQ.items():
@@ -66,7 +101,7 @@ if __name__ == '__main__':
     mo = os.path.join(G.SPR, '..', '..', '..', 'maps', 'out'); S = 3
     from PIL import ImageDraw, ImageFont
     Fnt = ImageFont.truetype('/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc', 14)
-    labels = {'tw': '경련 걸음', 'tilt': '고개 꺾임', 'st': '늘어남', 'gl': '끊김', 'cr': '기어옴'}
+    labels = {'tw': '경련 걸음', 'tilt': '고개 꺾임', 'st': '늘어남', 'gl': '끊김', 'cr': '기어옴', 'ooze': '목이 꺾이며 흘러나옴'}
     # 미리보기 GIF: 다섯 동작을 나란히, 20ms 단위 시간표로 재생
     total = max(sum(ms for _, ms in seq) for seq in SEQ.values()); tick = 20; frames = []
     def at(seq, t):
@@ -80,7 +115,7 @@ if __name__ == '__main__':
             fr.alpha_composite(at(seq, t).resize((CW * S, CHh * S), Image.NEAREST), (8 + c * (CW * S + 8), 26)); d.text((8 + c * (CW * S + 8) + 40, 4), labels[name], fill=(220, 220, 200), font=Fnt)
         frames.append(fr.convert('RGB'))
     frames[0].save(os.path.join(mo, 'chaser_creepy.gif'), save_all=True, append_images=frames[1:], duration=tick * 2, loop=0)
-    strip = Image.new('RGBA', (10 * (CW * 2 + 4) + 90, len(SEQ) * (CHh * 2 + 6) + 6), (24, 26, 40, 255)); d = ImageDraw.Draw(strip)
+    strip = Image.new('RGBA', (28 * (CW * 2 + 4) + 90, len(SEQ) * (CHh * 2 + 6) + 6), (24, 26, 40, 255)); d = ImageDraw.Draw(strip)
     for r_, (name, seq) in enumerate(SEQ.items()):
         d.text((6, 6 + r_ * (CHh * 2 + 6) + 60), labels[name], fill=(220, 220, 200), font=Fnt)
         for c, (im, ms) in enumerate(seq): strip.alpha_composite(im.resize((CW * 2, CHh * 2), Image.NEAREST), (86 + c * (CW * 2 + 4), 6 + r_ * (CHh * 2 + 6)))
