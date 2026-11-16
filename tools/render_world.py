@@ -95,6 +95,12 @@ def hall_ground(x, d, e, n):
     t = (np.floor(x / 10) + np.floor(d / 10)) % 2 == 0
     return col([(t, (150, 160, 140)), (~t, (128, 140, 124)), (nz(x / 2, d / 2, 6) > .93, (110, 120, 108)), (e > -1.2, (190, 196, 176))], n)
 
+BLOCKED = {                                                                     # 걷는 길 밖의 '막힌 바닥'(허공 대신)
+    'woods': lambda x, d, n: col([(nz(x, d, 1) >= 0, (14, 20, 22)), (nz(x / 2, d / 2, 2) > .55, (20, 30, 30)), (nz(x, d, 3) > .9, (30, 48, 42)), (nz(x / 5, d / 2, 4) > .88, (30, 24, 38))], n),
+    'reed': lambda x, d, n: col([(nz(x, d, 1) >= 0, (104, 72, 36)), (np.floor(x * 2 + d) % 5 == 0, (150, 108, 48)), (nz(x, d, 3) > .9, (176, 132, 60)), (nz(x / 6, d / 3, 4) > .86, (80, 54, 32))], n),
+    'park': lambda x, d, n: col([((np.floor(x / 9) + np.floor(d / 9)) % 2 == 0, (60, 52, 74)), ((np.floor(x / 9) + np.floor(d / 9)) % 2 == 1, (54, 46, 68)), (nz(x / 2, d / 2, 3) > .8, (50, 70, 58)), (nz(x / 12, d / 7, 4) > .9, (38, 42, 72))], n),
+    'hall': lambda x, d, n: col([(nz(x, d, 1) >= 0, (40, 38, 46)), (np.abs(d % 9) < 1, (30, 28, 36)), ((x % 30 < 13) & (d % 24 < 9), (58, 52, 52)), ((x % 30 < 13) & (d % 24 < 9) & ((x % 30 < 1) | (d % 24 < 1)), (80, 70, 64))], n),
+}
 def face_rock(c0, c1):
     def f(X, k, ch): return mixa(c0 if (k // 4 + X // 9) % 2 else dk(c0, .88), c1, (k / ch) ** 1.1)
     return f
@@ -108,24 +114,24 @@ def face_building(X, k, ch):                                                    
 P1 = bez((0, 40), (60, 20), (90, 70), (150, 60)); P2 = bez((204, 60), (240, 56), (250, 110), (310, 104)) + bez((310, 104), (350, 100), (360, 60), (410, 64))[1:]; P3 = bez((460, 64), (500, 60), (520, 110), (600, 100))
 AREAS = {
     'park': dict(H=70, shapes=[('circle', 190, 110, 78), ('rect', 164, 0, 216, 50), ('path', [(130, 110), (60, 124), (44, 150)], 24), ('circle', 44, 150, 40), ('path', [(250, 110), (320, 92), (376, 96)], 24), ('path', [(190, 170), (200, 200)], 26), ('circle', 204, 206, 44)],
-                 ground=park_ground, face=face_rock((96, 80, 110), (30, 22, 44)), ch=30, sky=((30, 22, 52), (86, 56, 104)), start=(190, 8), box=dict(kind='hills', sil=(44, 32, 66), floor=(26, 20, 40)),
+                 ground=park_ground, face=face_rock((96, 80, 110), (30, 22, 44)), ch=30, sky=((30, 22, 52), (86, 56, 104)), start=(190, 8), box=dict(wall='tent'),
                  exits=[dict(at=(190, 3), to='office', spawn_abs=(71, 46)), dict(at=(372, 96), to='reed', spawn=(10, 104))]),
     'reed': dict(H=64, wob=3, shapes=[('circle', 120, 120, 88), ('circle', 250, 150, 98), ('circle', 370, 112, 80), ('path', [(0, 104), (50, 112)], 24), ('path', [(430, 110), (480, 122), (524, 102)], 24)],
-                 ground=reed_ground, face=face_rock((120, 86, 50), (44, 26, 30)), ch=34, sky=((84, 50, 70), (236, 150, 80)), start=(10, 104), box=dict(kind='hills', sil=(140, 92, 54), floor=(60, 40, 40)),
+                 ground=reed_ground, face=face_rock((120, 86, 50), (44, 26, 30)), ch=34, sky=((84, 50, 70), (236, 150, 80)), start=(10, 104), box=dict(wall='reeds', vig=.3),
                  exits=[dict(at=(4, 104), to='park', spawn=(364, 96)), dict(at=(520, 102), to='woods', spawn=(10, 60))]),
     'woods': dict(H=84, wob=3, shapes=[('path', bez((0, 60), (60, 40), (90, 100), (140, 90)) + bez((140, 90), (200, 80), (230, 40), (300, 66))[1:] + bez((300, 66), (350, 80), (370, 120), (420, 106))[1:] + bez((420, 106), (470, 96), (490, 70), (530, 80))[1:], 28), ('circle', 140, 88, 50), ('circle', 300, 68, 46), ('circle', 420, 106, 58)],
-                  ground=woods_ground, face=face_rock((40, 44, 50), (8, 8, 14)), ch=34, sky=((6, 8, 14), (22, 34, 40)), start=(10, 60), box=dict(kind='trees'),
+                  ground=woods_ground, face=face_rock((40, 44, 50), (8, 8, 14)), ch=34, sky=((6, 8, 14), (22, 34, 40)), start=(10, 60), box=dict(wall='trunks'),
                   exits=[dict(at=(4, 60), to='reed', spawn=(510, 104)), dict(at=(526, 80), to='ridge', spawn=(10, 38))], chaser=dict(spots=((120, 112), (164, 68), (252, 58), (300, 94), (380, 102), (436, 126), (484, 98)), radius=52)),
     'ridge': dict(H=64, wob=1.5, mood='dark', chase=True, shapes=[('path', P1, 19), ('path', P2, 19), ('path', P3, 19), ('rect', 146, 50, 208, 70), ('rect', 406, 54, 464, 74), ('circle', 92, 52, 32), ('circle', 310, 104, 34), ('circle', 522, 92, 32)],
                   zones=[(('rect', 172, 49, 184, 71), plank_ground), (('rect', 432, 53, 444, 75), plank_ground)],
-                  ground=ridge_ground, face=face_rock((132, 92, 62), (36, 20, 30)), ch=46, sky=((40, 22, 48), (170, 70, 60)), start=(10, 38), box=dict(kind='hills', sil=(74, 36, 46), floor=(34, 20, 30)),
+                  ground=ridge_ground, face=face_rock((132, 92, 62), (36, 20, 30)), ch=46, sky=((40, 22, 48), (170, 70, 60)), start=(10, 38), box=dict(wall='rock', pit=30, floor=(30, 16, 22)),
                   exits=[dict(at=(4, 40), to='woods', spawn=(516, 80)), dict(at=(596, 100), to='roofs', spawn=(10, 36))]),
     'roofs': dict(H=70, shapes=[('rect', 0, 0, 90, 70), ('rect', 84, 24, 124, 44), ('rect', 118, 10, 190, 90), ('rect', 144, 84, 164, 126), ('rect', 110, 120, 230, 180), ('rect', 224, 134, 268, 154), ('rect', 262, 110, 330, 170)],
                   zones=[(('rect', 90, 23, 118, 45), plank_ground), (('rect', 143, 90, 165, 120), plank_ground_v), (('rect', 230, 133, 262, 155), plank_ground)],
-                  ground=roof_ground, face=face_building, ch=90, sky=((10, 12, 30), (40, 46, 86)), start=(10, 36), box=dict(kind='city', sil=(20, 22, 44), floor=(14, 16, 32)),
+                  ground=roof_ground, face=face_building, ch=90, sky=((10, 12, 30), (40, 46, 86)), start=(10, 36), box=dict(wall='facade', pit=44, floor=(12, 13, 26)),
                   exits=[dict(at=(4, 36), to='ridge', spawn=(586, 100)), dict(at=(324, 140), to='hall', spawn=(10, 22))]),
     'hall': dict(H=70, mood='dark', chase=True, shapes=[('rect', 0, 0, 440, 46), ('rect', 392, 46, 440, 150), ('rect', 392, 150, 700, 196)],
-                 ground=hall_ground, face=face_rock((70, 76, 70), (10, 8, 14)), ch=26, sky=((8, 6, 12), (20, 16, 26)), start=(10, 22), box=dict(kind='none', floor=(14, 12, 18)),
+                 ground=hall_ground, face=face_rock((70, 76, 70), (10, 8, 14)), ch=26, sky=((8, 6, 12), (20, 16, 26)), start=(10, 22), box=dict(wall='class'),
                  exits=[dict(at=(4, 22), to='roofs', spawn=(314, 140)), dict(at=(694, 172), to=None, endMsg='복도 끝의 문 — 여기서부터는 아직 만들지 않았어요', side='right')]),
 }
 
@@ -247,39 +253,54 @@ def build(name):
         else: xs += [p[0] - s[2] for p in s[1]] + [p[0] + s[2] for p in s[1]]; ds += [p[1] - s[2] for p in s[1]] + [p[1] + s[2] for p in s[1]]
     m = 8; x0, d0 = min(xs) - m, min(ds) - m; W, D = int(max(xs) + m - x0), int(max(ds) + m - d0); wob = A.get('wob', 0)
     tr = lambda p: (p[0] - x0, p[1] - d0)
-    BOX = A.get('box'); sc = Scene(W, D, A['H'], pad=min(A['ch'] + 6, 60) + (10 if BOX else 0)); CW, CH = sc.CW, sc.CH
+    BOX = A.get('box'); sc = Scene(W, D, A['H'], pad=(BOX.get('pit', 0) + 14) if BOX else min(A['ch'] + 6, 60)); CW, CH = sc.CW, sc.CH
     YY, XX = np.mgrid[0:CH, 0:CW]; dd = (sc.Y0 - YY - .5) * 2; xx = XX + .5 - sc.X0 - .5 * dd
     e = sd(sh, xx + x0, dd + d0, wob); land = e < 0
     t = (YY / CH)[..., None]; top, bot = np.array(A['sky'][0]), np.array(A['sky'][1]); img = (top + (bot - top) * (np.round(t * 14) / 14)).astype(np.int32)
     rng = random.Random(hash(name) % 1000 if False else sum(map(ord, name)))
     for _ in range(CW * CH // 500):                                             # 허공의 먼지·별
         X, Y = rng.randrange(CW), rng.randrange(CH); img[Y, X] = np.minimum(255, img[Y, X] + 60)
-    if BOX:                                                                      # 꿈 상자: 땅을 뒷벽·왼쪽 벽·바닥판이 있는 상자 안에 넣는다(앞과 오른쪽은 뚫려 있다). 하늘은 벽에 그린 그림이 된다
-        ch_, H_ = min(A['ch'], 50), A['H']; kind = BOX.get('kind', 'trees'); img[:] = BOX.get('out', (12, 9, 16)); top3, bot3 = np.array(A['sky'][0], float), np.array(A['sky'][1], float); sil = np.array(BOX.get('sil', (12, 20, 24)), float); fl = np.array(BOX.get('floor', (20, 24, 30)), float)
-        df = (sc.Y0 + ch_ - YY - .5) * 2; xf = XX + .5 - sc.X0 - .5 * df; fm = (xf >= 0) & (xf < W) & (df >= 0) & (df < D)                     # 바닥판(z = -ch)
-        grid = (np.abs(xf % 16) < 1) | (np.abs(df % 16) < 1); fog = np.clip(1 - np.hypot((xf - W / 2) / (W / 2), (df - D / 2) / (D / 2)), 0, 1)[..., None]
-        fc = fl + (np.array((40, 52, 56)) - fl) * fog * .5; fc = np.where(grid[..., None], fc * 1.18, fc); img[fm] = fc[fm]
-        def wall(u, z, m_, shade, seed):                                          # u: 벽을 따라가는 좌표, z: 높이
-            k = np.clip(z / H_, 0, 1)[..., None]; c = bot3 + (top3 - bot3) * (np.round(k * 12) / 12)
-            hgt = (15 + 8 * np.sin(u / 9.0 + seed) + 6 * np.sin(u / 3.7 + 1 + seed) + 3 * np.sin(u / 1.9)) if kind == 'trees' else (12 + 9 * np.sin(u / 41.0 + seed) + 5 * np.sin(u / 17.0 + 2 * seed)) if kind == 'hills' else (10 + 26 * nz(np.floor(u / 13), np.zeros_like(u), 3 + seed)) if kind == 'city' else np.full(np.shape(u), -1.0); c = np.where(((z >= 0) & (z < hgt))[..., None], sil[None, None, :], c)   # 벽에 그린 먼 숲의 윤곽
-            trunk_ = (np.abs((u + seed * 7) % 13) < 1.2) & (z >= 0) & (z < hgt + 6) & (kind == 'trees'); c = np.where(trunk_[..., None], (sil * .8)[None, None, :], c)
-            if kind == 'city': lit = (np.abs(u % 13 - 6) < 4) & (np.floor(u) % 3 == 0) & (np.floor(z) % 5 == 2) & (z > 2) & (z < hgt - 2) & (nz(np.floor(u / 3), np.floor(z / 5), 9) > .72); c = np.where(lit[..., None], np.array((255, 214, 140))[None, None, :] * .8, c)
-            below = z < 0; c = np.where(below[..., None], sil[None, None, :] * (1 - .35 * np.clip(-z / ch_, 0, 1))[..., None] + fl[None, None, :] * .35 * np.clip(-z / ch_, 0, 1)[..., None], c)
-            st = (nz(u * 1.3 + seed * 50, z * 1.7, 5) > .985) & (z > hgt + 8); c = np.where(st[..., None], np.minimum(255, c + 70), c)
-            c = c * shade; img[m_] = c[m_]
-        xb = XX + .5 - sc.X0 - .5 * D; zb = sc.Y0 - .5 * D - YY - .5; wall(xb, zb, (xb >= 0) & (xb < W) & (zb >= -ch_) & (zb < H_), 1.0, 0)        # 뒷벽
-        dl = (XX + .5 - sc.X0) * 2; zl = sc.Y0 - .5 * dl - YY - .5; wall(dl, zl, (dl >= 0) & (dl < D) & (zl >= -ch_) & (zl < H_), .78, 2)          # 왼쪽 벽(한 단계 어둡게)
-        zs_ = sc.Y0 + ch_ - YY - .5; sf = (XX + .5 - sc.X0 >= 0) & (XX + .5 - sc.X0 < W) & (zs_ < 0) & (zs_ >= -6); img[sf] = (fl * .7)[None, :]                  # 바닥판 앞 두께
-        dr = (XX + .5 - sc.X0 - W) * 2; zr = sc.Y0 + ch_ - .5 * dr - YY - .5; sr = (dr >= 0) & (dr < D) & (zr < 0) & (zr >= -6); img[sr] = (fl * .5)[None, :]      # 바닥판 오른쪽 두께
+    if BOX:                                                                      # 방 상자(처음 집 형식): 바닥이 상자를 꽉 채우고, 뒷벽·왼쪽 벽이 바닥 가장자리에서 바로 올라간다. pit>0 이면 걷는 땅 밖이 깊은 구덩이
+        pit, H_ = BOX.get('pit', 0), A['H']; img[:] = (12, 9, 16); wk = BOX['wall']; fl = np.array(BOX.get('floor', (14, 12, 18)), float)
+        df = (sc.Y0 + pit - YY - .5) * 2; xf = XX + .5 - sc.X0 - .5 * df; fm = (xf >= 0) & (xf < W) & (df >= 0) & (df < D)                     # 상자 바닥(z = -pit)
+        if pit: fc = fl[None, None, :] * (1 + .25 * (nz(xf / 3, df / 3, 4) > .8))[..., None]; img[fm] = fc[fm]
+        else: bm = fm & ~land; img[bm] = BLOCKED[name]((xx + x0)[bm], (dd + d0)[bm], int(bm.sum()))
+        def wall(u, z, m_, shade, seed):                                          # u: 벽을 따라가는 좌표, z: 높이 -> 테마 무늬
+            n_ = nz(u, z, 3 + seed); us = u + seed * 5
+            if wk == 'trunks':
+                c = np.where((n_ > .86)[..., None], (22, 30, 34), (14, 18, 24)).astype(float); tk = (us % 19 < 6) | ((us + 9) % 31 < 3); c = np.where(tk[..., None], np.where(((us % 19 < 1.2) | (n_ > .9))[..., None], (62, 52, 70), (40, 32, 48)), c)
+                lf = z > H_ - (16 + 9 * np.sin(us / 6.0) + 6 * nz(np.floor(us / 3), np.zeros_like(u), 7)); c = np.where(lf[..., None], np.where((n_ > .55)[..., None], (26, 54, 52), (16, 36, 38)), c)
+            elif wk == 'reeds':
+                c = (np.array((92, 60, 36))[None, None, :] + np.array((60, 40, 14))[None, None, :] * np.clip(z / H_, 0, 1)[..., None]); st = (np.floor(us) % 4 == 0) | (n_ > .93); c = np.where(st[..., None], (186, 140, 58), c)
+                ear = (z > H_ - 14 - 6 * nz(np.floor(us / 2), np.zeros_like(u), 5)) & (np.floor(us) % 2 == 0); c = np.where(ear[..., None], (236, 204, 124), c)
+            elif wk == 'tent':
+                c = np.where((us % 18 < 9)[..., None], (126, 50, 66), (168, 150, 140)).astype(float) * (0.62 + .38 * np.clip(z / H_, 0, 1))[..., None]; sc_ = z > H_ - 6 - 3 * np.abs(np.sin(us / 9 * np.pi)); c = np.where(sc_[..., None], (214, 178, 96), c)
+                bulb = (np.abs(us % 14 - 7) < 1.2) & (np.abs(z - (H_ - 14 + 3 * np.cos(us / 14 * 2 * np.pi))) < 1.2); c = np.where(bulb[..., None], (96, 90, 78), c)
+            elif wk == 'class':
+                c = np.where((z < 14)[..., None], (70, 80, 72), (118, 114, 100)).astype(float); k_ = us % 150
+                bd = (k_ > 20) & (k_ < 84) & (z > 18) & (z < 40); c = np.where(bd[..., None], np.where(((k_ < 22) | (k_ > 82) | (z < 20) | (z > 38))[..., None], (120, 92, 60), (30, 52, 46)), c)
+                wn = (k_ > 100) & (k_ < 132) & (z > 18) & (z < 42); c = np.where(wn[..., None], np.where(((np.abs(k_ - 116) < 1) | (k_ < 102) | (k_ > 130) | (z < 20) | (z > 40))[..., None], (150, 146, 130), (12, 14, 30)), c)
+            elif wk == 'rock':
+                c = np.where((np.floor((z + 3 * np.sin(us / 23.0)) / 6) % 2 == 0)[..., None], (112, 60, 50), (94, 48, 44)).astype(float); c = np.where((n_ > .9)[..., None], (140, 84, 62), c) * (.7 + .3 * np.clip(z / H_, 0, 1))[..., None]
+            else:                                                                 # facade: 옆 건물 벽, 창 몇 개만 켜짐
+                c = np.full(np.shape(u) + (3,), (44, 46, 72), float); wn = (us % 9 > 2) & (us % 9 < 7) & (z % 11 > 3) & (z % 11 < 8); lit = nz(np.floor(us / 9), np.floor(z / 11), 9 + seed) > .9; c = np.where(wn[..., None], np.where(lit[..., None], (255, 214, 140), (20, 22, 42)), c)
+            c = np.where((z < 0)[..., None], c * .55, c); c = np.where(((z >= -pit) & (z < -pit + 2.2))[..., None], c * .45, c); img[m_] = (c * shade)[m_]
+        xb = XX + .5 - sc.X0 - .5 * D; zb = sc.Y0 - .5 * D - YY - .5; wall(xb, zb, (xb >= 0) & (xb < W) & (zb >= -pit) & (zb < H_), 1.0, 0)        # 뒷벽
+        dl = (XX + .5 - sc.X0) * 2; zl = sc.Y0 - .5 * dl - YY - .5; wall(dl, zl, (dl >= 0) & (dl < D) & (zl >= -pit) & (zl < H_), .74, 2)          # 왼쪽 벽(한 단계 어둡게)
+        zs_ = sc.Y0 + pit - YY - .5; sf = (XX + .5 - sc.X0 >= 0) & (XX + .5 - sc.X0 < W) & (zs_ < 0) & (zs_ >= -5); img[sf] = (30, 24, 32)                        # 바닥 앞 두께
+        dr = (XX + .5 - sc.X0 - W) * 2; zr = sc.Y0 + pit - .5 * dr - YY - .5; sr = (dr >= 0) & (dr < D) & (zr < 0) & (zr >= -5); img[sr] = (20, 16, 24)           # 바닥 오른쪽 두께
     wx, wd, we = (xx + x0)[land], (dd + d0)[land], e[land]; img[land] = A['ground'](wx, wd, we, wx.size)
     for zs, gfn in A.get('zones', []):
         zm = land & (sd([zs], xx + x0, dd + d0) < 0); img[zm] = gfn((xx + x0)[zm], (dd + d0)[zm], e[zm], int(zm.sum()))
-    ch = min(A['ch'], 50) if BOX else A['ch']; painted = land.copy(); face = A['face']                        # 낭떠러지 단면: 땅 가장자리 아래로 곧게 떨어진다
+    ch = BOX.get('pit', 0) if BOX else A['ch']; painted = land.copy(); face = A['face']                        # 낭떠러지 단면: 땅 가장자리 아래로 곧게 떨어진다
     for kk in range(1, ch + 1):
         sh_ = np.zeros_like(land); sh_[kk:] = land[:-kk]; m_ = sh_ & ~painted
         ys, xs_ = np.nonzero(m_)
         for Y, X in zip(ys, xs_): img[Y, X] = face(int(X), kk, ch)
         painted |= m_
+    if BOX:                                                                      # 상자 안은 가장자리로 갈수록 어둡다(빛 웅덩이는 이 뒤에 얹힌다)
+        inb = (img != np.array((12, 9, 16))).any(axis=2); cyx = np.argwhere(inb); (y0_, x0_), (y1_, x1_) = cyx.min(0), cyx.max(0); r_ = np.hypot((XX - (x0_ + x1_) / 2) / ((x1_ - x0_) / 2 + 1), (YY - (y0_ + y1_) / 2) / ((y1_ - y0_) / 2 + 1))
+        img = np.where(inb[..., None], img * (1 - BOX.get('vig', .42) * np.clip(r_, 0, 1.2)[..., None] ** 2), img).astype(np.int32)
     sc.img = Image.fromarray(img.astype(np.uint8), 'RGB'); sc.d = ImageDraw.Draw(sc.img); sc.px = sc.img.load()
     inside = lambda x, d: float(sd(sh, np.array(x, float), np.array(d, float), wob))
     k = K(sc, rng); props(name, k, tr, inside, rng)
