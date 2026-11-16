@@ -49,7 +49,19 @@ def main():
         put(sx, sy, (170, 220, 230)); put(sx + 1, sy, (80, 120, 150))
     # 뒤쪽 울타리: 부러진 나무 기둥(높이 제각각, 일부는 사라짐), 기울어진 가로대
     bx0, bx1 = int(X0 + SK * D), int(X0 + SK * D + W)
-    # (울타리는 그리지 않는다: 바닥 끝이 바로 숲으로 열려 있음)
+    posts = [x for x in range(bx0 + 2, bx1, 9)]
+    for i, x in enumerate(posts):
+        if i in (3, 6): continue                                        # 빠진 기둥
+        h = RAIL if i not in (2, 5, 7) else RAIL - rng.randrange(7, 14)    # 부러진 기둥은 짧음
+        for y in range(int(by - h), int(by)):
+            for k in range(2): put(x + k, y, WOODL if k == 0 else WOOD)
+        if h < RAIL:
+            put(x, int(by - h) - 1, WOODD); put(x + 1, int(by - h) - 2, WOODL)     # 부러진 끝
+    for a, b2 in ((0, 2), (4, 5), (7, 8)):                              # 남은 가로대(끊겨 있음, 기울어짐)
+        xa, xb = posts[a], posts[b2]
+        for x in range(xa, xb + 2):
+            y = int(by - RAIL + 3 + (x - xa) * (1 if a == 4 else 0) // 6)
+            put(x, y, WOODL); put(x, y + 1, WOOD)
     # 바닥: 썩은 널빤지(가로, 틈과 구멍) + 이끼·낙엽
     rows, d0 = [], 0.0
     while d0 < D: rows.append((d0, d0 + fr.uniform(6, 12))); d0 = rows[-1][1]
@@ -93,7 +105,7 @@ def main():
     # 가구: 부서진 나무 의자·탁자(오른쪽 끝, 의자가 앞)
     def put_sprite(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
-    put_sprite('broken_table', 66, 26); put_sprite('broken_chair', 58, 18)
+    pass   # 바닥 위 나무 물건(부서진 의자·탁자·널빤지)은 두지 않는다
     wd, wz = 22, 22                                                   # 벽 횃불: 왼쪽 벽(깊이 22칸), 바닥에서 22칸 위
     tspr = lib['torch_wall']; img.alpha_composite(tspr, (int(X0 + SK * wd - 4), int(Y0 - SS * wd - wz - 14)))
     tx, ty = int(X0 + SK * wd + 1), int(Y0 - SS * wd - wz - 8)          # 횃불 불꽃 위치
