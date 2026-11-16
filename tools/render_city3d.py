@@ -88,12 +88,47 @@ def paving(x, d):
     return JOINT if (x % 16 < 1 or d % 16 < 1) else c
 def asphalt(x, d): return ASPH
 
+def alley(s, d0, d1, kind, depth=18, h=42, z=3):
+    """벽(x=0 평면)에 뚫린 어두운 골목 입구. 안쪽: 바닥, 먼 벽(x=-depth), 오른쪽 안벽, 간단한 소품. 입구 모양으로만 보이게 마스크."""
+    mask = Image.new('L', s.img.size, 0)
+    ImageDraw.Draw(mask).polygon([s.P(0, d0, z), s.P(0, d1, z), s.P(0, d1, h), s.P(0, d0, h)], fill=255)
+    lay = s.img.copy(); ld = ImageDraw.Draw(lay)
+    def poly(pts, col): ld.polygon([s.P(*q) for q in pts], fill=col)
+    deep = kind == 'link'
+    poly([(-depth, d0, z), (0, d0, z), (0, d1, z), (-depth, d1, z)], (18, 20, 38))                       # 바닥
+    poly([(-depth, d0, z), (-depth, d1, z), (-depth, d1, h), (-depth, d0, h)], (8, 9, 20) if deep else (12, 14, 28))   # 먼 벽
+    poly([(-depth, d1, z), (0, d1, z), (0, d1, h), (-depth, d1, h)], (8, 9, 20))                           # 오른쪽 안벽
+    if kind == 'bins':                                                                                   # 쓰레기통 둘 + 봉투
+        for dd, w in ((d0 + 4, 7), (d0 + 14, 6)):
+            poly([(-depth + 2, dd, z), (-depth + 9, dd, z), (-depth + 9, dd, z + 9), (-depth + 2, dd, z + 9)], (30, 34, 56))
+            poly([(-depth + 2, dd, z + 9), (-depth + 9, dd, z + 9), (-depth + 9, dd + w, z + 9), (-depth + 2, dd + w, z + 9)], (42, 46, 70))
+    elif kind == 'pipes':                                                                                # 벽을 타고 내려오는 배관 + 상자
+        for dd in (d0 + 6, d0 + 10): poly([(-depth, dd, z), (-depth, dd + 1.5, z), (-depth, dd + 1.5, h), (-depth, dd, h)], (36, 40, 62))
+        poly([(-depth, d0 + 15, z + 12), (-depth, d0 + 22, z + 12), (-depth, d0 + 22, z + 22), (-depth, d0 + 15, z + 22)], (24, 28, 48))
+    elif kind == 'door':                                                                                 # 막다른 문(꺼진 전구)
+        poly([(-depth, d0 + 7, z), (-depth, d0 + 17, z), (-depth, d0 + 17, z + 26), (-depth, d0 + 7, z + 26)], (24, 22, 36))
+        poly([(-depth, d0 + 12, z + 28), (-depth, d0 + 14, z + 28), (-depth, d0 + 14, z + 30), (-depth, d0 + 12, z + 30)], (60, 56, 48))
+    elif deep:                                                                                           # 광장으로 이어지는 긴 통로: 끝으로 갈수록 더 어둡다
+        pass
+    s.img.paste(lay, (0, 0), mask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
+    # 입구 앞 인도의 소품(안쪽은 어두워 안 보이므로 입구 곁에 놓는다)
+    if kind == 'bins':
+        s.box(2, d0 + 1, 6, 6, 10, (46, 50, 76), (34, 38, 60), (26, 30, 48), z0=3); s.box(2, d1 - 8, 6, 6, 8, (40, 44, 68), (30, 34, 54), (24, 28, 44), z0=3)
+    elif kind == 'pipes':
+        for dd in (d0 - 3, d1 + 2): s.poly([(0.5, dd, 3), (2.5, dd, 3), (2.5, dd, 60), (0.5, dd, 60)], (40, 44, 68))
+    elif kind == 'door':
+        s.poly([(0, d0, h), (6, d0, h), (6, d1, h), (0, d1, h)], dk(WALLD, .8)); s.poly([(1, d0 + 11, h - 3), (3, d0 + 11, h - 3), (3, d0 + 13, h - 3), (1, d0 + 13, h - 3)], (70, 62, 48))
+        s.box(0, d0 + 2, 5, 22, 2, (52, 56, 82), (40, 44, 66), (32, 36, 54), z0=3)
+
 # ---------------- 장면 1: 광장 ----------------
 def landing():
     W, D = 150, 80; s = Scene(W, D, 70); rng = random.Random(5)
     s.floor(paving)
-    s.floor(lambda x, d: (CURBT if d < 1 else asphalt(x, d)), x0=96, x1=W)                     # 오른쪽 차도(출구)
-    s.glow(96, 40, 40, col=(255, 226, 170), power=.5)                                                # 출구는 화살표 대신 빛으로 표시
+    s.floor(lambda x, d: (CURBT if d < 1 else dk(asphalt(x, d), 1.0)), x0=96, x1=W)                     # 오른쪽: 어두운 길(골목처럼 이어짐)
+    for X in range(int(s.X0 + 96), s.CW):                                                              # 오른쪽 끝으로 갈수록 어둠에 잠긴다
+        f = min(1.0, (X - (s.X0 + 96)) / 60.0) * .85
+        for Y in range(s.CH):
+            p = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (8, 9, 20)[i] * f) for i, v in enumerate(p))
     s.glow(30, 30, 70, power=.35)
     s.wall_back(0, W, D, 60); s.wall_left(0, D, 60)
     s.lamp(140, 74, 44, -1)
@@ -144,10 +179,8 @@ def street():
             s.d.line([b, t], fill=POLE, width=2); s.d.rectangle([t[0] - 3, t[1] - 8, t[0] + 3, t[1] + 1], fill=(30, 32, 48)); s.d.rectangle([t[0] - 1, t[1] - 7, t[0] + 1, t[1] - 5], fill=c); s.d.point((t[0], t[1] - 2), fill=(30, 90, 50))
         s.jobs.append((56, sig)); s.glow(x, 56, 18, col=(230, 60, 60), power=.35, z=3)
     s.wall_left(0, D, 72, seed=4); s.wall_back(0, W, D, 60, seed=6)
-    # 아래 왼쪽: 광장으로 이어지는 통로(벽에 뚫린 출입구) + 인도의 화살표
-    s.poly([(0, 14, 0), (0, 44, 0), (0, 44, 40), (0, 14, 40)], (10, 12, 26)); s.poly([(0, 14, 40), (0, 44, 40), (0, 44, 44), (0, 14, 44)], dk(WALLD, .8))
-    s.poly([(0, 18, 0), (0, 40, 0), (0, 40, 30), (0, 18, 30)], (22, 26, 50)); s.glow(8, 29, 26, col=(120, 140, 200), power=.25, z=3)
-    s.glow(8, 29, 34, col=(255, 226, 170), power=.55, z=3)                                          # 통로는 화살표 대신 빛으로 표시
+    # 왼쪽 건물 벽에 골목 입구: 광장으로 이어지는 통로(아래) + 골목 3개. 모두 어둡다.
+    alley(s, 14, 44, 'link', depth=34); alley(s, 112, 138, 'bins'); alley(s, 214, 240, 'pipes'); alley(s, 336, 362, 'door')
     for x, d, side in [(30, 170, 1), (146, 240, -1), (30, 330, 1), (146, 400, -1), (30, 490, 1)]: s.lamp(x, d, 50, side)
     s.box(12, 200, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(12, 202, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(12, 214, 3, 2, 4, POLE, POLE, POLE, z0=3)
     s.box(158, 270, 8, 8, 10, (60, 64, 88), (50, 54, 78), (40, 44, 66), z0=3)
