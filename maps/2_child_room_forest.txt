@@ -13,10 +13,10 @@ x wall_forest_b
 y wall_forest_c
 b wall_base_forest_a
 c wall_base_forest_b
-K wall_forest_a bracket_fungus^3
+K wall_forest_a torch_wall^8
 H wall_forest_b vine_hang^8
 . floor_forest
-S floor_forest stump_torch
+S floor_forest stump_plain
 E floor_forest fallen_log
 J floor_forest rocks
 M floor_forest mushrooms

@@ -6,7 +6,7 @@ import os, random, sys
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import render_maps as R
-from forest_draw import leafy, trunk as tdraw
+from forest_draw import leafy, trunk as tdraw, fir
 
 SK = SS = .5
 W, D, PAD, RAIL, SKY = 80, 48, 6, 26, 40
@@ -19,28 +19,28 @@ def main():
     img = Image.new('RGBA', (CW, CH), (0, 0, 0, 255)); px = img.load()
     def put(x, y, c):
         if 0 <= x < CW and 0 <= y < CH: px[int(x), int(y)] = c + (255,) if len(c) == 3 else c
-    # 배경(참고 이미지: 짙은 남보라 밤 숲, 겹겹의 깊이): 안개 낀 먼 나무 → 중간 나무 → 덤불, 위는 큰 나뭇잎 덩어리, 양옆 큰 둥치
+    # 배경(참고 이미지: 안개 낀 울창한 남보라 밤 숲): 하늘 → 아주 흐린 먼 전나무 → 조금 진한 중간 전나무 → 안개띠 → 덤불, 양옆에 활엽수 둥치와 잎
     by = Y0 - SS * D; top_rail = by - RAIL
     for y in range(CH):
         t = min(1, max(0, y / (by + 1)))
-        for x in range(CW): put(x, y, (int(10 + 26 * t), int(12 + 28 * t), int(30 + 46 * t)))              # 위는 어둡고 지평선 쪽은 안개로 밝음
-    def trunk(cx, w, col, hi, y0=0, y1=None, root=0):
-        y1 = int(by) if y1 is None else y1
-        tdraw(put, cx, w, y0, y1, col, hi, tuple(int(v * .65) for v in col), rng, root=root)
-    for x0 in range(int(X0 + SK * D) + 4, CW, 13):                      # 먼 나무: 안개에 묻혀 흐릿
-        trunk(x0 + rng.randrange(-2, 3), rng.choice((4, 5, 6)), (28, 30, 62), (34, 36, 72))
-    for x0 in (int(X0 + SK * D) + 20, int(X0 + SK * D) + 54, CW - 26):  # 중간 나무: 더 짙고 굵음
-        trunk(x0, rng.choice((6, 7)), (20, 20, 44), (30, 30, 62), root=6)
-    for yy in range(int(by) - 14, int(by) + 1):                         # 지평선 안개띠
+        for x in range(CW): put(x, y, (int(12 + 20 * t), int(14 + 24 * t), int(34 + 40 * t)))
+    xl, xr = int(X0 + SK * D) + 6, CW - 4
+    for cx in range(xl - 4, xr + 6, 14):                                           # 먼 전나무(아주 흐림, 크게)
+        fir(put, cx + rng.randrange(-3, 4), int(by) - 4, rng.randrange(38, 50), 28, (30, 34, 70), (34, 38, 78), (40, 44, 88))
+    for cx in range(xl + 2, xr + 4, 20):                                       # 중간 전나무(조금 진함)
+        fir(put, cx + rng.randrange(-3, 4), int(by) - 1, rng.randrange(30, 40), 26, (20, 24, 52), (26, 30, 62), (34, 40, 76), (20, 18, 36))
+    for yy in range(int(by) - 30, int(by) + 1):                            # 안개띠: 지평선 쪽이 밝아져 뒤쪽 나무가 묻힘
         for x in range(CW):
-            r_, g_, b_, a_ = px[x, yy]; k = (yy - (by - 14)) / 14 * .45; px[x, yy] = (int(r_ + (60 - r_) * k), int(g_ + (66 - g_) * k), int(b_ + (112 - b_) * k), 255)
-    for _ in range(14):                                                 # 덤불(울타리 뒤): 잎 덩어리
-        cx = rng.randrange(int(X0 + SK * D), CW); cy = int(by) - rng.randrange(1, 8)
-        leafy(lambda x, y, c: put(x, y, c) if y < by else None, cx, cy, rng.randrange(4, 7), rng, (12, 28, 40), (22, 50, 58), (38, 80, 84))
-    for _ in range(26):                                                 # 위쪽 나뭇잎 덩어리(캐노피)
-        leafy(put, rng.randrange(-4, CW + 4), rng.randrange(-6, 20), rng.randrange(6, 11), rng, (12, 26, 38), (22, 46, 58), (38, 78, 82))
-    trunk(CW - 16, 13, (28, 24, 54), (46, 40, 84), 18, int(by) + 4, root=14)       # 오른쪽 큰 둥치(프레임)
-    for _ in range(8):                                                  # 반딧불: 청록빛
+            r_, g_, b_, a_ = px[x, yy]; k = ((yy - (by - 30)) / 30) ** 1.5 * .5; px[x, yy] = (int(r_ + (52 - r_) * k), int(g_ + (58 - g_) * k), int(b_ + (104 - b_) * k), 255)
+    fir(put, CW - 36, int(by) + 2, 54, 40, (14, 28, 40), (20, 40, 54), (30, 58, 72), (30, 24, 40))     # 오른쪽 큰 전나무(앞)
+    for _ in range(12):                                                    # 덤불(울타리 뒤)
+        cx = rng.randrange(int(X0 + SK * D), CW); cy = int(by) - rng.randrange(1, 7)
+        leafy(lambda x, y, c: put(x, y, c) if y < by else None, cx, cy, rng.randrange(4, 7), rng, (12, 26, 38), (20, 44, 54), (32, 66, 74))
+    for cx in (CW - 6,):                                                   # 오른쪽 끝 활엽수 둥치
+        tdraw(put, cx, 8, 24, int(by) + 4, (28, 24, 54), (44, 38, 80), (18, 16, 36), rng, root=12)
+    for cx, cy, r in ((CW - 4, 12, 10), (CW - 18, 6, 9), (CW - 28, 14, 7), (6, 4, 9), (20, 2, 8)):          # 위쪽 큰 잎: 양끝에만(가운데는 열려 안개가 보임)
+        leafy(put, cx, cy, r, rng, (12, 26, 38), (22, 46, 58), (36, 72, 80))
+    for _ in range(6):                                                     # 반딧불: 청록빛
         sx = rng.randrange(int(X0 + SK * D) + 6, CW - 16); sy = rng.randrange(24, int(top_rail) - 2)
         put(sx, sy, (170, 220, 230)); put(sx + 1, sy, (80, 120, 150))
     # 뒤쪽 울타리: 부러진 나무 기둥(높이 제각각, 일부는 사라짐), 기울어진 가로대
@@ -101,8 +101,10 @@ def main():
     # 가구: 부서진 나무 의자·탁자(오른쪽 끝, 의자가 앞)
     def put_sprite(name, x, d):
         s = lib[name]; img.alpha_composite(s, (int(X0 + x + SK * d - s.width / 2), int(Y0 - SS * d - s.height)))
-    put_sprite('torch_stand', 30, 30); put_sprite('broken_table', 66, 26); put_sprite('broken_chair', 58, 18); put_sprite('plank_piece', 44, 12); put_sprite('plank_piece', 28, 34)
-    tx, ty = int(X0 + 30 + SK * 30), int(Y0 - SS * 30 - 33)          # 횃불 불꽃 위치
+    put_sprite('broken_table', 66, 26); put_sprite('broken_chair', 58, 18); put_sprite('plank_piece', 44, 12); put_sprite('plank_piece', 28, 34)
+    wd, wz = 22, 22                                                   # 벽 횃불: 왼쪽 벽(깊이 22칸), 바닥에서 22칸 위
+    tspr = lib['torch_wall']; img.alpha_composite(tspr, (int(X0 + SK * wd - 4), int(Y0 - SS * wd - wz - 14)))
+    tx, ty = int(X0 + SK * wd + 1), int(Y0 - SS * wd - wz - 8)          # 횃불 불꽃 위치
     for Y in range(max(0, ty - 34), min(CH, ty + 34)):
         for X in range(max(0, tx - 34), min(CW, tx + 34)):
             dd = ((X - tx) ** 2 + (Y - ty) ** 2) ** .5

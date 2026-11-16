@@ -187,51 +187,55 @@ RED, ORG, YEL, WHT = (205, 72, 42), (240, 132, 44), (255, 202, 92), (255, 238, 1
 CLOTH, CLOTHD, CHAR = (110, 78, 58), (66, 46, 38), (40, 28, 26)
 WD, WDL, WDD = (104, 72, 50), (140, 100, 70), (66, 44, 34)
 def flame(im, cx, y, frame=0):
-    """눈물방울 모양 불꽃(폭 7, 높이 11). 중심은 흰빛 노랑 → 노랑 → 주황 → 끝은 붉게. frame 1은 끝이 한쪽으로 흔들림."""
-    widths = [1, 1, 3, 3, 5, 5, 7, 7, 7, 5, 3]                 # 위(끝)에서 아래로
-    sway = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] if frame == 0 else [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    """작은 눈물방울 불꽃(폭 5, 높이 6): 끝은 붉게, 바깥 주황, 안쪽 노랑, 아래 중심은 흰빛. frame 1은 끝이 한쪽으로 흔들림."""
+    widths = [1, 3, 3, 5, 5, 3]
+    sway = [0] * 6 if frame == 0 else [1, 1, 0, 0, 0, 0]
     for k, w in enumerate(widths):
         for dx in range(-(w // 2), w // 2 + 1):
-            d = abs(dx) / max(1, w // 2 + .001); depth = k / 10                 # d: 가장자리일수록 1, depth: 아래일수록 1
-            if k <= 1: c = RED
-            elif d > .75 or k <= 3: c = ORG
-            elif d > .4 or k <= 5: c = YEL
-            else: c = WHT if depth > .45 and d < .5 else YEL
-            if k >= 9 and d > .3: c = ORG
+            if k == 0: c = RED
+            elif k <= 1 or abs(dx) == w // 2 and w > 1: c = ORG
+            else: c = WHT if (k >= 4 and dx == 0) else YEL
             put(im, cx + dx + sway[k], y + k, c)
-    for (dx, dy) in ((-4, 4), (4, 6)) if frame == 0 else ((4, 3), (-4, 7)): put(im, cx + dx, y + dy, ORG)      # 튀는 불씨
+    put(im, cx + (3 if frame == 0 else -3), y + 3, ORG)          # 튀는 불씨
 def stick(im, cx, y0, y1):
-    """횃불 자루(2칸 굵기, 나뭇결) + 위쪽 천을 감은 머리(끝이 그을림)와 불씨."""
+    """횃불 자루(2칸) + 천을 감은 머리(3줄, 끝이 그을림). 머리 맨 위는 y0-2."""
     for y in range(y0, y1):
         put(im, cx, y, WDL if (y // 3) % 2 else WD); put(im, cx + 1, y, WDD)
-    for dy in range(5):                                          # 머리: 천 뭉치(위로 갈수록 넓어짐)
-        w = 3 + (dy // 2) + (1 if dy == 4 else 0)
-        for dx in range(-w // 2, w - w // 2 + 1):
-            put(im, cx + dx, y0 - dy, CHAR if dy >= 3 else CLOTH if (dx + dy) % 2 else CLOTHD)
-    put(im, cx - 1, y0 - 4, ORG); put(im, cx + 2, y0 - 5, ORG)    # 머리 가장자리 불씨
-    for dx in (-1, 2): put(im, cx + dx, y0 + 1, (60, 60, 80))     # 천을 묶은 쇠 끈
-def finish(im, frame_pairs):
-    return im
+    for dy in range(3):
+        w = 3 + dy // 2
+        for dx in range(-w // 2, w - w // 2 + 1): put(im, cx + dx, y0 - dy, CHAR if dy == 2 else CLOTH if (dx + dy) % 2 else CLOTHD)
 def stump_torch(frame=0):
-    im = new(24, 46)
-    for y in range(30, 44):
+    im = new(24, 36)
+    for y in range(24, 34):
         for x in range(2, 22):
-            if (x - 12) ** 2 / 100 + (y - 36) ** 2 / 60 <= 1:
+            if (x - 12) ** 2 / 100 + (y - 29) ** 2 / 40 <= 1:
                 put(im, x, y, C['barkl'] if x < 6 else C['barkd'] if x > 17 else C['bark'])
-    for y in range(28, 33):
+    for y in range(22, 27):
         for x in range(2, 22):
-            if ((x - 12) / 10) ** 2 + ((y - 30) / 3) ** 2 <= 1: put(im, x, y, (84, 70, 108) if ((x - 12) // 2 + y) % 3 else (102, 86, 128))
-    stick(im, 12, 17, 31); flame(im, 12 + 1, 3, frame)
+            if ((x - 12) / 10) ** 2 + ((y - 24) / 3) ** 2 <= 1: put(im, x, y, (84, 70, 108) if ((x - 12) // 2 + y) % 3 else (102, 86, 128))
+    stick(im, 12, 14, 25); flame(im, 13, 7, frame)
     return im
 def torch_wall(frame=0):
-    im = new(14, 30)
-    stick(im, 6, 18, 29); flame(im, 7, 3, frame)
-    for dx in (-1, 0, 1, 2, 3): put(im, 6 + dx, 24, (70, 70, 96)); put(im, 6 + dx, 25, (44, 44, 66))      # 벽 쇠 고리
+    im = new(10, 24)
+    stick(im, 4, 12, 23); flame(im, 5, 5, frame)
+    for dx in (-1, 0, 1, 2, 3): put(im, 4 + dx, 18, (70, 70, 96)); put(im, 4 + dx, 19, (44, 44, 66))
     return im
 def torch_stand(frame=0):
-    im = new(14, 40)
-    stick(im, 6, 18, 38); flame(im, 7, 3, frame)
-    for dx in (-3, -2, -1, 0, 1, 2, 3, 4): put(im, 6 + dx, 38, (40, 36, 60)); put(im, 6 + dx, 39, (28, 24, 44))     # 박힌 자리 흙
+    im = new(10, 30)
+    stick(im, 4, 10, 28); flame(im, 5, 3, frame)
+    for dx in (-2, -1, 0, 1, 2, 3, 4): put(im, 4 + dx, 28, (40, 36, 60)); put(im, 4 + dx, 29, (28, 24, 44))
     return im
 for name, fn in (('stump_torch', stump_torch), ('torch_wall', torch_wall), ('torch_stand', torch_stand)):
     fn(0).save(os.path.join(OUT, name + '.png')); fn(1).save(os.path.join(OUT, name + '_b.png'))          # _b: 불꽃이 다른 한 장(흔들림용)
+
+def stump_plain():                                               # 횃불이 없는 그루터기(방)
+    im = new(24, 14)
+    for y in range(4, 13):
+        for x in range(2, 22):
+            if (x - 12) ** 2 / 100 + (y - 8) ** 2 / 40 <= 1:
+                put(im, x, y, C['barkl'] if x < 6 else C['barkd'] if x > 17 else C['bark'])
+    for y in range(2, 7):
+        for x in range(2, 22):
+            if ((x - 12) / 10) ** 2 + ((y - 4) / 3) ** 2 <= 1: put(im, x, y, (84, 70, 108) if ((x - 12) // 2 + y) % 3 else (102, 86, 128))
+    return im
+save(stump_plain(), 'stump_plain')
