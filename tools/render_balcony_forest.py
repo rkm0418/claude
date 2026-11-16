@@ -42,8 +42,6 @@ def main():
     for _ in range(12):                                                    # 덤불(울타리 뒤)
         cx = rng.randrange(int(X0 + SK * D), CW); cy = int(by) - rng.randrange(1, 7)
         leafy(lambda x, y, c: put(x, y, c) if y < by else None, cx, cy, rng.randrange(4, 7), rng, (12, 26, 38), (20, 44, 54), (32, 66, 74))
-    for cx in (CW - 6,):                                                   # 오른쪽 끝 활엽수 둥치
-        tdraw(put, cx, 8, 24, int(by) + 4, (28, 24, 54), (44, 38, 80), (18, 16, 36), rng, root=12)
     for _ in range(6):                                                     # 반딧불: 청록빛
         sx = rng.randrange(int(X0 + SK * D) + 6, CW - 16); sy = rng.randrange(24, int(top_rail) - 2)
         put(sx, sy, (170, 220, 230)); put(sx + 1, sy, (80, 120, 150))
@@ -62,6 +60,18 @@ def main():
         for x in range(xa, xb + 2):
             y = int(by - RAIL + 3 + (x - xa) * (1 if a == 4 else 0) // 6)
             put(x, y, WOODL); put(x, y + 1, WOOD)
+    # 땅: 숲 바닥이 지평선 아래 전체에 이어진다(판 아래·앞·오른쪽으로 계속): 흙 + 이끼 + 풀 + 가는 길
+    gr = random.Random(9)
+    for Y in range(int(by) - 2, CH):
+        t = (Y - by) / max(1, CH - by)
+        for X in range(CW):
+            base = (int(26 + 14 * t), int(30 + 14 * t), int(44 + 22 * t))
+            if gr.random() < .10: base = (base[0] - 5, base[1] + 5, base[2] - 4)
+            if gr.random() < .05: base = (base[0] + 8, base[1] + 8, base[2] + 12)
+            put(X, Y, base)
+    for _ in range(70):                                                 # 풀잎 무더기
+        gx, gy = gr.randrange(CW), gr.randrange(int(by), CH)
+        for k in range(gr.randrange(2, 5)): put(gx + k % 2, gy - k, (30, 62 - k * 4, 58))
     # 바닥: 썩은 널빤지(가로, 틈과 구멍) + 이끼·낙엽
     rows, d0 = [], 0.0
     while d0 < D: rows.append((d0, d0 + fr.uniform(6, 12))); d0 = rows[-1][1]
@@ -87,6 +97,12 @@ def main():
             for hx, hd, hw, hh in holes:                                   # 썩어 내려앉은 구멍
                 if hx <= x < hx + hw and hd <= d < hd + hh: c = (4, 4, 12)
             px[X, Y] = c + (255,)
+    for X in range(int(X0), int(X0 + W + SK * D) + 1):                  # 판의 두께(앞 가장자리 3칸)와 오른쪽 옆면
+        for k in range(3):
+            if px[X, int(Y0) + 1 + k][3] and int(Y0) + 1 + k < CH and X <= X0 + W: put(X, int(Y0) + 1 + k, (22 - k * 4, 18 - k * 3, 34 - k * 5))
+    for Y in range(int(Y0 - SS * D), int(Y0) + 1):
+        X = int(X0 + W + SK * (Y0 - Y) / SS) + 1
+        for k in range(2): put(X + k, Y + 1, (20, 18, 32))
     # 왼쪽 벽: 거대한 나무 둥치
     WH = RAIL + 24
     bark = lib['wall_forest_a']; barkb = lib['wall_base_forest_a']
