@@ -25,12 +25,19 @@ FALL = {'red': ((120, 40, 30), (176, 66, 40), (222, 110, 56), (240, 160, 80)),
 
 def tree(sc, x, d, h, kind, rng, spread=14):
     def draw():
-        b = sc.P(x, d, 0); t = sc.P(x, d, h * .55)
-        sc.d.ellipse([b[0] - 10, b[1] - 3, b[0] + 10, b[1] + 3], fill=(58, 44, 30))
-        sc.d.polygon([(b[0] - 5, b[1] + 1), (b[0] - 2, b[1] - 6), (b[0] + 1, b[1] - 6), (b[0] + 4, b[1] + 1)], fill=(70, 46, 32))
-        sc.d.rectangle([b[0] - 2, t[1], b[0] + 1, b[1] - 5], fill=(70, 46, 32)); sc.d.line([(b[0] + 1, t[1]), (b[0] + 1, b[1] - 5)], fill=(48, 32, 24))
-        for k, gx in enumerate((-6, -4, -1, 2, 4, 6)):
-            c = ((120, 100, 46), (150, 116, 44), (100, 86, 40))[k % 3]; sc.d.line([(b[0] + gx, b[1] + 1), (b[0] + gx + (1 if gx < 0 else -1), b[1] - 3 - k % 2)], fill=c)
+        b = sc.P(x, d, 0); t = sc.P(x, d, h * .55); pxs = sc.px
+        for yy in range(b[1] - 3, b[1] + 4):                                                                  # 땅에 드리운 그늘: 풀 질감은 두고 어둡게만 한다
+            for xx in range(b[0] - 11, b[0] + 12):
+                if ((xx - b[0]) / 11.0) ** 2 + ((yy - b[1]) / 3.5) ** 2 < 1: r_, g_, b_ = pxs[xx, yy]; pxs[xx, yy] = (int(r_ * .72), int(g_ * .72), int(b_ * .75))
+        sc.d.polygon([(b[0] - 4, b[1] + 1), (b[0] - 2, b[1] - 5), (b[0] + 1, b[1] - 5), (b[0] + 3, b[1] + 1)], fill=(70, 46, 32))
+        sc.d.rectangle([b[0] - 2, t[1], b[0] + 1, b[1] - 4], fill=(70, 46, 32)); sc.d.line([(b[0] + 1, t[1]), (b[0] + 1, b[1] - 4)], fill=(48, 32, 24))
+        rr = random.Random(int(x * 31 + d * 17))                                                              # 줄기 밑을 주변 풀 픽셀로 덮는다(같은 색·같은 질감)
+        for yy in range(b[1] - 5, b[1] + 2):
+            for xx in range(b[0] - 5, b[0] + 5):
+                if rr.random() < .55 + (yy - (b[1] - 5)) * .09:
+                    sx = xx + rr.choice((-13, 13)); c = pxs[sx, yy]
+                    if c[0] > 50 and c != (30, 22, 24): pxs[xx, yy] = (int(c[0] * .85), int(c[1] * .85), int(c[2] * .85))
+        for gx in (-5, -2, 2, 5): sc.d.line([(b[0] + gx, b[1] + 1), (b[0] + gx + (1 if gx < 0 else -1), b[1] - 3)], fill=(112, 94, 40))
         top = sc.P(x, d, h)
         for dx, dy, r in ((-spread * .45, 6, spread * .75), (spread * .45, 5, spread * .7), (0, -2, spread * .9), (-spread * .2, 12, spread * .6), (spread * .3, 11, spread * .6)):
             blob(sc, top[0] + dx, top[1] + dy, r, FALL[kind], rng)
@@ -100,7 +107,7 @@ def build():
         sc.jobs.append((d, f))
     house(14, D - 34, 40, 22, 16)
     # 나무: 단풍(주황·빨강)·은행(노랑)·감나무
-    for x, d, h, k, sp in ((16, 26, 42, 'orange', 11), (8, 56, 46, 'red', 11), (106, 14, 46, 'gold', 12), (102, 62, 42, 'orange', 11), (104, 94, 38, 'red', 10)):
+    for x, d, h, k, sp in ((10, 18, 44, 'orange', 11), (30, 10, 30, 'gold', 8), (6, 62, 50, 'red', 12), (94, 38, 38, 'orange', 10), (97, 12, 48, 'gold', 12), (101, 70, 42, 'red', 10), (104, 98, 34, 'orange', 9)):
         tree(sc, x, d, h, k, rng, sp)
     sc.run()
     # 감나무의 감(주황 점)과 떨어지는 낙엽(공중)
