@@ -271,6 +271,7 @@ def build(name):
         if s[0] == 'rect': xs += [s[1], s[3]]; ds += [s[2], s[4]]
         elif s[0] == 'circle': xs += [s[1] - s[3], s[1] + s[3]]; ds += [s[2] - s[3], s[2] + s[3]]
         else: xs += [p[0] - s[2] for p in s[1]] + [p[0] + s[2] for p in s[1]]; ds += [p[1] - s[2] for p in s[1]] + [p[1] + s[2] for p in s[1]]
+    if A.get('bbox'): bx0, bd0, bx1, bd1 = A['bbox']; xs = [bx0, bx1]; ds = [bd0, bd1]                # 바닥 크기는 bbox 로 못 박는다(모양이 삐져나가도 바닥은 그대로)
     m = 3 if name in STRICT else 8; x0, d0 = min(xs) - m, min(ds) - m; W, D = int(max(xs) + m - x0), int(max(ds) + m - d0); wob = A.get('wob', 0)
     tr = lambda p: (p[0] - x0, p[1] - d0)
     BOX = A.get('box'); sc = Scene(W, D, A['H'], pad=(BOX.get('pit', 0) + (6 if name in STRICT else 14)) if BOX else min(A['ch'] + 6, 60)); CW, CH = sc.CW, sc.CH
@@ -313,9 +314,8 @@ def build(name):
         dl = (XX + .5 - sc.X0) * 2; zl = sc.Y0 - .5 * dl - YY - .5; wall(dl, zl, (dl >= 0) & (dl < D) & (zl >= -pit) & (zl < H_), .74, 2)          # 왼쪽 벽(한 단계 어둡게)
         zs_ = sc.Y0 + pit - YY - .5; sf = (XX + .5 - sc.X0 >= 0) & (XX + .5 - sc.X0 < W) & (zs_ < 0) & (zs_ >= -5); img[sf] = (30, 24, 32)                        # 바닥 앞 두께
         dr = (XX + .5 - sc.X0 - W) * 2; zr = sc.Y0 + pit - .5 * dr - YY - .5; sr = (dr >= 0) & (dr < D) & (zr < 0) & (zr >= -5); img[sr] = (20, 16, 24)           # 바닥 오른쪽 두께
-    wx, wd, we = (xx + x0)[land], (dd + d0)[land], e[land]; img[land] = A['ground'](wx, wd, we, wx.size)
-    if name in STRICT: img[land] = np.minimum(255, img[land] * 1.14)                  # 바닥은 직사각 전체가 바닥이고, 길(land)만 한 단계 밝게 닦여 보인다
-    for zs, gfn in A.get('zones', []):
+    wx, wd, we = (xx + x0)[land], (dd + d0)[land], e[land]; img[land] = BLOCKED[name](wx, wd, wx.size) if name in STRICT else A['ground'](wx, wd, we, wx.size)
+    for zs, gfn in ([] if name in STRICT else A.get('zones', [])):
         zm = land & (sd([zs], xx + x0, dd + d0) < 0); img[zm] = gfn((xx + x0)[zm], (dd + d0)[zm], e[zm], int(zm.sum()))
     ch = BOX.get('pit', 0) if BOX else A['ch']; painted = land.copy(); face = A['face']                        # 낭떠러지 단면: 땅 가장자리 아래로 곧게 떨어진다
     for kk in range(1, ch + 1):
@@ -332,7 +332,7 @@ def build(name):
     ex = []
     for E in A['exits']:
         lx, ld = tr(E['at']); sc.glow(lx, ld, 18, col=(255, 255, 255), power=.3)
-        ex.append({'zone': (lx - 5, lx + 5, ld - E.get('hw', 5), ld + E.get('hw', 5)), 'to': E['to'], 'spawn': E.get('spawn_abs'), 'spawn_w': E.get('spawn'), 'endMsg': E.get('endMsg'), 'side': E.get('side')})
+        ex.append({'zone': (lx - 5, lx + 5, ld - E.get('hw', 5), ld + E.get('hw', 5)), 'to': E['to'], 'spawn': E.get('spawn_abs'), 'spawn_w': E.get('spawn'), 'endMsg': E.get('endMsg'), 'side': E.get('side'), 'fc': E.get('fc')})
     dep = Image.new('L', sc.img.size, 255)
     for depth, f in sorted(sc.jobs, key=lambda j: -j[0]):
         before = sc.img.copy(); f()

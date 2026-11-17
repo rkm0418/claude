@@ -75,7 +75,7 @@ def job(k, x, d, fn, blk=0):
 def snowtop(k, x, d, w, dp, z): k.B(x - .6, d - .6, w + 1.2, dp + 1.2, 1.4, (244, 248, 255), z0=z, solid=False)
 WHITE = (240, 246, 255)
 
-def p_fir(k, x, d, r): fir2(k.sc, x, d, r.choice((30, 36, 42, 48))); k.block.append((x, d, 4))
+def p_fir(k, x, d, r): fir2(k.sc, x, d, r.choice((56, 64, 72, 82))); k.block.append((x, d, 4))
 def p_stump(k, x, d, r): k.B(x, d, 5, 5, 5, (124, 92, 70)); snowtop(k, x, d, 5, 5, 5)
 def p_log(k, x, d, r): k.B(x, d, 15, 4, 4, (116, 84, 62)); snowtop(k, x, d, 15, 4, 4)
 def p_mound(k, x, d, r): k.rock(x, d, r.choice((3, 4, 5)), (238, 244, 252))
@@ -92,7 +92,7 @@ def p_bush(k, x, d, r):
         for dx in (-4, -1, 2, 5): g.line([(X + dx, Y), (X + dx + r.choice((-2, 0, 2)), Y - r.randint(5, 9))], fill=(86, 70, 74))
         g.point((X - 4, Y - 6), fill=WHITE); g.point((X + 5, Y - 7), fill=WHITE)
     job(k, x, d, f)
-def p_deadtree(k, x, d, r): RDL.dead_tree(k.sc, x, d, r.choice((34, 40, 48))); k.block.append((x, d, 3))
+def p_deadtree(k, x, d, r): RDL.dead_tree(k.sc, x, d, r.choice((58, 70, 82))); k.block.append((x, d, 3))
 def p_hole(k, x, d, r): flat(k, x, d, 7, 3, (210, 232, 248)); flat(k, x, d, 5, 2, (14, 30, 62))
 def p_bucket(k, x, d, r):
     k.B(x, d, 4, 4, 5, (150, 152, 166)); job(k, x + 8, d, lambda X, Y, g: (g.line([(X, Y), (X + 6, Y - 14)], fill=(110, 90, 70)), g.line([(X + 6, Y - 14), (X + 2, Y - 3)], fill=(220, 220, 230))))
@@ -104,8 +104,8 @@ def p_stones(k, x, d, r): k.rock(x, d, 4, (150, 160, 172)); k.rock(x + 1, d, 3, 
 
 def p_lamp(on):
     def f(k, x, d, r):
-        k.post(x, d, 22, (60, 54, 76)); k.B(x - 1, d - 1, 4, 4, 3, (255, 226, 160) if on else (48, 46, 54), z0=22, solid=False)
-        if on: k.glow(x + 1, d, 34, (255, 214, 150), .6)
+        k.post(x, d, 32, (60, 54, 76)); k.B(x - 1, d - 1, 4, 4, 3, (255, 226, 160) if on else (48, 46, 54), z0=32, solid=False)
+        if on: k.glow(x + 1, d, 40, (255, 214, 150), .6)
     return f
 def p_bench(k, x, d, r): k.B(x, d, 14, 4, 4, (112, 84, 66)); k.B(x, d + 3.4, 14, 1, 7, (96, 70, 56), solid=False)
 def p_balloon(k, x, d, r):
@@ -113,7 +113,7 @@ def p_balloon(k, x, d, r):
     def f(X, Y, g): g.line([(X, Y), (X + 1, Y - 16)], fill=(150, 144, 160)); g.ellipse([X - 3, Y - 24, X + 4, Y - 16], fill=c); g.point((X - 1, Y - 22), fill=(255, 240, 220))
     job(k, x, d, f)
 def p_kiosk(k, x, d, r):
-    c = r.choice(((104, 50, 58), (50, 78, 100), (120, 100, 60))); lit = r.random() < .3; k.B(x, d, 16, 9, 14, (104, 98, 96)); k.B(x - 1, d - 2, 18, 12, 3, c, z0=14, solid=False)
+    c = r.choice(((104, 50, 58), (50, 78, 100), (120, 100, 60))); lit = r.random() < .3; k.B(x, d, 16, 9, 20, (104, 98, 96)); k.B(x - 1, d - 2, 18, 12, 3, c, z0=20, solid=False)
     for i in range(0, 16, 4): k.F(x + i, x + i + 2, 0, 9, c, d)
     k.F(x + 3, x + 13, 9, 13, (255, 214, 140) if lit else (58, 56, 62), d)
     if lit: k.glow(x + 8, d - 5, 22, (255, 206, 130), .5)
@@ -129,7 +129,7 @@ def p_horse(k, x, d, r):
     job(k, x, d, f, 3)
 
 def p_reedc(k, x, d, r):
-    for _ in range(5): k.reed(x + r.uniform(-4, 4), d + r.uniform(-2, 2), r.choice((9, 11, 13, 16)))
+    for _ in range(5): k.reed(x + r.uniform(-4, 4), d + r.uniform(-2, 2), r.choice((16, 19, 22, 26)))
 def p_desk(k, x, d, r): k.desk(x, d); k.block.append((x + 5, d - 2, 6))
 def p_rock(k, x, d, r): k.rock(x, d, r.choice((3, 4, 5)), (150, 120, 90))
 def p_scarecrow(k, x, d, r):
@@ -139,7 +139,7 @@ def p_hay(k, x, d, r): k.B(x, d, 10, 8, 7, (214, 176, 84)); k.B(x + 1, d + 1, 8,
 def p_puddle(k, x, d, r): flat(k, x, d, 8, 3, (96, 70, 44)); flat(k, x, d, 6, 2, (150, 130, 110))
 
 def p_dtree(k, x, d, r):
-    h = r.choice((38, 46, 54)); w = r.choice((2, 2, 3)); lean = r.choice((-3, 0, 0, 3)); crown = r.random() < .65; knot = r.random() < .4
+    h = r.choice((62, 74, 88)); w = r.choice((3, 3, 4)); lean = r.choice((-3, 0, 0, 3)); crown = r.random() < .65; knot = r.random() < .4
     def f(X, Y, g):
         g.ellipse([X - 5, Y - 1, X + 5, Y + 1], fill=(22, 28, 32))
         for z in range(h):
@@ -160,7 +160,7 @@ def p_shroom(k, x, d, r):
 def p_wlog(k, x, d, r): k.B(x, d, 16, 4, 4, (50, 40, 50)); k.B(x, d, 16, 4, .6, (30, 52, 44), z0=4, solid=False)
 def p_wrock(k, x, d, r): k.rock(x, d, 3, (60, 66, 72))
 
-def p_atree(k, x, d, r): k.atree(x, d, r.choice((28, 34, 36)), pal=((150, 60, 44), (196, 96, 50), (104, 40, 44)))
+def p_atree(k, x, d, r): k.atree(x, d, r.choice((46, 54, 60)), pal=((150, 60, 44), (196, 96, 50), (104, 40, 44)))
 def p_cairn(k, x, d, r): k.rock(x, d, 4, (130, 104, 96)); k.rock(x, d - .5, 3, (150, 122, 110)); k.rock(x, d - 1, 2, (170, 140, 126))
 def p_redshroom(k, x, d, r):
     def f(X, Y, g): g.line([(X, Y), (X, Y - 5)], fill=(210, 200, 180)); g.ellipse([X - 3, Y - 9, X + 3, Y - 4], fill=(200, 60, 50)); g.point((X - 1, Y - 7), fill=(255, 240, 230))
@@ -178,16 +178,16 @@ def p_line(k, x, d, r):
         for i, c in enumerate(((230, 230, 236), (150, 90, 100), (220, 220, 230))): q = a[0] + 6 + i * 9; g.rectangle([q, a[1] + 1, q + 5, a[1] + 8], fill=c)
     job(k, x, d - .2, f)
 def p_antenna(k, x, d, r):
-    k.post(x, d, 30, (130, 134, 150)); job(k, x, d, lambda X, Y, g: [g.line([(X - 6, Y - h), (X + 6, Y - h)], fill=(150, 154, 170)) for h in (24, 28)])
+    k.post(x, d, 44, (130, 134, 150)); job(k, x, d, lambda X, Y, g: [g.line([(X - 7, Y - h), (X + 7, Y - h)], fill=(150, 154, 170)) for h in (34, 40)])
 def p_skylight(k, x, d, r): flat(k, x, d, 9, 4, (60, 62, 90)); flat(k, x, d, 7, 3, (255, 220, 150)); k.glow(x, d, 22, (255, 210, 140), .3)
 def p_vent(k, x, d, r): k.B(x, d, 3, 3, 9, (120, 124, 140)); k.B(x - .6, d - .6, 4.2, 4.2, 1.2, (150, 154, 170), z0=9, solid=False)
 def p_planter(k, x, d, r): k.B(x, d, 10, 4, 4, (110, 84, 66)); k.B(x + 1, d + .5, 8, 3, 3, (60, 100, 66), z0=4, solid=False)
-def p_roofl(k, x, d, r): k.sc.lamp(x, d, h=32, side=1); k.block.append((x, d, 2))
+def p_roofl(k, x, d, r): k.sc.lamp(x, d, h=46, side=1); k.block.append((x, d, 2))
 def p_chimney(k, x, d, r): k.B(x, d, 6, 6, 22, (90, 70, 66)); k.B(x - .6, d - .6, 7.2, 7.2, 1.5, (60, 50, 50), z0=22, solid=False)
 def p_spool(k, x, d, r): k.B(x, d, 7, 7, 6, (150, 110, 70)); k.B(x - 1, d - 1, 9, 9, 1, (120, 84, 56), z0=6, solid=False)
 
 def p_hlocker(k, x, d, r):
-    for i in range(3): k.B(x + i * 5, d, 4.6, 4, 18, (96, 124, 140) if (i + int(x)) % 3 else (120, 96, 100)); k.F(x + i * 5 + 1, x + i * 5 + 3.6, 12, 14, (40, 50, 60), d)
+    for i in range(3): k.B(x + i * 5, d, 4.6, 4, 24, (96, 124, 140) if (i + int(x)) % 3 else (120, 96, 100)); k.F(x + i * 5 + 1, x + i * 5 + 3.6, 16, 18, (40, 50, 60), d)
 def p_hmop(k, x, d, r): k.B(x, d, 5, 5, 4, (140, 144, 150)); job(k, x + 6, d, lambda X, Y, g: g.line([(X, Y), (X + 4, Y - 20)], fill=(150, 120, 80)))
 def p_trophy(k, x, d, r): k.B(x, d, 12, 5, 16, (110, 88, 66)); k.F(x + 1, x + 11, 5, 15, (150, 190, 200), d); k.F(x + 4, x + 8, 7, 12, (230, 200, 90), d - .1)
 def p_hbench(k, x, d, r): k.B(x, d, 14, 4, 4, (150, 112, 76)); k.B(x, d, 14, 1, 8, (130, 96, 64), solid=False)
@@ -241,29 +241,29 @@ def p_tstump(k, x, d, r): k.B(x, d, 7, 7, 6, (140, 96, 60)); k.B(x - .6, d - .6,
 
 def D(name, fn, mode, rng, gap): return (name, fn, mode, rng, gap)
 THEMES = {
- 'snow': dict(label='눈 숲길', ground=snow_ground, face=face_rock((176, 196, 224), (70, 84, 120)), H=44, walls=[w_snow], pits=[0], floor=(196, 212, 238), blocked=dark_blocked((200, 212, 232), (190, 204, 228)), vig=.16, wob=1,
+ 'snow': dict(label='눈 숲길', ground=snow_ground, face=face_rock((176, 196, 224), (70, 84, 120)), H=64, walls=[w_snow], pits=[0], floor=(196, 212, 238), blocked=dark_blocked((200, 212, 232), (190, 204, 228)), vig=.16, wob=1,
    props=[D('fir', p_fir, 'edge', (3, 6), 12), D('stump', p_stump, 'any', (1, 3), 8), D('mound', p_mound, 'any', (2, 4), 7), D('lantern', p_lantern, 'edge', (1, 2), 22), D('log', p_log, 'any', (0, 2), 14), D('sign', p_sign, 'edge', (0, 2), 10), D('snowman', p_snowman, 'mid', (0, 1), 12), D('ice', p_icepatch, 'any', (1, 3), 10), D('bush', p_bush, 'edge', (1, 4), 7)]),
- 'lake': dict(label='얼음 호수', ground=ice_ground, face=face_rock((120, 170, 210), (24, 48, 96)), H=48, walls=[w_night], pits=[0], floor=(12, 22, 50), blocked=dark_blocked((16, 30, 66), (24, 40, 84)), vig=.2, wob=2,
+ 'lake': dict(label='얼음 호수', ground=ice_ground, face=face_rock((120, 170, 210), (24, 48, 96)), H=66, walls=[w_night], pits=[0], floor=(12, 22, 50), blocked=dark_blocked((16, 30, 66), (24, 40, 84)), vig=.2, wob=2,
    props=[D('deadtree', p_deadtree, 'edge', (2, 5), 14), D('lantern', p_lantern, 'edge', (1, 3), 22), D('hole', p_hole, 'mid', (1, 3), 12), D('drift', p_mound, 'any', (1, 3), 7), D('bucket', p_bucket, 'any', (0, 1), 14), D('shard', p_shard, 'any', (1, 3), 8), D('boat', p_boat, 'mid', (0, 1), 18), D('stones', p_stones, 'any', (0, 2), 8)]),
- 'park': dict(label='폐놀이공원', ground=W.park_ground, face=face_rock((96, 80, 110), (30, 22, 44)), H=36, walls=['tent'], pits=[0], floor=(14, 12, 24), blocked=W.BLOCKED['park'], vig=.5, wob=0,
+ 'park': dict(label='폐놀이공원', ground=W.park_ground, face=face_rock((96, 80, 110), (30, 22, 44)), H=48, walls=['tent'], pits=[0], floor=(14, 12, 24), blocked=W.BLOCKED['park'], vig=.5, wob=0,
    props=[D('lamp_off', p_lamp(False), 'edge', (1, 3), 12), D('lamp_on', p_lamp(True), 'edge', (0, 1), 30), D('bench', p_bench, 'edge', (1, 2), 14), D('balloon', p_balloon, 'any', (1, 3), 8), D('kiosk', p_kiosk, 'edge', (0, 2), 20), D('cart', p_cart, 'any', (0, 1), 14), D('bumper', p_bumper, 'any', (0, 3), 12), D('bin', p_bin, 'edge', (1, 2), 8), D('fence', p_fence, 'edge', (0, 2), 16), D('horse', p_horse, 'any', (0, 1), 10)]),
- 'reed': dict(label='갈대밭', ground=W.reed_ground, face=face_rock((120, 86, 50), (44, 26, 30)), H=40, walls=['reeds'], pits=[0], floor=(60, 40, 26), blocked=W.BLOCKED['reed'], vig=.24, wob=3,
+ 'reed': dict(label='갈대밭', ground=W.reed_ground, face=face_rock((120, 86, 50), (44, 26, 30)), H=52, walls=['reeds'], pits=[0], floor=(60, 40, 26), blocked=W.BLOCKED['reed'], vig=.24, wob=3,
    props=[D('reeds', p_reedc, 'any', (8, 16), 8), D('desk', p_desk, 'any', (0, 2), 14), D('rock', p_rock, 'any', (1, 3), 7), D('scarecrow', p_scarecrow, 'edge', (0, 1), 14), D('hay', p_hay, 'any', (0, 2), 12), D('puddle', p_puddle, 'any', (1, 2), 12), D('fence', p_fence, 'edge', (0, 2), 16)]),
- 'woods': dict(label='어두운 숲', ground=W.woods_ground, face=face_rock((40, 44, 50), (8, 8, 14)), H=46, walls=['trunks'], pits=[0], floor=(10, 14, 16), blocked=W.BLOCKED['woods'], vig=.4, wob=3,
+ 'woods': dict(label='어두운 숲', ground=W.woods_ground, face=face_rock((40, 44, 50), (8, 8, 14)), H=84, walls=['trunks'], pits=[0], floor=(10, 14, 16), blocked=W.BLOCKED['woods'], vig=.4, wob=3,
    props=[D('tree', p_dtree, 'edge', (5, 9), 13), D('stump', p_wstump, 'any', (1, 2), 8), D('shroom', p_shroom, 'any', (1, 3), 12), D('log', p_wlog, 'any', (0, 2), 14), D('rock', p_wrock, 'any', (1, 3), 7)]),
- 'ridge': dict(label='낙엽 능선', ground=W.ridge_ground, face=face_rock((132, 92, 62), (36, 20, 30)), H=40, walls=['rock'], pits=[0], floor=(30, 16, 22), blocked=dark_blocked((40, 24, 30), (50, 30, 34)), vig=.36, wob=1.5,
+ 'ridge': dict(label='낙엽 능선', ground=W.ridge_ground, face=face_rock((132, 92, 62), (36, 20, 30)), H=58, walls=['rock'], pits=[0], floor=(30, 16, 22), blocked=dark_blocked((40, 24, 30), (50, 30, 34)), vig=.36, wob=1.5,
    props=[D('tree', p_atree, 'edge', (2, 4), 14), D('fence', p_fence, 'edge', (0, 2), 16), D('cairn', p_cairn, 'any', (1, 2), 9), D('shroom', p_redshroom, 'any', (1, 3), 8), D('sign', p_sign, 'edge', (0, 1), 10), D('boulder', p_boulder, 'edge', (1, 2), 10), D('planks', p_planks, 'any', (0, 1), 12)]),
- 'roofs': dict(label='밤 옥상', ground=W.roof_ground, face=W.face_building, H=44, walls=['facade'], pits=[0], floor=(12, 13, 26), blocked=dark_blocked((22, 24, 44), (30, 32, 54)), vig=.36, wob=0,
+ 'roofs': dict(label='밤 옥상', ground=W.roof_ground, face=W.face_building, H=54, walls=['facade'], pits=[0], floor=(12, 13, 26), blocked=dark_blocked((22, 24, 44), (30, 32, 54)), vig=.36, wob=0,
    props=[D('tank', p_tank, 'edge', (0, 1), 20), D('ac', p_ac, 'edge', (1, 3), 12), D('hut', p_hut, 'edge', (0, 1), 26), D('line', p_line, 'edge', (0, 1), 34), D('antenna', p_antenna, 'edge', (0, 2), 10), D('skylight', p_skylight, 'mid', (0, 2), 14), D('vent', p_vent, 'edge', (1, 3), 8), D('planter', p_planter, 'edge', (0, 2), 12), D('lamp', p_roofl, 'edge', (0, 2), 18), D('chimney', p_chimney, 'edge', (0, 1), 10), D('spool', p_spool, 'any', (0, 1), 10)]),
- 'hall': dict(label='학교 복도', ground=W.hall_ground, face=face_rock((70, 76, 70), (10, 8, 14)), H=36, walls=['class'], pits=[0], floor=(20, 20, 24), blocked=W.BLOCKED['hall'], vig=.4, wob=0,
+ 'hall': dict(label='학교 복도', ground=W.hall_ground, face=face_rock((70, 76, 70), (10, 8, 14)), H=40, walls=['class'], pits=[0], floor=(20, 20, 24), blocked=W.BLOCKED['hall'], vig=.4, wob=0,
    props=[D('locker', p_hlocker, 'edge', (1, 3), 18), D('desk', p_desk, 'any', (0, 2), 14), D('mop', p_hmop, 'edge', (0, 1), 12), D('trophy', p_trophy, 'edge', (0, 1), 16), D('bench', p_hbench, 'edge', (0, 2), 14), D('shoes', p_shoes, 'any', (1, 2), 8), D('chair', p_chair, 'any', (0, 2), 8), D('bin', p_bin, 'edge', (0, 2), 8)]),
- 'cabin': dict(label='통나무집', ground=wood_ground, face=face_rock((120, 84, 56), (40, 26, 20)), H=40, walls=[w_logs], pits=[0], floor=(30, 20, 16), blocked=dark_blocked((54, 36, 26), (64, 44, 32)), vig=.3, wob=0,
+ 'cabin': dict(label='통나무집', ground=wood_ground, face=face_rock((120, 84, 56), (40, 26, 20)), H=44, walls=[w_logs], pits=[0], floor=(30, 20, 16), blocked=dark_blocked((54, 36, 26), (64, 44, 32)), vig=.3, wob=0,
    props=[D('table', p_table, 'mid', (0, 2), 18), D('bed', p_bed, 'edge', (0, 1), 22), D('fire', p_fire, 'edge', (0, 1), 22), D('rug', p_rug, 'mid', (1, 2), 14), D('crate', p_crate, 'edge', (1, 3), 12), D('shelf', p_shelf, 'edge', (0, 2), 16), D('barrel', p_barrel, 'edge', (0, 2), 8), D('stool', p_stool, 'any', (1, 3), 8), D('stove', p_stove, 'edge', (0, 1), 12), D('lantern', p_hlantern, 'edge', (1, 2), 18)]),
- 'library': dict(label='도서관', ground=parquet_ground, face=face_rock((96, 64, 44), (30, 20, 16)), H=52, walls=[w_shelves], pits=[0], floor=(24, 16, 14), blocked=dark_blocked((40, 26, 22), (50, 34, 28)), vig=.38, wob=0,
+ 'library': dict(label='도서관', ground=parquet_ground, face=face_rock((96, 64, 44), (30, 20, 16)), H=58, walls=[w_shelves], pits=[0], floor=(24, 16, 14), blocked=dark_blocked((40, 26, 22), (50, 34, 28)), vig=.38, wob=0,
    props=[D('bookcase', p_bookcase, 'edge', (2, 4), 20), D('readtable', p_readtable, 'mid', (0, 2), 18), D('ladder', p_ladder, 'edge', (0, 1), 12), D('globe', p_globe, 'any', (0, 1), 10), D('books', p_books, 'any', (1, 3), 8), D('cart', p_cart2, 'any', (0, 1), 14), D('sofa', p_sofa, 'edge', (0, 1), 20), D('cabinet', p_cabinet, 'edge', (0, 2), 14), D('lamp', p_flamp, 'edge', (1, 2), 18)]),
- 'office': dict(label='매표소', ground=lino_ground, face=face_rock((120, 124, 100), (30, 30, 26)), H=38, walls=[w_office], pits=[0], floor=(30, 30, 26), blocked=dark_blocked((70, 76, 64), (78, 84, 72)), vig=.34, wob=0,
+ 'office': dict(label='매표소', ground=lino_ground, face=face_rock((120, 124, 100), (30, 30, 26)), H=42, walls=[w_office], pits=[0], floor=(30, 30, 26), blocked=dark_blocked((70, 76, 64), (78, 84, 72)), vig=.34, wob=0,
    props=[D('counter', p_counter, 'edge', (0, 1), 30), D('desk', p_odesk, 'mid', (0, 2), 20), D('filecab', p_filecab, 'edge', (1, 3), 10), D('safe', p_safe, 'edge', (0, 1), 12), D('coat', p_coat, 'edge', (0, 2), 8), D('bench', p_hbench, 'edge', (0, 2), 14), D('machine', p_machine, 'edge', (0, 1), 10), D('bin', p_bin, 'edge', (0, 2), 8), D('chair', p_chair, 'any', (0, 2), 8)]),
- 'tree': dict(label='나무집 속', ground=bark_ground, face=face_rock((140, 96, 60), (40, 26, 20)), H=50, walls=[w_bark], pits=[0], floor=(34, 22, 16), blocked=dark_blocked((70, 46, 30), (84, 56, 36)), vig=.3, wob=1,
+ 'tree': dict(label='나무집 속', ground=bark_ground, face=face_rock((140, 96, 60), (40, 26, 20)), H=56, walls=[w_bark], pits=[0], floor=(34, 22, 16), blocked=dark_blocked((70, 46, 30), (84, 56, 36)), vig=.3, wob=1,
    props=[D('root', p_root, 'edge', (2, 4), 14), D('shroom', p_tshroom, 'any', (1, 3), 10), D('jar', p_jar, 'edge', (1, 3), 14), D('hammock', p_hammock, 'mid', (0, 1), 26), D('pots', p_pots, 'edge', (0, 2), 10), D('acorns', p_acorns, 'any', (0, 2), 9), D('stump', p_tstump, 'any', (0, 2), 10), D('stool', p_stool, 'any', (0, 2), 8), D('table', p_table, 'mid', (0, 1), 18)]),
 }
 ORDER = ['snow', 'lake', 'park', 'reed', 'woods', 'ridge', 'roofs', 'hall', 'cabin', 'library', 'office', 'tree']
@@ -303,51 +303,83 @@ def flip(res, Wd, Dd, fx, fd):                                                  
     o = dict(res); o['shapes'] = [sh(s) for s in res['shapes']]; o['zones'] = [(sh(z), g) for z, g in res.get('zones', [])]
     return o
 
-def add_pockets(r, o, Wd, Dd, n):                                               # 곁가지 골목: 길 옆에서 앞이나 뒤로 갈라져 나가는 막다른 골목과 작은 방
-    m = Dd / 2; tips = []; xs = sorted(r.sample([.25, .4, .55, .72], n)) if n < 2 else sorted([r.choice((.25, .35)), r.choice((.65, .75))]); side = r.choice((-1, 1))
-    for x in xs:
-        cx = Wd * x + r.uniform(-3, 3); w = r.randint(8, 11); side = -side; ln = r.randint(14, 22)
-        if side > 0: d_end = min(Dd - 2, m + 8 + ln + 8); o['shapes'].append(('rect', cx - w, m, cx + w, d_end)); o['shapes'].append(('circle', cx, d_end - 9, w + 4)); tips.append((cx, d_end - 9))
-        else: d_end = max(2, m - 8 - ln - 8); o['shapes'].append(('rect', cx - w, d_end, cx + w, m)); o['shapes'].append(('circle', cx, d_end + 9, w + 4)); tips.append((cx, d_end + 9))
-    o['tips'] = tips
+# ---------------- 문(넘어가는 자리) · 골목 · 롱레인지 ----------------
+GATES = {                                                                      # 테마별 문: (틀 색, 안쪽 색/빛 색)
+ 'snow': ((196, 220, 244), (255, 244, 214)), 'lake': ((110, 150, 200), (216, 240, 255)), 'park': ((150, 60, 70), (255, 214, 150)), 'reed': ((150, 110, 60), (255, 230, 170)),
+ 'woods': ((62, 52, 70), (130, 232, 212)), 'ridge': ((120, 84, 60), (255, 190, 120)), 'roofs': ((96, 98, 124), (255, 214, 150)), 'hall': ((120, 92, 70), (255, 236, 190)),
+ 'cabin': ((96, 64, 40), (255, 214, 150)), 'library': ((80, 54, 40), (255, 226, 170)), 'office': ((110, 90, 64), (255, 230, 180)), 'tree': ((80, 56, 36), (255, 218, 150))}
+def gateway(k, theme, lx, ld, closed=False):                                   # 한눈에 문으로 보이는 자리: 틀, 밝은 속, 문턱 빛. 속은 불이 켜져 있어 "저기로 나간다"가 보인다
+    fr, gl = GATES[theme]; d0, d1 = ld - 10, ld + 10; xw = 1.2 if lx < 20 else lx + 4
+    inner = (22, 20, 28) if closed else gl
+    k.L(d0 - 2.2, d1 + 2.2, 0, 42, fr, xw); k.L(d0, d1, 0, 38, inner, xw + .2); k.L(d0 - 2.2, d1 + 2.2, 38, 42, tuple(int(v * .8) for v in fr), xw + .1)
+    if lx >= 20:                                                                # 벽이 없는 쪽: 틀 기둥 두 개로 세운다
+        for dd in (d0 - 3.5, d1 + 1.5): k.B(xw - 1, dd, 3, 2.2, 42, fr, solid=False)
+    if not closed:
+        k.glow(xw + 6, ld, 34, gl, .55); flat(k, xw + 7, ld, 11, 4, tuple(min(255, int(v * .8 + 40)) for v in gl))
+        for sx in (xw + 16, xw + 24): flat(k, sx, ld, 3, 1, tuple(min(255, v) for v in gl))      # 문 앞 바닥에 이어지는 빛 점(들어가라는 표시)
+BAR = {                                                                        # 골목 벽(막는 소품 한 칸)
+ 'snow': lambda k, x, d, r: (k.B(x, d, 7, 6, 11, (206, 226, 246)), snowtop(k, x, d, 7, 6, 11)), 'lake': lambda k, x, d, r: (k.B(x, d, 7, 6, 12, (178, 220, 244)), k.B(x + 1, d + 1, 3, 3, 4, (230, 246, 255), z0=12, solid=False)),
+ 'park': lambda k, x, d, r: (k.B(x, d, 7, 2, 12, (110, 84, 66)), k.B(x, d, 7, 2, 1.6, (150, 120, 90), z0=12, solid=False)), 'reed': lambda k, x, d, r: (p_reedc(k, x, d, r), k.block.append((x, d, 4))),
+ 'woods': lambda k, x, d, r: p_dtree(k, x, d, r), 'ridge': lambda k, x, d, r: k.rock(x, d, 5, (130, 104, 96)),
+ 'roofs': lambda k, x, d, r: k.B(x, d, 7, 4, 12, (110, 114, 140)), 'hall': lambda k, x, d, r: (k.B(x, d, 6, 4, 26, (96, 124, 140)), k.F(x + 1, x + 5, 16, 18, (40, 50, 60), d)),
+ 'cabin': lambda k, x, d, r: k.B(x, d, 7, 6, 12, (150, 112, 70)), 'library': lambda k, x, d, r: (k.B(x, d, 7, 5, 36, (78, 52, 38)), [k.F(x + 1, x + 6, z, z + r.randint(5, 8), r.choice(((150, 50, 50), (60, 90, 130), (200, 170, 70), (70, 110, 80))), d) for z in (4, 13, 22, 31)]),
+ 'office': lambda k, x, d, r: k.B(x, d, 7, 6, 22, (96, 108, 112)), 'tree': lambda k, x, d, r: k.B(x, d, 6, 6, 30, (96, 66, 42))}
+def add_alleys(r, o, Wd, Dd, n):                                               # 딸린 골목: 뒷벽에 붙은 좁은 칸. 앞쪽이 열려 있고, 양옆은 막는 소품 줄, 안쪽 끝엔 보상 소품
+    al = []; tips = []; xs = []
+    for _ in range(80):
+        if len(xs) >= n: break
+        x = r.uniform(24, Wd - 24)
+        if all(abs(x - q) > 44 for q in xs): xs.append(x)
+    for x in xs: ln = r.randint(24, 32); al.append((x, ln, 14)); tips.append((x, Dd + 6 - 4 - ln / 2 - 3))
+    o['alleys'] = al; o['tips'] = tips
 
+LONG_LAYOUTS = ('broad', 'wave', 'zig', 'lobes')
 def make_spec(theme, i):
-    r = random.Random(sum(map(ord, theme)) * 31 + i * 7919); T = THEMES[theme]
-    seq = list(range(len(LAYOUTS))); random.Random(sum(map(ord, theme)) * 13).shuffle(seq); li = seq[i % len(seq)]                       # 테마마다 레이아웃 순서가 다르다
-    nm, fn, dmin = LAYOUTS[li]; Wd = r.randint(92, 112); Dd = r.randint(dmin, dmin + 14)
+    r = random.Random(sum(map(ord, theme)) * 31 + i * 7919); T = THEMES[theme]; long = i in (2, 6)
+    seq = list(range(len(LAYOUTS))); random.Random(sum(map(ord, theme)) * 13).shuffle(seq)
+    if long: pool = [q for q in seq if LAYOUTS[q][0] in LONG_LAYOUTS]; li = pool[(i // 4) % len(pool)]
+    else: li = seq[i % len(seq)]
+    nm, fn, dmin = LAYOUTS[li]
+    if long: Wd = r.randint(330, 470); Dd = r.randint(46, 54)
+    else: Wd = r.randint(92, 112); Dd = r.randint(dmin, dmin + 14)
     res = fn(r, Wd, Dd); res = flip(res, Wd, Dd, r.random() < .5, r.random() < .5)
-    if res['a'][0] > res['b'][0]: res['a'], res['b'], res['da'], res['db'] = res['b'], res['a'], res['db'], res['da']
-    res['a'], res['b'] = (0, Dd / 2), (Wd, Dd / 2); res['da'], res['db'] = (1, 0), (-1, 0)
-    if nm in ('broad', 'plaza', 'plazar', 'dumbbell', 'bridge', 'lobes'): add_pockets(r, res, Wd, Dd, r.choice((1, 1, 2)))
-    else: res['tips'] = []
-    return dict(theme=theme, i=i, layout=nm, W=Wd, D=Dd, res=res, pit=r.choice(T['pits']), wall=r.choice(T['walls']), seed=r.randint(0, 9), tries=0, density=1.0)
+    res['a'], res['b'] = (0, Dd / 2), (Wd, Dd / 2); res['da'], res['db'] = (1, 0), (-1, 0); res['zones'] = []
+    add_alleys(r, res, Wd, Dd, r.choice((3, 4)) if long else r.choice((1, 1, 2)))
+    return dict(theme=theme, i=i, layout=nm, long=long, W=Wd, D=Dd, res=res, pit=0, wall=r.choice(T['walls']), seed=r.randint(0, 9), tries=0, density=1.0)
 
 def setup(name, spec):
     T = THEMES[spec['theme']]; res = spec['res']; a, da, b, db = res['a'], res['da'], res['b'], res['db']
-    ea = (a[0] + da[0] * 4, a[1] + da[1] * 4); st = (a[0] + da[0] * 11, a[1] + da[1] * 11); eb = (b[0] + db[0] * 4, b[1] + db[1] * 4); ab = (b[0] + db[0] * 11, b[1] + db[1] * 11)
+    ea = (a[0] + da[0] * 4, a[1] + da[1] * 4); st = (a[0] + da[0] * 14, a[1] + da[1] * 14); eb = (b[0] + db[0] * 4, b[1] + db[1] * 4); ab = (b[0] + db[0] * 14, b[1] + db[1] * 14)
     spec.update(ea=ea, st=st, eb=eb, ab=ab)
-    box = dict(wall=spec['wall'], vig=T['vig']);
-    if spec['pit']: box.update(pit=spec['pit'], floor=T['floor'])
-    W.BLOCKED[name] = lambda x, d, n, g=T['ground']: np.clip(g(x, d, np.full(n, -10.), n) * .82, 0, 255).astype(int)   # 길 밖도 같은 바닥(조금 어둡게)
-    ent = dict(H=T['H'], shapes=res['shapes'], zones=res.get('zones', []), ground=T['ground'], face=T['face'], ch=30, sky=((20, 20, 30), (40, 40, 60)), start=st, box=box, wob=T['wob'], exits=[])
+    box = dict(wall=spec['wall'], vig=T['vig'] * (.6 if spec['long'] else 1))
+    W.BLOCKED[name] = lambda x, d, n, g=T['ground']: np.clip(g(x, d, np.full(n, -10.), n), 0, 255).astype(int)       # 바닥은 길 없이 한 가지 무늬(길을 강요하지 않는다)
+    ent = dict(H=min(T['H'], 70) if spec['long'] else T['H'], shapes=res['shapes'], zones=[], ground=T['ground'], face=T['face'], ch=30, sky=((20, 20, 30), (40, 40, 60)), start=st, box=box, wob=T['wob'], exits=[],
+               bbox=(0, 0, spec['W'], spec['D']))
     W.AREAS[name] = ent; W.STRICT.add(name); MORE[name] = spec; return ent
 
 def more_props(name, k, tr, inside, rng):
-    spec = MORE[name]; T = THEMES[spec['theme']]; r = random.Random(sum(map(ord, name)) * 7 + spec['tries'] * 101); avoid = [tr(spec[q]) for q in ('st', 'ab', 'ea', 'eb')]
-    placed = [(a, b, 12) for a, b in avoid]; kinds = [p for p in T['props'] if p[3][0] > 0 or r.random() < .55]
-    dens = spec['density']
-    for (tx, td) in spec['res'].get('tips', []):                                  # 막다른 골목 끝: 눈에 띄는 소품 하나와 은은한 빛
-        lx, ld = tr((tx, td)); cand = [p for p in T['props'] if p[2] in ('any', 'mid')] or T['props']; nm_, fn_, *_ = r.choice(cand); fn_(k, lx - 2, ld, r); k.glow(lx, ld, 22, (255, 214, 150), .28); placed.append((lx, ld, 16))
+    spec = MORE[name]; T = THEMES[spec['theme']]; th = spec['theme']; r = random.Random(sum(map(ord, name)) * 7 + spec['tries'] * 101); avoid = [tr(spec[q]) for q in ('st', 'ab', 'ea', 'eb')]
+    placed = [(a, b, 14) for a, b in avoid]; kinds = [p for p in T['props'] if p[3][0] > 0 or r.random() < .55]
+    dens = spec['density'] * (spec['W'] / 100 if spec['long'] else 1); sc = k.sc; Wl, Dl = sc.W, sc.D
+    gateway(k, th, *tr(spec['ea']), closed=False) if spec['i'] > 0 else gateway(k, th, *tr(spec['ea']), closed=True)
+    gateway(k, th, *tr(spec['eb']), closed=(spec['i'] == N_PER - 1))
+    for (ax, ln, w) in spec['res'].get('alleys', []):
+        lx = ax + 3; n_ = int(ln // 7) + 1
+        for q in range(n_):
+            dd = Dl - 4 - q * 7
+            for sx in (lx - w, lx + w): BAR[th](k, sx - 3, dd - 3, r)
+        tipx, tipd = lx, Dl - 12; k.glow(tipx, tipd, 26, (255, 214, 150), .3); cand = [p for p in T['props'] if p[2] in ('any', 'mid')] or T['props']; cand[r.randrange(len(cand))][1](k, tipx - 2, tipd, r); placed.append((lx, Dl - ln / 2, ln))
     for (nm, fn, mode, (lo, hi), gap) in kinds:
         n = max(0, int(round(r.randint(lo, hi) * dens)))
         if dens > 0 and lo > 0 and n == 0: n = 1
         tries = 0
-        while n > 0 and tries < 500:
+        while n > 0 and tries < 700:
             tries += 1; x = r.uniform(0, spec['W']); d = r.uniform(0, spec['D']); e = inside(x, d)
             if mode == 'edge' and not (-9 < e < 12): continue
             if mode == 'mid' and not e < -7: continue
-            if not (4 < tr((x, d))[0] < spec['W'] + 2 and 4 < tr((x, d))[1] < spec['D'] + 2): continue
+            if mode == 'any' and e < -6: continue
             lx, ld = tr((x, d))
+            if not (6 < lx < Wl - 4 and 5 < ld < Dl - 4): continue
             if any(math.hypot(lx - a, (ld - b) * 1.5) < gap * .5 + g_ * .5 + 2 for a, b, g_ in placed): continue
             fn(k, lx, ld, r); placed.append((lx, ld, gap)); n -= 1
 
@@ -372,6 +404,7 @@ def reach(mask, meta, tips=()):
         if not seen[c]: return False
     return True
 
+def FC(th): return ','.join(str(int(v * .55)) for v in GATES[th][1])
 def main():
     want = sys.argv[1:] or ORDER; W.props_orig = W.props
     def props(name, k, tr, inside, rng):
@@ -385,14 +418,15 @@ def main():
         for i in range(N_PER):
             nm = names[(th, i)]; spec = MORE[nm]
             ex = []
-            if i > 0: ex.append(dict(at=spec['ea'], hw=10, to=names[(th, i - 1)], spawn=MORE[names[(th, i - 1)]]['ab']))
-            ex.append(dict(at=spec['eb'], hw=10, to=names[(th, i + 1)], spawn=MORE[names[(th, i + 1)]]['st']) if i < N_PER - 1 else dict(at=spec['eb'], hw=10, to=None, endMsg='길이 끊겨 있다. 여기서는 더 갈 수 없다', side='right'))
+            if i > 0: ex.append(dict(at=spec['ea'], hw=10, fc=FC(th), to=names[(th, i - 1)], spawn=MORE[names[(th, i - 1)]]['ab']))
+            ex.append(dict(at=spec['eb'], hw=10, fc=FC(th), to=names[(th, i + 1)], spawn=MORE[names[(th, i + 1)]]['st']) if i < N_PER - 1 else dict(at=spec['eb'], hw=10, fc=FC(th), to=None, endMsg='길이 끊겨 있다. 여기서는 더 갈 수 없다', side='right'))
             W.AREAS[nm]['exits'] = ex
     nav = {}
     for th in want:
         for i in range(N_PER):
             nm = names[(th, i)]; spec = MORE[nm]
             for t in range(10):
+                if t == 9: spec['res']['alleys'] = []; spec['res']['tips'] = []                # 끝까지 막히면 골목을 포기한다
                 spec['tries'] = t; W.SEEDOFF[nm] = t * 17; spec['density'] = .85 if t < 5 else (.5 if t < 7 else (.25 if t < 9 else .0))
                 im, dep, mask, meta = W.build(nm)
                 if reach(mask, meta, spec['res'].get('tips', [])): break
