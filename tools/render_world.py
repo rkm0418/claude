@@ -15,6 +15,8 @@ from render_dream_area import bez, CELL
 SPR = os.path.join(HERE, '..', 'art', 'out', 'sprites')
 CROWN = Image.open(os.path.join(SPR, 'chaser.png')).convert('RGBA').crop((0, 0, 30, 30))   # 추격자의 나무 머리(수관+목): 가짜 나무도 똑같이 생겼다
 PAD = 34
+STRICT = set()
+SEEDOFF = {}                                                                     # 방별 소품 배치 씨앗 보정(render_more가 길이 막히면 바꿔 다시 굽는다)
 BODY = Image.open(os.path.join(SPR, 'chaser.png')).convert('RGBA').crop((0, 30, 30, 64))
 
 def mixa(a, b, f): return tuple(int(a[i] + (b[i] - a[i]) * max(0, min(1, f))) for i in range(3))
@@ -271,21 +273,22 @@ def build(name):
         else: xs += [p[0] - s[2] for p in s[1]] + [p[0] + s[2] for p in s[1]]; ds += [p[1] - s[2] for p in s[1]] + [p[1] + s[2] for p in s[1]]
     m = 8; x0, d0 = min(xs) - m, min(ds) - m; W, D = int(max(xs) + m - x0), int(max(ds) + m - d0); wob = A.get('wob', 0)
     tr = lambda p: (p[0] - x0, p[1] - d0)
-    BOX = A.get('box'); sc = Scene(W, D, A['H'], pad=(BOX.get('pit', 0) + 14) if BOX else min(A['ch'] + 6, 60)); CW, CH = sc.CW, sc.CH
+    BOX = A.get('box'); sc = Scene(W, D, A['H'], pad=(BOX.get('pit', 0) + (6 if name in STRICT else 14)) if BOX else min(A['ch'] + 6, 60)); CW, CH = sc.CW, sc.CH
     YY, XX = np.mgrid[0:CH, 0:CW]; dd = (sc.Y0 - YY - .5) * 2; xx = XX + .5 - sc.X0 - .5 * dd
     e = sd(sh, xx + x0, dd + d0, wob); land = e < 0
     t = (YY / CH)[..., None]; top, bot = np.array(A['sky'][0]), np.array(A['sky'][1]); img = (top + (bot - top) * (np.round(t * 14) / 14)).astype(np.int32)
-    rng = random.Random(hash(name) % 1000 if False else sum(map(ord, name)))
+    rng = random.Random(sum(map(ord, name)) + SEEDOFF.get(name, 0))
     for _ in range(CW * CH // 500):                                             # 허공의 먼지·별
         X, Y = rng.randrange(CW), rng.randrange(CH); img[Y, X] = np.minimum(255, img[Y, X] + 60)
     if BOX:                                                                      # 방 상자(처음 집 형식): 바닥이 상자를 꽉 채우고, 뒷벽·왼쪽 벽이 바닥 가장자리에서 바로 올라간다. pit>0 이면 걷는 땅 밖이 깊은 구덩이
         pit, H_ = BOX.get('pit', 0), A['H']; img[:] = (12, 9, 16); wk = BOX['wall']; fl = np.array(BOX.get('floor', (14, 12, 18)), float)
         df = (sc.Y0 + pit - YY - .5) * 2; xf = XX + .5 - sc.X0 - .5 * df; fm = (xf >= 0) & (xf < W) & (df >= 0) & (df < D)                     # 상자 바닥(z = -pit)
-        if pit: fc = fl[None, None, :] * (1 + .25 * (nz(xf / 3, df / 3, 4) > .8))[..., None]; img[fm] = fc[fm]
+        if pit: fc = np.minimum(255, fl[None, None, :] * (1 + .25 * (nz(xf / 3, df / 3, 4) > .8))[..., None]); img[fm] = fc[fm]
         else: bm = fm & ~land; img[bm] = BLOCKED[name]((xx + x0)[bm], (dd + d0)[bm], int(bm.sum()))
         def wall(u, z, m_, shade, seed):                                          # u: 벽을 따라가는 좌표, z: 높이 -> 테마 무늬
             n_ = nz(u, z, 3 + seed); us = u + seed * 5
-            if wk == 'trunks':
+            if callable(wk): c = np.asarray(wk(u, z, n_, H_, us, seed, pit), float)                    # 새 테마: 벽 무늬 함수를 그대로 받는다
+            elif wk == 'trunks':
                 c = np.where((n_ > .86)[..., None], (22, 30, 34), (14, 18, 24)).astype(float); tk = (us % 19 < 6) | ((us + 9) % 31 < 3); c = np.where(tk[..., None], np.where(((us % 19 < 1.2) | (n_ > .9))[..., None], (62, 52, 70), (40, 32, 48)), c)
                 lf = z > H_ - (16 + 9 * np.sin(us / 6.0) + 6 * nz(np.floor(us / 3), np.zeros_like(u), 7)); c = np.where(lf[..., None], np.where((n_ > .55)[..., None], (26, 54, 52), (16, 36, 38)), c)
             elif wk == 'reeds':
@@ -337,6 +340,8 @@ def build(name):
     gw, gh = math.ceil(W / CELL), math.ceil(D / CELL); gx, gd = np.meshgrid((np.arange(gw) + .5) * CELL, (np.arange(gh) + .5) * CELL)
     ok = sd(sh, gx + x0, gd + d0, wob) < -2.6
     for (bx, bd, br) in k.block: ok &= ~((np.abs(gx - bx) < br + 1) & (np.abs(gd - bd) < br))
+    if name in STRICT:                                                           # 가구 몸통(rects)도 엔진처럼 아이 발 여유를 두고 막는다
+        for (rx_, rd_, rw_, rp_) in k.rects: ok &= ~((gx > rx_ - 5) & (gx < rx_ + rw_ + 5) & (gd > rd_ - 3.2) & (gd < rd_ + rp_ + 3.2))
     for E in ex: z = E['zone']; ok |= (np.hypot(gx - (z[0] + z[1]) / 2, gd - (z[2] + z[3]) / 2) < 6) & (sd(sh, gx + x0, gd + d0, wob) < 1)
     mask = Image.fromarray((ok * 255).astype(np.uint8), 'L')
     meta = {'W': W, 'D': D, 'X0': sc.X0, 'Y0': sc.Y0, 'CW': CW, 'CH': CH, 'rects': k.rects, 'exits': ex, 'start': tr(A['start']), 'origin': (x0, d0), 'open': True}

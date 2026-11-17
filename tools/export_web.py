@@ -22,8 +22,9 @@ def main():
     if os.path.exists(os.path.join(OUT, 'bld_nav.json')):                         # 건물 안: 통나무집·도서관·매표소
         for k, m in json.load(open(os.path.join(OUT, 'bld_nav.json'))).items():
             m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'bld_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'bld_%s_depth.png' % k)).convert('RGB')); m['group'] = 'bld'; rooms[k] = m
-    if os.path.exists(os.path.join(OUT, 'world_nav.json')):                       # 모험 구역(불규칙 지형)
-        for k, m in json.load(open(os.path.join(OUT, 'world_nav.json'))).items():
+    for wnav in ('world_nav.json', 'more_nav.json'):                              # 모험 구역(불규칙 지형) + 테마별 추가 공간
+      if os.path.exists(os.path.join(OUT, wnav)):
+        for k, m in json.load(open(os.path.join(OUT, wnav))).items():
             m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'world_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'world_%s_depth.png' % k)).convert('RGB')); m['walk'] = uri(Image.open(os.path.join(OUT, 'world_%s_walk.png' % k)).convert('RGB')); m['group'] = 'world'; rooms[k] = m
     from puzzles_data import VIEWS                                               # 두 시선 퍼즐: 건물 안 방의 옛 사물·퍼즐을 대체
     for k, v in VIEWS.items():
@@ -39,6 +40,6 @@ def main():
     for d in man['directions']:
         for f in man['frames']: child['%s_%s' % (d, f)] = uri(Image.open(os.path.join(SPR, 'child_%s_%s.png' % (d, f))).convert('RGBA').resize(CHILD, Image.NEAREST))
     os.makedirs(WEB, exist_ok=True)
-    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'adult': uri(Image.open(os.path.join(SPR, '..', 'shadow_adult.png')).convert('RGBA').resize((13, 38), Image.NEAREST)), 'rooms': rooms, 'chaser': {f: uri(Image.open(os.path.join(SPR, '..', 'chaser%s.png' % ('' if f == 'idle' else '_' + f))).convert('RGBA')) for f in ('idle', 'w1', 'w2', 'w3', 'w4')}, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}, 'lake': {'room': 'lake_1', 'x': rooms['lake_1']['start'][0], 'd': rooms['lake_1']['start'][1]}, **{k: {'room': r, 'x': rooms[r]['start'][0], 'd': rooms[r]['start'][1]} for k, r in (('park', 'park'), ('reed', 'reed'), ('woods', 'woods'), ('ridge', 'ridge'), ('roofs', 'roofs'), ('hall', 'hall'), ('tree', 'tree_main'), ('cabin', 'cabin_main'), ('library', 'library'), ('office', 'office')) if r in rooms}}}) + ';\n')
+    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'adult': uri(Image.open(os.path.join(SPR, '..', 'shadow_adult.png')).convert('RGBA').resize((13, 38), Image.NEAREST)), 'rooms': rooms, 'chaser': {f: uri(Image.open(os.path.join(SPR, '..', 'chaser%s.png' % ('' if f == 'idle' else '_' + f))).convert('RGBA')) for f in ('idle', 'w1', 'w2', 'w3', 'w4')}, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}, 'lake': {'room': 'lake_1', 'x': rooms['lake_1']['start'][0], 'd': rooms['lake_1']['start'][1]}, **{k: {'room': r, 'x': rooms[r]['start'][0], 'd': rooms[r]['start'][1]} for k, r in (('park', 'park'), ('reed', 'reed'), ('woods', 'woods'), ('ridge', 'ridge'), ('roofs', 'roofs'), ('hall', 'hall'), ('tree', 'tree_main'), ('cabin', 'cabin_main'), ('library', 'library'), ('office', 'office')) if r in rooms}, **{th + 'x': {'room': th + 'x01', 'x': rooms[th + 'x01']['start'][0], 'd': rooms[th + 'x01']['start'][1]} for th in ('snow', 'lake', 'park', 'reed', 'woods', 'ridge', 'roofs', 'hall', 'cabin', 'library', 'office', 'tree') if th + 'x01' in rooms}}}) + ';\n')
     print('web/data.js', os.path.getsize(os.path.join(WEB, 'data.js')) // 1024, 'KB')
 if __name__ == '__main__': main()

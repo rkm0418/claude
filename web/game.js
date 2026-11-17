@@ -497,7 +497,7 @@ function update(dt) {
     else if (e.to) { pending = e; fadeDir = 1; } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = (R.CW > 200 || R.CH > 125) ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = (R.CW > 232 || R.CH > 140) ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
