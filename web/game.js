@@ -10,7 +10,7 @@ const BODY = { rx: 4, rd: 2.2 };             // 아이 발 자리(가구와 벽�
 const SPEED = 46;                            // 화면에서 느끼는 걸음 속도(그림 px/초)
 const WALK_FPS = 7;
 const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0도(오른쪽)부터 시계 방향 45도씩
-let fadeCol = '20,14,16'; let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
+let fadeCol = '20,14,16'; let pan = null; const TRAVEL = { L: [-1, 0], R: [1, 0], B: [0, 1], F: [0, -1] }; let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
 const STATE = { lit: {}, solved: {}, seq: {}, flags: {}, got: {}, sw: {}, vi: {}, pv: {}, bag: [] };                                                  // 퍼즐 상태(방을 옮겨도 유지): 켠 등불
 const C = { st: 'none', x: 0, d: 0, t: 0, path: [], rep: 0, flip: false };    // 추격자(나무 머리): hidden(나무인 척) -> rise(일어남) -> chase / wait(뒤따라 들어옴)
@@ -441,7 +441,24 @@ function goTo(x, d) {
 }
 
 // ---------- 움직임 ----------
+const panC = document.createElement('canvas'); panC.width = 320; panC.height = 240; const panX = panC.getContext('2d');
+const lbC = document.createElement('canvas'); lbC.width = 160; lbC.height = 10; const lbX = lbC.getContext('2d', { willReadFrequently: true }); let lbKey = '', lbW = 0;
+function drawLabel() {                                                          // 장면 번호표: #037 눈 숲길 3 (주소에 #nolabel 이 있으면 숨김)
+  if (/nolabel/.test(location.hash) || !R || !R.no) return;
+  const tx = '#' + String(R.no).padStart(3, '0') + ' ' + (R.label || room);
+  if (tx !== lbKey) {
+    lbKey = tx; lbX.clearRect(0, 0, 160, 10); lbX.font = 'bold 8px monospace'; lbX.textAlign = 'left'; lbX.fillStyle = '#fff'; lbW = Math.min(150, Math.ceil(lbX.measureText(tx).width)); lbX.fillText(tx, 2, 8);
+    const im = lbX.getImageData(0, 0, 160, 10), dd = im.data; for (let i = 0; i < dd.length; i += 4) { const on = dd[i + 3] > 110; dd[i] = 255; dd[i + 1] = 238; dd[i + 2] = 208; dd[i + 3] = on ? 255 : 0; } lbX.putImageData(im, 0, 0);
+  }
+  ctx.fillStyle = 'rgba(11,9,16,.7)'; ctx.fillRect(4, 3, lbW * 2 + 8, 22); ctx.imageSmoothingEnabled = false; ctx.drawImage(lbC, 0, 0, 160, 10, 6, 5, 320, 20);
+}
+function startPan(e) {                                                                // 이어붙이기: 페이드 없이 화면이 옆(또는 위아래)으로 밀리며 다음 장면이 들어온다
+  const sn = document.createElement('canvas'); sn.width = VW; sn.height = VH; sn.getContext('2d').drawImage(cv, 0, 0); const v = TRAVEL[e.dir];
+  pan = { snap: sn, dir: e.dir, t: 0, wait: true }; P.path = [];
+  enter(e.to, e.spawn).then(() => { P.path = [[P.x + v[0] * 14, P.d + v[1] * 14]]; if (pan) pan.wait = false; });
+}
 function update(dt) {
+  if (pan && !pan.wait) { pan.t += dt / .6; if (pan.t >= 1) pan = null; }
   if (fadeDir) {
     fade += fadeDir * dt / .22;
     if (fade >= 1 && pending) { fade = 1; const p = pending; pending = null; enter(p.to, p.spawn).then(() => { fadeDir = -1; }); fadeDir = 0; }
@@ -494,7 +511,7 @@ function update(dt) {
   const e = inExit(R, P.x, P.d);
   if (e && !P.path.length) {
     if (e.need && !STATE.flags[e.need]) { if (!msg) { msg = e.needMsg ? { text: e.needMsg, t: 2.2 } : { text: '', t: 1.2 }; const z = e.zone; goTo((z[0] + z[1]) / 2, e.side === 'back' ? z[2] - 12 : (z[2] + z[3]) / 2 - 10); } }
-    else if (e.to) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
+    else if (e.to) { if (e.type === 'pan' && e.dir && !pan) startPan(e); else if (!pan) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
 async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
@@ -585,12 +602,18 @@ function draw(dt) {
     const mi = mgX.getImageData(0, 0, 160, 24), md = mi.data; for (let i = 0; i < md.length; i += 4) { const on = md[i + 3] > 110; md[i] = 255; md[i + 1] = 238; md[i + 2] = 208; md[i + 3] = on ? 255 : 0; } mgX.putImageData(mi, 0, 0);
     ctx.fillStyle = '#0b0910'; ctx.fillRect(40, VH - 38, 240, 28); ctx.imageSmoothingEnabled = false; ctx.drawImage(mgC, 0, VH - 46, 320, 48);
   }
+  drawLabel();
+  if (pan) {                                                                    // 화면 밀기 합성: 이전 장면 스냅샷과 지금 장면을 이어 붙여 민다
+    panX.clearRect(0, 0, VW, VH); panX.drawImage(cv, 0, 0); const q = pan.wait ? 0 : pan.t, e = q < .5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2, d = pan.dir;
+    const ax = d === 'R' ? -e * VW : d === 'L' ? e * VW : 0, ay = d === 'B' ? e * VH : d === 'F' ? -e * VH : 0, bx = d === 'R' ? (1 - e) * VW : d === 'L' ? -(1 - e) * VW : 0, by = d === 'B' ? -(1 - e) * VH : d === 'F' ? (1 - e) * VH : 0;
+    ctx.fillStyle = '#1e1618'; ctx.fillRect(0, 0, VW, VH); ctx.drawImage(pan.snap, ax, ay); ctx.drawImage(panC, bx, by);
+  }
   if (fade > 0) { ctx.fillStyle = `rgba(${fadeCol},${fade})`; ctx.fillRect(0, 0, VW, VH); }
 }
 
 // ---------- 입력: 누른 화면 점 -> 바닥 좌표 ----------
 function onDown(ev) {
-  if (fadeDir || !R || (C.st === 'rise' && C.t < 2.15)) return; ev.preventDefault(); audio();
+  if (fadeDir || pan || !R || (C.st === 'rise' && C.t < 2.15)) return; ev.preventDefault(); audio();
   if (FP) { const b = cv.getBoundingClientRect(); fpPress((ev.clientX - b.left) * VW / b.width, (ev.clientY - b.top) * VH / b.height); return; }
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
   let [x, d] = world(X, Y);

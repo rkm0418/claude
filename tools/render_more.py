@@ -268,172 +268,317 @@ THEMES = {
 }
 ORDER = ['snow', 'lake', 'park', 'reed', 'woods', 'ridge', 'roofs', 'hall', 'cabin', 'library', 'office', 'tree']
 
-# ---------------- 레이아웃 ----------------
-# 모든 레이아웃은 들어오는 곳이 왼쪽 가운데, 나가는 곳이 오른쪽 가운데라 방끼리 길이 이어진다. 길은 넓게(폭 26~36), 곁가지 골목(pocket)은 따로 붙인다.
-def unit(a, b): dx, dd = b[0] - a[0], b[1] - a[1]; n = math.hypot(dx, dd) or 1; return (dx / n, dd / n)
-def LAY(shapes, Wd, Dd, zones=()): m = Dd / 2; return dict(shapes=shapes, zones=list(zones), a=(0, m), da=(1, 0), b=(Wd, m), db=(-1, 0), m=m)
-def L_broad(r, Wd, Dd): h = r.randint(15, 19); m = Dd / 2; return LAY([('rect', 0, m - h, Wd, m + h)], Wd, Dd)
-def L_plaza(r, Wd, Dd): R = min(Dd * .46, Wd * .3); m = Dd / 2; return LAY([('circle', Wd / 2, m, R), ('rect', 0, m - 13, Wd * .3, m + 13), ('rect', Wd * .7, m - 13, Wd, m + 13)], Wd, Dd)
-def L_plazar(r, Wd, Dd): m = Dd / 2; return LAY([('rect', Wd * .24, 5, Wd * .76, Dd - 5), ('rect', 0, m - 13, Wd * .3, m + 13), ('rect', Wd * .7, m - 13, Wd, m + 13)], Wd, Dd)
-def L_wave(r, Wd, Dd): m = Dd / 2; return LAY([('path', bez((0, m), (Wd * .3, m - Dd * r.uniform(.2, .4)), (Wd * .65, m + Dd * r.uniform(.2, .4)), (Wd, m)), r.randint(13, 16))], Wd, Dd)
-def L_dumb(r, Wd, Dd): m = Dd / 2; R1 = min(Dd * .42, Wd * .2); R2 = min(Dd * .46, Wd * .2); return LAY([('circle', Wd * .2, m, R1), ('circle', Wd * .8, m, R2), ('rect', 0, m - 13, Wd * .2, m + 13), ('rect', Wd * .8, m - 13, Wd, m + 13), ('rect', Wd * .2, m - 11, Wd * .8, m + 11)], Wd, Dd)
-def L_twin(r, Wd, Dd): m = Dd / 2; return LAY([('rect', Wd * .2, 4, Wd * .8, 22), ('rect', Wd * .2, Dd - 22, Wd * .8, Dd - 4), ('rect', Wd * .2, 4, Wd * .2 + 18, Dd - 4), ('rect', Wd * .8 - 18, 4, Wd * .8, Dd - 4), ('rect', 0, m - 13, Wd * .25, m + 13), ('rect', Wd * .75, m - 13, Wd, m + 13)], Wd, Dd)
-def L_cross(r, Wd, Dd): m = Dd / 2; return LAY([('rect', 0, m - 13, Wd, m + 13), ('rect', Wd / 2 - 13, 3, Wd / 2 + 13, Dd - 3), ('circle', Wd / 2, m, 20)], Wd, Dd)
-def L_fork(r, Wd, Dd): m = Dd / 2; x = Wd * r.uniform(.35, .65); return LAY([('rect', 0, m - 13, Wd, m + 13), ('path', [(x, m), (x + Wd * .12, Dd - 8)], 12), ('circle', x + Wd * .12, Dd - 14, 15), ('path', [(x, m), (x - Wd * .12, 8)], 12), ('circle', x - Wd * .12, 14, 15)], Wd, Dd)
-def L_islands(r, Wd, Dd):
-    m = Dd / 2; c = [(Wd * .13, m, 16), (Wd * .42, m - Dd * .22, 17), (Wd * .6, m + Dd * .2, 17), (Wd * .88, m, 16)]; br = [[(c[i][0], c[i][1]), (c[i + 1][0], c[i + 1][1])] for i in range(3)]
-    return LAY([('circle', *q) for q in c] + [('path', b_, 10) for b_ in br] + [('rect', 0, m - 10, Wd * .13, m + 10), ('rect', Wd * .88, m - 10, Wd, m + 10)], Wd, Dd, [(('path', b_, 10), plank_ground) for b_ in br])
-def L_zig(r, Wd, Dd): m = Dd / 2; s = r.choice((-1, 1)) * Dd * .26; return LAY([('path', [(0, m), (Wd * .3, m), (Wd * .3, m + s), (Wd * .7, m + s), (Wd * .7, m), (Wd, m)], r.randint(12, 14))], Wd, Dd)
-def L_comb(r, Wd, Dd):
-    m = Dd / 2; sh = [('rect', 0, m - 13, Wd, m + 13)]
-    for i in range(3): x = Wd * (.22 + .28 * i); sh.append(('rect', x - 11, m, x + 11, Dd - 3) if i % 2 == 0 else ('rect', x - 11, 3, x + 11, m))
-    return LAY(sh, Wd, Dd)
-def L_vee(r, Wd, Dd): m = Dd / 2; s = r.choice((-1, 1)) * Dd * .26; return LAY([('path', [(0, m), (Wd * .5, m + s), (Wd, m)], 14)], Wd, Dd)
-def L_bridge(r, Wd, Dd): m = Dd / 2; return LAY([('rect', 0, m - 18, Wd * .32, m + 18), ('rect', Wd * .68, m - 18, Wd, m + 18), ('rect', Wd * .32 - 10, m - 10, Wd * .68 + 10, m + 10)], Wd, Dd, [(('rect', Wd * .32, m - 10, Wd * .68, m + 10), plank_ground)])
-def L_lobes(r, Wd, Dd): m = Dd / 2; return LAY([('circle', Wd * .17, m + r.randint(-6, 6), r.randint(17, 21)), ('circle', Wd * .5, m + r.randint(-8, 8), r.randint(19, 24)), ('circle', Wd * .83, m + r.randint(-6, 6), r.randint(17, 21)), ('rect', 0, m - 12, Wd, m + 12)], Wd, Dd)
-def L_plus2(r, Wd, Dd): m = Dd / 2; return LAY([('rect', 0, m - 13, Wd, m + 13), ('rect', Wd * .28 - 13, 3, Wd * .28 + 13, Dd - 3), ('rect', Wd * .72 - 13, 3, Wd * .72 + 13, Dd - 3)], Wd, Dd)
-LAYOUTS = [('broad', L_broad, 56), ('plaza', L_plaza, 64), ('plazar', L_plazar, 62), ('wave', L_wave, 64), ('dumbbell', L_dumb, 62), ('twin', L_twin, 70), ('cross', L_cross, 66), ('fork', L_fork, 70), ('islands', L_islands, 68), ('zig', L_zig, 68), ('comb', L_comb, 70), ('vee', L_vee, 66), ('bridge', L_bridge, 62), ('lobes', L_lobes, 62)]
+# ---------------- 연결표 · 번호 ----------------
+# scene_chains.json: 테마별 장면 순서. 처음 한 번 만들어 저장하고, 이후에는 이 파일을 고쳐 장면을 빼거나 끼운다(번호는 scene_ids.json 에 고정).
+CHAIN_PATH = os.path.join(HERE, 'scene_chains.json')
+OPP = {'L': 'R', 'R': 'L', 'B': 'F', 'F': 'B'}                                  # 방의 면: L 왼쪽 벽, R 오른쪽(열린 쪽), B 뒷벽, F 앞쪽(열린 쪽)
+INW = {'L': (1, 0), 'R': (-1, 0), 'B': (0, -1), 'F': (0, 1)}                    # 그 면의 문에서 방 안쪽으로 향하는 방향
+TRAVEL = {'L': (-1, 0), 'R': (1, 0), 'B': (0, 1), 'F': (0, -1)}                 # 그 면으로 나갈 때 몸이 움직이는 방향
+HONLY = ('long', 'tunnel', 'zig')                                               # 가로로만 이어지는 장면(왼쪽→오른쪽)
 
-def flip(res, Wd, Dd, fx, fd):                                                  # 좌우·앞뒤를 뒤집어 같은 레이아웃도 다르게 보이게(들어오는 곳은 늘 왼쪽 가운데)
-    X = (lambda x: Wd - x) if fx else (lambda x: x); Y = (lambda d: Dd - d) if fd else (lambda d: d)
-    def sh(s):
-        if s[0] == 'rect': x0, x1 = sorted((X(s[1]), X(s[3]))); d0, d1 = sorted((Y(s[2]), Y(s[4]))); return ('rect', x0, d0, x1, d1)
-        if s[0] == 'circle': return ('circle', X(s[1]), Y(s[2]), s[3])
-        return ('path', [(X(p[0]), Y(p[1])) for p in s[1]], s[2])
-    o = dict(res); o['shapes'] = [sh(s) for s in res['shapes']]; o['zones'] = [(sh(z), g) for z, g in res.get('zones', [])]
-    return o
+def gen_chains():
+    out = {}
+    for th in ORDER:
+        r = random.Random(sum(map(ord, th)) * 977); P = sorted(r.sample(range(1, 9), 4)); shapes = ['wide'] * 10
+        for i in (2, 6): shapes[i] = 'long'
+        free = [i for i in range(10) if i not in (2, 6)]; r.shuffle(free)
+        for q, i in enumerate(free): shapes[i] = ('square', 'square', 'deep', 'wide', 'square', 'wide', 'deep', 'wide')[q]
+        pk = ['tunnel', 'bend', 'zig', 'bend']; r.shuffle(pk); seq = []
+        for i in range(10):
+            seq.append(dict(key='%sx%02d' % (th, i + 1), kind='room', shape=shapes[i]))
+            if i in P: seq.append(dict(key='%sp%02d' % (th, P.index(i) + 1), kind='passage', shape=pk[P.index(i)]))
+        entry, epos = 'L', .5
+        for n, s in enumerate(seq):
+            nxt = seq[n + 1] if n + 1 < len(seq) else None
+            if s['shape'] in HONLY and entry not in 'LR': s['shape'] = 'bend' if s['kind'] == 'passage' else 'wide'               # 가로 전용인데 세로로 들어오면 모양을 바꾼다
+            s['entry'], s['epos'] = entry, epos; sh = s['shape']; hnext = nxt is not None and (nxt['shape'] in HONLY)
+            if sh in HONLY: ex = OPP[entry]
+            elif sh == 'bend': ex = r.choice('BF' if entry in 'LR' else 'LR')
+            else:
+                ex = OPP[entry] if r.random() < .55 else r.choice([c for c in 'LRBF' if c not in (entry, OPP[entry])])
+                if sh == 'deep' and r.random() < .6: ex = 'B' if entry in 'LR' else OPP[entry]
+            if hnext and ex in 'BF':                                                                                                 # 다음이 가로 전용이면 L/R 로 나간다
+                if sh == 'bend': s['shape'] = sh = 'tunnel'; ex = OPP[entry]
+                else: ex = OPP[entry] if OPP[entry] in 'LR' else r.choice('LR')
+                if ex == entry: ex = OPP[entry]
+            s['exit'] = ex
+            lo, hi = (.4, .6) if (nxt is not None and nxt['kind'] == 'passage') or s['kind'] == 'passage' else (.3, .7)
+            s['xpos'] = round(r.uniform(lo, hi), 2)
+            if sh == 'tunnel': s['xpos'] = epos
+            if sh == 'zig': s['xpos'] = .22 if epos > .5 else .78
+            epos = s['xpos']; entry = OPP[ex]
+            s['link'] = r.choice(('pan', 'pan', 'door', 'door', 'door')) if r.random() < .5 else r.choice(('pan', 'door')); s['gate'] = r.randrange(3)
+        out[th] = seq
+    return out
+def load_chains():
+    if os.path.exists(CHAIN_PATH): return json.load(open(CHAIN_PATH))
+    c = gen_chains(); json.dump(c, open(CHAIN_PATH, 'w'), ensure_ascii=False, indent=1); return c
 
-# ---------------- 문(넘어가는 자리) · 골목 · 롱레인지 ----------------
-GATES = {                                                                      # 테마별 문: (틀 색, 안쪽 색/빛 색)
- 'snow': ((196, 220, 244), (255, 244, 214)), 'lake': ((110, 150, 200), (216, 240, 255)), 'park': ((150, 60, 70), (255, 214, 150)), 'reed': ((150, 110, 60), (255, 230, 170)),
- 'woods': ((62, 52, 70), (130, 232, 212)), 'ridge': ((120, 84, 60), (255, 190, 120)), 'roofs': ((96, 98, 124), (255, 214, 150)), 'hall': ((120, 92, 70), (255, 236, 190)),
- 'cabin': ((96, 64, 40), (255, 214, 150)), 'library': ((80, 54, 40), (255, 226, 170)), 'office': ((110, 90, 64), (255, 230, 180)), 'tree': ((80, 56, 36), (255, 218, 150))}
-def gateway(k, theme, lx, ld, closed=False):                                   # 한눈에 문으로 보이는 자리: 틀, 밝은 속, 문턱 빛. 속은 불이 켜져 있어 "저기로 나간다"가 보인다
-    fr, gl = GATES[theme]; d0, d1 = ld - 10, ld + 10; xw = 1.2 if lx < 20 else lx + 4
-    inner = (22, 20, 28) if closed else gl
-    k.L(d0 - 2.2, d1 + 2.2, 0, 42, fr, xw); k.L(d0, d1, 0, 38, inner, xw + .2); k.L(d0 - 2.2, d1 + 2.2, 38, 42, tuple(int(v * .8) for v in fr), xw + .1)
-    if lx >= 20:                                                                # 벽이 없는 쪽: 틀 기둥 두 개로 세운다
-        for dd in (d0 - 3.5, d1 + 1.5): k.B(xw - 1, dd, 3, 2.2, 42, fr, solid=False)
-    if not closed:
-        k.glow(xw + 6, ld, 34, gl, .55); flat(k, xw + 7, ld, 11, 4, tuple(min(255, int(v * .8 + 40)) for v in gl))
-        for sx in (xw + 16, xw + 24): flat(k, sx, ld, 3, 1, tuple(min(255, v) for v in gl))      # 문 앞 바닥에 이어지는 빛 점(들어가라는 표시)
-BAR = {                                                                        # 골목 벽(막는 소품 한 칸)
- 'snow': lambda k, x, d, r: (k.B(x, d, 7, 6, 11, (206, 226, 246)), snowtop(k, x, d, 7, 6, 11)), 'lake': lambda k, x, d, r: (k.B(x, d, 7, 6, 12, (178, 220, 244)), k.B(x + 1, d + 1, 3, 3, 4, (230, 246, 255), z0=12, solid=False)),
- 'park': lambda k, x, d, r: (k.B(x, d, 7, 2, 12, (110, 84, 66)), k.B(x, d, 7, 2, 1.6, (150, 120, 90), z0=12, solid=False)), 'reed': lambda k, x, d, r: (p_reedc(k, x, d, r), k.block.append((x, d, 4))),
- 'woods': lambda k, x, d, r: p_dtree(k, x, d, r), 'ridge': lambda k, x, d, r: k.rock(x, d, 5, (130, 104, 96)),
- 'roofs': lambda k, x, d, r: k.B(x, d, 7, 4, 12, (110, 114, 140)), 'hall': lambda k, x, d, r: (k.B(x, d, 6, 4, 26, (96, 124, 140)), k.F(x + 1, x + 5, 16, 18, (40, 50, 60), d)),
- 'cabin': lambda k, x, d, r: k.B(x, d, 7, 6, 12, (150, 112, 70)), 'library': lambda k, x, d, r: (k.B(x, d, 7, 5, 36, (78, 52, 38)), [k.F(x + 1, x + 6, z, z + r.randint(5, 8), r.choice(((150, 50, 50), (60, 90, 130), (200, 170, 70), (70, 110, 80))), d) for z in (4, 13, 22, 31)]),
- 'office': lambda k, x, d, r: k.B(x, d, 7, 6, 22, (96, 108, 112)), 'tree': lambda k, x, d, r: k.B(x, d, 6, 6, 30, (96, 66, 42))}
-def add_alleys(r, o, Wd, Dd, n):                                               # 딸린 골목: 뒷벽에 붙은 좁은 칸. 앞쪽이 열려 있고, 양옆은 막는 소품 줄, 안쪽 끝엔 보상 소품
-    al = []; tips = []; xs = []
-    for _ in range(80):
-        if len(xs) >= n: break
-        x = r.uniform(24, Wd - 24)
-        if all(abs(x - q) > 44 for q in xs): xs.append(x)
-    for x in xs: ln = r.randint(24, 32); al.append((x, ln, 14)); tips.append((x, Dd + 6 - 4 - ln / 2 - 3))
-    o['alleys'] = al; o['tips'] = tips
+# ---------------- 문(넘어가는 자리): 테마 소재로 만든다 ----------------
+# 레시피: (이름, 기둥 종류, 기둥 높이, 기둥 색, 상인방 색, 안쪽 빛 색, 바닥 빛 깔기)
+GATE_RECIPES = {
+ 'snow': [('전나무 아치', 'fir', 74, None, None, (255, 244, 214)), ('얼음 동굴 입구', 'ice', 60, (206, 228, 248), (214, 236, 252), (222, 244, 255)), ('눈 쌓인 석등 문', 'lantern', 44, None, (236, 242, 252), (255, 240, 200))],
+ 'lake': [('얼음 아치', 'ice', 64, (170, 214, 244), (196, 228, 250), (220, 242, 255)), ('잔교 끝 등불 문', 'post', 52, (120, 84, 56), (140, 98, 64), (255, 226, 170)), ('얼음 틈 문', 'rock', 46, (150, 190, 222), None, (210, 236, 255))],
+ 'park': [('간판 아치', 'post', 58, (110, 84, 66), (190, 60, 70), (255, 214, 150)), ('개찰구', 'post', 40, (80, 70, 92), (150, 130, 110), (255, 226, 170)), ('천막 자락 문', 'crate', 50, (190, 60, 70), (214, 200, 180), (255, 214, 150))],
+ 'reed': [('갈라진 갈대 틈', 'reeds', 26, None, None, (255, 230, 170)), ('짚더미 문', 'hay', 40, None, (214, 176, 84), (255, 232, 180)), ('허수아비 문', 'post', 54, (110, 84, 60), (110, 84, 60), (255, 230, 170))],
+ 'woods': [('속 빈 나무 문', 'trunk', 92, (46, 38, 56), (56, 46, 66), (130, 232, 212)), ('뿌리 아치', 'trunk', 64, (62, 48, 40), (70, 54, 44), (150, 220, 200)), ('버섯 빛 문', 'shroom', 20, None, None, (130, 232, 212))],
+ 'ridge': [('나무 도리이', 'post', 66, (150, 60, 50), (170, 70, 56), (255, 190, 120)), ('바위 틈 문', 'rock', 70, (130, 104, 96), None, (255, 190, 120)), ('밧줄 문', 'post', 50, (120, 84, 60), (190, 160, 110), (255, 200, 140))],
+ 'roofs': [('계단실 문', 'locker', 50, (96, 98, 124), (120, 122, 146), (255, 214, 150)), ('옥상 해치', 'crate', 30, (110, 114, 140), None, (255, 220, 160)), ('널다리 입구', 'post', 46, (120, 90, 64), (150, 108, 70), (255, 214, 150))],
+ 'hall': [('교실 문', 'locker', 44, (120, 92, 70), (140, 108, 80), (255, 236, 190)), ('사물함 틈', 'locker', 48, (96, 124, 140), None, (255, 236, 190)), ('계단 입구', 'post', 44, (130, 130, 120), (150, 150, 140), (255, 240, 200))],
+ 'cabin': [('통나무 문', 'log', 52, (126, 84, 50), (140, 96, 58), (255, 214, 150)), ('커튼 문', 'post', 46, (120, 70, 66), (170, 70, 70), (255, 214, 150)), ('지하 해치', 'crate', 30, (130, 94, 60), None, (255, 200, 130))],
+ 'library': [('책장 아치', 'case', 56, (78, 52, 38), (96, 66, 46), (255, 226, 170)), ('책 무더기 문', 'books', 54, None, None, (255, 226, 170)), ('사다리 책장 문', 'case', 62, (86, 58, 42), (110, 76, 52), (255, 230, 180))],
+ 'office': [('매표 창구 문', 'locker', 46, (110, 90, 64), (150, 126, 96), (255, 230, 180)), ('회전문', 'post', 40, (90, 96, 100), (130, 136, 140), (255, 236, 190)), ('철문', 'locker', 50, (96, 108, 112), (120, 130, 134), (255, 236, 190))],
+ 'tree': [('옹이구멍 문', 'trunk', 60, (96, 66, 42), (110, 76, 48), (255, 218, 150)), ('뿌리 굴', 'trunk', 46, (86, 58, 38), None, (255, 218, 150)), ('밧줄 사다리 문', 'post', 56, (130, 100, 64), (160, 130, 86), (255, 224, 160))]}
 
-LONG_LAYOUTS = ('broad', 'wave', 'zig', 'lobes')
-def make_spec(theme, i):
-    r = random.Random(sum(map(ord, theme)) * 31 + i * 7919); T = THEMES[theme]; long = i in (2, 6)
-    seq = list(range(len(LAYOUTS))); random.Random(sum(map(ord, theme)) * 13).shuffle(seq)
-    if long: pool = [q for q in seq if LAYOUTS[q][0] in LONG_LAYOUTS]; li = pool[(i // 4) % len(pool)]
-    else: li = seq[i % len(seq)]
-    nm, fn, dmin = LAYOUTS[li]
-    if long: Wd = r.randint(330, 470); Dd = r.randint(46, 54)
-    else: Wd = r.randint(92, 112); Dd = r.randint(dmin, dmin + 14)
-    res = fn(r, Wd, Dd); res = flip(res, Wd, Dd, r.random() < .5, r.random() < .5)
-    res['a'], res['b'] = (0, Dd / 2), (Wd, Dd / 2); res['da'], res['db'] = (1, 0), (-1, 0); res['zones'] = []
-    add_alleys(r, res, Wd, Dd, r.choice((3, 4)) if long else r.choice((1, 1, 2)))
-    return dict(theme=theme, i=i, layout=nm, long=long, W=Wd, D=Dd, res=res, pit=0, wall=r.choice(T['walls']), seed=r.randint(0, 9), tries=0, density=1.0)
+class GT:                                                                       # 방의 한 면(L/R/B/F)에 붙는 문을 그리는 도우미
+    def __init__(s, k, side, lx, ld, Wl, Dl):
+        s.k, s.side, s.Wl, s.Dl = k, side, Wl, Dl; s.u = ld if side in 'LR' else lx; s.o = {'L': 1.2, 'R': Wl - 2.0, 'B': Dl - 1.2, 'F': 2.0}[side]
+    def plane(s, u0, u1, z0, z1, c):
+        if s.side in 'LR': s.k.L(s.u + u0, s.u + u1, z0, z1, c, s.o)
+        else: s.k.F(s.u + u0, s.u + u1, z0, z1, c, s.o, back=(s.side == 'B'))
+    def blk(s, du, span, depth, h, c, z0=0):
+        u = s.u + du - span / 2
+        if s.side == 'L': s.k.B(s.o - 1, u, depth, span, h, c, z0=z0, solid=False)
+        elif s.side == 'R': s.k.B(s.o - depth + 1, u, depth, span, h, c, z0=z0, solid=False)
+        elif s.side == 'B': s.k.B(u, s.o - depth + 1, span, depth, h, c, z0=z0, solid=False)
+        else: s.k.B(u, s.o - 1, span, depth, h, c, z0=z0, solid=False)
+    def pt(s, du, inw):
+        if s.side == 'L': return (s.o + inw, s.u + du)
+        if s.side == 'R': return (s.o - inw, s.u + du)
+        if s.side == 'B': return (s.u + du, s.o - inw)
+        return (s.u + du, s.o + inw)
+    def pillar(s, du, kind, h, c, r):
+        k = s.k; x, d = s.pt(du, 5); nb, nr = len(k.block), len(k.rects)
+        if kind == 'fir': fir2(k.sc, x, d, h)
+        elif kind == 'ice': s.blk(du, 9, 8, h * .5, c or (190, 224, 246)); s.blk(du + 1, 7, 6, h * .3, tuple(min(255, v + 14) for v in (c or (190, 224, 246))), z0=h * .5); s.blk(du, 5, 5, h * .2, (236, 248, 255), z0=h * .8)
+        elif kind == 'post': s.blk(du, 3.4, 3.4, h, c or (110, 84, 66))
+        elif kind == 'trunk': s.blk(du, 9, 9, h, c or (46, 38, 56)); s.blk(du, 6, 6, 3, tuple(min(255, v + 22) for v in (c or (46, 38, 56))), z0=h)
+        elif kind == 'reeds': p_reedc(k, x, d, random.Random(int(x * 3 + d)))
+        elif kind == 'books':
+            pal = ((150, 50, 50), (60, 90, 130), (200, 170, 70), (70, 110, 80), (120, 70, 120), (190, 190, 170)); z = 0; i = 0
+            while z < h: s.blk(du + (i % 3 - 1) * .8, 10 - (i % 2) * 2, 7, 5, pal[(i + int(abs(du))) % 6], z0=z); z += 5; i += 1
+        elif kind == 'case': s.blk(du, 10, 7, h, c or (78, 52, 38)); [s.plane(du - 4, du + 4, z, z + 6, col_) for z, col_ in ((6, (150, 50, 50)), (20, (60, 90, 130)), (34, (200, 170, 70)), (46, (70, 110, 80))) if z + 6 < h]
+        elif kind == 'locker': s.blk(du, 9, 6, h, c or (96, 124, 140)); s.plane(du - 3, du + 3, h * .5, h * .5 + 3, (40, 50, 60))
+        elif kind == 'rock': k.rock(x, d, 7, c or (130, 104, 96)); k.rock(x, d, 5, tuple(min(255, v + 20) for v in (c or (130, 104, 96))))
+        elif kind == 'crate': s.blk(du, 9, 8, h, c or (150, 112, 70)); s.blk(du, 7, 6, 2, (230, 220, 200), z0=h)
+        elif kind == 'lantern': RDL.lantern(k.sc, x, d); s.blk(du, 6, 6, 8, (236, 242, 252))
+        elif kind == 'shroom': p_shroom(k, x, d, random.Random(1)); p_shroom(k, x + 3, d + 3, random.Random(2))
+        elif kind == 'hay': s.blk(du, 10, 9, h, (214, 176, 84)); s.blk(du, 8, 7, 3, (230, 196, 110), z0=h)
+        elif kind == 'log':
+            z = 0
+            while z < h: s.blk(du, 10, 7, 6, (126, 84, 50) if (z // 6) % 2 else (112, 72, 42), z0=z); z += 6
+        del k.block[nb:]; del k.rects[nr:]
+def gateway(k, th, side, lx, ld, Wl, Dl, gi, mode, r):                          # mode: door(문) / open(트인 입구) / closed(닫힌 문)
+    nm, pk, ph, pc, lc, inn = GATE_RECIPES[th][gi % 3]; g = GT(k, side, lx, ld, Wl, Dl); half = 12.5
+    ph2 = ph * (.55 if mode == 'open' else 1)
+    for sgn in (-1, 1): g.pillar(sgn * (half + 4.5), pk, ph2, pc, r)
+    if mode != 'open':
+        top = max(40, min(ph, 52)) if pk in ('fir', 'reeds', 'shroom', 'lantern') else ph
+        if lc: g.blk(0, 2 * (half + 8), 5, 4, lc, z0=top)
+        g.plane(-half, half, 0, top - 1, (22, 20, 28) if mode == 'closed' else inn)
+        if mode == 'closed': g.plane(-half, half, top * .45, top * .45 + 2, (70, 60, 56)); g.plane(-half, half, top * .15, top * .15 + 2, (70, 60, 56))
+    if mode != 'closed':
+        x, d = g.pt(0, 8); k.glow(x, d, 34 if mode == 'door' else 26, inn, .5 if mode == 'door' else .35); flat(k, x, d, 11 if side in 'LR' else 12, 4, tuple(min(255, int(v * .8 + 40)) for v in inn))
+        for q in (16, 24):
+            x, d = g.pt(0, q); flat(k, x, d, 3, 1, inn)
+    return nm
+def FC(th, gi): return ','.join(str(int(v * .55)) for v in GATE_RECIPES[th][gi % 3][5])
+
+# ---------------- 막는 소품 · 골목 벽 ----------------
+SOLID = {'fir', 'tree', 'deadtree', 'kiosk', 'hut', 'tank', 'counter', 'bed', 'fire', 'bookcase', 'shelf', 'locker', 'cabinet', 'filecab', 'safe', 'machine', 'sofa', 'table', 'readtable', 'desk', 'ladder', 'trophy', 'stove', 'antenna', 'line', 'chimney', 'lamp_on', 'lamp_off', 'lantern', 'horse', 'boat', 'scarecrow', 'boulder', 'hay', 'cart', 'bumper', 'ac', 'root', 'lamp'}
+BARLOW = {                                                                     # 통로의 앞쪽(카메라 쪽) 벽: 길이 가려지지 않게 낮게
+ 'snow': lambda k, x, d, r: k.rock(x + 3, d + 3, 5, (238, 244, 252)), 'lake': lambda k, x, d, r: k.B(x, d, 7, 6, 9, (178, 220, 244)), 'park': lambda k, x, d, r: (k.B(x, d, 7, 2, 8, (110, 84, 66)), k.B(x, d, 7, 2, 1.4, (150, 120, 90), z0=8, solid=False)),
+ 'reed': lambda k, x, d, r: (k.reed(x, d, 11), k.reed(x + 3, d, 12), k.block.append((x, d, 3))), 'woods': lambda k, x, d, r: (k.B(x, d, 6, 6, 6, (54, 44, 56)), k.B(x - .5, d - .5, 7, 7, 1, (72, 60, 70), z0=6, solid=False)),
+ 'ridge': lambda k, x, d, r: k.rock(x + 2, d + 2, 4, (130, 104, 96)), 'roofs': lambda k, x, d, r: k.B(x, d, 7, 4, 8, (110, 114, 140)), 'hall': lambda k, x, d, r: k.B(x, d, 7, 4, 8, (150, 112, 76)),
+ 'cabin': lambda k, x, d, r: k.B(x, d, 8, 7, 9, (150, 112, 70)), 'library': lambda k, x, d, r: (k.B(x, d, 7, 5, 4, (150, 50, 50)), k.B(x + .5, d + .5, 6, 4, 4, (60, 90, 130), z0=4, solid=False)),
+ 'office': lambda k, x, d, r: k.B(x, d, 7, 5, 9, (130, 100, 72)), 'tree': lambda k, x, d, r: k.B(x, d, 6, 6, 9, (96, 66, 42))}
+BAR = {                                                                        # 골목·통로 벽(막는 소품 한 칸). 통로 양옆에 줄지어 서서 벽을 이룬다
+ 'snow': lambda k, x, d, r: (fir2(k.sc, x + 3, d + 3, r.choice((58, 66, 74))), k.block.append((x + 3, d + 3, 4))), 'lake': lambda k, x, d, r: (k.B(x, d, 7, 6, r.choice((18, 24, 30)), (178, 220, 244)), k.B(x + 1, d + 1, 4, 4, 4, (232, 248, 255), z0=24, solid=False)),
+ 'park': lambda k, x, d, r: (k.B(x, d, 7, 3, 22, (190, 60, 70) if int(x / 7) % 2 else (214, 200, 180)), k.B(x, d, 7, 3, 2, (120, 96, 70), z0=22, solid=False)), 'reed': lambda k, x, d, r: (p_reedc(k, x, d, r), k.block.append((x, d, 4))),
+ 'woods': lambda k, x, d, r: p_dtree(k, x, d, r), 'ridge': lambda k, x, d, r: (k.rock(x + 2, d + 2, 6, (130, 104, 96)), k.rock(x + 2, d + 2, 4, (150, 122, 110))),
+ 'roofs': lambda k, x, d, r: k.B(x, d, 7, 5, r.choice((14, 20, 26)), (110, 114, 140)), 'hall': lambda k, x, d, r: (k.B(x, d, 6, 4, 28, (96, 124, 140)), k.F(x + 1, x + 5, 16, 18, (40, 50, 60), d)),
+ 'cabin': lambda k, x, d, r: k.B(x, d, 8, 7, r.choice((14, 20, 26)), (150, 112, 70)), 'library': lambda k, x, d, r: (k.B(x, d, 7, 5, 38, (78, 52, 38)), [k.F(x + 1, x + 6, z, z + r.randint(5, 8), r.choice(((150, 50, 50), (60, 90, 130), (200, 170, 70), (70, 110, 80))), d) for z in (4, 13, 22, 31)]),
+ 'office': lambda k, x, d, r: k.B(x, d, 7, 6, 24, (96, 108, 112)), 'tree': lambda k, x, d, r: k.B(x, d, 6, 6, 34, (96, 66, 42))}
+
+# ---------------- 장면 사양 ----------------
+def gate_pt(side, pos, Wd, Dd):
+    span = Dd if side in 'LR' else Wd; c = max(15, min(span - 15, span * pos))
+    return {'L': (0, c), 'R': (Wd, c), 'B': (c, Dd), 'F': (c, 0)}[side]
+def route_pts(s, a, b, Wd, Dd, r):
+    ent, ext = s['entry'], s['exit']; sh = s['shape']
+    if sh == 'zig': x1 = Wd * .5; return [a, (x1, a[1]), (x1, b[1]), b]
+    if ent in 'LR' and ext in 'LR' or ent in 'BF' and ext in 'BF':
+        pts = [a, b]
+        if sh in ('wide', 'square', 'deep', 'long') and r.random() < .55:                                                     # 완만한 굽이
+            vert = ent in 'BF'; mid = [((a[0] * (1 - f) + b[0] * f), (a[1] * (1 - f) + b[1] * f)) for f in (.33, .66)]; off = r.choice((-1, 1)) * (Wd if vert else Dd) * .16
+            mid = [(m[0] + off * (1 if i == 0 else -1), m[1]) if vert else (m[0], m[1] + off * (1 if i == 0 else -1)) for i, m in enumerate(mid)]; pts = [a, mid[0], mid[1], b]
+        return pts
+    c = (b[0], a[1]) if ent in 'LR' else (a[0], b[1]); return [a, c, b]                                                       # ㄱ자로 꺾이는 길
+def make_spec(th, s):
+    key = s['key']; r = random.Random(sum(ord(ch) * (i + 1) for i, ch in enumerate(key))); sh = s['shape']; T = THEMES[th]
+    if sh == 'long': Wd, Dd = r.randint(330, 470), r.randint(46, 54)
+    elif sh == 'wide': Wd, Dd = r.randint(92, 112), r.randint(60, 76)
+    elif sh == 'square': Wd, Dd = r.randint(84, 100), r.randint(84, 100)
+    elif sh == 'deep': Wd, Dd = r.randint(66, 78), r.randint(98, 114)
+    elif sh == 'tunnel': Wd, Dd = r.randint(300, 400), 44
+    elif sh == 'bend': Wd, Dd = r.randint(112, 128), r.randint(100, 110)
+    else: Wd, Dd = r.randint(220, 260), r.randint(84, 92)
+    a = gate_pt(s['entry'], s['epos'], Wd, Dd); b = gate_pt(s['exit'], s['xpos'], Wd, Dd)
+    if sh == 'tunnel': b = (b[0], a[1])
+    pts = route_pts(s, a, b, Wd, Dd, r); hw = 13 if s['kind'] == 'passage' else 14
+    shapes = [('path', pts, hw)]
+    if s['kind'] == 'room' and sh in ('square', 'wide') and r.random() < .6: c = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); shapes.append(('circle', c[0], c[1], r.randint(20, 26)))
+    spec = dict(key=key, theme=th, chain=s, kind=s['kind'], shape=sh, W=Wd, D=Dd, pts=pts, hw=hw, shapes=shapes, a=a, b=b, ent=s['entry'], ext=s['exit'], seed=r.randint(0, 9), tries=0, density=1.0, alleys=[], tips=[])
+    spec['wall'] = r.choice(T['walls'])
+    def zone(side, p): v = INW[side]; return (p[0] + v[0] * 4, p[1] + v[1] * 4), (p[0] + v[0] * 14, p[1] + v[1] * 14)
+    spec['ea'], spec['st'] = zone(s['entry'], a); spec['eb'], spec['ab'] = zone(s['exit'], b)
+    if s['kind'] == 'room':                                                                                                  # 딸린 골목(뒷벽에 붙은 칸)
+        n = r.choice((2, 3)) if sh == 'long' else (1 if r.random() < .5 and sh != 'deep' else 0)
+        xs = []
+        for _ in range(120):
+            if len(xs) >= n: break
+            x = r.uniform(26, Wd - 26); ln = r.randint(26, 34)
+            if any(abs(x - q) < 48 for q in xs): continue
+            if (s['entry'] == 'B' and abs(x - a[0]) < 34) or (s['exit'] == 'B' and abs(x - b[0]) < 34): continue
+            xx = [x - 22 + 44 * i / 5 for i in range(6)]; dd = [Dd - 4 - ln * j / 4 for j in range(5)]
+            e = W.sd(shapes, np.array([[u for u in xx] for _ in dd]), np.array([[v] * 6 for v in dd]))
+            if e.min() < 1: continue
+            xs.append(x); spec['alleys'].append((x, ln, 17)); spec['tips'].append((x, Dd - 4 - ln / 2))
+    return spec
 
 def setup(name, spec):
-    T = THEMES[spec['theme']]; res = spec['res']; a, da, b, db = res['a'], res['da'], res['b'], res['db']
-    ea = (a[0] + da[0] * 4, a[1] + da[1] * 4); st = (a[0] + da[0] * 14, a[1] + da[1] * 14); eb = (b[0] + db[0] * 4, b[1] + db[1] * 4); ab = (b[0] + db[0] * 14, b[1] + db[1] * 14)
-    spec.update(ea=ea, st=st, eb=eb, ab=ab)
-    box = dict(wall=spec['wall'], vig=T['vig'] * (.6 if spec['long'] else 1))
-    W.BLOCKED[name] = lambda x, d, n, g=T['ground']: np.clip(g(x, d, np.full(n, -10.), n), 0, 255).astype(int)       # 바닥은 길 없이 한 가지 무늬(길을 강요하지 않는다)
-    ent = dict(H=min(T['H'], 70) if spec['long'] else T['H'], shapes=res['shapes'], zones=[], ground=T['ground'], face=T['face'], ch=30, sky=((20, 20, 30), (40, 40, 60)), start=st, box=box, wob=T['wob'], exits=[],
-               bbox=(0, 0, spec['W'], spec['D']))
+    T = THEMES[spec['theme']]; H = T['H']
+    if spec['shape'] in ('long', 'tunnel', 'zig'): H = min(H, 66)
+    elif spec['shape'] in ('square', 'deep', 'bend'): H = min(H, 62)
+    box = dict(wall=spec['wall'], vig=T['vig'] * (.6 if spec['shape'] in ('long', 'tunnel') else 1))
+    W.BLOCKED[name] = lambda x, d, n, g=T['ground']: np.clip(g(x, d, np.full(n, -10.), n), 0, 255).astype(int)               # 바닥은 길 없이 한 가지 무늬
+    ent = dict(H=H, shapes=spec['shapes'], zones=[], ground=T['ground'], face=T['face'], ch=30, sky=((20, 20, 30), (40, 40, 60)), start=spec['st'], box=box, wob=T['wob'], exits=[], bbox=(0, 0, spec['W'], spec['D']))
     W.AREAS[name] = ent; W.STRICT.add(name); MORE[name] = spec; return ent
 
 def more_props(name, k, tr, inside, rng):
-    spec = MORE[name]; T = THEMES[spec['theme']]; th = spec['theme']; r = random.Random(sum(map(ord, name)) * 7 + spec['tries'] * 101); avoid = [tr(spec[q]) for q in ('st', 'ab', 'ea', 'eb')]
-    placed = [(a, b, 14) for a, b in avoid]; kinds = [p for p in T['props'] if p[3][0] > 0 or r.random() < .55]
-    dens = spec['density'] * (spec['W'] / 100 if spec['long'] else 1); sc = k.sc; Wl, Dl = sc.W, sc.D
-    gateway(k, th, *tr(spec['ea']), closed=False) if spec['i'] > 0 else gateway(k, th, *tr(spec['ea']), closed=True)
-    gateway(k, th, *tr(spec['eb']), closed=(spec['i'] == N_PER - 1))
-    for (ax, ln, w) in spec['res'].get('alleys', []):
+    spec = MORE[name]; T = THEMES[spec['theme']]; th = spec['theme']; r = random.Random(sum(map(ord, name)) * 7 + spec['tries'] * 101); sc = k.sc; Wl, Dl = sc.W, sc.D; s = spec['chain']
+    gates = []
+    for side, p, mode, gi in spec['gates']:
+        lx, ld = tr(p); gateway(k, th, side, lx, ld, Wl, Dl, gi, mode, r); gates.append((lx, ld))
+    placed = [(a, b, 16) for a, b in gates] + [(tr(spec['st'])[0], tr(spec['st'])[1], 14), (tr(spec['ab'])[0], tr(spec['ab'])[1], 14)]
+    area = spec['W'] * spec['D'] / 6800.0
+    if spec['kind'] == 'passage':                                                                                            # 통로 벽: 길 양옆에 소품이 줄지어 서서 벽을 이룬다
+        pts = spec['pts']; hw = spec['hw'] + 5; dens_pass = 0
+        for (p0, p1) in zip(pts, pts[1:]):
+            L_ = math.hypot(p1[0] - p0[0], p1[1] - p0[1]); n = int(L_ // 7) + 1; ux, ud = (p1[0] - p0[0]) / (L_ or 1), (p1[1] - p0[1]) / (L_ or 1)
+            for i in range(n + 1):
+                cx, cd = p0[0] + ux * min(i * 7, L_), p0[1] + ud * min(i * 7, L_)
+                for sg in (-1, 1):
+                    x, d = cx - ud * hw * sg, cd + ux * hw * sg
+                    if not (-1 < x < spec['W'] + 1 and -1 < d < spec['D'] + 1): continue
+                    if float(inside(x, d)) < hw - spec['hw'] - 1.5 + 0.0 and False: continue
+                    if any(math.hypot(x - q[0], d - q[1]) < spec['hw'] + 3.5 for q in spec['pts_samples']): continue            # 다른 구간의 길 위는 비운다
+                    lx, ld = tr((x, d))
+                    if any(math.hypot(lx - a, ld - b) < 20 for a, b in gates): continue
+                    if any(math.hypot(lx - a, ld - b) < 6.5 for a, b, g_ in placed if g_ == 7): continue
+                    (BARLOW if d < cd - 3 else BAR)[th](k, lx - 3.5, ld - 3, r); placed.append((lx, ld, 7))
+    for (ax, ln, w) in spec['alleys']:
         lx = ax + 3; n_ = int(ln // 7) + 1
         for q in range(n_):
             dd = Dl - 4 - q * 7
             for sx in (lx - w, lx + w): BAR[th](k, sx - 3, dd - 3, r)
-        tipx, tipd = lx, Dl - 12; k.glow(tipx, tipd, 26, (255, 214, 150), .3); cand = [p for p in T['props'] if p[2] in ('any', 'mid')] or T['props']; cand[r.randrange(len(cand))][1](k, tipx - 2, tipd, r); placed.append((lx, Dl - ln / 2, ln))
+        tipx, tipd = lx, Dl - 12; k.glow(tipx, tipd, 26, (255, 214, 150), .3); cand = [p for p in T['props']]; fn_ = cand[r.randrange(len(cand))][1]
+        nb, nr = len(k.block), len(k.rects); fn_(k, tipx - 2, tipd, r); del k.block[nb:]; del k.rects[nr:]; placed.append((lx, Dl - ln / 2, ln))
+    dens = spec['density'] * max(.6, area) * (.45 if spec['kind'] == 'passage' else 1)
+    kinds = [p for p in T['props'] if p[3][0] > 0 or r.random() < .55]
     for (nm, fn, mode, (lo, hi), gap) in kinds:
-        n = max(0, int(round(r.randint(lo, hi) * dens)))
-        if dens > 0 and lo > 0 and n == 0: n = 1
+        n = max(0, int(round(r.randint(lo, hi) * dens))); solid = nm in SOLID
+        if dens > 0 and lo > 0 and n == 0 and not solid: n = 1
         tries = 0
-        while n > 0 and tries < 700:
-            tries += 1; x = r.uniform(0, spec['W']); d = r.uniform(0, spec['D']); e = inside(x, d)
-            if mode == 'edge' and not (-9 < e < 12): continue
-            if mode == 'mid' and not e < -7: continue
-            if mode == 'any' and e < -6: continue
-            lx, ld = tr((x, d))
-            if not (6 < lx < Wl - 4 and 5 < ld < Dl - 4): continue
+        while n > 0 and tries < 900:
+            tries += 1; x = r.uniform(0, spec['W']); d = r.uniform(0, spec['D']); e = float(inside(x, d)); lx, ld = tr((x, d))
+            if not (6 < lx < Wl - 5 and 5 < ld < Dl - 4): continue
+            if solid:
+                if e < 3: continue                                                                                          # 길(입구↔출구 띠)에는 막는 소품을 두지 않는다
+                if min(lx, Wl - lx, ld, Dl - ld) > 24: continue                                                             # 막는 소품은 벽·가장자리 쪽에만
             if any(math.hypot(lx - a, (ld - b) * 1.5) < gap * .5 + g_ * .5 + 2 for a, b, g_ in placed): continue
-            fn(k, lx, ld, r); placed.append((lx, ld, gap)); n -= 1
+            nb, nr = len(k.block), len(k.rects); fn(k, lx, ld, r)
+            if not solid: del k.block[nb:]; del k.rects[nr:]                                                                   # 막지 않는 장식은 걸을 수 있다
+            placed.append((lx, ld, gap)); n -= 1
 
-def reach(mask, meta, tips=()):
-    g = np.array(mask) > 127; gh, gw = g.shape; sx, sd_ = meta['start']; s = (min(gh - 1, int(sd_ / CELL)), min(gw - 1, int(sx / CELL)))
-    if not g[s]:
-        ys, xs = np.nonzero(g)
-        if not len(ys): return False
-        i = np.argmin((ys - s[0]) ** 2 + (xs - s[1]) ** 2); s = (ys[i], xs[i])
-    seen = np.zeros_like(g); st = [s]; seen[s] = True
-    while st:
-        y, x = st.pop()
-        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            ny, nx = y + dy, x + dx
-            if 0 <= ny < gh and 0 <= nx < gw and g[ny, nx] and not seen[ny, nx]: seen[ny, nx] = True; st.append((ny, nx))
-    o = meta['origin']
-    for (tx, td) in tips:
-        c = (min(gh - 1, int((td - o[1]) / CELL)), min(gw - 1, int((tx - o[0]) / CELL)))
-        if not seen[max(0, c[0] - 4):c[0] + 5, max(0, c[1] - 4):c[1] + 5].any(): return False
+def reach(mask, meta, spec):
+    g = np.array(mask) > 127; gh, gw = g.shape; tot = int(g.sum()); o = meta['origin']
+    cell = lambda x, d: (max(0, min(gh - 1, int(d / CELL))), max(0, min(gw - 1, int(x / CELL))))
+    def flood(m, s):
+        seen = np.zeros_like(m); st = [s]; seen[s] = True
+        while st:
+            y, x = st.pop()
+            for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                ny, nx = y + dy, x + dx
+                if 0 <= ny < gh and 0 <= nx < gw and m[ny, nx] and not seen[ny, nx]: seen[ny, nx] = True; st.append((ny, nx))
+        return seen
+    def near(m, c, rad=4):
+        ys, xs = np.nonzero(m[max(0, c[0] - rad):c[0] + rad + 1, max(0, c[1] - rad):c[1] + rad + 1])
+        if not len(ys): return None
+        return (ys[0] + max(0, c[0] - rad), xs[0] + max(0, c[1] - rad))
+    s = near(g, cell(*meta['start']), 6)
+    if s is None: return False
+    seen = flood(g, s)
+    if spec['kind'] == 'room' and seen.sum() < .9 * tot: return False                                                                                  # 걸을 수 있는 칸의 90% 이상이 한 덩어리
     for e in meta['exits']:
-        z = e['zone']; cx, cd = (z[0] + z[1]) / 2, (z[2] + z[3]) / 2; c = (min(gh - 1, int(cd / CELL)), min(gw - 1, int(cx / CELL)))
+        z = e['zone']; c = cell((z[0] + z[1]) / 2, (z[2] + z[3]) / 2)
         if not seen[c]: return False
+    for (tx, td) in spec['tips']:
+        c = cell(tx - o[0], td - o[1])
+        if not seen[max(0, c[0] - 4):c[0] + 5, max(0, c[1] - 4):c[1] + 5].any(): return False
+    er = g.copy()
+    for _ in range(4):                                                                                                      # 길 폭 검사: 8px(약 17px 폭) 깎고도 입구↔출구가 이어져야 한다
+        e2 = er.copy(); e2[1:] &= er[:-1]; e2[:-1] &= er[1:]; e2[:, 1:] &= er[:, :-1]; e2[:, :-1] &= er[:, 1:]; er = e2
+    s2 = near(er, cell(*meta['start']), 8)
+    if s2 is None: return False
+    seen2 = flood(er, s2)
+    for e in meta['exits']:
+        z = e['zone']; c = cell((z[0] + z[1]) / 2, (z[2] + z[3]) / 2)
+        if not seen2[max(0, c[0] - 5):c[0] + 6, max(0, c[1] - 5):c[1] + 6].any(): return False
     return True
 
-def FC(th): return ','.join(str(int(v * .55)) for v in GATES[th][1])
 def main():
     want = sys.argv[1:] or ORDER; W.props_orig = W.props
     def props(name, k, tr, inside, rng):
         if name in MORE: return more_props(name, k, tr, inside, rng)
         return W.props_orig(name, k, tr, inside, rng)
     W.props = props
-    names = {}
+    chains = load_chains(); allspec = {}
+    for th in ORDER:
+        for s in chains[th]:
+            spec = make_spec(th, s); spec['pts_samples'] = []
+            for (p0, p1) in zip(spec['pts'], spec['pts'][1:]):
+                L_ = math.hypot(p1[0] - p0[0], p1[1] - p0[1]); spec['pts_samples'] += [(p0[0] + (p1[0] - p0[0]) * i / max(1, int(L_ / 4)), p0[1] + (p1[1] - p0[1]) * i / max(1, int(L_ / 4))) for i in range(int(L_ / 4) + 1)]
+            allspec[s['key']] = spec
     for th in want:
-        for i in range(N_PER): spec = make_spec(th, i); names[(th, i)] = '%sx%02d' % (th, i + 1); setup(names[(th, i)], spec)
-    for th in want:
-        for i in range(N_PER):
-            nm = names[(th, i)]; spec = MORE[nm]
-            ex = []
-            if i > 0: ex.append(dict(at=spec['ea'], hw=10, fc=FC(th), to=names[(th, i - 1)], spawn=MORE[names[(th, i - 1)]]['ab']))
-            ex.append(dict(at=spec['eb'], hw=10, fc=FC(th), to=names[(th, i + 1)], spawn=MORE[names[(th, i + 1)]]['st']) if i < N_PER - 1 else dict(at=spec['eb'], hw=10, fc=FC(th), to=None, endMsg='길이 끊겨 있다. 여기서는 더 갈 수 없다', side='right'))
-            W.AREAS[nm]['exits'] = ex
+        seq = chains[th]
+        for n, s in enumerate(seq):
+            spec = allspec[s['key']]; prv = seq[n - 1] if n > 0 else None; nxt = seq[n + 1] if n + 1 < len(seq) else None
+            def lk(a, b):
+                return (a['link'], a['gate'])
+            gates = []; ex = []
+            if prv is None: gates.append((s['entry'], spec['a'], 'closed', s['gate']))
+            else:
+                lt, gi = lk(prv, s); gates.append((s['entry'], spec['a'], 'open' if lt == 'pan' else 'door', gi if lt == 'door' else prv['gate']))
+                ex.append(dict(at=spec['ea'], hw=(10 if s['entry'] in 'LR' else 5), hwx=(5 if s['entry'] in 'LR' else 10), fc=FC(th, prv['gate']), to=prv['key'], spawn=allspec[prv['key']]['ab'], dir=s['entry'], type=lt))
+            if nxt is None: gates.append((s['exit'], spec['b'], 'closed', s['gate'])); ex.append(dict(at=spec['eb'], hw=(10 if s['exit'] in 'LR' else 5), hwx=(5 if s['exit'] in 'LR' else 10), fc=FC(th, s['gate']), to=None, endMsg='길이 끊겨 있다. 여기서는 더 갈 수 없다', side={'L': 'left', 'R': 'right', 'B': 'back', 'F': 'front'}[s['exit']]))
+            else:
+                lt, gi = s['link'], s['gate']; gates.append((s['exit'], spec['b'], 'open' if lt == 'pan' else 'door', gi))
+                ex.append(dict(at=spec['eb'], hw=(10 if s['exit'] in 'LR' else 5), hwx=(5 if s['exit'] in 'LR' else 10), fc=FC(th, gi), to=nxt['key'], spawn=allspec[nxt['key']]['st'], dir=s['exit'], type=lt))
+            spec['gates'] = gates; setup(s['key'], spec); W.AREAS[s['key']]['exits'] = ex
     nav = {}
     for th in want:
-        for i in range(N_PER):
-            nm = names[(th, i)]; spec = MORE[nm]
+        for s in chains[th]:
+            nm = s['key']; spec = MORE[nm]; bad = True
             for t in range(10):
-                if t == 9: spec['res']['alleys'] = []; spec['res']['tips'] = []                # 끝까지 막히면 골목을 포기한다
+                if t == 9: spec['alleys'] = []; spec['tips'] = []                                                         # 끝까지 막히면 골목을 포기한다
                 spec['tries'] = t; W.SEEDOFF[nm] = t * 17; spec['density'] = .85 if t < 5 else (.5 if t < 7 else (.25 if t < 9 else .0))
                 im, dep, mask, meta = W.build(nm)
-                if reach(mask, meta, spec['res'].get('tips', [])): break
-            else: print('!! 길이 막힘', nm)
-            meta['label'] = '%s %d' % (THEMES[th]['label'], i + 1); meta['theme'] = th; nav[nm] = meta
+                if reach(mask, meta, spec): bad = False; break
+            if bad: print('!! 길이 막힘', nm)
+            meta['theme'] = th; meta['kind'] = s['kind']; meta['shape'] = s['shape']; meta['label'] = '%s %s' % (THEMES[th]['label'], ('통로' if s['kind'] == 'passage' else '') + s['key'][-2:].lstrip('0')); nav[nm] = meta
             im.save(os.path.join(OUT, 'world_%s.png' % nm)); dep.save(os.path.join(OUT, 'world_%s_depth.png' % nm)); mask.save(os.path.join(OUT, 'world_%s_walk.png' % nm))
-        print(th, [(MORE[names[(th, i)]]['layout'], nav[names[(th, i)]]['CW'], nav[names[(th, i)]]['CH']) for i in range(N_PER)])
+        print(th, [(s['key'][-3:], s['shape'], nav[s['key']]['CW'], nav[s['key']]['CH']) for s in chains[th]])
     for nm, meta in nav.items():
         for e in meta['exits']:
             w = e.pop('spawn_w', None)

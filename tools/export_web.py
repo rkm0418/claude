@@ -36,6 +36,19 @@ def main():
             if e.get('spawn') is None and e.get('to') in rooms:
                 tgt = rooms[e['to']]; back = [x for x in tgt['exits'] if x.get('to') == name and (x.get('manhole') or x.get('door'))]
                 e['spawn'] = ([round((back[0]['zone'][0] + back[0]['zone'][1]) / 2, 1), round(back[0]['zone'][3] + 6 if back[0].get('indoor') else back[0]['zone'][2] - 6, 1)] if back[0].get('door') else [round((back[0]['zone'][0] + back[0]['zone'][1]) / 2 - 10, 1), round((back[0]['zone'][2] + back[0]['zone'][3]) / 2 + 2, 1)]) if back else list(tgt['start'])
+    NAMES = {'living': '거실', 'kitchen': '주방', 'bedroom': '침실', 'study': '서재', 'tree_main': '나무집 안', 'tree_back': '나무집 뒷방', 'cabin_main': '통나무집 안', 'cabin_back': '통나무집 뒷방', 'library': '도서관', 'office': '매표소', 'park': '놀이공원', 'reed': '갈대밭', 'woods': '어두운 숲', 'ridge': '능선', 'roofs': '옥상', 'hall': '복도', 'snow_h': '눈 숲길 집', 'snow_5': '눈 숲길 5'}
+    ids_p = os.path.join(HERE, 'scene_ids.json'); ids = json.load(open(ids_p)) if os.path.exists(ids_p) else {}              # 장면 번호: 한 번 붙이면 고정, 새 장면만 뒤 번호를 받는다
+    for k in rooms:
+        if k not in ids: ids[k] = max(ids.values(), default=0) + 1
+    json.dump(ids, open(ids_p, 'w'), ensure_ascii=False, indent=0)
+    for k, m in rooms.items():
+        m['no'] = ids[k]
+        if not m.get('label'): m['label'] = NAMES.get(k) or (('눈 숲길 ' + k.split('_')[-1]) if k.startswith('snow_') else ('얼음 호수 ' + k.split('_')[-1]) if k.startswith('lake_') else k)
+    rows = ['| # | 키 | 이름 | 종류 | 연결 |', '|---|----|------|------|------|']
+    for k, m in sorted(rooms.items(), key=lambda kv: ids[kv[0]]):
+        ex = ', '.join('%s%s%s' % (e.get('dir') or '', '→' + e['to'] if e.get('to') else '→(막힘)', '(이어붙이기)' if e.get('type') == 'pan' else '') for e in m.get('exits', []))
+        rows.append('| #%03d | %s | %s | %s | %s |' % (ids[k], k, m['label'], ('통로 ' if m.get('kind') == 'passage' else '') + (m.get('shape') or m.get('group') or ''), ex))
+    open(os.path.join(HERE, '..', 'docs', 'scene-index.md'), 'w').write('# 장면 번호표\n\n게임 화면 위쪽의 `#번호`로 장면을 가리킵니다. 번호는 한번 정하면 바뀌지 않습니다(장면을 빼도 다른 번호는 그대로).\n\n' + '\n'.join(rows) + '\n')
     man = json.load(open(os.path.join(SPR, 'manifest.json'))); child = {}
     for d in man['directions']:
         for f in man['frames']: child['%s_%s' % (d, f)] = uri(Image.open(os.path.join(SPR, 'child_%s_%s.png' % (d, f))).convert('RGBA').resize(CHILD, Image.NEAREST))

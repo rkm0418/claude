@@ -332,7 +332,7 @@ def build(name):
     ex = []
     for E in A['exits']:
         lx, ld = tr(E['at']); sc.glow(lx, ld, 18, col=(255, 255, 255), power=.3)
-        ex.append({'zone': (lx - 5, lx + 5, ld - E.get('hw', 5), ld + E.get('hw', 5)), 'to': E['to'], 'spawn': E.get('spawn_abs'), 'spawn_w': E.get('spawn'), 'endMsg': E.get('endMsg'), 'side': E.get('side'), 'fc': E.get('fc')})
+        ex.append({'zone': (lx - E.get('hwx', 5), lx + E.get('hwx', 5), ld - E.get('hw', 5), ld + E.get('hw', 5)), 'to': E['to'], 'spawn': E.get('spawn_abs'), 'spawn_w': E.get('spawn'), 'endMsg': E.get('endMsg'), 'side': E.get('side'), 'fc': E.get('fc'), 'dir': E.get('dir'), 'type': E.get('type')})
     dep = Image.new('L', sc.img.size, 255)
     for depth, f in sorted(sc.jobs, key=lambda j: -j[0]):
         before = sc.img.copy(); f()
