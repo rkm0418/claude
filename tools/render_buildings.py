@@ -14,25 +14,14 @@ WOOD, WOOD_D = (176, 130, 90), (140, 100, 68)
 EXITS = {
     'cabin_main': [{'zone': (44, 62, 0, 3), 'to': 'lake_3', 'spawn': None, 'door': True, 'indoor': True},
                    {'zone': (0, 5, 22, 38), 'to': 'cabin_back', 'spawn': (52, 22)},
-                   {'zone': (40, 58, 55, 58), 'to': 'library', 'spawn': (54, 8), 'need': 'cabin_key', 'needMsg': '뒷문이 잠겨 있다. 열쇠가 필요하다', 'side': 'back'}],
+                   {'zone': (40, 58, 55, 58), 'to': 'library', 'spawn': (54, 8), 'need': 'cabin_key', 'side': 'back'}],
     'cabin_back': [{'zone': (59, 64, 14, 30), 'to': 'cabin_main', 'spawn': (10, 30)}],
     'library': [{'zone': (46, 64, 0, 3), 'to': 'cabin_main', 'spawn': (49, 48)},
-                {'zone': (86, 102, 59, 62), 'to': 'office', 'spawn': (45, 8), 'need': 'lib_open', 'needMsg': '책장이 꿈쩍도 않는다', 'side': 'back', 'open': {'x0': 86, 'x1': 102, 'z1': 40}}],
+                {'zone': (86, 102, 59, 62), 'to': 'office', 'spawn': (45, 8), 'need': 'lib_open', 'side': 'back', 'open': {'x0': 86, 'x1': 102, 'z1': 40}}],
     'office': [{'zone': (36, 54, 0, 3), 'to': 'library', 'spawn': (94, 52)},
-               {'zone': (62, 80, 53, 56), 'to': 'park', 'spawn': None, 'need': 'office_open', 'needMsg': '개찰구가 막혀 있다. 레버가 있는 것 같다', 'side': 'back', 'open': {'x0': 62, 'x1': 80, 'z1': 30}, 'endMsg': '개찰구 너머 — 여기서부터는 아직 만들지 않았어요'}],
+               {'zone': (62, 80, 53, 56), 'to': 'park', 'spawn': None, 'need': 'office_open', 'side': 'back', 'open': {'x0': 62, 'x1': 80, 'z1': 30}, 'endMsg': '개찰구 너머 — 여기서부터는 아직 만들지 않았어요'}],
 }
-OBJECTS = {
-    'cabin_main': [{'id': 'cm_note', 'type': 'note', 'x': 72, 'd': 31, 'z': 12, 'h': 6, 'reach': 26, 'text': '쪽지: "열쇠는 비린내 나는 곳에 있다. 곳간의 양동이를 보라."'}],
-    'cabin_back': [{'id': 'cb_key', 'type': 'key', 'x': 22, 'd': 16, 'z': 8, 'h': 6, 'reach': 26, 'flag': 'cabin_key', 'text': '양동이 속에서 열쇠를 찾았다 (뒷문 열쇠)'}],
-    'library': [{'id': 'lb_note', 'type': 'note', 'x': 57, 'd': 32, 'z': 12, 'h': 6, 'reach': 26, 'text': '쪽지: "겨울밤 하늘 색 표지의 책을 펼쳐라."'},
-                {'id': 'lb_red', 'type': 'book', 'x': 15, 'd': 17, 'z': 12, 'h': 6, 'reach': 20, 'color': [176, 80, 80], 'text': '붉은 책: 먼지만 날린다. 이 책이 아니다'},
-                {'id': 'lb_green', 'type': 'book', 'x': 15, 'd': 47, 'z': 12, 'h': 6, 'reach': 20, 'color': [86, 140, 100], 'text': '푸른 숲 책: 먼지만 날린다. 이 책이 아니다'},
-                {'id': 'lb_blue', 'type': 'book', 'x': 97, 'd': 27, 'z': 12, 'h': 6, 'reach': 20, 'color': [60, 84, 150], 'correct': True, 'text': '밤하늘 책이 펼쳐지고, 책장 쪽에서 무거운 소리가 났다'}],
-    'office': [{'id': 'of_note', 'type': 'note', 'x': 40, 'd': 43, 'z': 18, 'h': 6, 'reach': 26, 'text': '쪽지: "개찰 순서 — 위 · 아래 · 위"'},
-               {'id': 'of_s1', 'type': 'switch', 'x': 20, 'd': 28, 'h': 22, 'reach': 18, 'want': 1}, {'id': 'of_s2', 'type': 'switch', 'x': 46, 'd': 28, 'h': 22, 'reach': 18, 'want': 0}, {'id': 'of_s3', 'type': 'switch', 'x': 72, 'd': 28, 'h': 22, 'reach': 18, 'want': 1}],
-}
-PUZZLE = {'library': {'flag': 'lib_open', 'solvedMsg': '밤하늘 책이 펼쳐지고, 책장 쪽에서 무거운 소리가 났다'},
-          'office': {'flag': 'office_open', 'solvedMsg': '찰칵 — 개찰구의 막대가 올라갔다', 'kind': 'switches'}}
+OBJECTS = {}; PUZZLE = {}                                                    # 퍼즐은 tools/puzzles_data.py(두 시선, §31)로 옮겼다
 
 def make(key):
     W, D, style = ROOM[key]; sc = Scene(W, D, H + 2); sc.img.paste((24, 20, 24), (0, 0, sc.CW, sc.CH)); sc.d = ImageDraw.Draw(sc.img)
@@ -130,7 +119,6 @@ def make(key):
         for gx in (58, 85): B(gx, 49, 3, 4, 16, (250, 214, 120)); B(gx + .5, 49.5, 2, 3, 3, (230, 120, 130), z0=16)
         front(62, 80, 0, 26, (60, 54, 70)); front(61, 62, 0, 28, (250, 214, 120)); front(80, 81, 0, 28, (250, 214, 120)); front(61, 81, 28, 30, (250, 214, 120)); front(62, 80, 20, 22, (200, 60, 70)); front(66, 76, 22, 26, (250, 240, 200))   # 개찰구 막대(닫힘)
         left(10, 24, 18, 42, (250, 214, 120)); left(11, 23, 19, 41, (90, 150, 190)); left(14, 20, 24, 36, (240, 210, 100)); left(16, 18, 26, 34, (210, 70, 90)); left(28, 40, 20, 40, (250, 214, 120)); left(29, 39, 21, 39, (216, 120, 140)); left(31, 37, 25, 35, (250, 240, 200))
-        for sx in (20, 46, 72): B(sx - 2, 26, 4, 4, 10, (110, 100, 130)); B(sx - 3, 25, 6, 6, 2, (80, 72, 100))
         stool(24, 38, (226, 150, 100)); stool(66, 38, (226, 150, 100))
         glows((33, 40, 40, (255, 214, 150), .3), (71, 50, 30, (255, 230, 170), .22), (72, 28, 30, (250, 230, 160), .12))
     dep = Image.new('L', sc.img.size, 255)

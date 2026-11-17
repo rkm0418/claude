@@ -15,12 +15,7 @@ EXITS = {
     'tree_back': [{'zone': (62, 68, 14, 30), 'to': 'tree_main', 'spawn': (10, 30)},
                   {'zone': (22, 34, 12, 24), 'to': 'lake_1', 'spawn': None, 'manhole': True, 'hidden': True, 'need': 'tree_open', 'mx': 28, 'md': 18}],
 }
-OBJECTS = {'tree_main': [
-    {'id': 'tm_note', 'type': 'note', 'x': 50, 'd': 33, 'z': 12, 'h': 6, 'reach': 26, 'text': '쪽지: "책장의 책이 꽂힌 순서대로 촛불을 밝혀라."'},
-    {'id': 'tm_c0', 'type': 'candle', 'order': 0, 'x': 32, 'd': 48, 'h': 18, 'reach': 16, 'color': [176, 90, 80]},
-    {'id': 'tm_c1', 'type': 'candle', 'order': 1, 'x': 66, 'd': 46, 'h': 18, 'reach': 16, 'color': [90, 120, 150]},
-    {'id': 'tm_c2', 'type': 'candle', 'order': 2, 'x': 88, 'd': 30, 'h': 18, 'reach': 16, 'color': [210, 180, 90]}]}
-PUZZLE = {'tree_main': {'flag': 'tree_open', 'hud': True, 'solvedMsg': '곳간 쪽에서 쇳소리가 났다. 바닥에 무언가 드러났을 것이다'}}
+OBJECTS = {}; PUZZLE = {}                                                    # 퍼즐은 tools/puzzles_data.py(두 시선, §31)로 옮겼다
 
 def make(key):
     W, D = ROOM[key]; sc = Scene(W, D, H + 2); sc.img.paste((30, 22, 24), (0, 0, sc.CW, sc.CH)); sc.d = ImageDraw.Draw(sc.img)

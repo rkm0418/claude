@@ -10,7 +10,7 @@ const WALK_FPS = 7;
 const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0도(오른쪽)부터 시계 방향 45도씩
 let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
-const STATE = { lit: {}, solved: {}, seq: {}, flags: {}, got: {}, sw: {} };                                                  // 퍼즐 상태(방을 옮겨도 유지): 켠 등불
+const STATE = { lit: {}, solved: {}, seq: {}, flags: {}, got: {}, sw: {}, vi: {}, pv: {}, bag: [] };                                                  // 퍼즐 상태(방을 옮겨도 유지): 켠 등불
 const C = { st: 'none', x: 0, d: 0, t: 0, path: [], rep: 0, flip: false };    // 추격자(나무 머리): hidden(나무인 척) -> rise(일어남) -> chase / wait(뒤따라 들어옴)
 const CSPEED = 38, chFrames = {};
 function setupChaser() {
@@ -166,6 +166,98 @@ function drawChaser() {
   if (noise > 0) { for (let i = 0; i < 16 * noise; i++) { ctx.fillStyle = Math.random() < .5 ? 'rgba(8,6,12,.8)' : 'rgba(216,204,196,.7)'; ctx.fillRect((R.ox + X - 22 + Math.random() * 44) * S, (R.oy + Y - (72 - sink) * Math.random()) * S, S * (Math.random() < .2 ? 3 : 1), S); }
     for (let i = 0; i < 50 * noise; i++) { ctx.fillStyle = 'rgba(200,200,210,.12)'; ctx.fillRect(Math.random() * VW, Math.random() * VH, 2, 2); } }
 }
+// ---------- 두 시선 퍼즐(§31): 방마다 아이의 눈 -> 바깥의 눈. 글 없음 ----------
+let adultIm = null, AC = null; const VW_ = { look: null, t: 0, kn: [], flash: {}, hintT: 0 };
+function audio() { if (AC || !(window.AudioContext || window.webkitAudioContext)) return; try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+function beep(f, dur = .25, type = 'sine', vol = .12, when = 0) { if (!AC) return; try { const o = AC.createOscillator(), g = AC.createGain(), t0 = AC.currentTime + when; o.type = type; o.frequency.value = f; g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + dur); o.connect(g); g.connect(AC.destination); o.start(t0); o.stop(t0 + dur); } catch (e) {} }
+const TONES = [262, 330, 392];
+function curView(r = R) { if (!r || !r.views) return null; if (r.vreq && !STATE.flags[r.vreq]) return null; const i = STATE.vi[r.name] || 0; return i < r.views.length ? r.views[i] : null; }
+function viewObjs(r) { const v = curView(r); return v ? v.objects : (r.views ? [] : (r.objects || [])); }
+const pv = (o) => { const v = STATE.pv[o.id]; return v === undefined ? (o.init === undefined ? 0 : o.init) : v; };
+function viewSolved(v) {
+  if (v.objects.some(o => o.want !== undefined && pv(o) !== o.want)) return false;
+  if (v.seq && (STATE.pv[R.name + '_p'] || 0) < v.seq.length) return false;
+  if (v.knock && !STATE.pv[R.name + '_k']) return false;
+  return true;
+}
+function checkView() { const v = curView(); if (!v || VW_.t > 0) return; if (viewSolved(v)) { VW_.t = 1.1; beep(523, .5, 'triangle', .1); beep(659, .6, 'triangle', .1, .12); } }
+function actObj(o) {
+  const v = curView(); if (!v || VW_.t > 0) return;
+  if (o.kind === 'look') { VW_.look = { o, t: 1.7 }; if (o.tick) beep(900, .03, 'square', .05); }
+  else if (o.kind === 'dial' || o.kind === 'toggle' || o.kind === 'slot') {
+    if (o.look === 'cup' && STATE.bag.length < 3) { beep(120, .12, 'square', .06); return; }
+    STATE.pv[o.id] = (pv(o) + 1) % o.n; beep(o.kind === 'dial' ? 700 : 300, .05, 'square', .06); checkView();
+  }
+  else if (o.kind === 'play') { STATE.pv[o.sets] = 1; o.notes.forEach((nt, i) => { beep(TONES[nt], .4, 'sine', .14, i * .5); VW_.flash[o.bells[nt] + '_' + i] = performance.now() / 1000 + i * .5; }); }
+  else if (o.kind === 'press') {
+    const key = R.name + '_p', prog = STATE.pv[key] || 0;
+    if (v.gate && !STATE.pv[v.gate]) { beep(90, .1, 'square', .08); return; }
+    if (v.seq.slice(0, prog).includes(o.id) && o.look !== 'bell') return;
+    if (o.tone !== undefined) beep(TONES[o.tone], .45, 'sine', .14); VW_.flash[o.id + '_x'] = performance.now() / 1000;
+    if (v.seq[prog] === o.id) { STATE.pv[key] = prog + 1; if (o.tone === undefined) beep(200, .12, 'triangle', .1); checkView(); }
+    else { STATE.pv[key] = 0; if (o.tone === undefined) { beep(110, .25, 'sawtooth', .08); } else beep(98, .3, 'sawtooth', .06, .3); }
+  }
+  else if (o.kind === 'knock') { VW_.kn.push(performance.now() / 1000); beep(150, .08, 'square', .14); VW_.flash[o.id + '_x'] = performance.now() / 1000; }
+}
+function viewTick(dt) {
+  const v = curView(); if (VW_.look) { VW_.look.t -= dt; if (VW_.look.t <= 0) VW_.look = null; }
+  if (!v) return; const now = performance.now() / 1000;
+  if (v.knock && VW_.kn.length && now - VW_.kn[VW_.kn.length - 1] > 1.1) {                       // 두드림이 멎으면 박자를 읽는다(간격이 벌어지면 다음 묶음)
+    const g = [1]; for (let i = 1; i < VW_.kn.length; i++) { if (VW_.kn[i] - VW_.kn[i - 1] > .55) g.push(1); else g[g.length - 1]++; }
+    VW_.kn = []; if (g.length === v.knock.length && g.every((n, i) => n === v.knock[i])) { STATE.pv[R.name + '_k'] = 1; checkView(); } else beep(98, .3, 'sawtooth', .06);
+  }
+  if (v.knock && !STATE.pv[R.name + '_k']) { VW_.hintT -= dt; if (VW_.hintT <= 0) { VW_.hintT = 4.2; let tt = 0; v.knock.forEach((n, gi) => { for (let i = 0; i < n; i++) { VW_.flash['hint_' + gi + '_' + i] = now + tt; beep(110, .07, 'square', .05, tt); tt += .28; } tt += .5; }); } }
+  if (VW_.t > 0) { VW_.t -= dt; if (VW_.t <= 0 && !fadeDir) {                                    // 풀렸다: 품을 것을 품고, 방이 다음 시선으로 넘어간다
+    VW_.t = 0; if (v.give) STATE.bag.push(v.give); STATE.vi[R.name] = (STATE.vi[R.name] || 0) + 1; delete STATE.pv[R.name + '_p']; delete STATE.pv[R.name + '_k']; VW_.kn = []; VW_.hintT = .8;
+    if (STATE.vi[R.name] >= R.views.length) STATE.flags[R.vflag] = true; P.path = []; P.act = null; pending = { to: room, spawn: [P.x, P.d] }; fadeDir = 1; } }
+}
+const flashed = (k, dur = .35) => { const t = VW_.flash[k]; if (t === undefined) return false; const n = performance.now() / 1000; return n >= t && n < t + dur; };
+function line3(a, b, col, w = 1, al = 1) { const [ax, ay] = scr(a[0], a[1]), [bx, by] = scr(b[0], b[1]); ctx.save(); ctx.globalAlpha = al; ctx.strokeStyle = col; ctx.lineWidth = w * S; ctx.beginPath(); ctx.moveTo((R.ox + ax) * S, (R.oy + ay - (a[2] || 0)) * S); ctx.lineTo((R.ox + bx) * S, (R.oy + by - (b[2] || 0)) * S); ctx.stroke(); ctx.restore(); }
+function drawViewBack() {
+  const v = curView(); if (!v) return; const now = performance.now() / 1000, ob = (id) => v.objects.find(o => o.id === id), at = (o) => [o.x, o.d, (o.z || 0) + 3];
+  if (v.mode === 'adult') { ctx.fillStyle = 'rgba(255,214,160,.13)'; ctx.fillRect(0, 0, VW, VH); }                       // 바깥의 눈: 같은 방이 따뜻하고 평범하게 보인다
+  if (v.box) { const [X, Y] = scr((v.box[0] + v.box[1]) / 2, v.box[2]); ctx.fillStyle = '#5a3c28'; ctx.fillRect((R.ox + X - 11) * S, (R.oy + Y - v.box[3] - 9) * S, 22 * S, 9 * S); ctx.fillStyle = '#7a5438'; ctx.fillRect((R.ox + X - 11) * S, (R.oy + Y - v.box[3] - 10) * S, 22 * S, 2 * S); }
+  if (v.tray) { const [X, Y] = scr((v.tray[0] + v.tray[1]) / 2, (v.tray[2] + v.tray[3]) / 2); ctx.fillStyle = '#8a6a48'; ctx.beginPath(); ctx.ellipse((R.ox + X) * S, (R.oy + Y - 2) * S, 12 * S, 6 * S, 0, 0, 6.3); ctx.fill(); ctx.fillStyle = '#a88660'; ctx.beginPath(); ctx.ellipse((R.ox + X) * S, (R.oy + Y - 3) * S, 11 * S, 5 * S, 0, 0, 6.3); ctx.fill(); }
+  if (v.trail) for (const [i, p] of v.trail.entries()) { const [X, Y] = scr(p[0], p[1]); ctx.fillStyle = 'rgba(40,30,30,.55)'; ctx.fillRect((R.ox + X + (i % 2 ? 1 : -1)) * S, (R.oy + Y) * S, 2 * S, S); }
+  if (v.kid && (!v.seq || v.mode !== 'adult' || (STATE.pv[R.name + '_p'] || 0) >= 2 || !v.trail)) { const im = frames.d_idle; if (im) { const [X, Y] = scr(v.kid[0], v.kid[1]), [w, h] = G.childSize; ctx.save(); ctx.globalAlpha = .9; ctx.drawImage(im, (R.ox + X - w / 2) * S, (R.oy + Y - h * .72) * S, w * S, h * .72 * S); ctx.restore(); } }   // 웅크린 아이
+  if (v.beam) { const b = v.beam, col = 'rgba(255,240,190,.85)';
+    if (b.kind === 'cut') { for (const id of b.via) { const o = ob(id); if (pv(o) !== o.want) line3(at(o), b.to, col, 1.5, .8); } }
+    else if (b.kind === 'block') { const ok = b.via.every(id => pv(ob(id)) === ob(id).want) && pv(ob(b.trap)) === ob(b.trap).want, mid = [(b.frm[0] + b.to[0]) / 2, (b.frm[1] + b.to[1]) / 2, (b.frm[2] + b.to[2]) / 2]; line3(b.frm, ok ? mid : b.to, col, 3, ok ? .5 : .75); if (!ok) { const [X, Y] = scr(b.to[0], b.to[1]); ctx.fillStyle = 'rgba(255,240,190,.3)'; ctx.beginPath(); ctx.ellipse((R.ox + X) * S, (R.oy + Y) * S, 9 * S, 4 * S, 0, 0, 6.3); ctx.fill(); } }
+    else { let p = b.frm, alive = true; for (const id of b.via) { const o = ob(id); line3(p, at(o), col, 1.5, .85); p = at(o); if (pv(o) !== o.want) { alive = false; const dir = pv(o) === 0 ? null : [p[0] + (pv(o) === 1 ? 30 : -6), p[1] + (pv(o) === 1 ? -22 : 26), 2]; if (dir) line3(p, dir, col, 1.5, .45); break; } } if (alive) line3(p, b.to, col, 1.5, .9); } }
+  if (v.shadows) { const L = ob(v.shadows.lamp), n = pv(L) === L.want ? 0 : 3 - pv(L); v.shadows.at.slice(0, n).forEach(([x, d], i) => { const [X, Y] = scr(x, d); ctx.fillStyle = 'rgba(8,4,12,.8)'; ctx.fillRect((R.ox + X - 2) * S, (R.oy + Y - 22 - i * 3 + Math.sin(now * 2 + i) * 1) * S, 4 * S, (22 + i * 3) * S); ctx.fillRect((R.ox + X - 3) * S, (R.oy + Y - 27 - i * 3) * S, 6 * S, 6 * S); }); }
+  if (v.wave) { const a = ob(v.wave.ids[0]), b2 = ob(v.wave.ids[1]), df = pv(a) - a.want, dv = pv(b2) - b2.want, [X, Y] = scr(v.wave.at[0], v.wave.at[1]), cy = (R.oy + Y - v.wave.at[2]) * S, cx = (R.ox + X - 14) * S; ctx.fillStyle = 'rgba(10,10,16,.7)'; ctx.fillRect(cx - 2 * S, cy - 8 * S, 32 * S, 16 * S);
+    for (const [k, c] of [[0, '#7fd0a0'], [1, '#f0e0a0']]) { ctx.strokeStyle = c; ctx.lineWidth = S; ctx.beginPath(); for (let i = 0; i <= 28; i++) { const y = k ? Math.sin(i * (.5 + df * .14) + now * 4) * (4 + dv * 1.2) + (df || dv ? Math.sin(i * 2.3 + now * 9) * 1.2 : 0) : Math.sin(i * .5 + now * 4) * 4; ctx.lineTo(cx + i * S, cy + y * S); } ctx.stroke(); } }
+  if (v.knock) { const [X, Y] = scr(45, 0); let k = 0; v.knock.forEach((n, gi) => { for (let i = 0; i < n; i++) { ctx.fillStyle = flashed('hint_' + gi + '_' + i, .2) ? '#ffe9b0' : 'rgba(255,233,176,.18)'; ctx.fillRect((R.ox + X - 14 + k * 5) * S, (R.oy + Y - 34) * S, 3 * S, 3 * S); k++; } k++; }); }
+  if (v.stack) { const done = v.seq.slice(0, STATE.pv[R.name + '_p'] || 0); done.forEach((id, i) => { const o = ob(id), [X, Y] = scr(v.stack[0], v.stack[1]); chairAt((R.ox + X) * S, (R.oy + Y - i * 9) * S, o.size); }); }
+}
+function chairAt(cx, cy, size) { const w = 5 + size * 2; ctx.fillStyle = '#6a4a34'; ctx.fillRect(cx - w * S, cy - 7 * S, w * 2 * S, 2 * S); ctx.fillRect(cx - w * S, cy - 7 * S, S, 7 * S); ctx.fillRect(cx + (w - 1) * S, cy - 7 * S, S, 7 * S); ctx.fillStyle = '#8a6444'; ctx.fillRect(cx - w * S, cy - (14 + size) * S, 2 * S, (8 + size) * S); ctx.fillRect(cx - w * S, cy - (14 + size) * S, w * 2 * S, 2 * S); }
+function clockFace(cx, cy, r, time, tick) { const now = performance.now() / 1000, h = time[0] + time[1] / 60, ha = h / 12 * 6.283 - 1.571, ma = (tick ? (time[1] + now * 2) : time[1]) / 60 * 6.283 - 1.571; ctx.fillStyle = '#3a2c24'; ctx.beginPath(); ctx.arc(cx, cy, r + 1.2 * S, 0, 6.3); ctx.fill(); ctx.fillStyle = '#e8dcc0'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.3); ctx.fill(); ctx.strokeStyle = '#2a2024'; ctx.lineWidth = Math.max(1, r / 9);
+  if (r > 20) for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r * .86, cy + Math.sin(a) * r * .86); ctx.lineTo(cx + Math.cos(a) * r * .96, cy + Math.sin(a) * r * .96); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ha) * r * .5, cy + Math.sin(ha) * r * .5); ctx.stroke(); ctx.lineWidth = Math.max(1, r / 14); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ma) * r * .8, cy + Math.sin(ma) * r * .8); ctx.stroke(); }
+const SHAPES = { battery: [[2, 3], [3, 6], [5, 8], [6, 4]], piece: [[6, 3], [2, 7], [4, 4]], cup: [[3, 3], [4, 5], [6, 7]] };
+function drawObj(o) {
+  const v = curView(); if (!v) return;
+  const [X, Y0] = scr(o.x, o.d), cx = (R.ox + X) * S, cy = (R.oy + Y0 - (o.z || 0)) * S, val = pv(o), now = performance.now() / 1000, rect = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * S, cy + y * S, w * S, h * S); };
+  if (o.look === 'clock') clockFace(cx, cy - 4 * S, 4 * S, o.time, o.tick);
+  else if (o.look === 'num') { rect(-3, -8, 6, 8, '#2a2024'); rect(-2, -7, 4, 6, '#e8dcc0'); ctx.fillStyle = '#2a2024'; ctx.font = `bold ${5 * S}px monospace`; ctx.textAlign = 'center'; ctx.fillText(String(val), cx, cy - 2 * S); }
+  else if (o.look === 'knob') { ctx.fillStyle = '#c8b88a'; ctx.beginPath(); ctx.arc(cx, cy - 3 * S, 2.6 * S, 0, 6.3); ctx.fill(); const a = val / o.n * 6.283 - 1.571; ctx.strokeStyle = '#2a2024'; ctx.lineWidth = S; ctx.beginPath(); ctx.moveTo(cx, cy - 3 * S); ctx.lineTo(cx + Math.cos(a) * 2.6 * S, cy - 3 * S + Math.sin(a) * 2.6 * S); ctx.stroke(); }
+  else if (o.look === 'radio') { rect(-8, -11, 16, 11, '#5a4030'); rect(-7, -10, 8, 6, '#2a2024'); rect(2, -9, 4, 1, '#c8b88a'); rect(3, -17, 1, 6, '#888'); if (o.kind === 'play' && Math.sin(now * 5) > .6) rect(7, -14, 1, 1, '#fff'); }
+  else if (o.look === 'lamp') { const p = o.pos[val], [lx, ly] = scr(p[0], p[1]), px = (R.ox + lx) * S, py = (R.oy + ly) * S; for (const q of o.pos) { const [qx, qy] = scr(q[0], q[1]); ctx.fillStyle = '#6a5a4a'; ctx.fillRect((R.ox + qx - 1) * S, (R.oy + qy - 1) * S, 2 * S, S); }
+    const g = ctx.createRadialGradient(px, py - 8 * S, 2, px, py - 4 * S, 30 * S); g.addColorStop(0, 'rgba(255,226,150,.5)'); g.addColorStop(1, 'rgba(255,226,150,0)'); ctx.fillStyle = g; ctx.fillRect(px - 34 * S, py - 34 * S, 68 * S, 60 * S); ctx.fillStyle = '#6a5430'; ctx.fillRect(px - S, py - 12 * S, 2 * S, 12 * S); ctx.fillStyle = '#ffe6a0'; ctx.fillRect(px - 2 * S, py - 16 * S, 4 * S, 4 * S); }
+  else if (o.look === 'crate') { const gone = o.kind === 'press' && v.seq && v.seq.slice(0, STATE.pv[R.name + '_p'] || 0).includes(o.id); let dx = 0, dy = 0; if (o.kind === 'toggle' && val) { const [sx2, sy2] = scr(o.x + o.shift[0], o.d + o.shift[1]); dx = sx2 - X; dy = sy2 - Y0; } if (gone) { dx = 9; dy = 3; } const sh = flashed(o.id + '_x', .2) ? 1 : 0;
+    rect(-6 + dx + sh, -11 + dy, 12, 11, '#7a5a3c'); rect(-6 + dx + sh, -12 + dy, 12, 2, '#9a7650'); rect(-6 + dx + sh, -6 + dy, 12, 1, '#5a4028'); rect(5 + dx + sh, -11 + dy, 1, 11, '#5a4028'); }
+  else if (o.look === 'frame' || o.look === 'frame3') { const up = o.look === 'frame' ? val === 0 : val > 0; if (up) { rect(-4, -9, 8, 9, '#8a6a40'); rect(-3, -8, 6, 7, '#d8d0c0'); rect(-1, -6, 2, 2, '#b0a898'); rect(-2, -4, 4, 3, '#b0a898'); if (o.look === 'frame3') rect(val === 1 ? 2 : -3, -8, 1, 7, '#fff'); } else { rect(-5, -2, 10, 2, '#6a4e30'); rect(-4, -3, 8, 1, '#8a6a40'); } }
+  else if (o.kind === 'slot') { const sh = SHAPES[o.look], w = sh[o.want], lab = o.look === 'cup' ? 'ring' : 'out';
+    if (lab === 'ring') { ctx.strokeStyle = 'rgba(60,40,30,.7)'; ctx.lineWidth = S; ctx.beginPath(); ctx.ellipse(cx, cy, (w[0] / 2 + 1) * S, (w[0] / 4 + .6) * S, 0, 0, 6.3); ctx.stroke(); } else { ctx.strokeStyle = 'rgba(30,20,20,.8)'; ctx.lineWidth = S; ctx.strokeRect(cx - (w[0] / 2 + 1) * S, cy - (w[1] + 1) * S, (w[0] + 2) * S, (w[1] + 1) * S); }
+    if (val >= 0) { const q = sh[val], c = o.look === 'battery' ? '#c8a040' : o.look === 'cup' ? '#e8e0d0' : ['#e8e0d0', '#b8b8c0', '#d0c8b0'][val]; rect(-q[0] / 2, -q[1], q[0], q[1], c); rect(-q[0] / 2, -q[1], q[0], 1, '#fff8'); if (o.look === 'battery') rect(-1, -q[1] - 1, 2, 1, '#888'); } }
+  else if (o.look === 'bell') { const sw = (flashed(o.id + '_x', .5) || [0, 1, 2, 3].some(i => flashed(o.id + '_' + i, .4))) ? Math.sin(now * 40) * 2 : 0, z = o.size; ctx.fillStyle = '#4a3a2a'; ctx.fillRect(cx - S * .5, cy - (z + 8) * S, S, 8 * S); rect(-z + sw, -z, z * 2, z, sw ? '#ffe9a0' : '#c8a850'); rect(-z + 1 + sw, -z - 2, z * 2 - 2, 2, sw ? '#fff4c8' : '#d8b860'); rect(-1 + sw * 1.4, 0, 2, 2, '#6a5430'); }
+  else if (o.look === 'chair') { if (v.seq.slice(0, STATE.pv[R.name + '_p'] || 0).includes(o.id)) return; chairAt(cx + (flashed(o.id + '_x', .2) ? S : 0), cy, o.size); }
+  else if (o.look === 'door') { if (flashed(o.id + '_x', .12)) { ctx.fillStyle = 'rgba(255,240,200,.25)'; ctx.fillRect(cx - 9 * S, cy - 4 * S, 18 * S, 8 * S); } }
+}
+function drawViewHud() {
+  STATE.bag.forEach((b, i) => { const q = SHAPES.cup[{ cup_s: 0, cup_m: 1, cup_l: 2 }[b]]; ctx.fillStyle = '#0008'; ctx.fillRect(VW - 16 - i * 14, 26, 12, 14); ctx.fillStyle = '#e8e0d0'; ctx.fillRect(VW - 10 - i * 14 - q[0], 38 - q[1] * 1.4, q[0] * 2, q[1] * 1.4); });
+  if (VW_.look) { const o = VW_.look.o, a = Math.min(1, VW_.look.t * 3, (1.7 - VW_.look.t) * 6); ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(8,6,12,.72)'; ctx.fillRect(0, 0, VW, VH); if (o.look === 'clock') clockFace(VW / 2, VH / 2, 56, o.time, o.tick); ctx.restore(); }
+}
 function cellsOf(r, c) { const a = []; for (let j = 0; j < r.gh; j++) for (let i = 0; i < r.gw; i++) { const x = (i + .5) * CELL, d = (j + .5) * CELL; if (((x - c.x) / c.rx) ** 2 + ((d - c.d) / c.rd) ** 2 < 1) a.push(j * r.gw + i); } return a; }
 const inCrack = (c, x, d, pad = 0) => ((x - c.x) / (c.rx + pad)) ** 2 + ((d - c.d) / (c.rd + pad)) ** 2 < 1;
 function restoreCracks() { for (const c of R.cr) { if (c.st === 'broken') for (const k of c.cells) if (R.free0[k]) R.free[k] = 1; c.st = 'ok'; c.t = 0; } }
@@ -259,6 +351,7 @@ function update(dt) {
     if (fade <= 0) { fade = 0; fadeDir = 0; }
     return;
   }
+  viewTick(dt);
   if (marker) { marker.t += dt; if (marker.t > .6 && !P.path.length) marker = null; }
   if (msg) { msg.t -= dt; if (msg.t <= 0) msg = null; }
   for (const c of R.cr) {                                                      // 약한 얼음: 밟으면 금이 가고, 떠나면 깨져 물이 된다. 오래 서 있으면 빠진다
@@ -271,7 +364,8 @@ function update(dt) {
   if (P.act && !P.path.length) {                                               // 사물에 다가가 멈추면 조작한다: 쪽지·열쇠·책·레버·촛불
     const o = P.act; P.act = null; const pz = R.puzzle || {};
     if (sdist(P.x, P.d, o.x, o.d) < (o.reach || 18)) {
-      if (o.type === 'note') msg = { text: o.text, t: 3.6 };
+      if (o.kind) actObj(o);
+      else if (o.type === 'note') msg = { text: o.text, t: 3.6 };
       else if (o.type === 'key') { if (!STATE.got[o.id]) { STATE.got[o.id] = true; STATE.flags[o.flag] = true; msg = { text: o.text, t: 2.8 }; } else msg = { text: '빈 양동이다', t: 1.2 }; }
       else if (o.type === 'book') { if (STATE.flags[pz.flag]) msg = { text: '이미 펼쳐 놓았다', t: 1.2 }; else if (o.correct) { STATE.flags[pz.flag] = true; STATE.got[o.id] = true; msg = { text: pz.solvedMsg, t: 3 }; } else msg = { text: o.text, t: 2.2 }; }
       else if (o.type === 'switch') {
@@ -288,7 +382,7 @@ function update(dt) {
           } else { for (const id of seq) delete STATE.lit[id]; STATE.seq[R.name] = []; msg = { text: '촛불이 모두 꺼졌다. 순서가 아닌 모양이다', t: 2.2 }; }
         }
       }
-    } else msg = { text: '조금 더 가까이 가야 한다', t: 1 };
+    } else if (!o.kind) msg = { text: '조금 더 가까이 가야 한다', t: 1 };
   }
   if (!P.path.length) { P.moving = false; P.t = 0; return; }
   let left = SPEED * dt; P.moving = true; P.t += dt;
@@ -301,16 +395,17 @@ function update(dt) {
   }
   const e = inExit(R, P.x, P.d);
   if (e && !P.path.length) {
-    if (e.need && !STATE.flags[e.need]) { if (!msg) { msg = { text: e.needMsg || '아직 열리지 않는다', t: 2.2 }; const z = e.zone; goTo((z[0] + z[1]) / 2, e.side === 'back' ? z[2] - 12 : (z[2] + z[3]) / 2 - 10); } }
+    if (e.need && !STATE.flags[e.need]) { if (!msg) { msg = e.needMsg ? { text: e.needMsg, t: 2.2 } : { text: '', t: 1.2 }; const z = e.zone; goTo((z[0] + z[1]) / 2, e.side === 'back' ? z[2] - 12 : (z[2] + z[3]) / 2 - 10); } }
     else if (e.to) { pending = e; fadeDir = 1; } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { R = await prepare(key); room = key; P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { R = await prepare(key); room = key; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
 function drawChild() {
   const [w, h] = G.childSize; sprC.width = w; sprC.height = h;
+  const cvw = curView(); if (cvw && cvw.mode === 'adult' && adultIm) { const [ax, ay] = scr(P.x, P.d), bob = P.moving ? Math.round(Math.sin(P.t * 12)) : 0; ctx.save(); ctx.translate((R.ox + ax) * S, (R.oy + ay + 1) * S); if (['l', 'ul', 'dl'].includes(P.dir)) ctx.scale(-1, 1); ctx.drawImage(adultIm, -6.5 * S, (-38 + bob) * S, 13 * S, 38 * S); ctx.restore(); return; }
   const f = P.moving ? 'w' + (1 + (Math.floor(P.t * WALK_FPS) % 4)) : 'idle'; const im = frames[P.dir + '_' + f]; if (!im) return;
   sprX.clearRect(0, 0, w, h); sprX.drawImage(im, 0, 0);
   const [fx, fy] = scr(P.x, P.d), x0 = Math.round(fx - w / 2), y0 = Math.round(fy - h + 1);
@@ -354,7 +449,8 @@ function draw(dt) {
     ctx.fillStyle = '#d2a064'; ctx.fillRect((R.ox + x0) * S, (R.oy + yb - 2) * S, (x1 - x0) * S, 2 * S);
   }
   const tnow = performance.now();
-  for (const o of R.objects) {                                                  // 조작할 수 있는 사물: 엔진이 그림 위에 덧그린다
+  drawViewBack();
+  for (const o of R.objects) { if (o.kind) { drawObj(o); continue; }                // 조작할 수 있는 사물: 엔진이 그림 위에 덧그린다
     const [X, Y0] = scr(o.x, o.d), cx = (R.ox + X) * S, cy = (R.oy + Y0 - (o.z || 0)) * S, sp = (Math.sin(tnow / 300 + o.x) + 1) / 2;
     const rect = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * S, cy + y * S, w * S, h * S); };
     if (o.type === 'note') { rect(-4, -2, 8, 5, '#f2e8c8'); rect(-3, -1, 6, 1, '#b8a888'); rect(-3, 1, 4, 1, '#b8a888'); if (sp > .6) rect(4, -5, 1, 1, '#fff'); }
@@ -382,10 +478,11 @@ function draw(dt) {
     for (let k = 0; k < 14; k++) { const nx = (Math.sin(t * .7 + k * 12.9) * .5 + .5) * VW, ny = (Math.sin(t * .5 + k * 7.3) * .5 + .5) * VH; ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(nx, ny, 2, 6); }
   }
   ctx.restore();
+  drawViewHud();
   if (C.black && C.st === 'rise') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
   if (R.puzzle && R.puzzle.hud) { const cs = R.objects.filter(o => o.type === 'candle'), n = cs.filter(o => STATE.lit[o.id]).length; ctx.font = '11px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#0008'; ctx.fillRect(6, 6, 70, 16); ctx.fillStyle = '#ffe6a0'; ctx.fillText(`촛불 ${n}/${cs.length}`, 12, 18); }
   if (STATE.flags.cabin_key) { ctx.fillStyle = '#0008'; ctx.fillRect(VW - 40, 6, 34, 16); ctx.fillStyle = '#e8c050'; ctx.fillRect(VW - 34, 11, 8, 5); ctx.fillRect(VW - 27, 13, 8, 2); ctx.fillRect(VW - 21, 13, 2, 4); }
-  if (msg) { ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#000a'; ctx.fillRect(60, VH - 30, 200, 20); ctx.fillStyle = '#fed'; ctx.fillText(msg.text, VW / 2, VH - 16); }
+  if (msg && msg.text) { ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#000a'; ctx.fillRect(60, VH - 30, 200, 20); ctx.fillStyle = '#fed'; ctx.fillText(msg.text, VW / 2, VH - 16); }
   if (fade > 0) { ctx.fillStyle = `rgba(20,14,16,${fade})`; ctx.fillRect(0, 0, VW, VH); }
 }
 
@@ -395,7 +492,7 @@ function onDown(ev) {
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
   let [x, d] = world(X, Y);
   x = Math.max(0, Math.min(R.W, x)); d = Math.max(0, Math.min(R.D, d));                // 벽이나 바깥을 눌러도 가장 가까운 바닥으로
-  const o = R.objects.find(o => { const [ox, oy] = scr(o.x, o.d); return Math.hypot(X - ox, Y - (oy - (o.z || 0) - (o.h || 28) / 2)) < (o.type === 'note' || o.type === 'key' || o.type === 'book' ? 9 : 12); });   // 등불 기둥 근처를 눌렀는가
+  audio(); const o = R.objects.find(o => { if (o.reach === 0) return false; const [ox, oy] = scr(o.x, o.d); return Math.hypot(X - ox, Y - (oy - (o.z || 0) - (o.h || 28) / 2)) < (o.type === 'note' || o.type === 'key' || o.type === 'book' ? 9 : 12); });   // 등불 기둥 근처를 눌렀는가
   if (o) { P.act = o; goTo(o.x, o.d + 8); if (!P.path.length && sdist(P.x, P.d, o.x, o.d) < 14) { /* 이미 곁에 있다 */ } return; }
   P.act = null; goTo(x, d);
 }
@@ -407,11 +504,12 @@ addEventListener('resize', fit); fit();
 (async () => {
   for (const k in G.child) frames[k] = await img(G.child[k]);
   for (const k in (G.chaser || {})) chFrames[k] = await img(G.chaser[k]);
+  if (G.adult) adultIm = await img(G.adult);
   const sk = (location.hash || '#snow').slice(1), st = G.starts[sk] || G.starts.snow;
   await enter(st.room, [st.x, st.d]);
   let last = performance.now();
-  const loop = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; update(dt); draw(dt); requestAnimationFrame(loop); };
+  const loop = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; try { update(dt); draw(dt); } catch (e) { console.error(e); } requestAnimationFrame(loop); };
   requestAnimationFrame(loop);
-  window.__game = { STATE, C, preview: async (k) => { STATE.riseKind = k; STATE.flags.met = false; STATE.real = 4; const sp = G.rooms.woods.chaser.spots[4]; await enter('woods', [sp[0] - 44, sp[1] - 8]); [C.x, C.d] = sp; C.st = 'rise'; C.t = 0; C.pl = null; C.preview = true; C.face = -1; P.dir = 'r'; msg = null; }, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
+  window.__game = { STATE, C, curView, act: (id) => { const o = R.objects.find(x => x.id === id); if (o) actObj(o); return !!o; }, knockNow: () => VW_.kn.push(performance.now() / 1000), preview: async (k) => { STATE.riseKind = k; STATE.flags.met = false; STATE.real = 4; const sp = G.rooms.woods.chaser.spots[4]; await enter('woods', [sp[0] - 44, sp[1] - 8]); [C.x, C.d] = sp; C.st = 'rise'; C.t = 0; C.pl = null; C.preview = true; C.face = -1; P.dir = 'r'; msg = null; }, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
 })();
 })();

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """웹 엔진용 데이터 묶기: 방 그림·깊이 지도·이동 데이터(house_nav.json)·아이 8방향 스프라이트를 web/data.js 하나로(data URI) 만든다.
 사용: python3 tools/render_country_house.py && python3 tools/export_web.py"""
-import base64, io, json, os
+import base64, io, json, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__)); OUT = os.path.join(HERE, '..', 'maps', 'out'); SPR = os.path.join(HERE, '..', 'art', 'out', 'sprites', 'child8'); WEB = os.path.join(HERE, '..', 'web')
 CHILD = (14, 24)                                   # 방 비율에 맞춘 아이 크기(원본 24x42 의 0.75배, 문 높이 42 기준 7살 키)
@@ -24,6 +25,9 @@ def main():
     if os.path.exists(os.path.join(OUT, 'world_nav.json')):                       # 모험 구역(불규칙 지형)
         for k, m in json.load(open(os.path.join(OUT, 'world_nav.json'))).items():
             m = dict(m); m['img'] = uri(Image.open(os.path.join(OUT, 'world_%s.png' % k)).convert('RGB')); m['depth'] = uri(Image.open(os.path.join(OUT, 'world_%s_depth.png' % k)).convert('RGB')); m['walk'] = uri(Image.open(os.path.join(OUT, 'world_%s_walk.png' % k)).convert('RGB')); m['group'] = 'world'; rooms[k] = m
+    from puzzles_data import VIEWS                                               # 두 시선 퍼즐: 건물 안 방의 옛 사물·퍼즐을 대체
+    for k, v in VIEWS.items():
+        if k in rooms: rooms[k]['objects'] = []; rooms[k]['puzzle'] = None; rooms[k]['views'] = v['views']; rooms[k]['vflag'] = v['flag']; rooms[k]['vreq'] = v.get('req')
     for k in ('lake_2', 'snow_3'):
         if k in rooms: rooms[k]['mood'] = 'dark'                                  # 추격 구간: 어둡고 꺼림칙한 분위기
     for name, m in rooms.items():                                              # 다른 맵으로 가는 맨홀: 도착 맵의 짝 맨홀 곁(없으면 시작점)에 선다
@@ -35,6 +39,6 @@ def main():
     for d in man['directions']:
         for f in man['frames']: child['%s_%s' % (d, f)] = uri(Image.open(os.path.join(SPR, 'child_%s_%s.png' % (d, f))).convert('RGBA').resize(CHILD, Image.NEAREST))
     os.makedirs(WEB, exist_ok=True)
-    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'rooms': rooms, 'chaser': {f: uri(Image.open(os.path.join(SPR, '..', 'chaser%s.png' % ('' if f == 'idle' else '_' + f))).convert('RGBA')) for f in ('idle', 'w1', 'w2', 'w3', 'w4')}, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}, 'lake': {'room': 'lake_1', 'x': rooms['lake_1']['start'][0], 'd': rooms['lake_1']['start'][1]}, **{k: {'room': r, 'x': rooms[r]['start'][0], 'd': rooms[r]['start'][1]} for k, r in (('park', 'park'), ('reed', 'reed'), ('woods', 'woods'), ('ridge', 'ridge'), ('roofs', 'roofs'), ('hall', 'hall'), ('tree', 'tree_main'), ('cabin', 'cabin_main'), ('library', 'library'), ('office', 'office')) if r in rooms}}}) + ';\n')
+    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'adult': uri(Image.open(os.path.join(SPR, '..', 'shadow_adult.png')).convert('RGBA').resize((13, 38), Image.NEAREST)), 'rooms': rooms, 'chaser': {f: uri(Image.open(os.path.join(SPR, '..', 'chaser%s.png' % ('' if f == 'idle' else '_' + f))).convert('RGBA')) for f in ('idle', 'w1', 'w2', 'w3', 'w4')}, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}, 'lake': {'room': 'lake_1', 'x': rooms['lake_1']['start'][0], 'd': rooms['lake_1']['start'][1]}, **{k: {'room': r, 'x': rooms[r]['start'][0], 'd': rooms[r]['start'][1]} for k, r in (('park', 'park'), ('reed', 'reed'), ('woods', 'woods'), ('ridge', 'ridge'), ('roofs', 'roofs'), ('hall', 'hall'), ('tree', 'tree_main'), ('cabin', 'cabin_main'), ('library', 'library'), ('office', 'office')) if r in rooms}}}) + ';\n')
     print('web/data.js', os.path.getsize(os.path.join(WEB, 'data.js')) // 1024, 'KB')
 if __name__ == '__main__': main()
