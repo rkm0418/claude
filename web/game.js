@@ -4,7 +4,7 @@
 const G = window.GAME_DATA, cv = document.getElementById('c'); let ctx = cv.getContext('2d');
 const fpC = document.createElement('canvas'); fpC.width = 160; fpC.height = 120; const fpX = fpC.getContext('2d', { willReadFrequently: true });   // 클로즈업은 도트 해상도(160x120)로 그려 2배로 키운다
 const mgC = document.createElement('canvas'); mgC.width = 160; mgC.height = 24; const mgX = mgC.getContext('2d', { willReadFrequently: true });
-const VW = 320, VH = 240, S = 2;            // 논리 화면, 그림 배율
+const VW = 320, VH = 240; let S = 2;            // 논리 화면, 그림 배율(큰 방은 1로 줄여 3차원 틀 전체가 보이게 한다)
 const CELL = 2;                              // 길찾기 격자 한 칸 = 바닥 2px
 const BODY = { rx: 4, rd: 2.2 };             // 아이 발 자리(가구와 벽에서 띄우는 여유)
 const SPEED = 46;                            // 화면에서 느끼는 걸음 속도(그림 px/초)
@@ -497,7 +497,7 @@ function update(dt) {
     else if (e.to) { pending = e; fadeDir = 1; } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = (R.CW > 200 || R.CH > 125) ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
@@ -570,8 +570,8 @@ function draw(dt) {
   if (C.d >= P.d) { drawChaser(); drawChild(); } else { drawChild(); drawChaser(); }
   if (R.mood === 'dark' || C.st === 'rise' || C.st === 'chase' || C.st === 'wait') {                                                     // 추격 구간의 꺼림칙한 분위기: 어둡게 가라앉히고, 아이 둘레만 흐릿하게 보이며, 가장자리가 맥박처럼 숨 쉰다
     const [fx0, fy0] = scr(P.x, P.d), rs = C.st === 'rise', [qx, qy] = rs ? scr(C.x, C.d - 30) : [fx0, fy0], fx = (fx0 + qx) / 2, fy = (fy0 + qy) / 2, px = (R.ox + fx) * S, py = (R.oy + fy - 14) * S, t = performance.now() / 1000, br = (rs ? 2.4 : 1) * (1 + .06 * Math.sin(t * 2.2) + (Math.sin(t * 13) > .96 ? .12 : 0));
-    ctx.fillStyle = 'rgba(14,10,30,.38)'; ctx.fillRect(0, 0, VW, VH);
-    const g = ctx.createRadialGradient(px, py, 18 * S * br, px, py, 70 * S * br); g.addColorStop(0, 'rgba(6,2,14,0)'); g.addColorStop(.6, 'rgba(6,2,14,.55)'); g.addColorStop(1, 'rgba(4,0,10,.93)'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
+    ctx.fillStyle = 'rgba(14,10,30,.3)'; ctx.fillRect(0, 0, VW, VH);
+    const g = ctx.createRadialGradient(px, py, 44 * br, px, py, 190 * br); g.addColorStop(0, 'rgba(6,2,14,0)'); g.addColorStop(.6, 'rgba(6,2,14,.28)'); g.addColorStop(1, 'rgba(4,0,10,.62)'); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH);
     ctx.fillStyle = 'rgba(120,20,40,.05)'; ctx.fillRect(0, 0, VW, VH);
     for (let k = 0; k < 14; k++) { const nx = (Math.sin(t * .7 + k * 12.9) * .5 + .5) * VW, ny = (Math.sin(t * .5 + k * 7.3) * .5 + .5) * VH; ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(nx, ny, 2, 6); }
   }
