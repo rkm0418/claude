@@ -10,7 +10,7 @@ const BODY = { rx: 4, rd: 2.2 };             // 아이 발 자리(가구와 벽�
 const SPEED = 46;                            // 화면에서 느끼는 걸음 속도(그림 px/초)
 const WALK_FPS = 7;
 const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0도(오른쪽)부터 시계 방향 45도씩
-let fadeCol = '20,14,16'; let pan = null; const TRAVEL = { L: [-1, 0], R: [1, 0], B: [0, 1], F: [0, -1] }; let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
+let fadeCol = '20,14,16'; const TRAVEL = { L: [-1, 0], R: [1, 0], B: [0, 1], F: [0, -1] }; let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
 const STATE = { lit: {}, solved: {}, seq: {}, flags: {}, got: {}, sw: {}, vi: {}, pv: {}, bag: [] };                                                  // 퍼즐 상태(방을 옮겨도 유지): 켠 등불
 const C = { st: 'none', x: 0, d: 0, t: 0, path: [], rep: 0, flip: false };    // 추격자(나무 머리): hidden(나무인 척) -> rise(일어남) -> chase / wait(뒤따라 들어옴)
@@ -441,7 +441,6 @@ function goTo(x, d) {
 }
 
 // ---------- 움직임 ----------
-const panC = document.createElement('canvas'); panC.width = 320; panC.height = 240; const panX = panC.getContext('2d');
 const lbC = document.createElement('canvas'); lbC.width = 160; lbC.height = 10; const lbX = lbC.getContext('2d', { willReadFrequently: true }); let lbKey = '', lbW = 0;
 function drawLabel() {                                                          // 장면 번호표: #037 눈 숲길 3 (주소에 #nolabel 이 있으면 숨김)
   if (/nolabel/.test(location.hash) || !R || !R.no) return;
@@ -452,13 +451,34 @@ function drawLabel() {                                                          
   }
   ctx.fillStyle = 'rgba(11,9,16,.7)'; ctx.fillRect(4, 3, lbW * 2 + 8, 22); ctx.imageSmoothingEnabled = false; ctx.drawImage(lbC, 0, 0, 160, 10, 6, 5, 320, 20);
 }
-function startPan(e) {                                                                // 이어붙이기: 페이드 없이 화면이 옆(또는 위아래)으로 밀리며 다음 장면이 들어온다
-  const sn = document.createElement('canvas'); sn.width = VW; sn.height = VH; sn.getContext('2d').drawImage(cv, 0, 0); const v = TRAVEL[e.dir];
-  pan = { snap: sn, dir: e.dir, t: 0, wait: true }; P.path = [];
-  enter(e.to, e.spawn).then(() => { P.path = [[P.x + v[0] * 14, P.d + v[1] * 14]]; if (pan) pan.wait = false; });
+const TCOLS = 20, TROWS = 15, TCELL = 16, TRANK = []; for (let i = 0; i < TCOLS * TROWS; i++) { const r = Math.floor(i / TCOLS) / TROWS, n = (Math.sin(i * 12.9898) * 43758.5453) % 1; TRANK.push(r * .55 + Math.abs(n) * .45); }
+const panC = document.createElement('canvas'); panC.width = 320; panC.height = 240; const panX = panC.getContext('2d'); let trans = null;
+function startTrans(e) {                                                      // 문을 지나면: 아이는 화면에 고정, 시선이 문 쪽으로 움직이며 이전 장면이 무너지듯 검게 사라진다 → 다음 장면은 불이 켜지듯 깜빡이며 밝아진다
+  const sn = document.createElement('canvas'); sn.width = VW; sn.height = VH; sn.getContext('2d').drawImage(cv, 0, 0); const v = TRAVEL[e.dir] || [1, 0];
+  trans = { phase: 'out', t: 0, snap: sn, e, sv: [v[0] + v[1] * .5, -v[1] * .5] }; P.path = []; P.act = null; marker = null;
+}
+function drawTrans() {
+  if (!trans) return; const q = trans.t, ph = trans.phase, sv = trans.sv, ease = (x) => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+  if (ph === 'out') {
+    const e = ease(Math.min(1, q)); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); ctx.drawImage(trans.snap, -sv[0] * e * 24 + (Math.random() - .5) * e * 5, -sv[1] * e * 24 + (Math.random() - .5) * e * 3);
+    ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < e * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL);
+    for (let g = 0; g < 4 * e; g++) { ctx.fillStyle = 'rgba(0,0,0,.8)'; ctx.fillRect(0, Math.random() * VH, VW, 1 + Math.random() * 3); }
+  } else if (ph === 'wait') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
+  else {
+    const e = ease(Math.min(1, q)); panX.clearRect(0, 0, VW, VH); panX.drawImage(cv, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); ctx.drawImage(panC, sv[0] * (1 - e) * 24, sv[1] * (1 - e) * 24);
+    const [fx, fy] = scr(P.x, P.d), px = (R.ox + fx) * S + sv[0] * (1 - e) * 24, py = (R.oy + fy - 14) * S + sv[1] * (1 - e) * 24, Rr = e * VW * 1.15, fl = [1, .25, .8, .3, .6, .15, .4, .08, .02][Math.min(8, Math.floor(q * 9))];
+    for (let i = 0; i < TRANK.length; i++) {
+      const cx = (i % TCOLS) * TCELL, cy = Math.floor(i / TCOLS) * TCELL, dd = Math.hypot(cx + 8 - px, (cy + 8 - py) * 1.3); let a = dd > Rr ? 1 : Math.min(1, fl * (.55 + dd / (Rr + 1) * .6));
+      if (a > .02) { ctx.fillStyle = `rgba(0,0,0,${a})`; ctx.fillRect(cx, cy, TCELL, TCELL); }
+    }
+  }
 }
 function update(dt) {
-  if (pan && !pan.wait) { pan.t += dt / .6; if (pan.t >= 1) pan = null; }
+  if (trans) {
+    if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, trans.e.spawn).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; } }); } }
+    else if (trans.phase === 'in') { trans.t += dt / 1.0; if (trans.t >= 1) trans = null; }
+    return;
+  }
   if (fadeDir) {
     fade += fadeDir * dt / .22;
     if (fade >= 1 && pending) { fade = 1; const p = pending; pending = null; enter(p.to, p.spawn).then(() => { fadeDir = -1; }); fadeDir = 0; }
@@ -511,7 +531,7 @@ function update(dt) {
   const e = inExit(R, P.x, P.d);
   if (e && !P.path.length) {
     if (e.need && !STATE.flags[e.need]) { if (!msg) { msg = e.needMsg ? { text: e.needMsg, t: 2.2 } : { text: '', t: 1.2 }; const z = e.zone; goTo((z[0] + z[1]) / 2, e.side === 'back' ? z[2] - 12 : (z[2] + z[3]) / 2 - 10); } }
-    else if (e.to) { if (e.type === 'pan' && e.dir && !pan) startPan(e); else if (!pan) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
+    else if (e.to) { if (e.type === 'trans' && !trans) startTrans(e); else if (!trans) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
 async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
@@ -603,17 +623,13 @@ function draw(dt) {
     ctx.fillStyle = '#0b0910'; ctx.fillRect(40, VH - 38, 240, 28); ctx.imageSmoothingEnabled = false; ctx.drawImage(mgC, 0, VH - 46, 320, 48);
   }
   drawLabel();
-  if (pan) {                                                                    // 화면 밀기 합성: 이전 장면 스냅샷과 지금 장면을 이어 붙여 민다
-    panX.clearRect(0, 0, VW, VH); panX.drawImage(cv, 0, 0); const q = pan.wait ? 0 : pan.t, e = q < .5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2, d = pan.dir;
-    const ax = d === 'R' ? -e * VW : d === 'L' ? e * VW : 0, ay = d === 'B' ? e * VH : d === 'F' ? -e * VH : 0, bx = d === 'R' ? (1 - e) * VW : d === 'L' ? -(1 - e) * VW : 0, by = d === 'B' ? -(1 - e) * VH : d === 'F' ? (1 - e) * VH : 0;
-    ctx.fillStyle = '#1e1618'; ctx.fillRect(0, 0, VW, VH); ctx.drawImage(pan.snap, ax, ay); ctx.drawImage(panC, bx, by);
-  }
+  drawTrans();
   if (fade > 0) { ctx.fillStyle = `rgba(${fadeCol},${fade})`; ctx.fillRect(0, 0, VW, VH); }
 }
 
 // ---------- 입력: 누른 화면 점 -> 바닥 좌표 ----------
 function onDown(ev) {
-  if (fadeDir || pan || !R || (C.st === 'rise' && C.t < 2.15)) return; ev.preventDefault(); audio();
+  if (fadeDir || trans || !R || (C.st === 'rise' && C.t < 2.15)) return; ev.preventDefault(); audio();
   if (FP) { const b = cv.getBoundingClientRect(); fpPress((ev.clientX - b.left) * VW / b.width, (ev.clientY - b.top) * VH / b.height); return; }
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
   let [x, d] = world(X, Y);

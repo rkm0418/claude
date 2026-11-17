@@ -16,6 +16,7 @@ SPR = os.path.join(HERE, '..', 'art', 'out', 'sprites')
 CROWN = Image.open(os.path.join(SPR, 'chaser.png')).convert('RGBA').crop((0, 0, 30, 30))   # 추격자의 나무 머리(수관+목): 가짜 나무도 똑같이 생겼다
 PAD = 34
 STRICT = set()
+GRADE = {}                                                                       # 방별 색 보정(곱셈). 완성 그림 전체를 어둡고 차갑게 가라앉힌 뒤 불빛 번짐만 다시 얹는다
 SEEDOFF = {}                                                                     # 방별 소품 배치 씨앗 보정(render_more가 길이 막히면 바꿔 다시 굽는다)
 BODY = Image.open(os.path.join(SPR, 'chaser.png')).convert('RGBA').crop((0, 30, 30, 64))
 
@@ -41,7 +42,7 @@ def sd(shapes, x, d, wob=0):
 
 # ---------------- 소품 ----------------
 class K:
-    def __init__(s, sc, rng): s.sc, s.rng, s.rects, s.block = sc, rng, [], []
+    def __init__(s, sc, rng): s.sc, s.rng, s.rects, s.block, s.glows = sc, rng, [], [], []
     def B(s, x, d, w, dp, h, c, z0=0, sh=(.84, .68), solid=True):
         if solid and z0 < 20: s.rects.append((round(x, 1), round(d, 1), round(w, 1), round(dp, 1)))
         s.sc.jobs.append((d, lambda: s.sc.box(x, d, w, dp, h, c, dk(c, sh[0]), dk(c, sh[1]), z0=z0)))
@@ -71,7 +72,7 @@ class K:
         for (lx, ld) in ((x, d), (x + 8, d), (x, d + 5), (x + 8, d + 5)): s.B(lx, ld, 1, 1, 8, (110, 110, 124), solid=False)
         s.B(x - 1, d - 1, 11, 8, 1.6, (196, 150, 96), z0=8); s.B(x + 2, d - 8, 6, 5, 5, (150, 110, 76)); s.B(x + 2, d - 4.4, 6, 1, 6, (150, 110, 76), z0=5, solid=False)
     def post(s, x, d, h=12, c=(120, 92, 70)): s.B(x, d, 2, 2, h, c, solid=False); s.block.append((x + 1, d + 1, 2))
-    def glow(s, x, d, r, c, p): s.sc.glow(x, d, r, col=c, power=p)
+    def glow(s, x, d, r, c, p): s.glows.append((x, d, r, c, p)); s.sc.glow(x, d, r, col=c, power=p)
 
 # ---------------- 구역 정의 ----------------
 def park_ground(x, d, e, n):
@@ -338,6 +339,9 @@ def build(name):
         before = sc.img.copy(); f()
         if depth < 390:
             diff = ImageChops.difference(sc.img, before).convert('L').point(lambda v: 255 if v else 0); dep.paste(int(max(0, min(254, round((depth + 2) * 3)))) if depth < 82 else 254, (0, 0), diff)
+    if GRADE.get(name):                                                          # 분위기 보정: 전체를 가라앉히고 빛 웅덩이는 다시 살린다
+        g_ = np.asarray(sc.img).astype(float) * np.array(GRADE[name]); sc.img = Image.fromarray(np.clip(g_, 0, 255).astype(np.uint8), 'RGB'); sc.d = ImageDraw.Draw(sc.img); sc.px = sc.img.load()
+        for (gx_, gd_, gr_, gc_, gp_) in k.glows: sc.glow(gx_, gd_, gr_, col=gc_, power=min(.9, gp_ * 1.25))
     gw, gh = math.ceil(W / CELL), math.ceil(D / CELL); gx, gd = np.meshgrid((np.arange(gw) + .5) * CELL, (np.arange(gh) + .5) * CELL)
     ok = sd(sh, gx + x0, gd + d0, wob) < -2.6
     if name in STRICT: ok = (gx > 3.5) & (gx < W - 3.5) & (gd > 2.5) & (gd < D - 3.5)       # 바닥 전체를 걸을 수 있다(길은 그저 보이는 길일 뿐)
