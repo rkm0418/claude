@@ -2,258 +2,258 @@
 
 게임 화면 위쪽의 `#번호`로 장면을 가리킵니다. 번호는 한번 정하면 바뀌지 않습니다(장면을 빼도 다른 번호는 그대로).
 
-| # | 키 | 이름 | 종류 | 연결 |
+| # | 키 | 이름 | 종류 | 위치 |
 |---|----|------|------|------|
-| #001 | living | 거실 | house | →bedroom, →kitchen, →study, →(막힘) |
+| #001 | living | 거실 | house | →bedroom, kitchen, study |
 | #002 | kitchen | 주방 | house | →living |
 | #003 | bedroom | 침실 | house | →living |
 | #004 | study | 서재 | house | →living |
 | #005 | snow_1 | 눈 숲길 1 | snow | →snow_2 |
-| #006 | snow_2 | 눈 숲길 2 | snow | →snow_1, →snow_3, →snow_h |
-| #007 | snow_3 | 눈 숲길 3 | snow | →snow_2, →snow_4 |
-| #008 | snow_4 | 눈 숲길 4 | snow | →snow_3, →snow_5 |
+| #006 | snow_2 | 눈 숲길 2 | snow | →snow_1, snow_3, snow_h |
+| #007 | snow_3 | 눈 숲길 3 | snow | →snow_2, snow_4 |
+| #008 | snow_4 | 눈 숲길 4 | snow | →snow_3, snow_5 |
 | #009 | snow_5 | 눈 숲길 5 | snow | →snow_4 |
-| #010 | snow_h | 눈 숲길 집 | snow | →snow_2, →tree_main |
+| #010 | snow_h | 눈 숲길 집 | snow | →snow_2, tree_main |
 | #011 | lake_1 | 얼음 호수 1 | lake | →lake_2 |
-| #012 | lake_2 | 얼음 호수 2 | lake | →lake_1, →lake_3 |
-| #013 | lake_3 | 얼음 호수 3 | lake | →lake_2, →cabin_main |
-| #014 | tree_main | 나무집 안 | tree | →snow_h, →tree_back |
-| #015 | tree_back | 나무집 뒷방 | tree | →tree_main, →lake_1 |
-| #016 | cabin_main | 통나무집 안 | bld | →lake_3, →cabin_back, →library |
+| #012 | lake_2 | 얼음 호수 2 | lake | →lake_1, lake_3 |
+| #013 | lake_3 | 얼음 호수 3 | lake | →lake_2, cabin_main |
+| #014 | tree_main | 나무집 안 | tree | →snow_h, tree_back |
+| #015 | tree_back | 나무집 뒷방 | tree | →tree_main, lake_1 |
+| #016 | cabin_main | 통나무집 안 | bld | →lake_3, cabin_back, library |
 | #017 | cabin_back | 통나무집 뒷방 | bld | →cabin_main |
-| #018 | library | 도서관 | bld | →cabin_main, →office |
-| #019 | office | 매표소 | bld | →library, →park |
-| #020 | park | 놀이공원 | world | →office, →reed |
-| #021 | reed | 갈대밭 | world | →park, →woods |
-| #022 | woods | 어두운 숲 | world | →reed, →ridge |
-| #023 | ridge | 능선 | world | →woods, →roofs |
-| #024 | roofs | 옥상 | world | →ridge, →hall |
-| #025 | hall | 복도 | world | →roofs, →(막힘) |
-| #026 | snowx01 | 눈 숲길 1 | wide | B→snowp01 |
-| #027 | snowx02 | 눈 숲길 2 | square | B→snowp01, L→snowp02 |
-| #028 | snowx03 | 눈 숲길 3 | long | L→snowp02, B→snowp03 |
-| #029 | snowx04 | 눈 숲길 4 | wide | L→snowp03, B→snowp04 |
-| #030 | snowp01 | 눈 숲길 통로1 | 통로 tunnel | L→snowx01, B→snowx02 |
-| #031 | snowx05 | 눈 숲길 5 | deep | L→snowp04, B→snowp05 |
-| #032 | snowp02 | 눈 숲길 통로2 | 통로 bend | L→snowx02, B→snowx03 |
-| #033 | snowx06 | 눈 숲길 6 | deep | L→snowp05, B→snowp06 |
-| #034 | snowx07 | 눈 숲길 7 | long | L→snowp06, B→snowp07 |
-| #035 | snowp03 | 눈 숲길 통로3 | 통로 zig | L→snowx03, B→snowx04 |
-| #036 | snowx08 | 눈 숲길 8 | square | L→snowp07, B→snowp08 |
-| #037 | snowp04 | 눈 숲길 통로4 | 통로 zig | L→snowx04, B→snowx05 |
-| #038 | snowx09 | 눈 숲길 9 | wide | L→snowp08, B→snowp09 |
-| #039 | snowx10 | 눈 숲길 10 | square | L→snowp09, →(막힘) |
-| #040 | lakex01 | 얼음 호수 1 | deep | B→lakep01 |
-| #041 | lakex02 | 얼음 호수 2 | wide | L→lakep01, B→lakep02 |
-| #042 | lakex03 | 얼음 호수 3 | long | L→lakep02, B→lakep03 |
-| #043 | lakep01 | 얼음 호수 통로1 | 통로 zig | L→lakex01, B→lakex02 |
-| #044 | lakex04 | 얼음 호수 4 | square | L→lakep03, B→lakep04 |
-| #045 | lakex05 | 얼음 호수 5 | square | B→lakep04, L→lakep05 |
-| #046 | lakep02 | 얼음 호수 통로2 | 통로 zig | L→lakex02, B→lakex03 |
-| #047 | lakex06 | 얼음 호수 6 | wide | B→lakep05, L→lakep06 |
-| #048 | lakex07 | 얼음 호수 7 | long | L→lakep06, B→lakep07 |
-| #049 | lakep03 | 얼음 호수 통로3 | 통로 tunnel | L→lakex03, B→lakex04 |
-| #050 | lakex08 | 얼음 호수 8 | deep | L→lakep07, B→lakep08 |
-| #051 | lakep04 | 얼음 호수 통로4 | 통로 zig | L→lakex04, B→lakex05 |
-| #052 | lakex09 | 얼음 호수 9 | wide | B→lakep08, L→lakep09 |
-| #053 | lakex10 | 얼음 호수 10 | square | B→lakep09, →(막힘) |
-| #054 | parkx01 | 폐놀이공원 1 | deep | B→parkp01 |
-| #055 | parkx02 | 폐놀이공원 2 | wide | B→parkp01, L→parkp02 |
-| #056 | parkp01 | 폐놀이공원 통로1 | 통로 tunnel | L→parkx01, B→parkx02 |
-| #057 | parkx03 | 폐놀이공원 3 | long | L→parkp02, B→parkp03 |
-| #058 | parkp02 | 폐놀이공원 통로2 | 통로 zig | L→parkx02, B→parkx03 |
-| #059 | parkx04 | 폐놀이공원 4 | deep | B→parkp03, L→parkp04 |
-| #060 | parkx05 | 폐놀이공원 5 | wide | B→parkp04, L→parkp05 |
-| #061 | parkx06 | 폐놀이공원 6 | wide | L→parkp05, B→parkp06 |
-| #062 | parkp03 | 폐놀이공원 통로3 | 통로 bend | L→parkx03, B→parkx04 |
-| #063 | parkx07 | 폐놀이공원 7 | long | L→parkp06, B→parkp07 |
-| #064 | parkp04 | 폐놀이공원 통로4 | 통로 bend | L→parkx04, B→parkx05 |
-| #065 | parkx08 | 폐놀이공원 8 | square | L→parkp07, B→parkp08 |
-| #066 | parkx09 | 폐놀이공원 9 | square | L→parkp08, B→parkp09 |
-| #067 | parkx10 | 폐놀이공원 10 | square | L→parkp09, →(막힘) |
-| #068 | reedx01 | 갈대밭 1 | wide | B→reedp01 |
-| #069 | reedx02 | 갈대밭 2 | square | B→reedp01, L→reedp02 |
-| #070 | reedp01 | 갈대밭 통로1 | 통로 bend | L→reedx01, B→reedx02 |
-| #071 | reedx03 | 갈대밭 3 | long | L→reedp02, B→reedp03 |
-| #072 | reedp02 | 갈대밭 통로2 | 통로 bend | L→reedx02, B→reedx03 |
-| #073 | reedx04 | 갈대밭 4 | deep | B→reedp03, L→reedp04 |
-| #074 | reedp03 | 갈대밭 통로3 | 통로 tunnel | L→reedx03, B→reedx04 |
-| #075 | reedx05 | 갈대밭 5 | square | L→reedp04, B→reedp05 |
-| #076 | reedx06 | 갈대밭 6 | deep | L→reedp05, B→reedp06 |
-| #077 | reedx07 | 갈대밭 7 | long | L→reedp06, B→reedp07 |
-| #078 | reedx08 | 갈대밭 8 | wide | L→reedp07, B→reedp08 |
-| #079 | reedp04 | 갈대밭 통로4 | 통로 zig | L→reedx04, B→reedx05 |
-| #080 | reedx09 | 갈대밭 9 | wide | L→reedp08, B→reedp09 |
-| #081 | reedx10 | 갈대밭 10 | square | B→reedp09, →(막힘) |
-| #082 | woodsx01 | 어두운 숲 1 | square | B→woodsp01 |
-| #083 | woodsx02 | 어두운 숲 2 | square | L→woodsp01, B→woodsp02 |
-| #084 | woodsp01 | 어두운 숲 통로1 | 통로 bend | L→woodsx01, B→woodsx02 |
-| #085 | woodsx03 | 어두운 숲 3 | long | L→woodsp02, B→woodsp03 |
-| #086 | woodsx04 | 어두운 숲 4 | square | L→woodsp03, B→woodsp04 |
-| #087 | woodsx05 | 어두운 숲 5 | wide | B→woodsp04, L→woodsp05 |
-| #088 | woodsp02 | 어두운 숲 통로2 | 통로 zig | L→woodsx02, B→woodsx03 |
-| #089 | woodsx06 | 어두운 숲 6 | deep | B→woodsp05, L→woodsp06 |
-| #090 | woodsx07 | 어두운 숲 7 | long | L→woodsp06, B→woodsp07 |
-| #091 | woodsp03 | 어두운 숲 통로3 | 통로 tunnel | L→woodsx03, B→woodsx04 |
-| #092 | woodsx08 | 어두운 숲 8 | deep | L→woodsp07, B→woodsp08 |
-| #093 | woodsx09 | 어두운 숲 9 | wide | B→woodsp08, L→woodsp09 |
-| #094 | woodsp04 | 어두운 숲 통로4 | 통로 zig | L→woodsx04, B→woodsx05 |
-| #095 | woodsx10 | 어두운 숲 10 | wide | L→woodsp09, →(막힘) |
-| #096 | ridgex01 | 낙엽 능선 1 | wide | B→ridgep01 |
-| #097 | ridgex02 | 낙엽 능선 2 | square | L→ridgep01, B→ridgep02 |
-| #098 | ridgep01 | 낙엽 능선 통로1 | 통로 bend | L→ridgex01, B→ridgex02 |
-| #099 | ridgex03 | 낙엽 능선 3 | long | L→ridgep02, B→ridgep03 |
-| #100 | ridgex04 | 낙엽 능선 4 | wide | B→ridgep03, L→ridgep04 |
-| #101 | ridgex05 | 낙엽 능선 5 | square | B→ridgep04, L→ridgep05 |
-| #102 | ridgex06 | 낙엽 능선 6 | wide | L→ridgep05, B→ridgep06 |
-| #103 | ridgep02 | 낙엽 능선 통로2 | 통로 zig | L→ridgex02, B→ridgex03 |
-| #104 | ridgex07 | 낙엽 능선 7 | long | L→ridgep06, B→ridgep07 |
-| #105 | ridgex08 | 낙엽 능선 8 | deep | L→ridgep07, B→ridgep08 |
-| #106 | ridgep03 | 낙엽 능선 통로3 | 통로 tunnel | L→ridgex03, B→ridgex04 |
-| #107 | ridgex09 | 낙엽 능선 9 | square | L→ridgep08, B→ridgep09 |
-| #108 | ridgep04 | 낙엽 능선 통로4 | 통로 bend | L→ridgex04, B→ridgex05 |
-| #109 | ridgex10 | 낙엽 능선 10 | deep | B→ridgep09, →(막힘) |
-| #110 | roofsx01 | 밤 옥상 1 | deep | B→roofsp01 |
-| #111 | roofsx02 | 밤 옥상 2 | square | L→roofsp01, B→roofsp02 |
-| #112 | roofsx03 | 밤 옥상 3 | long | L→roofsp02, B→roofsp03 |
-| #113 | roofsp01 | 밤 옥상 통로1 | 통로 zig | L→roofsx01, B→roofsx02 |
-| #114 | roofsx04 | 밤 옥상 4 | wide | B→roofsp03, L→roofsp04 |
-| #115 | roofsx05 | 밤 옥상 5 | wide | B→roofsp04, L→roofsp05 |
-| #116 | roofsp02 | 밤 옥상 통로2 | 통로 bend | L→roofsx02, B→roofsx03 |
-| #117 | roofsx06 | 밤 옥상 6 | wide | L→roofsp05, B→roofsp06 |
-| #118 | roofsp03 | 밤 옥상 통로3 | 통로 zig | L→roofsx03, B→roofsx04 |
-| #119 | roofsx07 | 밤 옥상 7 | long | L→roofsp06, B→roofsp07 |
-| #120 | roofsx08 | 밤 옥상 8 | square | L→roofsp07, B→roofsp08 |
-| #121 | roofsp04 | 밤 옥상 통로4 | 통로 zig | L→roofsx04, B→roofsx05 |
-| #122 | roofsx09 | 밤 옥상 9 | deep | L→roofsp08, B→roofsp09 |
-| #123 | roofsx10 | 밤 옥상 10 | square | L→roofsp09, →(막힘) |
-| #124 | hallx01 | 학교 복도 1 | deep | B→hallp01 |
-| #125 | hallx02 | 학교 복도 2 | wide | B→hallp01, L→hallp02 |
-| #126 | hallx03 | 학교 복도 3 | square | L→hallp02, B→hallp03 |
-| #127 | hallx04 | 학교 복도 4 | square | B→hallp03, L→hallp04 |
-| #128 | hallp01 | 학교 복도 통로1 | 통로 bend | L→hallx01, B→hallx02 |
-| #129 | hallx05 | 학교 복도 5 | wide | L→hallp04, B→hallp05 |
-| #130 | hallx06 | 학교 복도 6 | square | L→hallp05, B→hallp06 |
-| #131 | hallp02 | 학교 복도 통로2 | 통로 hall | L→hallx02, B→hallx03 |
-| #132 | hallx07 | 학교 복도 7 | deep | L→hallp06, B→hallp07 |
-| #133 | hallx08 | 학교 복도 8 | square | L→hallp07, B→hallp08 |
-| #134 | hallp03 | 학교 복도 통로3 | 통로 bend | L→hallx03, B→hallx04 |
-| #135 | hallx09 | 학교 복도 9 | wide | L→hallp08, B→hallp09 |
-| #136 | hallp04 | 학교 복도 통로4 | 통로 bend | L→hallx04, B→hallx05 |
-| #137 | hallx10 | 학교 복도 10 | square | B→hallp09, →(막힘) |
-| #138 | cabinx01 | 통나무집 1 | square | B→cabinp01 |
-| #139 | cabinx02 | 통나무집 2 | deep | L→cabinp01, B→cabinp02 |
-| #140 | cabinp01 | 통나무집 통로1 | 통로 hall | L→cabinx01, B→cabinx02 |
-| #141 | cabinx03 | 통나무집 3 | wide | B→cabinp02, L→cabinp03 |
-| #142 | cabinp02 | 통나무집 통로2 | 통로 bend | L→cabinx02, B→cabinx03 |
-| #143 | cabinx04 | 통나무집 4 | square | B→cabinp03, L→cabinp04 |
-| #144 | cabinp03 | 통나무집 통로3 | 통로 bend | L→cabinx03, B→cabinx04 |
-| #145 | cabinx05 | 통나무집 5 | wide | L→cabinp04, B→cabinp05 |
-| #146 | cabinx06 | 통나무집 6 | deep | L→cabinp05, B→cabinp06 |
-| #147 | cabinx07 | 통나무집 7 | square | L→cabinp06, B→cabinp07 |
-| #148 | cabinx08 | 통나무집 8 | wide | L→cabinp07, B→cabinp08 |
-| #149 | cabinp04 | 통나무집 통로4 | 통로 bend | L→cabinx04, B→cabinx05 |
-| #150 | cabinx09 | 통나무집 9 | square | L→cabinp08, B→cabinp09 |
-| #151 | cabinx10 | 통나무집 10 | square | B→cabinp09, →(막힘) |
-| #152 | libraryx01 | 도서관 1 | wide | B→libraryp01 |
-| #153 | libraryx02 | 도서관 2 | square | B→libraryp01, L→libraryp02 |
-| #154 | libraryp01 | 도서관 통로1 | 통로 hall | L→libraryx01, B→libraryx02 |
-| #155 | libraryx03 | 도서관 3 | square | L→libraryp02, B→libraryp03 |
-| #156 | libraryx04 | 도서관 4 | square | L→libraryp03, B→libraryp04 |
-| #157 | libraryx05 | 도서관 5 | wide | B→libraryp04, L→libraryp05 |
-| #158 | libraryp02 | 도서관 통로2 | 통로 bend | L→libraryx02, B→libraryx03 |
-| #159 | libraryx06 | 도서관 6 | deep | B→libraryp05, L→libraryp06 |
-| #160 | libraryp03 | 도서관 통로3 | 통로 hall | L→libraryx03, B→libraryx04 |
-| #161 | libraryx07 | 도서관 7 | square | L→libraryp06, B→libraryp07 |
-| #162 | libraryx08 | 도서관 8 | square | B→libraryp07, L→libraryp08 |
-| #163 | libraryx09 | 도서관 9 | deep | L→libraryp08, B→libraryp09 |
-| #164 | libraryp04 | 도서관 통로4 | 통로 bend | L→libraryx04, B→libraryx05 |
-| #165 | libraryx10 | 도서관 10 | wide | L→libraryp09, →(막힘) |
-| #166 | officex01 | 매표소 1 | wide | B→officep01 |
-| #167 | officex02 | 매표소 2 | square | L→officep01, B→officep02 |
-| #168 | officep01 | 매표소 통로1 | 통로 hall | L→officex01, B→officex02 |
-| #169 | officex03 | 매표소 3 | deep | L→officep02, B→officep03 |
-| #170 | officex04 | 매표소 4 | square | L→officep03, B→officep04 |
-| #171 | officep02 | 매표소 통로2 | 통로 hall | L→officex02, B→officex03 |
-| #172 | officex05 | 매표소 5 | wide | L→officep04, B→officep05 |
-| #173 | officex06 | 매표소 6 | square | L→officep05, B→officep06 |
-| #174 | officep03 | 매표소 통로3 | 통로 bend | L→officex03, B→officex04 |
-| #175 | officex07 | 매표소 7 | square | B→officep06, L→officep07 |
-| #176 | officex08 | 매표소 8 | square | L→officep07, B→officep08 |
-| #177 | officex09 | 매표소 9 | deep | L→officep08, B→officep09 |
-| #178 | officep04 | 매표소 통로4 | 통로 hall | L→officex04, B→officex05 |
-| #179 | officex10 | 매표소 10 | wide | B→officep09, →(막힘) |
-| #180 | treex01 | 나무집 속 1 | deep | B→treep01 |
-| #181 | treex02 | 나무집 속 2 | square | B→treep01, L→treep02 |
-| #182 | treex03 | 나무집 속 3 | wide | L→treep02, B→treep03 |
-| #183 | treep01 | 나무집 속 통로1 | 통로 bend | L→treex01, B→treex02 |
-| #184 | treex04 | 나무집 속 4 | wide | B→treep03, L→treep04 |
-| #185 | treep02 | 나무집 속 통로2 | 통로 bend | L→treex02, B→treex03 |
-| #186 | treex05 | 나무집 속 5 | wide | L→treep04, B→treep05 |
-| #187 | treex06 | 나무집 속 6 | square | L→treep05, B→treep06 |
-| #188 | treex07 | 나무집 속 7 | square | L→treep06, B→treep07 |
-| #189 | treep03 | 나무집 속 통로3 | 통로 bend | L→treex03, B→treex04 |
-| #190 | treex08 | 나무집 속 8 | square | L→treep07, B→treep08 |
-| #191 | treex09 | 나무집 속 9 | square | B→treep08, L→treep09 |
-| #192 | treep04 | 나무집 속 통로4 | 통로 bend | L→treex04, B→treex05 |
-| #193 | treex10 | 나무집 속 10 | deep | L→treep09, →(막힘) |
-| #194 | snowp05 | 눈 숲길 통로5 | 통로 zig | L→snowx05, B→snowx06 |
-| #195 | snowp06 | 눈 숲길 통로6 | 통로 bend | L→snowx06, B→snowx07 |
-| #196 | snowp07 | 눈 숲길 통로7 | 통로 zig | L→snowx07, B→snowx08 |
-| #197 | snowp08 | 눈 숲길 통로8 | 통로 zig | L→snowx08, B→snowx09 |
-| #198 | snowp09 | 눈 숲길 통로9 | 통로 bend | L→snowx09, B→snowx10 |
-| #199 | lakep05 | 얼음 호수 통로5 | 통로 tunnel | L→lakex05, B→lakex06 |
-| #200 | lakep06 | 얼음 호수 통로6 | 통로 zig | L→lakex06, B→lakex07 |
-| #201 | lakep07 | 얼음 호수 통로7 | 통로 zig | L→lakex07, B→lakex08 |
-| #202 | lakep08 | 얼음 호수 통로8 | 통로 zig | L→lakex08, B→lakex09 |
-| #203 | lakep09 | 얼음 호수 통로9 | 통로 zig | L→lakex09, B→lakex10 |
-| #204 | parkp05 | 폐놀이공원 통로5 | 통로 tunnel | L→parkx05, B→parkx06 |
-| #205 | parkp06 | 폐놀이공원 통로6 | 통로 tunnel | L→parkx06, B→parkx07 |
-| #206 | parkp07 | 폐놀이공원 통로7 | 통로 zig | L→parkx07, B→parkx08 |
-| #207 | parkp08 | 폐놀이공원 통로8 | 통로 tunnel | L→parkx08, B→parkx09 |
-| #208 | parkp09 | 폐놀이공원 통로9 | 통로 tunnel | L→parkx09, B→parkx10 |
-| #209 | reedp05 | 갈대밭 통로5 | 통로 zig | L→reedx05, B→reedx06 |
-| #210 | reedp06 | 갈대밭 통로6 | 통로 zig | L→reedx06, B→reedx07 |
-| #211 | reedp07 | 갈대밭 통로7 | 통로 zig | L→reedx07, B→reedx08 |
-| #212 | reedp08 | 갈대밭 통로8 | 통로 zig | L→reedx08, B→reedx09 |
-| #213 | reedp09 | 갈대밭 통로9 | 통로 zig | L→reedx09, B→reedx10 |
-| #214 | woodsp05 | 어두운 숲 통로5 | 통로 bend | L→woodsx05, B→woodsx06 |
-| #215 | woodsp06 | 어두운 숲 통로6 | 통로 zig | L→woodsx06, B→woodsx07 |
-| #216 | woodsp07 | 어두운 숲 통로7 | 통로 zig | L→woodsx07, B→woodsx08 |
-| #217 | woodsp08 | 어두운 숲 통로8 | 통로 bend | L→woodsx08, B→woodsx09 |
-| #218 | woodsp09 | 어두운 숲 통로9 | 통로 zig | L→woodsx09, B→woodsx10 |
-| #219 | ridgep05 | 낙엽 능선 통로5 | 통로 tunnel | L→ridgex05, B→ridgex06 |
-| #220 | ridgep06 | 낙엽 능선 통로6 | 통로 bend | L→ridgex06, B→ridgex07 |
-| #221 | ridgep07 | 낙엽 능선 통로7 | 통로 tunnel | L→ridgex07, B→ridgex08 |
-| #222 | ridgep08 | 낙엽 능선 통로8 | 통로 zig | L→ridgex08, B→ridgex09 |
-| #223 | ridgep09 | 낙엽 능선 통로9 | 통로 bend | L→ridgex09, B→ridgex10 |
-| #224 | roofsp05 | 밤 옥상 통로5 | 통로 tunnel | L→roofsx05, B→roofsx06 |
-| #225 | roofsp06 | 밤 옥상 통로6 | 통로 tunnel | L→roofsx06, B→roofsx07 |
-| #226 | roofsp07 | 밤 옥상 통로7 | 통로 tunnel | L→roofsx07, B→roofsx08 |
-| #227 | roofsp08 | 밤 옥상 통로8 | 통로 zig | L→roofsx08, B→roofsx09 |
-| #228 | roofsp09 | 밤 옥상 통로9 | 통로 tunnel | L→roofsx09, B→roofsx10 |
-| #229 | hallp05 | 학교 복도 통로5 | 통로 hall | L→hallx05, B→hallx06 |
-| #230 | hallp06 | 학교 복도 통로6 | 통로 hall | L→hallx06, B→hallx07 |
-| #231 | hallp07 | 학교 복도 통로7 | 통로 hall | L→hallx07, B→hallx08 |
-| #232 | hallp08 | 학교 복도 통로8 | 통로 hall | L→hallx08, B→hallx09 |
-| #233 | hallp09 | 학교 복도 통로9 | 통로 hall | L→hallx09, B→hallx10 |
-| #234 | cabinp05 | 통나무집 통로5 | 통로 bend | L→cabinx05, B→cabinx06 |
-| #235 | cabinp06 | 통나무집 통로6 | 통로 bend | L→cabinx06, B→cabinx07 |
-| #236 | cabinp07 | 통나무집 통로7 | 통로 hall | L→cabinx07, B→cabinx08 |
-| #237 | cabinp08 | 통나무집 통로8 | 통로 bend | L→cabinx08, B→cabinx09 |
-| #238 | cabinp09 | 통나무집 통로9 | 통로 bend | L→cabinx09, B→cabinx10 |
-| #239 | libraryp05 | 도서관 통로5 | 통로 hall | L→libraryx05, B→libraryx06 |
-| #240 | libraryp06 | 도서관 통로6 | 통로 hall | L→libraryx06, B→libraryx07 |
-| #241 | libraryp07 | 도서관 통로7 | 통로 bend | L→libraryx07, B→libraryx08 |
-| #242 | libraryp08 | 도서관 통로8 | 통로 bend | L→libraryx08, B→libraryx09 |
-| #243 | libraryp09 | 도서관 통로9 | 통로 bend | L→libraryx09, B→libraryx10 |
-| #244 | officep05 | 매표소 통로5 | 통로 hall | L→officex05, B→officex06 |
-| #245 | officep06 | 매표소 통로6 | 통로 hall | L→officex06, B→officex07 |
-| #246 | officep07 | 매표소 통로7 | 통로 hall | L→officex07, B→officex08 |
-| #247 | officep08 | 매표소 통로8 | 통로 bend | L→officex08, B→officex09 |
-| #248 | officep09 | 매표소 통로9 | 통로 hall | L→officex09, B→officex10 |
-| #249 | treep05 | 나무집 속 통로5 | 통로 bend | L→treex05, B→treex06 |
-| #250 | treep06 | 나무집 속 통로6 | 통로 hall | L→treex06, B→treex07 |
-| #251 | treep07 | 나무집 속 통로7 | 통로 hall | L→treex07, B→treex08 |
-| #252 | treep08 | 나무집 속 통로8 | 통로 bend | L→treex08, B→treex09 |
-| #253 | treep09 | 나무집 속 통로9 | 통로 hall | L→treex09, B→treex10 |
+| #018 | library | 도서관 | bld | →cabin_main, office |
+| #019 | office | 매표소 | bld | →library, park |
+| #020 | park | 놀이공원 | world | →office, reed |
+| #021 | reed | 갈대밭 | world | →park, woods |
+| #022 | woods | 어두운 숲 | world | →reed, ridge |
+| #023 | ridge | 능선 | world | →woods, roofs |
+| #024 | roofs | 옥상 | world | →ridge, hall |
+| #025 | hall | 복도 | world | →roofs |
+| #026 | snowx01 | 눈 숲길 1 | 방 wide | 눈 숲길 띠 x 3~103 |
+| #027 | snowx02 | 눈 숲길 2 | 방 square | 눈 숲길 띠 x 316~397 |
+| #028 | snowx03 | 눈 숲길 3 | 방 long | 눈 숲길 띠 x 536~868 |
+| #029 | snowx04 | 눈 숲길 4 | 방 wide | 눈 숲길 띠 x 1040~1148 |
+| #030 | snowp01 | 눈 숲길 통로1 | 통로 tunnel | 눈 숲길 띠 x 103~316 |
+| #031 | snowx05 | 눈 숲길 5 | 방 square | 눈 숲길 띠 x 1321~1399 |
+| #032 | snowp02 | 눈 숲길 통로2 | 통로 bend | 눈 숲길 띠 x 397~536 |
+| #033 | snowx06 | 눈 숲길 6 | 방 square | 눈 숲길 띠 x 1582~1660 |
+| #034 | snowx07 | 눈 숲길 7 | 방 long | 눈 숲길 띠 x 1790~2198 |
+| #035 | snowp03 | 눈 숲길 통로3 | 통로 zig | 눈 숲길 띠 x 868~1040 |
+| #036 | snowx08 | 눈 숲길 8 | 방 square | 눈 숲길 띠 x 2378~2458 |
+| #037 | snowp04 | 눈 숲길 통로4 | 통로 zig | 눈 숲길 띠 x 1148~1321 |
+| #038 | snowx09 | 눈 숲길 9 | 방 wide | 눈 숲길 띠 x 2627~2731 |
+| #039 | snowx10 | 눈 숲길 10 | 방 square | 눈 숲길 띠 x 2879~2959 |
+| #040 | lakex01 | 얼음 호수 1 | 방 square | 얼음 호수 띠 x 3~81 |
+| #041 | lakex02 | 얼음 호수 2 | 방 wide | 얼음 호수 띠 x 273~366 |
+| #042 | lakex03 | 얼음 호수 3 | 방 long | 얼음 호수 띠 x 543~892 |
+| #043 | lakep01 | 얼음 호수 통로1 | 통로 zig | 얼음 호수 띠 x 81~273 |
+| #044 | lakex04 | 얼음 호수 4 | 방 square | 얼음 호수 띠 x 1066~1147 |
+| #045 | lakex05 | 얼음 호수 5 | 방 square | 얼음 호수 띠 x 1309~1390 |
+| #046 | lakep02 | 얼음 호수 통로2 | 통로 zig | 얼음 호수 띠 x 366~543 |
+| #047 | lakex06 | 얼음 호수 6 | 방 wide | 얼음 호수 띠 x 1565~1675 |
+| #048 | lakex07 | 얼음 호수 7 | 방 long | 얼음 호수 띠 x 1863~2263 |
+| #049 | lakep03 | 얼음 호수 통로3 | 통로 tunnel | 얼음 호수 띠 x 892~1066 |
+| #050 | lakex08 | 얼음 호수 8 | 방 square | 얼음 호수 띠 x 2425~2505 |
+| #051 | lakep04 | 얼음 호수 통로4 | 통로 zig | 얼음 호수 띠 x 1147~1309 |
+| #052 | lakex09 | 얼음 호수 9 | 방 wide | 얼음 호수 띠 x 2669~2767 |
+| #053 | lakex10 | 얼음 호수 10 | 방 square | 얼음 호수 띠 x 2932~3010 |
+| #054 | parkx01 | 폐놀이공원 1 | 방 square | 폐놀이공원 띠 x 3~83 |
+| #055 | parkx02 | 폐놀이공원 2 | 방 wide | 폐놀이공원 띠 x 321~419 |
+| #056 | parkp01 | 폐놀이공원 통로1 | 통로 tunnel | 폐놀이공원 띠 x 83~321 |
+| #057 | parkx03 | 폐놀이공원 3 | 방 long | 폐놀이공원 띠 x 584~952 |
+| #058 | parkp02 | 폐놀이공원 통로2 | 통로 zig | 폐놀이공원 띠 x 419~584 |
+| #059 | parkx04 | 폐놀이공원 4 | 방 square | 폐놀이공원 띠 x 1116~1195 |
+| #060 | parkx05 | 폐놀이공원 5 | 방 wide | 폐놀이공원 띠 x 1329~1440 |
+| #061 | parkx06 | 폐놀이공원 6 | 방 wide | 폐놀이공원 띠 x 1645~1754 |
+| #062 | parkp03 | 폐놀이공원 통로3 | 통로 bend | 폐놀이공원 띠 x 952~1116 |
+| #063 | parkx07 | 폐놀이공원 7 | 방 long | 폐놀이공원 띠 x 1933~2304 |
+| #064 | parkp04 | 폐놀이공원 통로4 | 통로 bend | 폐놀이공원 띠 x 1195~1329 |
+| #065 | parkx08 | 폐놀이공원 8 | 방 square | 폐놀이공원 띠 x 2480~2564 |
+| #066 | parkx09 | 폐놀이공원 9 | 방 square | 폐놀이공원 띠 x 2792~2874 |
+| #067 | parkx10 | 폐놀이공원 10 | 방 square | 폐놀이공원 띠 x 3094~3175 |
+| #068 | reedx01 | 갈대밭 1 | 방 wide | 갈대밭 띠 x 3~110 |
+| #069 | reedx02 | 갈대밭 2 | 방 square | 갈대밭 띠 x 264~342 |
+| #070 | reedp01 | 갈대밭 통로1 | 통로 bend | 갈대밭 띠 x 110~264 |
+| #071 | reedx03 | 갈대밭 3 | 방 long | 갈대밭 띠 x 479~770 |
+| #072 | reedp02 | 갈대밭 통로2 | 통로 bend | 갈대밭 띠 x 342~479 |
+| #073 | reedx04 | 갈대밭 4 | 방 square | 갈대밭 띠 x 962~1043 |
+| #074 | reedp03 | 갈대밭 통로3 | 통로 tunnel | 갈대밭 띠 x 770~962 |
+| #075 | reedx05 | 갈대밭 5 | 방 square | 갈대밭 띠 x 1207~1286 |
+| #076 | reedx06 | 갈대밭 6 | 방 square | 갈대밭 띠 x 1460~1543 |
+| #077 | reedx07 | 갈대밭 7 | 방 long | 갈대밭 띠 x 1711~2067 |
+| #078 | reedx08 | 갈대밭 8 | 방 wide | 갈대밭 띠 x 2245~2341 |
+| #079 | reedp04 | 갈대밭 통로4 | 통로 zig | 갈대밭 띠 x 1043~1207 |
+| #080 | reedx09 | 갈대밭 9 | 방 wide | 갈대밭 띠 x 2533~2640 |
+| #081 | reedx10 | 갈대밭 10 | 방 square | 갈대밭 띠 x 2837~2917 |
+| #082 | woodsx01 | 어두운 숲 1 | 방 square | 어두운 숲 띠 x 3~86 |
+| #083 | woodsx02 | 어두운 숲 2 | 방 square | 어두운 숲 띠 x 248~329 |
+| #084 | woodsp01 | 어두운 숲 통로1 | 통로 bend | 어두운 숲 띠 x 86~248 |
+| #085 | woodsx03 | 어두운 숲 3 | 방 long | 어두운 숲 띠 x 498~787 |
+| #086 | woodsx04 | 어두운 숲 4 | 방 square | 어두운 숲 띠 x 965~1048 |
+| #087 | woodsx05 | 어두운 숲 5 | 방 wide | 어두운 숲 띠 x 1217~1310 |
+| #088 | woodsp02 | 어두운 숲 통로2 | 통로 zig | 어두운 숲 띠 x 329~498 |
+| #089 | woodsx06 | 어두운 숲 6 | 방 square | 어두운 숲 띠 x 1463~1546 |
+| #090 | woodsx07 | 어두운 숲 7 | 방 long | 어두운 숲 띠 x 1713~2051 |
+| #091 | woodsp03 | 어두운 숲 통로3 | 통로 tunnel | 어두운 숲 띠 x 787~965 |
+| #092 | woodsx08 | 어두운 숲 8 | 방 square | 어두운 숲 띠 x 2243~2321 |
+| #093 | woodsx09 | 어두운 숲 9 | 방 wide | 어두운 숲 띠 x 2461~2573 |
+| #094 | woodsp04 | 어두운 숲 통로4 | 통로 zig | 어두운 숲 띠 x 1048~1217 |
+| #095 | woodsx10 | 어두운 숲 10 | 방 wide | 어두운 숲 띠 x 2763~2856 |
+| #096 | ridgex01 | 낙엽 능선 1 | 방 wide | 낙엽 능선 띠 x 3~112 |
+| #097 | ridgex02 | 낙엽 능선 2 | 방 square | 낙엽 능선 띠 x 273~351 |
+| #098 | ridgep01 | 낙엽 능선 통로1 | 통로 bend | 낙엽 능선 띠 x 112~273 |
+| #099 | ridgex03 | 낙엽 능선 3 | 방 long | 낙엽 능선 띠 x 547~842 |
+| #100 | ridgex04 | 낙엽 능선 4 | 방 wide | 낙엽 능선 띠 x 1015~1122 |
+| #101 | ridgex05 | 낙엽 능선 5 | 방 square | 낙엽 능선 띠 x 1254~1336 |
+| #102 | ridgex06 | 낙엽 능선 6 | 방 wide | 낙엽 능선 띠 x 1561~1669 |
+| #103 | ridgep02 | 낙엽 능선 통로2 | 통로 zig | 낙엽 능선 띠 x 351~547 |
+| #104 | ridgex07 | 낙엽 능선 7 | 방 long | 낙엽 능선 띠 x 1807~2189 |
+| #105 | ridgex08 | 낙엽 능선 8 | 방 square | 낙엽 능선 띠 x 2427~2507 |
+| #106 | ridgep03 | 낙엽 능선 통로3 | 통로 tunnel | 낙엽 능선 띠 x 842~1015 |
+| #107 | ridgex09 | 낙엽 능선 9 | 방 square | 낙엽 능선 띠 x 2669~2750 |
+| #108 | ridgep04 | 낙엽 능선 통로4 | 통로 bend | 낙엽 능선 띠 x 1122~1254 |
+| #109 | ridgex10 | 낙엽 능선 10 | 방 square | 낙엽 능선 띠 x 2905~2988 |
+| #110 | roofsx01 | 밤 옥상 1 | 방 square | 밤 옥상 띠 x 3~84 |
+| #111 | roofsx02 | 밤 옥상 2 | 방 square | 밤 옥상 띠 x 245~326 |
+| #112 | roofsx03 | 밤 옥상 3 | 방 long | 밤 옥상 띠 x 489~881 |
+| #113 | roofsp01 | 밤 옥상 통로1 | 통로 zig | 밤 옥상 띠 x 84~245 |
+| #114 | roofsx04 | 밤 옥상 4 | 방 wide | 밤 옥상 띠 x 1072~1169 |
+| #115 | roofsx05 | 밤 옥상 5 | 방 wide | 밤 옥상 띠 x 1340~1444 |
+| #116 | roofsp02 | 밤 옥상 통로2 | 통로 bend | 밤 옥상 띠 x 326~489 |
+| #117 | roofsx06 | 밤 옥상 6 | 방 wide | 밤 옥상 띠 x 1683~1776 |
+| #118 | roofsp03 | 밤 옥상 통로3 | 통로 zig | 밤 옥상 띠 x 881~1072 |
+| #119 | roofsx07 | 밤 옥상 7 | 방 long | 밤 옥상 띠 x 1952~2281 |
+| #120 | roofsx08 | 밤 옥상 8 | 방 square | 밤 옥상 띠 x 2513~2596 |
+| #121 | roofsp04 | 밤 옥상 통로4 | 통로 zig | 밤 옥상 띠 x 1169~1340 |
+| #122 | roofsx09 | 밤 옥상 9 | 방 square | 밤 옥상 띠 x 2771~2855 |
+| #123 | roofsx10 | 밤 옥상 10 | 방 square | 밤 옥상 띠 x 3081~3159 |
+| #124 | hallx01 | 학교 복도 1 | 방 square | 학교 복도 띠 x 3~61 |
+| #125 | hallx02 | 학교 복도 2 | 방 wide | 학교 복도 띠 x 164~253 |
+| #126 | hallx03 | 학교 복도 3 | 방 square | 학교 복도 띠 x 343~400 |
+| #127 | hallx04 | 학교 복도 4 | 방 square | 학교 복도 띠 x 498~557 |
+| #128 | hallp01 | 학교 복도 통로1 | 통로 bend | 학교 복도 띠 x 61~164 |
+| #129 | hallx05 | 학교 복도 5 | 방 wide | 학교 복도 띠 x 651~745 |
+| #130 | hallx06 | 학교 복도 6 | 방 square | 학교 복도 띠 x 847~906 |
+| #131 | hallp02 | 학교 복도 통로2 | 통로 hall | 학교 복도 띠 x 253~343 |
+| #132 | hallx07 | 학교 복도 7 | 방 square | 학교 복도 띠 x 992~1049 |
+| #133 | hallx08 | 학교 복도 8 | 방 square | 학교 복도 띠 x 1134~1194 |
+| #134 | hallp03 | 학교 복도 통로3 | 통로 bend | 학교 복도 띠 x 400~498 |
+| #135 | hallx09 | 학교 복도 9 | 방 wide | 학교 복도 띠 x 1302~1395 |
+| #136 | hallp04 | 학교 복도 통로4 | 통로 bend | 학교 복도 띠 x 557~651 |
+| #137 | hallx10 | 학교 복도 10 | 방 square | 학교 복도 띠 x 1482~1540 |
+| #138 | cabinx01 | 통나무집 1 | 방 square | 통나무집 띠 x 3~59 |
+| #139 | cabinx02 | 통나무집 2 | 방 square | 통나무집 띠 x 150~209 |
+| #140 | cabinp01 | 통나무집 통로1 | 통로 hall | 통나무집 띠 x 59~150 |
+| #141 | cabinx03 | 통나무집 3 | 방 wide | 통나무집 띠 x 326~409 |
+| #142 | cabinp02 | 통나무집 통로2 | 통로 bend | 통나무집 띠 x 209~326 |
+| #143 | cabinx04 | 통나무집 4 | 방 square | 통나무집 띠 x 521~581 |
+| #144 | cabinp03 | 통나무집 통로3 | 통로 bend | 통나무집 띠 x 409~521 |
+| #145 | cabinx05 | 통나무집 5 | 방 wide | 통나무집 띠 x 699~791 |
+| #146 | cabinx06 | 통나무집 6 | 방 square | 통나무집 띠 x 903~961 |
+| #147 | cabinx07 | 통나무집 7 | 방 square | 통나무집 띠 x 1058~1117 |
+| #148 | cabinx08 | 통나무집 8 | 방 wide | 통나무집 띠 x 1223~1309 |
+| #149 | cabinp04 | 통나무집 통로4 | 통로 bend | 통나무집 띠 x 581~699 |
+| #150 | cabinx09 | 통나무집 9 | 방 square | 통나무집 띠 x 1400~1457 |
+| #151 | cabinx10 | 통나무집 10 | 방 square | 통나무집 띠 x 1547~1606 |
+| #152 | libraryx01 | 도서관 1 | 방 wide | 도서관 띠 x 3~97 |
+| #153 | libraryx02 | 도서관 2 | 방 square | 도서관 띠 x 207~265 |
+| #154 | libraryp01 | 도서관 통로1 | 통로 hall | 도서관 띠 x 97~207 |
+| #155 | libraryx03 | 도서관 3 | 방 square | 도서관 띠 x 360~419 |
+| #156 | libraryx04 | 도서관 4 | 방 square | 도서관 띠 x 502~560 |
+| #157 | libraryx05 | 도서관 5 | 방 wide | 도서관 띠 x 653~738 |
+| #158 | libraryp02 | 도서관 통로2 | 통로 bend | 도서관 띠 x 265~360 |
+| #159 | libraryx06 | 도서관 6 | 방 square | 도서관 띠 x 827~887 |
+| #160 | libraryp03 | 도서관 통로3 | 통로 hall | 도서관 띠 x 419~502 |
+| #161 | libraryx07 | 도서관 7 | 방 square | 도서관 띠 x 983~1043 |
+| #162 | libraryx08 | 도서관 8 | 방 square | 도서관 띠 x 1138~1194 |
+| #163 | libraryx09 | 도서관 9 | 방 square | 도서관 띠 x 1309~1365 |
+| #164 | libraryp04 | 도서관 통로4 | 통로 bend | 도서관 띠 x 560~653 |
+| #165 | libraryx10 | 도서관 10 | 방 wide | 도서관 띠 x 1483~1574 |
+| #166 | officex01 | 매표소 1 | 방 wide | 매표소 띠 x 3~92 |
+| #167 | officex02 | 매표소 2 | 방 square | 매표소 띠 x 198~255 |
+| #168 | officep01 | 매표소 통로1 | 통로 hall | 매표소 띠 x 92~198 |
+| #169 | officex03 | 매표소 3 | 방 square | 매표소 띠 x 337~393 |
+| #170 | officex04 | 매표소 4 | 방 square | 매표소 띠 x 495~551 |
+| #171 | officep02 | 매표소 통로2 | 통로 hall | 매표소 띠 x 255~337 |
+| #172 | officex05 | 매표소 5 | 방 wide | 매표소 띠 x 632~724 |
+| #173 | officex06 | 매표소 6 | 방 square | 매표소 띠 x 819~878 |
+| #174 | officep03 | 매표소 통로3 | 통로 bend | 매표소 띠 x 393~495 |
+| #175 | officex07 | 매표소 7 | 방 square | 매표소 띠 x 973~1030 |
+| #176 | officex08 | 매표소 8 | 방 square | 매표소 띠 x 1139~1196 |
+| #177 | officex09 | 매표소 9 | 방 square | 매표소 띠 x 1308~1364 |
+| #178 | officep04 | 매표소 통로4 | 통로 hall | 매표소 띠 x 551~632 |
+| #179 | officex10 | 매표소 10 | 방 wide | 매표소 띠 x 1446~1535 |
+| #180 | treex01 | 나무집 속 1 | 방 square | 나무집 속 띠 x 3~60 |
+| #181 | treex02 | 나무집 속 2 | 방 square | 나무집 속 띠 x 176~236 |
+| #182 | treex03 | 나무집 속 3 | 방 wide | 나무집 속 띠 x 347~442 |
+| #183 | treep01 | 나무집 속 통로1 | 통로 bend | 나무집 속 띠 x 60~176 |
+| #184 | treex04 | 나무집 속 4 | 방 wide | 나무집 속 띠 x 551~634 |
+| #185 | treep02 | 나무집 속 통로2 | 통로 bend | 나무집 속 띠 x 236~347 |
+| #186 | treex05 | 나무집 속 5 | 방 wide | 나무집 속 띠 x 738~827 |
+| #187 | treex06 | 나무집 속 6 | 방 square | 나무집 속 띠 x 936~995 |
+| #188 | treex07 | 나무집 속 7 | 방 square | 나무집 속 띠 x 1091~1151 |
+| #189 | treep03 | 나무집 속 통로3 | 통로 bend | 나무집 속 띠 x 442~551 |
+| #190 | treex08 | 나무집 속 8 | 방 square | 나무집 속 띠 x 1241~1299 |
+| #191 | treex09 | 나무집 속 9 | 방 square | 나무집 속 띠 x 1404~1464 |
+| #192 | treep04 | 나무집 속 통로4 | 통로 bend | 나무집 속 띠 x 634~738 |
+| #193 | treex10 | 나무집 속 10 | 방 square | 나무집 속 띠 x 1557~1615 |
+| #194 | snowp05 | 눈 숲길 통로5 | 통로 zig | 눈 숲길 띠 x 1399~1582 |
+| #195 | snowp06 | 눈 숲길 통로6 | 통로 bend | 눈 숲길 띠 x 1660~1790 |
+| #196 | snowp07 | 눈 숲길 통로7 | 통로 zig | 눈 숲길 띠 x 2198~2378 |
+| #197 | snowp08 | 눈 숲길 통로8 | 통로 zig | 눈 숲길 띠 x 2458~2627 |
+| #198 | snowp09 | 눈 숲길 통로9 | 통로 bend | 눈 숲길 띠 x 2731~2879 |
+| #199 | lakep05 | 얼음 호수 통로5 | 통로 tunnel | 얼음 호수 띠 x 1390~1565 |
+| #200 | lakep06 | 얼음 호수 통로6 | 통로 zig | 얼음 호수 띠 x 1675~1863 |
+| #201 | lakep07 | 얼음 호수 통로7 | 통로 zig | 얼음 호수 띠 x 2263~2425 |
+| #202 | lakep08 | 얼음 호수 통로8 | 통로 zig | 얼음 호수 띠 x 2505~2669 |
+| #203 | lakep09 | 얼음 호수 통로9 | 통로 zig | 얼음 호수 띠 x 2767~2932 |
+| #204 | parkp05 | 폐놀이공원 통로5 | 통로 tunnel | 폐놀이공원 띠 x 1440~1645 |
+| #205 | parkp06 | 폐놀이공원 통로6 | 통로 tunnel | 폐놀이공원 띠 x 1754~1933 |
+| #206 | parkp07 | 폐놀이공원 통로7 | 통로 zig | 폐놀이공원 띠 x 2304~2480 |
+| #207 | parkp08 | 폐놀이공원 통로8 | 통로 tunnel | 폐놀이공원 띠 x 2564~2792 |
+| #208 | parkp09 | 폐놀이공원 통로9 | 통로 tunnel | 폐놀이공원 띠 x 2874~3094 |
+| #209 | reedp05 | 갈대밭 통로5 | 통로 zig | 갈대밭 띠 x 1286~1460 |
+| #210 | reedp06 | 갈대밭 통로6 | 통로 zig | 갈대밭 띠 x 1543~1711 |
+| #211 | reedp07 | 갈대밭 통로7 | 통로 zig | 갈대밭 띠 x 2067~2245 |
+| #212 | reedp08 | 갈대밭 통로8 | 통로 zig | 갈대밭 띠 x 2341~2533 |
+| #213 | reedp09 | 갈대밭 통로9 | 통로 zig | 갈대밭 띠 x 2640~2837 |
+| #214 | woodsp05 | 어두운 숲 통로5 | 통로 bend | 어두운 숲 띠 x 1310~1463 |
+| #215 | woodsp06 | 어두운 숲 통로6 | 통로 zig | 어두운 숲 띠 x 1546~1713 |
+| #216 | woodsp07 | 어두운 숲 통로7 | 통로 zig | 어두운 숲 띠 x 2051~2243 |
+| #217 | woodsp08 | 어두운 숲 통로8 | 통로 bend | 어두운 숲 띠 x 2321~2461 |
+| #218 | woodsp09 | 어두운 숲 통로9 | 통로 zig | 어두운 숲 띠 x 2573~2763 |
+| #219 | ridgep05 | 낙엽 능선 통로5 | 통로 tunnel | 낙엽 능선 띠 x 1336~1561 |
+| #220 | ridgep06 | 낙엽 능선 통로6 | 통로 bend | 낙엽 능선 띠 x 1669~1807 |
+| #221 | ridgep07 | 낙엽 능선 통로7 | 통로 tunnel | 낙엽 능선 띠 x 2189~2427 |
+| #222 | ridgep08 | 낙엽 능선 통로8 | 통로 zig | 낙엽 능선 띠 x 2507~2669 |
+| #223 | ridgep09 | 낙엽 능선 통로9 | 통로 bend | 낙엽 능선 띠 x 2750~2905 |
+| #224 | roofsp05 | 밤 옥상 통로5 | 통로 tunnel | 밤 옥상 띠 x 1444~1683 |
+| #225 | roofsp06 | 밤 옥상 통로6 | 통로 tunnel | 밤 옥상 띠 x 1776~1952 |
+| #226 | roofsp07 | 밤 옥상 통로7 | 통로 tunnel | 밤 옥상 띠 x 2281~2513 |
+| #227 | roofsp08 | 밤 옥상 통로8 | 통로 zig | 밤 옥상 띠 x 2596~2771 |
+| #228 | roofsp09 | 밤 옥상 통로9 | 통로 tunnel | 밤 옥상 띠 x 2855~3081 |
+| #229 | hallp05 | 학교 복도 통로5 | 통로 hall | 학교 복도 띠 x 745~847 |
+| #230 | hallp06 | 학교 복도 통로6 | 통로 hall | 학교 복도 띠 x 906~992 |
+| #231 | hallp07 | 학교 복도 통로7 | 통로 hall | 학교 복도 띠 x 1049~1134 |
+| #232 | hallp08 | 학교 복도 통로8 | 통로 hall | 학교 복도 띠 x 1194~1302 |
+| #233 | hallp09 | 학교 복도 통로9 | 통로 hall | 학교 복도 띠 x 1395~1482 |
+| #234 | cabinp05 | 통나무집 통로5 | 통로 bend | 통나무집 띠 x 791~903 |
+| #235 | cabinp06 | 통나무집 통로6 | 통로 bend | 통나무집 띠 x 961~1058 |
+| #236 | cabinp07 | 통나무집 통로7 | 통로 hall | 통나무집 띠 x 1117~1223 |
+| #237 | cabinp08 | 통나무집 통로8 | 통로 bend | 통나무집 띠 x 1309~1400 |
+| #238 | cabinp09 | 통나무집 통로9 | 통로 bend | 통나무집 띠 x 1457~1547 |
+| #239 | libraryp05 | 도서관 통로5 | 통로 hall | 도서관 띠 x 738~827 |
+| #240 | libraryp06 | 도서관 통로6 | 통로 hall | 도서관 띠 x 887~983 |
+| #241 | libraryp07 | 도서관 통로7 | 통로 bend | 도서관 띠 x 1043~1138 |
+| #242 | libraryp08 | 도서관 통로8 | 통로 bend | 도서관 띠 x 1194~1309 |
+| #243 | libraryp09 | 도서관 통로9 | 통로 bend | 도서관 띠 x 1365~1483 |
+| #244 | officep05 | 매표소 통로5 | 통로 hall | 매표소 띠 x 724~819 |
+| #245 | officep06 | 매표소 통로6 | 통로 hall | 매표소 띠 x 878~973 |
+| #246 | officep07 | 매표소 통로7 | 통로 hall | 매표소 띠 x 1030~1139 |
+| #247 | officep08 | 매표소 통로8 | 통로 bend | 매표소 띠 x 1196~1308 |
+| #248 | officep09 | 매표소 통로9 | 통로 hall | 매표소 띠 x 1364~1446 |
+| #249 | treep05 | 나무집 속 통로5 | 통로 bend | 나무집 속 띠 x 827~936 |
+| #250 | treep06 | 나무집 속 통로6 | 통로 hall | 나무집 속 띠 x 995~1091 |
+| #251 | treep07 | 나무집 속 통로7 | 통로 hall | 나무집 속 띠 x 1151~1241 |
+| #252 | treep08 | 나무집 속 통로8 | 통로 bend | 나무집 속 띠 x 1299~1404 |
+| #253 | treep09 | 나무집 속 통로9 | 통로 hall | 나무집 속 띠 x 1464~1557 |

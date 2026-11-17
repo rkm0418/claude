@@ -319,8 +319,8 @@ GATE_RECIPES = {
  'office': [('사무실 문', 'frame', (122, 112, 92), 44, None, None), ('반쯤 내려온 셔터', 'shutter', (130, 134, 140), 44, (255, 170, 80), None), ('철문', 'frame', (86, 96, 100), 46, None, None)],
  'tree': [('옹이구멍', 'cave', (84, 56, 36), 48, None, None), ('뿌리 사이 구멍', 'gap', None, 44, None, 'root'), ('판자문', 'frame', (110, 80, 52), 44, None, None)]}
 class GT:                                                                       # 방의 한 면(L/R/B/F)에 붙는 문을 그리는 도우미
-    def __init__(s, k, side, lx, ld, Wl, Dl):
-        s.k, s.side, s.Wl, s.Dl = k, side, Wl, Dl; s.u = ld if side in 'LR' else lx; s.o = {'L': 1.2, 'R': Wl - 2.0, 'B': Dl - 1.2, 'F': 2.0}[side]
+    def __init__(s, k, side, lx, ld, Wl, Dl, ox=None):
+        s.k, s.side, s.Wl, s.Dl = k, side, Wl, Dl; s.u = ld if side in 'LR' else lx; s.o = {'L': 1.2, 'R': Wl - 2.0, 'B': Dl - 1.2, 'F': 2.0}[side] if ox is None else ox
     def plane(s, u0, u1, z0, z1, c):
         if s.side in 'LR': s.k.L(s.u + u0, s.u + u1, z0, z1, c, s.o)
         else: s.k.F(s.u + u0, s.u + u1, z0, z1, c, s.o, back=(s.side == 'B'))
@@ -358,8 +358,8 @@ class GT:                                                                       
         del k.block[nb:]; del k.rects[nr:]
 def lighten(c, f=14): return tuple(min(255, v + f) for v in c)
 def shade(c, f=.72): return tuple(int(v * f) for v in c)
-def gateway(k, th, side, lx, ld, Wl, Dl, gi, mode, r):                          # mode: door(열린 어두운 입구) / closed(닫힌 문). 안쪽은 검은 입구, 재료로 개념을 보여 준다
-    nm, style, c, h, acc, ex = GATE_RECIPES[th][gi % 3]; g = GT(k, side, lx, ld, Wl, Dl); half = 12; DARK = (10, 10, 16) if mode != 'closed' else (46, 42, 46)
+def gateway(k, th, side, lx, ld, Wl, Dl, gi, mode, r, ox=None):                          # mode: door(열린 어두운 입구) / closed(닫힌 문). 안쪽은 검은 입구, 재료로 개념을 보여 준다
+    nm, style, c, h, acc, ex = GATE_RECIPES[th][gi % 3]; g = GT(k, side, lx, ld, Wl, Dl, ox); half = 12; DARK = (10, 10, 16) if mode != 'closed' else (46, 42, 46)
     if style == 'frame':
         g.blk(-(half + 3), 6, 6, h, c); g.blk(half + 3, 6, 6, h, c); g.blk(0, 2 * (half + 6), 6, 5, shade(c), z0=h)
         if ex == 'snowcap': g.blk(0, 2 * (half + 7), 7, 3, (240, 246, 255), z0=h + 5)
@@ -394,8 +394,10 @@ def gateway(k, th, side, lx, ld, Wl, Dl, gi, mode, r):                          
         g.blk(-(half + 2), 4, 4, h, c); g.blk(half + 2, 4, 4, h, c); [g.plane(-half, half, z, z + 1.8, lighten(c, 24)) for z in (h * .35, h * .6, h * .85)]
     elif style == 'shutter':
         g.blk(-(half + 3), 5, 5, h, c); g.blk(half + 3, 5, 5, h, c); g.blk(0, 2 * (half + 5), 5, 4, shade(c), z0=h); [g.plane(-half, half, z, z + 1.6, c if int(z) % 2 == 0 else shade(c, .8)) for z in range(int(h * .55), int(h) - 1, 3)]
-    g.plane(-half, half, 0, h - 1, DARK)
-    if mode != 'closed':
+    if mode != 'arch': g.plane(-half, half, 0, h - 1, DARK)                      # arch: 통로를 가로지르는 열린 틀(가운데가 비어 시야를 막지 않는다)
+    if mode == 'arch':
+        if acc: g.plane(-half - 2, half + 2, h + 1.5, h + 2.8, acc); x, d = g.pt(0, 6); k.glow(x, d, 22, acc, .16)
+    elif mode != 'closed':
         g.plane(-half, half, 0, h * .35, (6, 6, 11))
         if acc: g.plane(-half - 2, half + 2, h + 1.5, h + 2.8, acc); x, d = g.pt(0, 6); k.glow(x, d, 22, acc, .16)                      # 가는 네온 선(은은하게)
         x, d = g.pt(0, 7); flat(k, x, d, 11, 4, (8, 8, 14))

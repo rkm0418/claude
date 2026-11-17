@@ -38,21 +38,29 @@ def main():
                 e['spawn'] = ([round((back[0]['zone'][0] + back[0]['zone'][1]) / 2, 1), round(back[0]['zone'][3] + 6 if back[0].get('indoor') else back[0]['zone'][2] - 6, 1)] if back[0].get('door') else [round((back[0]['zone'][0] + back[0]['zone'][1]) / 2 - 10, 1), round((back[0]['zone'][2] + back[0]['zone'][3]) / 2 + 2, 1)]) if back else list(tgt['start'])
     NAMES = {'living': '거실', 'kitchen': '주방', 'bedroom': '침실', 'study': '서재', 'tree_main': '나무집 안', 'tree_back': '나무집 뒷방', 'cabin_main': '통나무집 안', 'cabin_back': '통나무집 뒷방', 'library': '도서관', 'office': '매표소', 'park': '놀이공원', 'reed': '갈대밭', 'woods': '어두운 숲', 'ridge': '능선', 'roofs': '옥상', 'hall': '복도', 'snow_h': '눈 숲길 집', 'snow_5': '눈 숲길 5'}
     ids_p = os.path.join(HERE, 'scene_ids.json'); ids = json.load(open(ids_p)) if os.path.exists(ids_p) else {}              # 장면 번호: 한 번 붙이면 고정, 새 장면만 뒤 번호를 받는다
-    for k in rooms:
-        if k not in ids: ids[k] = max(ids.values(), default=0) + 1
+    for k, m in rooms.items():
+        if m.get('kind') == 'strip':
+            for sec in m['sections']:
+                if sec['key'] not in ids: ids[sec['key']] = max(ids.values(), default=0) + 1
+        elif k not in ids: ids[k] = max(ids.values(), default=0) + 1
     json.dump(ids, open(ids_p, 'w'), ensure_ascii=False, indent=0)
     for k, m in rooms.items():
+        if m.get('kind') == 'strip':
+            for sec in m['sections']: sec['no'] = ids[sec['key']]
+            continue
         m['no'] = ids[k]
         if not m.get('label'): m['label'] = NAMES.get(k) or (('눈 숲길 ' + k.split('_')[-1]) if k.startswith('snow_') else ('얼음 호수 ' + k.split('_')[-1]) if k.startswith('lake_') else k)
-    rows = ['| # | 키 | 이름 | 종류 | 연결 |', '|---|----|------|------|------|']
-    for k, m in sorted(rooms.items(), key=lambda kv: ids[kv[0]]):
-        ex = ', '.join('%s%s%s' % (e.get('dir') or '', '→' + e['to'] if e.get('to') else '→(막힘)', '(이어붙이기)' if e.get('type') == 'pan' else '') for e in m.get('exits', []))
-        rows.append('| #%03d | %s | %s | %s | %s |' % (ids[k], k, m['label'], ('통로 ' if m.get('kind') == 'passage' else '') + (m.get('shape') or m.get('group') or ''), ex))
+    rows = ['| # | 키 | 이름 | 종류 | 위치 |', '|---|----|------|------|------|']; entries = []
+    for k, m in rooms.items():
+        if m.get('kind') == 'strip':
+            for sec in m['sections']: entries.append((ids[sec['key']], sec['key'], sec['label'], ('통로 ' if sec['kind'] == 'passage' else '방 ') + sec['shape'], '%s 띠 x %d~%d' % (m['label'], sec['x0'], sec['x1'])))
+        else: entries.append((ids[k], k, m['label'], m.get('group') or '', '→' + ', '.join(e['to'] for e in m.get('exits', []) if e.get('to'))))
+    for no, k, lb, kd, pos in sorted(entries): rows.append('| #%03d | %s | %s | %s | %s |' % (no, k, lb, kd, pos))
     open(os.path.join(HERE, '..', 'docs', 'scene-index.md'), 'w').write('# 장면 번호표\n\n게임 화면 위쪽의 `#번호`로 장면을 가리킵니다. 번호는 한번 정하면 바뀌지 않습니다(장면을 빼도 다른 번호는 그대로).\n\n' + '\n'.join(rows) + '\n')
     man = json.load(open(os.path.join(SPR, 'manifest.json'))); child = {}
     for d in man['directions']:
         for f in man['frames']: child['%s_%s' % (d, f)] = uri(Image.open(os.path.join(SPR, 'child_%s_%s.png' % (d, f))).convert('RGBA').resize(CHILD, Image.NEAREST))
     os.makedirs(WEB, exist_ok=True)
-    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'adult': uri(Image.open(os.path.join(SPR, '..', 'shadow_adult.png')).convert('RGBA').resize((13, 38), Image.NEAREST)), 'rooms': rooms, 'chaser': {f: uri(Image.open(os.path.join(SPR, '..', 'chaser%s.png' % ('' if f == 'idle' else '_' + f))).convert('RGBA')) for f in ('idle', 'w1', 'w2', 'w3', 'w4')}, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}, 'lake': {'room': 'lake_1', 'x': rooms['lake_1']['start'][0], 'd': rooms['lake_1']['start'][1]}, **{k: {'room': r, 'x': rooms[r]['start'][0], 'd': rooms[r]['start'][1]} for k, r in (('park', 'park'), ('reed', 'reed'), ('woods', 'woods'), ('ridge', 'ridge'), ('roofs', 'roofs'), ('hall', 'hall'), ('tree', 'tree_main'), ('cabin', 'cabin_main'), ('library', 'library'), ('office', 'office')) if r in rooms}, **{th + 'x': {'room': th + 'x01', 'x': rooms[th + 'x01']['start'][0], 'd': rooms[th + 'x01']['start'][1]} for th in ('snow', 'lake', 'park', 'reed', 'woods', 'ridge', 'roofs', 'hall', 'cabin', 'library', 'office', 'tree') if th + 'x01' in rooms}}}) + ';\n')
+    open(os.path.join(WEB, 'data.js'), 'w').write('window.GAME_DATA = ' + json.dumps({'adult': uri(Image.open(os.path.join(SPR, '..', 'shadow_adult.png')).convert('RGBA').resize((13, 38), Image.NEAREST)), 'rooms': rooms, 'chaser': {f: uri(Image.open(os.path.join(SPR, '..', 'chaser%s.png' % ('' if f == 'idle' else '_' + f))).convert('RGBA')) for f in ('idle', 'w1', 'w2', 'w3', 'w4')}, 'child': child, 'childSize': CHILD, 'starts': {'house': {'room': 'living', 'x': 78, 'd': 8}, 'snow': {'room': 'snow_1', 'x': rooms['snow_1']['start'][0], 'd': rooms['snow_1']['start'][1]}, 'lake': {'room': 'lake_1', 'x': rooms['lake_1']['start'][0], 'd': rooms['lake_1']['start'][1]}, **{k: {'room': r, 'x': rooms[r]['start'][0], 'd': rooms[r]['start'][1]} for k, r in (('park', 'park'), ('reed', 'reed'), ('woods', 'woods'), ('ridge', 'ridge'), ('roofs', 'roofs'), ('hall', 'hall'), ('tree', 'tree_main'), ('cabin', 'cabin_main'), ('library', 'library'), ('office', 'office')) if r in rooms}, **{th + 'x': {'room': th + 'strip', 'x': rooms[th + 'strip']['sections'][1]['mid'][0], 'd': rooms[th + 'strip']['sections'][1]['mid'][1]} for th in ('snow', 'lake', 'park', 'reed', 'woods', 'ridge', 'roofs', 'hall', 'cabin', 'library', 'office', 'tree') if th + 'strip' in rooms}}}) + ';\n')
     print('web/data.js', os.path.getsize(os.path.join(WEB, 'data.js')) // 1024, 'KB')
 if __name__ == '__main__': main()

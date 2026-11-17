@@ -443,13 +443,36 @@ function goTo(x, d) {
 // ---------- 움직임 ----------
 const lbC = document.createElement('canvas'); lbC.width = 160; lbC.height = 10; const lbX = lbC.getContext('2d', { willReadFrequently: true }); let lbKey = '', lbW = 0;
 function drawLabel() {                                                          // 장면 번호표: #037 눈 숲길 3 (주소에 #nolabel 이 있으면 숨김)
-  if (/nolabel/.test(location.hash) || !R || !R.no) return;
-  const tx = '#' + String(R.no).padStart(3, '0') + ' ' + (R.label || room);
+  if (/nolabel/.test(location.hash) || !R || !(R.no || R.sections)) return;
+  const sec = R.sections && R.sections[secIdx(P.x)], tx = '#' + String((sec ? sec.no : R.no)).padStart(3, '0') + ' ' + (sec ? sec.label : (R.label || room));
   if (tx !== lbKey) {
     lbKey = tx; lbX.clearRect(0, 0, 160, 10); lbX.font = 'bold 8px monospace'; lbX.textAlign = 'left'; lbX.fillStyle = '#fff'; lbW = Math.min(150, Math.ceil(lbX.measureText(tx).width)); lbX.fillText(tx, 2, 8);
     const im = lbX.getImageData(0, 0, 160, 10), dd = im.data; for (let i = 0; i < dd.length; i += 4) { const on = dd[i + 3] > 110; dd[i] = 255; dd[i + 1] = 238; dd[i + 2] = 208; dd[i + 3] = on ? 255 : 0; } lbX.putImageData(im, 0, 0);
   }
   ctx.fillStyle = 'rgba(11,9,16,.7)'; ctx.fillRect(4, 3, lbW * 2 + 8, 22); ctx.imageSmoothingEnabled = false; ctx.drawImage(lbC, 0, 0, 160, 10, 6, 5, 320, 20);
+}
+// ---- 구간 조명: 한 장의 긴 띠 안에서 아이가 걷는 대로 앞 구간은 켜지고 지나온 구간은 어두워진다
+let LS = null; const FLK = [.2, .7, .1, .6, .3, .8, .5, .9, 1];
+const secIdx = (x) => { const s = R.sections; for (let i = 0; i < s.length; i++) if (x < s[i].x1) return i; return s.length - 1; };
+function updLight(dt, snap) {
+  if (!LS || !R.sections) return; const s = R.sections, x = P.x, ci = secIdx(x), cur = s[ci], T = s.map(() => 0); T[ci] = 1;
+  if (s[ci + 1]) { const w = cur.x1 - cur.x0; if (cur.kind === 'passage' ? (x - cur.x0) / w > .35 : cur.x1 - x < 90) T[ci + 1] = 1; }          // 통로에 서면 앞 방이 켜지고
+  if (s[ci - 1] && x - cur.x0 < 30) T[ci - 1] = 1;                                                                                          // 지나온 방은 30px 지나면 꺼진다
+  for (let i = 0; i < s.length; i++) {
+    const o = LS[i]; if (snap) { o.L = T[i]; o.on = T[i] === 1; continue; }
+    if (T[i] === 1 && !o.on && o.L < .5) o.fl = .9; o.on = T[i] === 1;
+    const df = T[i] - o.L; o.L += Math.sign(df) * Math.min(Math.abs(df), dt * (df > 0 ? 1.6 : 1.1)); if (o.fl > 0) o.fl -= dt;
+  }
+}
+function drawLight() {
+  if (!LS || !R.sections) return; const s = R.sections, xs = (R.ox + R.X0 + R.D / 4) * S, n = 48;
+  const Lv = (i) => Math.max(0, Math.min(1, LS[i].L * (LS[i].fl > 0 ? FLK[Math.min(8, Math.floor((.9 - LS[i].fl) / .1))] : 1)));
+  const lightAt = (xw) => {
+    for (let j = 0; j < s.length - 1; j++) { const b = s[j].x1; if (Math.abs(xw - b) < 22) { const q = (xw - (b - 22)) / 44; return Lv(j) * (1 - q) + Lv(j + 1) * q; } }
+    let i = s.findIndex((q) => xw < q.x1); if (i < 0) i = s.length - 1; return Lv(i);
+  };
+  const g = ctx.createLinearGradient(0, 0, VW, 0); for (let i = 0; i <= n; i++) g.addColorStop(i / n, `rgba(4,3,8,${(1 - lightAt((i / n * VW - xs) / S)) * .94})`);
+  ctx.fillStyle = g; ctx.fillRect(0, R.oy * S, VW, R.CH * S);
 }
 const TCOLS = 20, TROWS = 15, TCELL = 16, TRANK = []; for (let i = 0; i < TCOLS * TROWS; i++) { const r = Math.floor(i / TCOLS) / TROWS, n = (Math.sin(i * 12.9898) * 43758.5453) % 1; TRANK.push(r * .55 + Math.abs(n) * .45); }
 const panC = document.createElement('canvas'); panC.width = 320; panC.height = 240; const panX = panC.getContext('2d'); let trans = null;
@@ -474,6 +497,7 @@ function drawTrans() {
   }
 }
 function update(dt) {
+  updLight(dt);
   if (trans) {
     if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, trans.e.spawn).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; } }); } }
     else if (trans.phase === 'in') { trans.t += dt / 1.0; if (trans.t >= 1) trans = null; }
@@ -534,7 +558,7 @@ function update(dt) {
     else if (e.to) { if (e.type === 'trans' && !trans) startTrans(e); else if (!trans) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LS = R.sections ? R.sections.map(() => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
@@ -556,7 +580,7 @@ function draw(dt) {
   const cz = camZoom(); ctx.save(); if (cz !== 1) { ctx.translate(VW / 2, VH * .55); ctx.scale(cz, cz); ctx.translate(-VW / 2, -VH * .55); }
   const [tx, ty] = camTarget(); if (!cam.init) { cam.x = tx; cam.y = ty; cam.init = true; } else { const k = 1 - Math.exp(-(dt || .016) * 7); cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; }
   R.ox = -Math.round(cam.x); R.oy = -Math.round(cam.y);
-  ctx.drawImage(R.im, R.ox * S, R.oy * S, R.CW * S, R.CH * S);
+  ctx.drawImage(R.im, R.ox * S, R.oy * S, R.CW * S, R.CH * S); drawLight();
   const dot = (x, d, c, r = 1) => { const [X, Y] = scr(x, d); ctx.fillStyle = c; ctx.fillRect((R.ox + X - r / 2) * S, (R.oy + Y - r / 2) * S, r * S, r * S); };
   if (debug) {
     for (let j = 0; j < R.gh; j++) for (let i = 0; i < R.gw; i++) dot((i + .5) * CELL, (j + .5) * CELL, R.free[j * R.gw + i] ? '#5f85' : '#f556');
@@ -652,6 +676,6 @@ addEventListener('resize', fit); fit();
   let last = performance.now();
   const loop = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; try { update(dt); draw(dt); } catch (e) { console.error(e); } requestAnimationFrame(loop); };
   requestAnimationFrame(loop);
-  window.__game = { STATE, C, get FP() { return FP; }, fpOpen: (id) => { const o = R.objects.find(x => x.id === id); if (o) enterFP(o); return !!FP; }, fpTap: (id) => { const v = curView(); if (!v || !FP) return false; const h = fpHits(v).find(q => q.o.id === id); if (!h) return false; fpPress(h.x + h.w / 2, h.y + h.h / 2); return true; }, fpExit: () => fpPress(160, 226), curView, act: (id) => { const o = R.objects.find(x => x.id === id); if (o) actObj(o); return !!o; }, knockNow: () => VW_.kn.push(performance.now() / 1000), preview: async (k) => { STATE.riseKind = k; STATE.flags.met = false; STATE.real = 4; const sp = G.rooms.woods.chaser.spots[4]; await enter('woods', [sp[0] - 44, sp[1] - 8]); [C.x, C.d] = sp; C.st = 'rise'; C.t = 0; C.pl = null; C.preview = true; C.face = -1; P.dir = 'r'; msg = null; }, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
+  window.__game = { light: () => LS && LS.map((o) => +o.L.toFixed(2)), secIdx: () => R.sections ? secIdx(P.x) : -1, STATE, C, get FP() { return FP; }, fpOpen: (id) => { const o = R.objects.find(x => x.id === id); if (o) enterFP(o); return !!FP; }, fpTap: (id) => { const v = curView(); if (!v || !FP) return false; const h = fpHits(v).find(q => q.o.id === id); if (!h) return false; fpPress(h.x + h.w / 2, h.y + h.h / 2); return true; }, fpExit: () => fpPress(160, 226), curView, act: (id) => { const o = R.objects.find(x => x.id === id); if (o) actObj(o); return !!o; }, knockNow: () => VW_.kn.push(performance.now() / 1000), preview: async (k) => { STATE.riseKind = k; STATE.flags.met = false; STATE.real = 4; const sp = G.rooms.woods.chaser.spots[4]; await enter('woods', [sp[0] - 44, sp[1] - 8]); [C.x, C.d] = sp; C.st = 'rise'; C.t = 0; C.pl = null; C.preview = true; C.face = -1; P.dir = 'r'; msg = null; }, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
 })();
 })();
