@@ -241,19 +241,19 @@ def p_tstump(k, x, d, r): k.B(x, d, 7, 7, 6, (140, 96, 60)); k.B(x - .6, d - .6,
 
 def D(name, fn, mode, rng, gap): return (name, fn, mode, rng, gap)
 THEMES = {
- 'snow': dict(label='눈 숲길', ground=snow_ground, face=face_rock((176, 196, 224), (70, 84, 120)), H=44, walls=[w_snow], pits=[0, 10], floor=(196, 212, 238), blocked=dark_blocked((200, 212, 232), (190, 204, 228)), vig=.16, wob=1,
+ 'snow': dict(label='눈 숲길', ground=snow_ground, face=face_rock((176, 196, 224), (70, 84, 120)), H=44, walls=[w_snow], pits=[0], floor=(196, 212, 238), blocked=dark_blocked((200, 212, 232), (190, 204, 228)), vig=.16, wob=1,
    props=[D('fir', p_fir, 'edge', (3, 6), 12), D('stump', p_stump, 'any', (1, 3), 8), D('mound', p_mound, 'any', (2, 4), 7), D('lantern', p_lantern, 'edge', (1, 2), 22), D('log', p_log, 'any', (0, 2), 14), D('sign', p_sign, 'edge', (0, 2), 10), D('snowman', p_snowman, 'mid', (0, 1), 12), D('ice', p_icepatch, 'any', (1, 3), 10), D('bush', p_bush, 'edge', (1, 4), 7)]),
- 'lake': dict(label='얼음 호수', ground=ice_ground, face=face_rock((120, 170, 210), (24, 48, 96)), H=48, walls=[w_night], pits=[12], floor=(12, 22, 50), blocked=dark_blocked((16, 30, 66), (24, 40, 84)), vig=.2, wob=2,
+ 'lake': dict(label='얼음 호수', ground=ice_ground, face=face_rock((120, 170, 210), (24, 48, 96)), H=48, walls=[w_night], pits=[0], floor=(12, 22, 50), blocked=dark_blocked((16, 30, 66), (24, 40, 84)), vig=.2, wob=2,
    props=[D('deadtree', p_deadtree, 'edge', (2, 5), 14), D('lantern', p_lantern, 'edge', (1, 3), 22), D('hole', p_hole, 'mid', (1, 3), 12), D('drift', p_mound, 'any', (1, 3), 7), D('bucket', p_bucket, 'any', (0, 1), 14), D('shard', p_shard, 'any', (1, 3), 8), D('boat', p_boat, 'mid', (0, 1), 18), D('stones', p_stones, 'any', (0, 2), 8)]),
- 'park': dict(label='폐놀이공원', ground=W.park_ground, face=face_rock((96, 80, 110), (30, 22, 44)), H=36, walls=['tent'], pits=[0, 0, 12], floor=(14, 12, 24), blocked=W.BLOCKED['park'], vig=.5, wob=0,
+ 'park': dict(label='폐놀이공원', ground=W.park_ground, face=face_rock((96, 80, 110), (30, 22, 44)), H=36, walls=['tent'], pits=[0], floor=(14, 12, 24), blocked=W.BLOCKED['park'], vig=.5, wob=0,
    props=[D('lamp_off', p_lamp(False), 'edge', (1, 3), 12), D('lamp_on', p_lamp(True), 'edge', (0, 1), 30), D('bench', p_bench, 'edge', (1, 2), 14), D('balloon', p_balloon, 'any', (1, 3), 8), D('kiosk', p_kiosk, 'edge', (0, 2), 20), D('cart', p_cart, 'any', (0, 1), 14), D('bumper', p_bumper, 'any', (0, 3), 12), D('bin', p_bin, 'edge', (1, 2), 8), D('fence', p_fence, 'edge', (0, 2), 16), D('horse', p_horse, 'any', (0, 1), 10)]),
  'reed': dict(label='갈대밭', ground=W.reed_ground, face=face_rock((120, 86, 50), (44, 26, 30)), H=40, walls=['reeds'], pits=[0], floor=(60, 40, 26), blocked=W.BLOCKED['reed'], vig=.24, wob=3,
    props=[D('reeds', p_reedc, 'any', (8, 16), 8), D('desk', p_desk, 'any', (0, 2), 14), D('rock', p_rock, 'any', (1, 3), 7), D('scarecrow', p_scarecrow, 'edge', (0, 1), 14), D('hay', p_hay, 'any', (0, 2), 12), D('puddle', p_puddle, 'any', (1, 2), 12), D('fence', p_fence, 'edge', (0, 2), 16)]),
  'woods': dict(label='어두운 숲', ground=W.woods_ground, face=face_rock((40, 44, 50), (8, 8, 14)), H=46, walls=['trunks'], pits=[0], floor=(10, 14, 16), blocked=W.BLOCKED['woods'], vig=.4, wob=3,
    props=[D('tree', p_dtree, 'edge', (5, 9), 13), D('stump', p_wstump, 'any', (1, 2), 8), D('shroom', p_shroom, 'any', (1, 3), 12), D('log', p_wlog, 'any', (0, 2), 14), D('rock', p_wrock, 'any', (1, 3), 7)]),
- 'ridge': dict(label='낙엽 능선', ground=W.ridge_ground, face=face_rock((132, 92, 62), (36, 20, 30)), H=40, walls=['rock'], pits=[14], floor=(30, 16, 22), blocked=dark_blocked((40, 24, 30), (50, 30, 34)), vig=.36, wob=1.5,
+ 'ridge': dict(label='낙엽 능선', ground=W.ridge_ground, face=face_rock((132, 92, 62), (36, 20, 30)), H=40, walls=['rock'], pits=[0], floor=(30, 16, 22), blocked=dark_blocked((40, 24, 30), (50, 30, 34)), vig=.36, wob=1.5,
    props=[D('tree', p_atree, 'edge', (2, 4), 14), D('fence', p_fence, 'edge', (0, 2), 16), D('cairn', p_cairn, 'any', (1, 2), 9), D('shroom', p_redshroom, 'any', (1, 3), 8), D('sign', p_sign, 'edge', (0, 1), 10), D('boulder', p_boulder, 'edge', (1, 2), 10), D('planks', p_planks, 'any', (0, 1), 12)]),
- 'roofs': dict(label='밤 옥상', ground=W.roof_ground, face=W.face_building, H=44, walls=['facade'], pits=[14], floor=(12, 13, 26), blocked=dark_blocked((22, 24, 44), (30, 32, 54)), vig=.36, wob=0,
+ 'roofs': dict(label='밤 옥상', ground=W.roof_ground, face=W.face_building, H=44, walls=['facade'], pits=[0], floor=(12, 13, 26), blocked=dark_blocked((22, 24, 44), (30, 32, 54)), vig=.36, wob=0,
    props=[D('tank', p_tank, 'edge', (0, 1), 20), D('ac', p_ac, 'edge', (1, 3), 12), D('hut', p_hut, 'edge', (0, 1), 26), D('line', p_line, 'edge', (0, 1), 34), D('antenna', p_antenna, 'edge', (0, 2), 10), D('skylight', p_skylight, 'mid', (0, 2), 14), D('vent', p_vent, 'edge', (1, 3), 8), D('planter', p_planter, 'edge', (0, 2), 12), D('lamp', p_roofl, 'edge', (0, 2), 18), D('chimney', p_chimney, 'edge', (0, 1), 10), D('spool', p_spool, 'any', (0, 1), 10)]),
  'hall': dict(label='학교 복도', ground=W.hall_ground, face=face_rock((70, 76, 70), (10, 8, 14)), H=36, walls=['class'], pits=[0], floor=(20, 20, 24), blocked=W.BLOCKED['hall'], vig=.4, wob=0,
    props=[D('locker', p_hlocker, 'edge', (1, 3), 18), D('desk', p_desk, 'any', (0, 2), 14), D('mop', p_hmop, 'edge', (0, 1), 12), D('trophy', p_trophy, 'edge', (0, 1), 16), D('bench', p_hbench, 'edge', (0, 2), 14), D('shoes', p_shoes, 'any', (1, 2), 8), D('chair', p_chair, 'any', (0, 2), 8), D('bin', p_bin, 'edge', (0, 2), 8)]),
@@ -269,47 +269,57 @@ THEMES = {
 ORDER = ['snow', 'lake', 'park', 'reed', 'woods', 'ridge', 'roofs', 'hall', 'cabin', 'library', 'office', 'tree']
 
 # ---------------- 레이아웃 ----------------
+# 모든 레이아웃은 들어오는 곳이 왼쪽 가운데, 나가는 곳이 오른쪽 가운데라 방끼리 길이 이어진다. 길은 넓게(폭 26~36), 곁가지 골목(pocket)은 따로 붙인다.
 def unit(a, b): dx, dd = b[0] - a[0], b[1] - a[1]; n = math.hypot(dx, dd) or 1; return (dx / n, dd / n)
-def pth(pts, rad, wob=0): return dict(shapes=[('path', pts, rad)], a=pts[0], da=unit(pts[0], pts[1]), b=pts[-1], db=unit(pts[-1], pts[-2]))
-def L_straight(r, Wd, Dd): w = r.randint(15, 22); y = Dd / 2 + r.randint(-6, 6); return dict(shapes=[('rect', 0, y - w / 2, Wd, y + w / 2)], a=(0, y), da=(1, 0), b=(Wd, y), db=(-1, 0))
-def L_L(r, Wd, Dd): w = r.randint(15, 20); x1 = Wd * r.uniform(.62, .8); return dict(shapes=[('rect', 0, 5, x1, 5 + w), ('rect', x1 - w, 5, x1, Dd)], a=(0, 5 + w / 2), da=(1, 0), b=(x1 - w / 2, Dd), db=(0, -1))
-def L_zig(r, Wd, Dd): pts = [(0, Dd * .2), (Wd * .34, Dd * .2), (Wd * .34, Dd * .78), (Wd * .68, Dd * .78), (Wd * .68, Dd * .26), (Wd, Dd * .26)]; return pth(pts, r.randint(10, 12))
-def L_plaza(r, Wd, Dd): R = min(Dd * .44, Wd * .27); c = (Wd / 2, Dd / 2); return dict(shapes=[('circle', c[0], c[1], R), ('path', [(0, Dd / 2), c], 9), ('path', [c, (Wd, Dd / 2)], 9)], a=(0, Dd / 2), da=(1, 0), b=(Wd, Dd / 2), db=(-1, 0))
-def L_plazar(r, Wd, Dd): return dict(shapes=[('rect', Wd * .28, Dd * .1, Wd * .72, Dd * .9), ('path', [(0, Dd * .5), (Wd * .3, Dd * .5)], 9), ('path', [(Wd * .7, Dd * .5), (Wd, Dd * .5)], 9)], a=(0, Dd * .5), da=(1, 0), b=(Wd, Dd * .5), db=(-1, 0))
-def L_hub(r, Wd, Dd): c = (Wd * .5, Dd * .5); return dict(shapes=[('circle', c[0], c[1], 13), ('path', [(0, Dd * .5), c], 9), ('path', [c, (Wd, Dd * .32)], 9), ('path', [c, (Wd * .56, Dd)], 9), ('path', [c, (Wd * .42, 4)], 9), ('circle', Wd * .56, Dd - 8, 9), ('circle', Wd * .42, 12, 9)], a=(0, Dd * .5), da=(1, 0), b=(Wd, Dd * .32), db=(-1, 0))
-def L_ring(r, Wd, Dd): return dict(shapes=[('rect', Wd * .22, Dd - 15, Wd * .78, Dd - 3), ('rect', Wd * .22, 3, Wd * .78, 15), ('rect', Wd * .22, 3, Wd * .22 + 12, Dd - 3), ('rect', Wd * .78 - 12, 3, Wd * .78, Dd - 3), ('path', [(0, Dd / 2), (Wd * .25, Dd / 2)], 9), ('path', [(Wd * .75, Dd / 2), (Wd, Dd / 2)], 9)], a=(0, Dd / 2), da=(1, 0), b=(Wd, Dd / 2), db=(-1, 0))
+def LAY(shapes, Wd, Dd, zones=()): m = Dd / 2; return dict(shapes=shapes, zones=list(zones), a=(0, m), da=(1, 0), b=(Wd, m), db=(-1, 0), m=m)
+def L_broad(r, Wd, Dd): h = r.randint(15, 19); m = Dd / 2; return LAY([('rect', 0, m - h, Wd, m + h)], Wd, Dd)
+def L_plaza(r, Wd, Dd): R = min(Dd * .46, Wd * .3); m = Dd / 2; return LAY([('circle', Wd / 2, m, R), ('rect', 0, m - 13, Wd * .3, m + 13), ('rect', Wd * .7, m - 13, Wd, m + 13)], Wd, Dd)
+def L_plazar(r, Wd, Dd): m = Dd / 2; return LAY([('rect', Wd * .24, 5, Wd * .76, Dd - 5), ('rect', 0, m - 13, Wd * .3, m + 13), ('rect', Wd * .7, m - 13, Wd, m + 13)], Wd, Dd)
+def L_wave(r, Wd, Dd): m = Dd / 2; return LAY([('path', bez((0, m), (Wd * .3, m - Dd * r.uniform(.2, .4)), (Wd * .65, m + Dd * r.uniform(.2, .4)), (Wd, m)), r.randint(13, 16))], Wd, Dd)
+def L_dumb(r, Wd, Dd): m = Dd / 2; R1 = min(Dd * .42, Wd * .2); R2 = min(Dd * .46, Wd * .2); return LAY([('circle', Wd * .2, m, R1), ('circle', Wd * .8, m, R2), ('rect', 0, m - 13, Wd * .2, m + 13), ('rect', Wd * .8, m - 13, Wd, m + 13), ('rect', Wd * .2, m - 11, Wd * .8, m + 11)], Wd, Dd)
+def L_twin(r, Wd, Dd): m = Dd / 2; return LAY([('rect', Wd * .2, 4, Wd * .8, 22), ('rect', Wd * .2, Dd - 22, Wd * .8, Dd - 4), ('rect', Wd * .2, 4, Wd * .2 + 18, Dd - 4), ('rect', Wd * .8 - 18, 4, Wd * .8, Dd - 4), ('rect', 0, m - 13, Wd * .25, m + 13), ('rect', Wd * .75, m - 13, Wd, m + 13)], Wd, Dd)
+def L_cross(r, Wd, Dd): m = Dd / 2; return LAY([('rect', 0, m - 13, Wd, m + 13), ('rect', Wd / 2 - 13, 3, Wd / 2 + 13, Dd - 3), ('circle', Wd / 2, m, 20)], Wd, Dd)
+def L_fork(r, Wd, Dd): m = Dd / 2; x = Wd * r.uniform(.35, .65); return LAY([('rect', 0, m - 13, Wd, m + 13), ('path', [(x, m), (x + Wd * .12, Dd - 8)], 12), ('circle', x + Wd * .12, Dd - 14, 15), ('path', [(x, m), (x - Wd * .12, 8)], 12), ('circle', x - Wd * .12, 14, 15)], Wd, Dd)
 def L_islands(r, Wd, Dd):
-    c = [(Wd * .13, Dd * .5, 12), (Wd * .45, Dd * .28, 13), (Wd * .6, Dd * .72, 13), (Wd * .88, Dd * .45, 12)]; br = [[(c[i][0], c[i][1]), (c[i + 1][0], c[i + 1][1])] for i in range(3)]
-    return dict(shapes=[('circle', *q) for q in c] + [('path', b_, 8) for b_ in br], zones=[(('path', b_, 8), plank_ground) for b_ in br], a=(Wd * .13 - 7, Dd * .5), da=(1, 0), b=(Wd * .88 + 7, Dd * .45), db=(-1, 0))
-def L_steps(r, Wd, Dd): n = 4; rs = [('rect', i * Wd * .22, 4 + i * (Dd - 28) / 3, i * Wd * .22 + Wd * .3, 4 + i * (Dd - 28) / 3 + 20) for i in range(n)]; return dict(shapes=rs, a=(0, rs[0][2] + 10), da=(1, 0), b=(rs[-1][3], rs[-1][2] + 10), db=(-1, 0))
-def L_wave(r, Wd, Dd): return pth(bez((0, Dd * .5), (Wd * .3, Dd * r.uniform(-.2, .2)), (Wd * .65, Dd * r.uniform(.8, 1.2)), (Wd, Dd * .5)), r.randint(9, 12))
+    m = Dd / 2; c = [(Wd * .13, m, 16), (Wd * .42, m - Dd * .22, 17), (Wd * .6, m + Dd * .2, 17), (Wd * .88, m, 16)]; br = [[(c[i][0], c[i][1]), (c[i + 1][0], c[i + 1][1])] for i in range(3)]
+    return LAY([('circle', *q) for q in c] + [('path', b_, 10) for b_ in br] + [('rect', 0, m - 10, Wd * .13, m + 10), ('rect', Wd * .88, m - 10, Wd, m + 10)], Wd, Dd, [(('path', b_, 10), plank_ground) for b_ in br])
+def L_zig(r, Wd, Dd): m = Dd / 2; s = r.choice((-1, 1)) * Dd * .26; return LAY([('path', [(0, m), (Wd * .3, m), (Wd * .3, m + s), (Wd * .7, m + s), (Wd * .7, m), (Wd, m)], r.randint(12, 14))], Wd, Dd)
 def L_comb(r, Wd, Dd):
-    sh = [('rect', 0, Dd / 2 - 8, Wd, Dd / 2 + 8)]
-    for i in range(4): x = Wd * (.14 + .22 * i); sh.append(('rect', x - 7, Dd / 2, x + 7, Dd - 3) if i % 2 == 0 else ('rect', x - 7, 3, x + 7, Dd / 2))
-    return dict(shapes=sh, a=(0, Dd / 2), da=(1, 0), b=(Wd, Dd / 2), db=(-1, 0))
-def L_dumb(r, Wd, Dd): R1 = min(Dd * .4, Wd * .19); R2 = min(Dd * .44, Wd * .19); return dict(shapes=[('circle', Wd * .2, Dd / 2, R1), ('circle', Wd * .8, Dd / 2, R2), ('rect', Wd * .2, Dd / 2 - 7, Wd * .8, Dd / 2 + 7)], a=(Wd * .2 - R1 + 3, Dd / 2), da=(1, 0), b=(Wd * .8 + R2 - 3, Dd / 2), db=(-1, 0))
-def L_cross(r, Wd, Dd): return dict(shapes=[('rect', 0, Dd / 2 - 8, Wd, Dd / 2 + 8), ('rect', Wd / 2 - 8, 2, Wd / 2 + 8, Dd - 2), ('circle', Wd / 2, Dd / 2, 14)], a=(0, Dd / 2), da=(1, 0), b=(Wd, Dd / 2), db=(-1, 0))
-def L_T(r, Wd, Dd): w = r.randint(15, 18); return dict(shapes=[('rect', 0, 6, Wd, 6 + w), ('rect', Wd / 2 - w / 2, 6, Wd / 2 + w / 2, Dd), ('rect', Wd / 2 - 20, Dd - 24, Wd / 2 + 20, Dd)], a=(0, 6 + w / 2), da=(1, 0), b=(Wd, 6 + w / 2), db=(-1, 0))
-def L_diag(r, Wd, Dd): return pth([(0, Dd * .2), (Wd * .5, Dd * .5), (Wd, Dd * .8)], 12)
-def L_bridge(r, Wd, Dd): return dict(shapes=[('rect', 0, Dd / 2 - 14, Wd * .3, Dd / 2 + 14), ('rect', Wd * .7, Dd / 2 - 14, Wd, Dd / 2 + 14), ('rect', Wd * .3 - 10, Dd / 2 - 6, Wd * .7 + 10, Dd / 2 + 6)], zones=[(('rect', Wd * .3, Dd / 2 - 6, Wd * .7, Dd / 2 + 6), plank_ground)], a=(0, Dd / 2), da=(1, 0), b=(Wd, Dd / 2), db=(-1, 0))
-LAYOUTS = [('straight', L_straight, 40), ('L', L_L, 44), ('zig', L_zig, 54), ('plaza', L_plaza, 48), ('plazar', L_plazar, 48), ('hub', L_hub, 54), ('ring', L_ring, 56), ('islands', L_islands, 52), ('steps', L_steps, 56), ('wave', L_wave, 44), ('comb', L_comb, 54), ('dumbbell', L_dumb, 46), ('cross', L_cross, 48), ('T', L_T, 52), ('diag', L_diag, 46), ('bridge', L_bridge, 46)]
+    m = Dd / 2; sh = [('rect', 0, m - 13, Wd, m + 13)]
+    for i in range(3): x = Wd * (.22 + .28 * i); sh.append(('rect', x - 11, m, x + 11, Dd - 3) if i % 2 == 0 else ('rect', x - 11, 3, x + 11, m))
+    return LAY(sh, Wd, Dd)
+def L_vee(r, Wd, Dd): m = Dd / 2; s = r.choice((-1, 1)) * Dd * .26; return LAY([('path', [(0, m), (Wd * .5, m + s), (Wd, m)], 14)], Wd, Dd)
+def L_bridge(r, Wd, Dd): m = Dd / 2; return LAY([('rect', 0, m - 18, Wd * .32, m + 18), ('rect', Wd * .68, m - 18, Wd, m + 18), ('rect', Wd * .32 - 10, m - 10, Wd * .68 + 10, m + 10)], Wd, Dd, [(('rect', Wd * .32, m - 10, Wd * .68, m + 10), plank_ground)])
+def L_lobes(r, Wd, Dd): m = Dd / 2; return LAY([('circle', Wd * .17, m + r.randint(-6, 6), r.randint(17, 21)), ('circle', Wd * .5, m + r.randint(-8, 8), r.randint(19, 24)), ('circle', Wd * .83, m + r.randint(-6, 6), r.randint(17, 21)), ('rect', 0, m - 12, Wd, m + 12)], Wd, Dd)
+def L_plus2(r, Wd, Dd): m = Dd / 2; return LAY([('rect', 0, m - 13, Wd, m + 13), ('rect', Wd * .28 - 13, 3, Wd * .28 + 13, Dd - 3), ('rect', Wd * .72 - 13, 3, Wd * .72 + 13, Dd - 3)], Wd, Dd)
+LAYOUTS = [('broad', L_broad, 56), ('plaza', L_plaza, 64), ('plazar', L_plazar, 62), ('wave', L_wave, 64), ('dumbbell', L_dumb, 62), ('twin', L_twin, 70), ('cross', L_cross, 66), ('fork', L_fork, 70), ('islands', L_islands, 68), ('zig', L_zig, 68), ('comb', L_comb, 70), ('vee', L_vee, 66), ('bridge', L_bridge, 62), ('lobes', L_lobes, 62)]
 
-def flip(res, Wd, Dd, fx, fd):                                                  # 좌우·앞뒤를 뒤집어 같은 레이아웃도 다르게 보이게
+def flip(res, Wd, Dd, fx, fd):                                                  # 좌우·앞뒤를 뒤집어 같은 레이아웃도 다르게 보이게(들어오는 곳은 늘 왼쪽 가운데)
     X = (lambda x: Wd - x) if fx else (lambda x: x); Y = (lambda d: Dd - d) if fd else (lambda d: d)
     def sh(s):
         if s[0] == 'rect': x0, x1 = sorted((X(s[1]), X(s[3]))); d0, d1 = sorted((Y(s[2]), Y(s[4]))); return ('rect', x0, d0, x1, d1)
         if s[0] == 'circle': return ('circle', X(s[1]), Y(s[2]), s[3])
         return ('path', [(X(p[0]), Y(p[1])) for p in s[1]], s[2])
     o = dict(res); o['shapes'] = [sh(s) for s in res['shapes']]; o['zones'] = [(sh(z), g) for z, g in res.get('zones', [])]
-    for key in ('a', 'b'): o[key] = (X(res[key][0]), Y(res[key][1]))
-    for key in ('da', 'db'): o[key] = ((-res[key][0] if fx else res[key][0]), (-res[key][1] if fd else res[key][1]))
     return o
+
+def add_pockets(r, o, Wd, Dd, n):                                               # 곁가지 골목: 길 옆에서 앞이나 뒤로 갈라져 나가는 막다른 골목과 작은 방
+    m = Dd / 2; tips = []; xs = sorted(r.sample([.25, .4, .55, .72], n)) if n < 2 else sorted([r.choice((.25, .35)), r.choice((.65, .75))]); side = r.choice((-1, 1))
+    for x in xs:
+        cx = Wd * x + r.uniform(-3, 3); w = r.randint(8, 11); side = -side; ln = r.randint(14, 22)
+        if side > 0: d_end = min(Dd - 2, m + 8 + ln + 8); o['shapes'].append(('rect', cx - w, m, cx + w, d_end)); o['shapes'].append(('circle', cx, d_end - 9, w + 4)); tips.append((cx, d_end - 9))
+        else: d_end = max(2, m - 8 - ln - 8); o['shapes'].append(('rect', cx - w, d_end, cx + w, m)); o['shapes'].append(('circle', cx, d_end + 9, w + 4)); tips.append((cx, d_end + 9))
+    o['tips'] = tips
 
 def make_spec(theme, i):
     r = random.Random(sum(map(ord, theme)) * 31 + i * 7919); T = THEMES[theme]
     seq = list(range(len(LAYOUTS))); random.Random(sum(map(ord, theme)) * 13).shuffle(seq); li = seq[i % len(seq)]                       # 테마마다 레이아웃 순서가 다르다
-    nm, fn, dmin = LAYOUTS[li]; Wd = r.randint(80, 104); Dd = r.randint(max(dmin, 44), max(dmin, 44) + 14)
-    res = fn(r, Wd, Dd); res = flip(res, Wd, Dd, r.random() < .5, r.random() < .4 if nm not in ('steps',) else False)
+    nm, fn, dmin = LAYOUTS[li]; Wd = r.randint(92, 112); Dd = r.randint(dmin, dmin + 14)
+    res = fn(r, Wd, Dd); res = flip(res, Wd, Dd, r.random() < .5, r.random() < .5)
+    if res['a'][0] > res['b'][0]: res['a'], res['b'], res['da'], res['db'] = res['b'], res['a'], res['db'], res['da']
+    res['a'], res['b'] = (0, Dd / 2), (Wd, Dd / 2); res['da'], res['db'] = (1, 0), (-1, 0)
+    if nm in ('broad', 'plaza', 'plazar', 'dumbbell', 'bridge', 'lobes'): add_pockets(r, res, Wd, Dd, r.choice((1, 1, 2)))
+    else: res['tips'] = []
     return dict(theme=theme, i=i, layout=nm, W=Wd, D=Dd, res=res, pit=r.choice(T['pits']), wall=r.choice(T['walls']), seed=r.randint(0, 9), tries=0, density=1.0)
 
 def setup(name, spec):
@@ -318,7 +328,7 @@ def setup(name, spec):
     spec.update(ea=ea, st=st, eb=eb, ab=ab)
     box = dict(wall=spec['wall'], vig=T['vig']);
     if spec['pit']: box.update(pit=spec['pit'], floor=T['floor'])
-    W.BLOCKED[name] = T['blocked']
+    W.BLOCKED[name] = lambda x, d, n, g=T['ground']: np.clip(g(x, d, np.full(n, -10.), n) * .82, 0, 255).astype(int)   # 길 밖도 같은 바닥(조금 어둡게)
     ent = dict(H=T['H'], shapes=res['shapes'], zones=res.get('zones', []), ground=T['ground'], face=T['face'], ch=30, sky=((20, 20, 30), (40, 40, 60)), start=st, box=box, wob=T['wob'], exits=[])
     W.AREAS[name] = ent; W.STRICT.add(name); MORE[name] = spec; return ent
 
@@ -326,20 +336,22 @@ def more_props(name, k, tr, inside, rng):
     spec = MORE[name]; T = THEMES[spec['theme']]; r = random.Random(sum(map(ord, name)) * 7 + spec['tries'] * 101); avoid = [tr(spec[q]) for q in ('st', 'ab', 'ea', 'eb')]
     placed = [(a, b, 12) for a, b in avoid]; kinds = [p for p in T['props'] if p[3][0] > 0 or r.random() < .55]
     dens = spec['density']
+    for (tx, td) in spec['res'].get('tips', []):                                  # 막다른 골목 끝: 눈에 띄는 소품 하나와 은은한 빛
+        lx, ld = tr((tx, td)); cand = [p for p in T['props'] if p[2] in ('any', 'mid')] or T['props']; nm_, fn_, *_ = r.choice(cand); fn_(k, lx - 2, ld, r); k.glow(lx, ld, 22, (255, 214, 150), .28); placed.append((lx, ld, 16))
     for (nm, fn, mode, (lo, hi), gap) in kinds:
         n = max(0, int(round(r.randint(lo, hi) * dens)))
         if dens > 0 and lo > 0 and n == 0: n = 1
         tries = 0
         while n > 0 and tries < 500:
-            tries += 1; x = r.uniform(-8, spec['W'] + 8); d = r.uniform(-8, spec['D'] + 8); e = inside(x, d)
-            if mode == 'edge' and not (-9 < e < -3): continue
+            tries += 1; x = r.uniform(0, spec['W']); d = r.uniform(0, spec['D']); e = inside(x, d)
+            if mode == 'edge' and not (-9 < e < 12): continue
             if mode == 'mid' and not e < -7: continue
-            if mode == 'any' and not e < -3: continue
+            if not (4 < tr((x, d))[0] < spec['W'] + 2 and 4 < tr((x, d))[1] < spec['D'] + 2): continue
             lx, ld = tr((x, d))
             if any(math.hypot(lx - a, (ld - b) * 1.5) < gap * .5 + g_ * .5 + 2 for a, b, g_ in placed): continue
             fn(k, lx, ld, r); placed.append((lx, ld, gap)); n -= 1
 
-def reach(mask, meta):
+def reach(mask, meta, tips=()):
     g = np.array(mask) > 127; gh, gw = g.shape; sx, sd_ = meta['start']; s = (min(gh - 1, int(sd_ / CELL)), min(gw - 1, int(sx / CELL)))
     if not g[s]:
         ys, xs = np.nonzero(g)
@@ -351,6 +363,10 @@ def reach(mask, meta):
         for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             ny, nx = y + dy, x + dx
             if 0 <= ny < gh and 0 <= nx < gw and g[ny, nx] and not seen[ny, nx]: seen[ny, nx] = True; st.append((ny, nx))
+    o = meta['origin']
+    for (tx, td) in tips:
+        c = (min(gh - 1, int((td - o[1]) / CELL)), min(gw - 1, int((tx - o[0]) / CELL)))
+        if not seen[max(0, c[0] - 4):c[0] + 5, max(0, c[1] - 4):c[1] + 5].any(): return False
     for e in meta['exits']:
         z = e['zone']; cx, cd = (z[0] + z[1]) / 2, (z[2] + z[3]) / 2; c = (min(gh - 1, int(cd / CELL)), min(gw - 1, int(cx / CELL)))
         if not seen[c]: return False
@@ -369,17 +385,17 @@ def main():
         for i in range(N_PER):
             nm = names[(th, i)]; spec = MORE[nm]
             ex = []
-            if i > 0: ex.append(dict(at=spec['ea'], to=names[(th, i - 1)], spawn=MORE[names[(th, i - 1)]]['ab']))
-            ex.append(dict(at=spec['eb'], to=names[(th, i + 1)], spawn=MORE[names[(th, i + 1)]]['st']) if i < N_PER - 1 else dict(at=spec['eb'], to=None, endMsg='길이 끊겨 있다. 여기서는 더 갈 수 없다', side='right'))
+            if i > 0: ex.append(dict(at=spec['ea'], hw=10, to=names[(th, i - 1)], spawn=MORE[names[(th, i - 1)]]['ab']))
+            ex.append(dict(at=spec['eb'], hw=10, to=names[(th, i + 1)], spawn=MORE[names[(th, i + 1)]]['st']) if i < N_PER - 1 else dict(at=spec['eb'], hw=10, to=None, endMsg='길이 끊겨 있다. 여기서는 더 갈 수 없다', side='right'))
             W.AREAS[nm]['exits'] = ex
     nav = {}
     for th in want:
         for i in range(N_PER):
             nm = names[(th, i)]; spec = MORE[nm]
             for t in range(10):
-                spec['tries'] = t; W.SEEDOFF[nm] = t * 17; spec['density'] = 1.0 if t < 6 else (.5 if t < 8 else .0)
+                spec['tries'] = t; W.SEEDOFF[nm] = t * 17; spec['density'] = .85 if t < 5 else (.5 if t < 7 else (.25 if t < 9 else .0))
                 im, dep, mask, meta = W.build(nm)
-                if reach(mask, meta): break
+                if reach(mask, meta, spec['res'].get('tips', [])): break
             else: print('!! 길이 막힘', nm)
             meta['label'] = '%s %d' % (THEMES[th]['label'], i + 1); meta['theme'] = th; nav[nm] = meta
             im.save(os.path.join(OUT, 'world_%s.png' % nm)); dep.save(os.path.join(OUT, 'world_%s_depth.png' % nm)); mask.save(os.path.join(OUT, 'world_%s_walk.png' % nm))
