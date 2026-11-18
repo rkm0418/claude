@@ -7,6 +7,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import render_more as M
 import render_world as W
+import theme_design as TD
 from render_world import OUT
 from render_dream_area import CELL
 
@@ -68,15 +69,18 @@ def strip_spec(th, chain):
 
 def setup(name, spec):
     T = THEMES[spec['theme']]; W.GRADE[name] = M.GRADES[spec['theme']]
-    box = dict(wall=spec['wall'], vig=T['vig'] * .5)
+    box = dict(wall=spec['wall'], vig=T['vig'] * .5, pranges=[(s['x0'] + 3, s['x1'] + 3, TD.PWALL[spec['theme']]) for s in spec['secs'] if s['kind'] == 'passage'])
     W.BLOCKED[name] = lambda x, d, n, g=T['ground']: np.clip(g(x, d, np.full(n, -10.), n), 0, 255).astype(int)
     last = spec['secs'][-1]
     ex = [dict(at=(spec['W'] - 8, last['d_out']), hw=14, hwx=5, to=None, endMsg='길이 끊겨 있다. 여기서는 더 갈 수 없다', side='right')]
-    ent = dict(H=spec['H'], shapes=spec['shapes'], zones=[], ground=T['ground'], face=T['face'], ch=30, sky=((20, 20, 30), (40, 40, 60)), start=spec['start'], box=box, wob=T['wob'], exits=ex, bbox=(0, 0, spec['W'], spec['D']))
+    ent = dict(H=spec['H'], shapes=spec['shapes'], zones=[], lane_zones=[(('path', s['pts'], s['hw']), TD.LANE[spec['theme']]) for s in spec['secs'] if s['kind'] == 'passage'], ground=T['ground'], face=T['face'], ch=30, sky=((20, 20, 30), (40, 40, 60)), start=spec['start'], box=box, wob=T['wob'], exits=ex, bbox=(0, 0, spec['W'], spec['D']))
     W.AREAS[name] = ent; W.STRICT.add(name); STRIPS[name] = spec; return ent
 
-def unit(k, th, lx, ld, low, r):                                               # 벽 줄 한 칸
-    (M.BARLOW if low else M.BAR)[th](k, lx - 3.5, ld - 3, r)
+UNIT_I = [0]
+def unit(k, th, lx, ld, low, r, run=True):                                    # 벽 줄 한 칸: 통로·칸막이는 연속 벽(run_unit), 방 가장자리는 낮고 가벼운 소품
+    UNIT_I[0] += 1
+    if run: TD.run_unit(k, th, lx, ld, low, UNIT_I[0], r)
+    else: M.BARLOW[th](k, lx - 3.5, ld - 3, r)
 
 def strip_props(name, k, tr, inside, rng):
     spec = STRIPS[name]; th = spec['theme']; T = THEMES[th]; sc = k.sc; Wl, Dl = sc.W, sc.D; D = spec['D']; secs = spec['secs']; r = random.Random(sum(map(ord, name)) * 7 + spec['tries'] * 101); placed = []
@@ -102,10 +106,10 @@ def strip_props(name, k, tr, inside, rng):
             for x in np.arange(sec['x0'] + 4, sec['x1'] - 2, 7.0):
                 if d0 > 10:
                     lx, ld = tr((x, d0 - 4))
-                    if put(lx, ld, 7): unit(k, th, lx, ld, True, rr)
+                    if put(lx, ld, 7): unit(k, th, lx, ld, True, rr, run=False)
                 if d1 < D - 10:
                     lx, ld = tr((x, d1 + 4))
-                    if put(lx, ld, 7): unit(k, th, lx, ld, False, rr)
+                    if put(lx, ld, 7): unit(k, th, lx, ld, True, rr, run=False)
     for i in range(len(secs) + 1):                                              # 2) 구간 경계: 칸막이 기둥줄 + 길 자리에 컨셉 아치
         xb = secs[i]['x0'] if i < len(secs) else spec['W']
         if i == 0: continue
@@ -131,9 +135,17 @@ def strip_props(name, k, tr, inside, rng):
         for x in xs:
             d = (lane_d(sec, x) + sec['hw'] + 3) if sec['kind'] == 'passage' else sec['ext'][1] - 6
             lx, ld = tr((x, min(d, D - 6))); nb, nr = len(k.block), len(k.rects); lamp(k, lx, ld, rr); del k.block[nb:]; del k.rects[nr:]; M.flat(k, lx + 2, ld, 12, 4, (60, 52, 40))
+    for sec in secs:                                                            # 4.5) 방 대표 연출(set piece): 테마 고유의 구조물 묶음 + 큰 바닥 장식
+        if sec['kind'] != 'room': continue
+        rr = rnd(sec['key'] + 'set'); sets = TD.SETS[th]; fn_set = sets[rr.randrange(len(sets))]; d0, d1 = sec['ext']
+        for _ in range(80):
+            x = rr.uniform(sec['x0'] + 30, sec['x1'] - 30); lane = lane_d(sec, x)
+            d = rr.choice([lane + rr.uniform(20, 30), lane - rr.uniform(20, 30)])
+            if not (d0 + 8 < d < d1 - 8) or float(inside(x, d)) < 12: continue
+            lx, ld = tr((x, d)); fn_set(k, lx, ld, rr); placed.append((lx, ld, 34)); break
     for sec in secs:                                                            # 5) 소품(막는 것은 가장자리·길 밖에만)
         rr = rnd(sec['key'] + 'p' + str(spec['tries'])); d0, d1 = sec['ext']; w = sec['x1'] - sec['x0']
-        area = w * (d1 - d0) / 6800.0; dens = spec['density'] * max(.6, area) * (.28 if sec['kind'] == 'passage' else .55)
+        area = w * (d1 - d0) / 6800.0; dens = spec['density'] * max(.6, area) * (.12 if sec['kind'] == 'passage' else .3)
         kinds = [p for p in T['props'] if p[3][0] > 0 or rr.random() < .55]
         for (nm, fn, mode, (lo, hi), gap) in kinds:
             n = max(0, int(round(rr.randint(lo, hi) * dens))); solid = nm in M.SOLID

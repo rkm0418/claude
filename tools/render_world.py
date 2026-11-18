@@ -310,13 +310,17 @@ def build(name):
                 c = np.where((np.floor((z + 3 * np.sin(us / 23.0)) / 6) % 2 == 0)[..., None], (112, 60, 50), (94, 48, 44)).astype(float); c = np.where((n_ > .9)[..., None], (140, 84, 62), c) * (.7 + .3 * np.clip(z / H_, 0, 1))[..., None]
             else:                                                                 # facade: 옆 건물 벽, 창 몇 개만 켜짐
                 c = np.full(np.shape(u) + (3,), (44, 46, 72), float); wn = (us % 9 > 2) & (us % 9 < 7) & (z % 11 > 3) & (z % 11 < 8); lit = nz(np.floor(us / 9), np.floor(z / 11), 9 + seed) > .9; c = np.where(wn[..., None], np.where(lit[..., None], (255, 214, 140), (20, 22, 42)), c)
+            if seed == 0:                                                         # 뒷벽: 통로 구간은 통로 벽 무늬로 바꾼다(BOX['pranges'])
+                for (ra, rb, fn) in BOX.get('pranges', []):
+                    mk = (u >= ra) & (u < rb)
+                    if mk.any(): c = np.where(mk[..., None], np.asarray(fn(u, z, n_, H_, us, seed, pit), float), c)
             c = np.where((z < 0)[..., None], c * .55, c); c = np.where(((z >= -pit) & (z < -pit + 2.2))[..., None], c * .45, c); img[m_] = (c * shade)[m_]
         xb = XX + .5 - sc.X0 - .5 * D; zb = sc.Y0 - .5 * D - YY - .5; wall(xb, zb, (xb >= 0) & (xb < W) & (zb >= -pit) & (zb < H_), 1.0, 0)        # 뒷벽
         dl = (XX + .5 - sc.X0) * 2; zl = sc.Y0 - .5 * dl - YY - .5; wall(dl, zl, (dl >= 0) & (dl < D) & (zl >= -pit) & (zl < H_), .74, 2)          # 왼쪽 벽(한 단계 어둡게)
         zs_ = sc.Y0 + pit - YY - .5; sf = (XX + .5 - sc.X0 >= 0) & (XX + .5 - sc.X0 < W) & (zs_ < 0) & (zs_ >= -5); img[sf] = (30, 24, 32)                        # 바닥 앞 두께
         dr = (XX + .5 - sc.X0 - W) * 2; zr = sc.Y0 + pit - .5 * dr - YY - .5; sr = (dr >= 0) & (dr < D) & (zr < 0) & (zr >= -5); img[sr] = (20, 16, 24)           # 바닥 오른쪽 두께
     wx, wd, we = (xx + x0)[land], (dd + d0)[land], e[land]; img[land] = BLOCKED[name](wx, wd, wx.size) if name in STRICT else A['ground'](wx, wd, we, wx.size)
-    for zs, gfn in ([] if name in STRICT else A.get('zones', [])):
+    for zs, gfn in (A.get('lane_zones', []) if name in STRICT else A.get('zones', [])):                  # 띠: 통로 길 바닥만 따로 칠한다
         zm = land & (sd([zs], xx + x0, dd + d0) < 0); img[zm] = gfn((xx + x0)[zm], (dd + d0)[zm], e[zm], int(zm.sum()))
     ch = BOX.get('pit', 0) if BOX else A['ch']; painted = land.copy(); face = A['face']                        # 낭떠러지 단면: 땅 가장자리 아래로 곧게 떨어진다
     for kk in range(1, ch + 1):
