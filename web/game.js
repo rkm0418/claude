@@ -452,36 +452,47 @@ function drawLabel() {                                                          
   ctx.fillStyle = 'rgba(11,9,16,.7)'; ctx.fillRect(4, 3, lbW * 2 + 8, 22); ctx.imageSmoothingEnabled = false; ctx.drawImage(lbC, 0, 0, 160, 10, 6, 5, 320, 20);
 }
 // ---- 구간 조명: 한 장의 긴 띠 안에서 아이가 걷는 대로 앞 구간은 켜지고 지나온 구간은 어두워진다
-let LS = null; const FLK = [.2, .7, .1, .6, .3, .8, .5, .9, 1];
+let LS = null, DIVX = [], zone = 0; const FLK = [.2, .7, .1, .6, .3, .8, .5, .9, 1];
 const secIdx = (x) => { const s = R.sections; for (let i = 0; i < s.length; i++) if (x < s[i].x1) return i; return s.length - 1; };
-const LEAD = { v: 0, dir: 1 };                                                // 카메라 선행: 경계가 가까워지면 카메라가 아이보다 먼저 앞 구간을 비춘다
+// 분기점(통로 한가운데)이 띠를 구역으로 나눈다. 아이가 있는 구역만 켜지고, 분기점을 넘으면 뒤는 무너지듯 꺼지고 앞은 켜진다. 경계는 검은 띠.
+const zoneOf = (x) => { let z = 0; for (let i = 0; i < DIVX.length; i++) if (x > DIVX[i]) z = i + 1; return z; };
+const LEAD = { v: 0, dir: 1 };                                                // 카메라 선행: 다음 분기점이 가까워지면 카메라가 아이보다 먼저 앞(어두운 구역)을 비춘다
 function leadTarget() {
-  if (!R.sections) return 0; const s = R.sections, ci = secIdx(P.x), cur = s[ci];
+  if (!R.sections) return 0;
   if (P.path.length) { const dx = P.path[P.path.length - 1][0] - P.x; if (Math.abs(dx) > 6) LEAD.dir = dx > 0 ? 1 : -1; }
-  const dir = LEAD.dir, nx = s[ci + dir]; if (!nx) return 0;
-  const dist = dir > 0 ? cur.x1 - P.x : P.x - cur.x0, f = Math.max(0, Math.min(1, (170 - dist) / 170)); return dir * 60 * f * f * (3 - 2 * f);
+  const dir = LEAD.dir; let nd = null;
+  if (dir > 0) { for (const d of DIVX) if (d > P.x) { nd = d; break; } } else { for (let i = DIVX.length - 1; i >= 0; i--) if (DIVX[i] < P.x) { nd = DIVX[i]; break; } }
+  if (nd === null) return 0; const f = Math.max(0, Math.min(1, (170 - Math.abs(nd - P.x)) / 170)); return dir * 60 * f * f * (3 - 2 * f);
 }
 function updLight(dt, snap) {
-  if (!LS || !R.sections) return; const s = R.sections, x = P.x, ci = secIdx(x), cur = s[ci], T = s.map(() => 0); T[ci] = 1;
+  if (!LS || !R.sections) return; const x = P.x;
+  if (snap) zone = zoneOf(x); else { const lo = zone > 0 ? DIVX[zone - 1] : -1e9, hi = zone < DIVX.length ? DIVX[zone] : 1e9; if (x > hi + 6) zone++; else if (x < lo - 6) zone--; }   // 분기점 ±6px 히스테리시스
   LEAD.v += (leadTarget() - LEAD.v) * (snap ? 1 : 1 - Math.exp(-dt * 3.2));
-  const vl = snap ? x - VW / S / 2 : cam.x - R.X0 - R.D / 4, vr = vl + VW / S;                                                                                   // 카메라가 비추는 x 범위
-  if (s[ci + 1] && vr > s[ci + 1].x0 + 12) T[ci + 1] = 1;                                                                                   // 카메라가 먼저 앞 구간을 비추면 불이 켜지고
-  if (s[ci - 1] && (vl < s[ci - 1].x1 - 20 || x - cur.x0 < 30)) T[ci - 1] = 1;                                                              // 지나온 구간은 카메라가 벗어난 뒤에 꺼진다
-  for (let i = 0; i < s.length; i++) {
-    const o = LS[i]; if (snap) { o.L = T[i]; o.on = T[i] === 1; continue; }
-    if (T[i] === 1 && !o.on && o.L < .5) o.fl = .9; o.on = T[i] === 1;
-    const df = T[i] - o.L; o.L += Math.sign(df) * Math.min(Math.abs(df), dt * (df > 0 ? 1.6 : 1.1)); if (o.fl > 0) o.fl -= dt;
+  for (let i = 0; i < LS.length; i++) {
+    const o = LS[i], T = i === zone ? 1 : 0; if (snap) { o.L = T; o.on = T === 1; continue; }
+    if (T === 1 && !o.on) o.fl = .6; o.on = T === 1; o.L = Math.max(0, Math.min(1, o.L + (T ? dt / .45 : -dt / .7))); if (o.fl > 0) o.fl -= dt;
   }
 }
+function zonePath(a, b, w) {                                                  // 분기점 a~b(없으면 끝까지) 사이 구역의 3/4 시점 경계: 바닥 위 45° 대각선 + 뒷벽 수직
+  const X0s = (R.ox + R.X0) * S, Y0s = (R.oy + R.Y0) * S, hD = R.D / 2 * S, yt = R.oy * S - 12, yb = (R.oy + R.CH) * S + 12; ctx.beginPath();
+  if (a === null) { ctx.moveTo(-60, yt); ctx.lineTo(-60, yb); } else { const xa = X0s + a * S + w; ctx.moveTo(xa + hD, yt); ctx.lineTo(xa + hD, Y0s - hD); ctx.lineTo(xa, Y0s); ctx.lineTo(xa, yb); }
+  if (b === null) { ctx.lineTo(VW + 60, yb); ctx.lineTo(VW + 60, yt); } else { const xb = X0s + b * S - w; ctx.lineTo(xb, yb); ctx.lineTo(xb, Y0s); ctx.lineTo(xb + hD, Y0s - hD); ctx.lineTo(xb + hD, yt); }
+  ctx.closePath();
+}
 function drawLight() {
-  if (!LS || !R.sections) return; const s = R.sections, xs = (R.ox + R.X0 + R.D / 4) * S, n = 48;
-  const Lv = (i) => Math.max(0, Math.min(1, LS[i].L * (LS[i].fl > 0 ? FLK[Math.min(8, Math.floor((.9 - LS[i].fl) / .1))] : 1)));
-  const lightAt = (xw) => {
-    for (let j = 0; j < s.length - 1; j++) { const b = s[j].x1; if (Math.abs(xw - b) < 22) { const q = (xw - (b - 22)) / 44; return Lv(j) * (1 - q) + Lv(j + 1) * q; } }
-    let i = s.findIndex((q) => xw < q.x1); if (i < 0) i = s.length - 1; return Lv(i);
-  };
-  const g = ctx.createLinearGradient(0, 0, VW, 0); for (let i = 0; i <= n; i++) g.addColorStop(i / n, `rgba(4,3,8,${(1 - lightAt((i / n * VW - xs) / S)) * .94})`);
-  ctx.fillStyle = g; ctx.fillRect(0, R.oy * S, VW, R.CH * S);
+  if (!LS || !R.sections) return; const n = LS.length, bw = 3 * S;
+  for (let z = 0; z < n; z++) {
+    const o = LS[z]; if (o.L >= .999 && !(o.fl > 0)) continue; ctx.save(); zonePath(z > 0 ? DIVX[z - 1] : null, z < DIVX.length ? DIVX[z] : null, bw); ctx.clip();
+    if (z === zone) { const fk = o.fl > 0 ? FLK[Math.min(8, Math.floor((.6 - o.fl) / .07))] : 1; ctx.fillStyle = `rgba(4,3,8,${(1 - o.L * fk) * .94})`; ctx.fillRect(-60, 0, VW + 120, VH); }
+    else if (o.L <= .001) { ctx.fillStyle = 'rgba(4,3,8,.94)'; ctx.fillRect(-60, 0, VW + 120, VH); }
+    else { const pg = 1 - o.L; ctx.fillStyle = 'rgba(4,3,8,.94)'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < pg * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL); }   // 무너지듯 칸이 검게 채워진다
+    ctx.restore();
+  }
+  const X0s = (R.ox + R.X0) * S, Y0s = (R.oy + R.Y0) * S, hD = R.D / 2 * S, yt = R.oy * S - 12, yb = (R.oy + R.CH) * S + 12;
+  for (const c of DIVX) {                                                      // 검은 경계 띠(문턱): 아이는 이 위를 지나간다
+    const xl = X0s + c * S - bw, xr = X0s + c * S + bw; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.moveTo(xl + hD, yt); ctx.lineTo(xl + hD, Y0s - hD); ctx.lineTo(xl, Y0s); ctx.lineTo(xl, yb); ctx.lineTo(xr, yb); ctx.lineTo(xr, Y0s); ctx.lineTo(xr + hD, Y0s - hD); ctx.lineTo(xr + hD, yt); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#2a2632'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(xl + hD, Y0s - hD); ctx.lineTo(xl, Y0s); ctx.moveTo(xr + hD, Y0s - hD); ctx.lineTo(xr, Y0s); ctx.stroke();
+  }
 }
 const TCOLS = 20, TROWS = 15, TCELL = 16, TRANK = []; for (let i = 0; i < TCOLS * TROWS; i++) { const r = Math.floor(i / TCOLS) / TROWS, n = (Math.sin(i * 12.9898) * 43758.5453) % 1; TRANK.push(r * .55 + Math.abs(n) * .45); }
 const panC = document.createElement('canvas'); panC.width = 320; panC.height = 240; const panX = panC.getContext('2d'); let trans = null;
@@ -567,7 +578,7 @@ function update(dt) {
     else if (e.to) { if (e.type === 'trans' && !trans) startTrans(e); else if (!trans) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LEAD.v = 0; LEAD.dir = 1; LS = R.sections ? R.sections.map(() => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
@@ -685,6 +696,6 @@ addEventListener('resize', fit); fit();
   let last = performance.now();
   const loop = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; try { update(dt); draw(dt); } catch (e) { console.error(e); } requestAnimationFrame(loop); };
   requestAnimationFrame(loop);
-  window.__game = { cam, lead: () => +LEAD.v.toFixed(1), light: () => LS && LS.map((o) => +o.L.toFixed(2)), secIdx: () => R.sections ? secIdx(P.x) : -1, STATE, C, get FP() { return FP; }, fpOpen: (id) => { const o = R.objects.find(x => x.id === id); if (o) enterFP(o); return !!FP; }, fpTap: (id) => { const v = curView(); if (!v || !FP) return false; const h = fpHits(v).find(q => q.o.id === id); if (!h) return false; fpPress(h.x + h.w / 2, h.y + h.h / 2); return true; }, fpExit: () => fpPress(160, 226), curView, act: (id) => { const o = R.objects.find(x => x.id === id); if (o) actObj(o); return !!o; }, knockNow: () => VW_.kn.push(performance.now() / 1000), preview: async (k) => { STATE.riseKind = k; STATE.flags.met = false; STATE.real = 4; const sp = G.rooms.woods.chaser.spots[4]; await enter('woods', [sp[0] - 44, sp[1] - 8]); [C.x, C.d] = sp; C.st = 'rise'; C.t = 0; C.pl = null; C.preview = true; C.face = -1; P.dir = 'r'; msg = null; }, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
+  window.__game = { div: () => DIVX, zone: () => zone, cam, lead: () => +LEAD.v.toFixed(1), light: () => LS && LS.map((o) => +o.L.toFixed(2)), secIdx: () => R.sections ? secIdx(P.x) : -1, STATE, C, get FP() { return FP; }, fpOpen: (id) => { const o = R.objects.find(x => x.id === id); if (o) enterFP(o); return !!FP; }, fpTap: (id) => { const v = curView(); if (!v || !FP) return false; const h = fpHits(v).find(q => q.o.id === id); if (!h) return false; fpPress(h.x + h.w / 2, h.y + h.h / 2); return true; }, fpExit: () => fpPress(160, 226), curView, act: (id) => { const o = R.objects.find(x => x.id === id); if (o) actObj(o); return !!o; }, knockNow: () => VW_.kn.push(performance.now() / 1000), preview: async (k) => { STATE.riseKind = k; STATE.flags.met = false; STATE.real = 4; const sp = G.rooms.woods.chaser.spots[4]; await enter('woods', [sp[0] - 44, sp[1] - 8]); [C.x, C.d] = sp; C.st = 'rise'; C.t = 0; C.pl = null; C.preview = true; C.face = -1; P.dir = 'r'; msg = null; }, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
 })();
 })();
