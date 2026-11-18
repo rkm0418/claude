@@ -75,7 +75,7 @@ function camZoom() {                                                            
 const DASH = [[.75, 64, 42], [1.2, 42, 20], [1.6, 20, 0]];                      // 다다닥 세 번: [시작 시각, 잠긴 깊이 처음, 끝]. 0.2초 동안 다섯 번 잘게 끊어 오른다
 function climb(tt) { let sink = 64, dash = false; for (const [a, s0, s1] of DASH) { if (tt >= a + .2) sink = s1; else if (tt >= a) { sink = s0 + (s1 - s0) * Math.min(1, (Math.floor((tt - a) / .04) + 1) / 5); dash = true; } } return [sink, dash]; }
 // ---------- 등장 후보 2~6 (고르기용) ----------
-const RDUR = { 2: 3.2, 3: 2.9, 4: 4.8, 5: 3.2, 6: 3.1, 7: 3.8, 8: 4.8, 9: 4.8 };
+const RDUR = { 2: 3.2, 3: 2.9, 4: 4.8, 5: 3.2, 6: 3.1, 7: 3.8, 8: 4.8, 9: 4.8, 10: 5, 11: 5 };
 const nowS = () => performance.now() / 1000;
 function rows(im, r0, r1, base, wob, kf) { const n = nowS(); for (let r = r1 - 2; r >= r0; r -= 2) { const k = kf ? kf(r) : 1; ctx.drawImage(im, 0, r, 30, 2, (-15 * k + (wob ? wob * Math.sin(r * .9 + n * 14) : 0)) * S, (r - base) * S, 30 * k * S, 2 * S + 1); } }   // 스프라이트의 r0~r1행을 2줄씩(base행이 y=0)
 const trunk = (h, a) => { ctx.globalAlpha = a === undefined ? 1 : a; ctx.fillStyle = '#28222e'; ctx.fillRect(-1.5 * S, -h * S, 3 * S, h * S); ctx.fillStyle = '#463c4e'; ctx.fillRect(-1.5 * S, -h * S, S, h * S); ctx.globalAlpha = 1; };
@@ -84,6 +84,11 @@ const skf = (d) => d ? 'w' + (1 + Math.floor(nowS() * 26) % 4) : 'idle';
 function specks(X, Y, k, h) { for (let i = 0; i < 16 * k; i++) { ctx.fillStyle = Math.random() < .5 ? 'rgba(8,6,12,.8)' : 'rgba(216,204,196,.7)'; ctx.fillRect((R.ox + X - 22 + Math.random() * 44) * S, (R.oy + Y - (h || 72) * Math.random()) * S, S * (Math.random() < .2 ? 3 : 1), S); } for (let i = 0; i < 50 * k; i++) { ctx.fillStyle = 'rgba(200,200,210,.12)'; ctx.fillRect(Math.random() * VW, Math.random() * VH, 2, 2); } }
 function blinkOff(t, sa = 3, sb = 5) { const [X, Y] = scr(C.x, C.d), [px, py] = scr(P.x, P.d), q = Math.hypot(px - X, py - Y) || 1, st = BLINKS.filter(b => t >= b + .08).length, m = st >= sb ? Math.max(0, q - 15) : st >= sa ? 8 : 0; return [(px - X) / q * m, (py - Y) / q * m, st]; }
 const BLINKS = [.5, .95, 1.4, 1.85, 2.3, 2.7];
+const SNAP = [[0, 0], [2.7, 0], [2.95, -1.22], [3.3, -1.22], [3.36, .1], [3.62, .1], [3.68, 1.05], [4, 1.05], [4.06, -1.57], [4.4, -1.57], [4.46, .6], [4.7, .6], [4.76, -.9], [99, -.9]];
+function snapAng(tt, bounce) {                                                // 목이 각지게 꺾인다: 한 프레임에 확 꺾여 잠깐 멈췄다가 또 확 꺾인다(되튐은 효과 있는 버전만)
+  let i = 0; while (i < SNAP.length - 1 && tt >= SNAP[i + 1][0]) i++; const [t0, v] = SNAP[i], pv = i ? SNAP[i - 1][1] : 0, u = tt - t0;
+  return u < .06 && i > 0 ? pv + (v - pv) * u / .06 : v + (bounce && i > 0 && u < .3 ? (v - pv) * .16 * Math.exp(-(u - .06) * 14) * Math.cos((u - .06) * 44) : 0);
+}
 function drawAlt(K, t) {
   const [X, Y] = scr(C.x, C.d), face = C.face || 1, n = nowS(); let nz = 0; C.black = false;
   ctx.save(); ctx.translate((R.ox + X) * S, (R.oy + Y + 1) * S);
@@ -98,20 +103,20 @@ function drawAlt(K, t) {
     if (em > 0) { ctx.save(); ctx.globalAlpha = em; if (face < 0) ctx.scale(-1, 1); rows(chFrames.idle, 30, 64, 64, wob, () => k); ctx.translate(0, -34 * S); rows(chFrames.idle, 0, 30, 30, wob * 1.3, () => Math.min(1, k * 1.15)); ctx.restore(); }
     for (const sg of [-1, 1]) { ctx.save(); ctx.translate(sg * (1 + 3 * Math.min(1, a * 2)) * S, 0); ctx.rotate(sg * a); ctx.fillStyle = sg < 0 ? '#28222e' : '#3a3242'; ctx.fillRect((sg < 0 ? -2 : 0) * S, -52 * S, 2 * S, 52 * S); ctx.fillStyle = '#0c0a10'; ctx.fillRect((sg < 0 ? 0 : -1) * S, -52 * S, S, 52 * S);
       CAN.forEach(([ox, oy, rr, c], i) => { if ((i % 2 ? 1 : -1) !== sg) return; ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse((ox + sg * 3) * S, oy * S, rr * S, rr * .75 * S, 0, 0, 6.3); ctx.fill(); }); ctx.restore(); }
-  } else if (K === 4 || K === 8 || K === 9) {                                   // 4 회로식 악령(노이즈 있음) / 8 같은 움직임에서 노이즈 뺌 / 9 노이즈 없이 모션블러(지난 자세 잔상)
-    const clean = K !== 4, blur = K === 9;
+  } else if (K === 4 || K === 8 || K === 9 || K === 10 || K === 11) {           // 4 회로식 악령(노이즈 있음) / 8 노이즈 뺌 / 9 모션블러 / 10 목이 각지게 꺾임 / 11 목 꺾임 + 움직일 때 효과(떨림·프레임 흔들림·번짐·노이즈) 전혀 없음
+    const clean = K !== 4, blur = K === 9, neck = K >= 10, fx = K !== 11;
     const KF = [[0, 0], [.9, 0], [1, .1], [1.2, .1], [1.26, .06], [1.55, .06], [1.62, .3], [1.95, .3], [2.01, .26], [2.4, .26], [2.46, .55], [2.7, .55], [2.77, .5], [3.1, .5], [3.15, .82], [3.4, .82], [3.46, .78], [3.8, .78], [3.86, 1], [99, 1]], HL = [0, .55, -.4, .7, -.6, .25, -.15, .5];
     const pose = (tt) => {                                                      // tt 시각의 자세(잔상은 지난 시각의 자세를 다시 그린다)
       let ki = 0; while (ki < KF.length - 2 && tt >= KF[ki + 1][0]) ki++; const kt = tt - KF[ki][0], u = kt < .05 && ki > 0 ? KF[ki - 1][1] + (KF[ki][1] - KF[ki - 1][1]) * kt / .05 : KF[ki][1];
-      const ca = 1 - ease((tt - .5) / .4), mv = kt < .14 && ki > 0 && tt < 3.95, st = tt > 3.9, sway = st ? Math.sin(tt * 1.9) : 0, hl = tt > 2.9 ? HL[Math.floor(tt / .38) % HL.length] * Math.min(1, (tt - 2.9) / .5) : 0;
-      const jit = mv ? (Math.floor(tt * 30) % 2 ? 2 : -2) : (tt < .9 && tt > .2 ? Math.sin(tt * 90) * .8 : 0), glitch = !clean && (Math.sin(tt * 5.3) > .96 || Math.sin(tt * 8.7 + 2) > .97);
+      const ca = 1 - ease((tt - .5) / .4), mv = kt < .14 && ki > 0 && tt < 3.95, st = tt > 3.9, sway = st ? Math.sin(tt * 1.9) : 0, hl = neck ? snapAng(tt, fx) : tt > 2.9 ? HL[Math.floor(tt / .38) % HL.length] * Math.min(1, (tt - 2.9) / .5) : 0;
+      const jit = !fx ? 0 : mv ? (Math.floor(tt * 30) % 2 ? 2 : -2) : (tt < .9 && tt > .2 ? Math.sin(tt * 90) * .8 : 0), glitch = !clean && (Math.sin(tt * 5.3) > .96 || Math.sin(tt * 8.7 + 2) > .97);
       return { th: Math.PI * (1 - u), ca, mv, st, sway, hl, jit, glitch, sy: 1 + .1 * ease((tt - 3.9) / .5) + (st ? .03 * Math.sin(tt * 1.9) : 0), tt };
     };
     const body = (o, al) => {
-      const im = chFrames[skf(o.mv)], wob = o.mv ? 1.8 : o.tt < .5 ? 2 * o.tt / .5 : .7;
+      const im = chFrames[fx ? skf(o.mv) : 'idle'], wob = !fx ? 0 : o.mv ? 1.8 : o.tt < .5 ? 2 * o.tt / .5 : .7;
       ctx.save(); if (face < 0) ctx.scale(-1, 1); ctx.translate((o.jit + o.sway * 3 + (o.glitch ? 3 : 0)) * S, 0); ctx.scale(1, o.sy); ctx.globalAlpha = Math.min(1, (1 - o.ca) * 2.5) * al; rows(im, 46, 64, 64, wob);
       ctx.translate(0, -18 * S); ctx.rotate(-o.th + (o.st ? o.sway * .07 : 0)); rows(im, 30, 46, 46, wob);                                  // 상체: 엉덩이를 축으로 조금씩 넘어온다(서서는 좌우로 휘청)
-      ctx.translate(0, -16 * S); ctx.rotate(o.th + o.hl + (o.st ? -o.sway * .05 : 0)); ctx.globalAlpha = (1 - o.ca) * al; rows(im, 0, 30, 30, wob * 1.3); ctx.restore();   // 머리: 툭 꺾였다 돌아온다
+      ctx.translate((neck && Math.abs(o.hl) > .9 ? (o.hl > 0 ? 1.5 : -1.5) : 0) * S, -16 * S); ctx.rotate(o.th + o.hl + (o.st ? -o.sway * .05 : 0)); ctx.globalAlpha = (1 - o.ca) * al; rows(im, 0, 30, 30, wob * 1.3); ctx.restore();   // 머리: 툭 꺾였다 돌아온다
     };
     const o = pose(t); nz = clean ? 0 : (o.mv ? .4 : t > .3 && t < 3.9 ? .12 : .05) + (o.glitch ? .3 : 0);
     if (o.ca > 0) { trunk(52, o.ca); canopy(o.ca, 1); }
