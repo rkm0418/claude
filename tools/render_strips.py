@@ -56,7 +56,7 @@ def strip_spec(th, chain):
     spec['start'] = (14, secs[0]['d_in']); spec['end'] = (Wt - 14, secs[-1]['d_out'])
     for sec in secs:                                                                                                       # 딸린 골목(뒷벽에 붙은 칸): 뒷벽까지 열린 방에만
         if sec['kind'] != 'room' or sec['ext'][1] < D - 8: continue
-        rr = rnd(sec['key'] + 'a'); n = rr.choice((2, 3)) if sec['shape'] == 'long' else (1 if rr.random() < .4 else 0); xs = []
+        rr = rnd(sec['key'] + 'a'); n = rr.choice((1, 2)) if sec['shape'] == 'long' else 0; xs = []
         for _ in range(120):
             if len(xs) >= n: break
             x = rr.uniform(sec['x0'] + 26, sec['x1'] - 26); ln = rr.randint(26, 34)
@@ -106,10 +106,10 @@ def strip_props(name, k, tr, inside, rng):
             for x in np.arange(sec['x0'] + 4, sec['x1'] - 2, 7.0):
                 if d0 > 10:
                     lx, ld = tr((x, d0 - 4))
-                    if put(lx, ld, 7): unit(k, th, lx, ld, True, rr, run=False)
+                    if put(lx, ld, 7): unit(k, th, lx, ld, True, rr)
                 if d1 < D - 10:
                     lx, ld = tr((x, d1 + 4))
-                    if put(lx, ld, 7): unit(k, th, lx, ld, True, rr, run=False)
+                    if put(lx, ld, 7): unit(k, th, lx, ld, True, rr)
     for i in range(len(secs) + 1):                                              # 2) 구간 경계: 칸막이 기둥줄 + 길 자리에 컨셉 아치
         xb = secs[i]['x0'] if i < len(secs) else spec['W']
         if i == 0: continue
@@ -125,41 +125,39 @@ def strip_props(name, k, tr, inside, rng):
         for q in range(int(ln // 7) + 1):
             dd = Dl - 4 - q * 7
             for sx in (lx - w, lx + w):
-                if put(sx, dd, 7): M.BAR[th](k, sx - 3, dd - 3, rr)
-        k.glow(lx, Dl - 12, 26, (255, 214, 150), .3); cand = list(T['props']); fn_ = cand[rr.randrange(len(cand))][1]
+                if put(sx, dd, 7): unit(k, th, sx, dd, False, rr)
+        cand = list(T['props']); fn_ = cand[rr.randrange(len(cand))][1]
         nb, nr = len(k.block), len(k.rects); fn_(k, lx - 2, Dl - 12, rr); del k.block[nb:]; del k.rects[nr:]
-    lamp = M.p_lamp(True)                                                       # 4) 가로등과 빛 웅덩이
+    LC = TD.LIGHT[th]; lamp = M.p_lamp(True, LC, 26, .35)                        # 4) 조명은 절제: 통로는 120px마다 뒷벽 쪽 가로등 하나, 방은 대표 연출에 불이 없을 때만 하나
+    chosen = {}
+    for sec in secs:                                                            # 4.5) 방 대표 연출(set piece): 방 뒤쪽 중앙에 줄 맞춰 하나
+        if sec['kind'] != 'room': continue
+        rr = rnd(sec['key'] + 'set'); sets = TD.SETS[th]; fn_set = sets[rr.randrange(len(sets))]; d0, d1 = sec['ext']; cx = (sec['x0'] + sec['x1']) / 2; ok_ = None
+        for dx in (0, 14, -14, 28, -28, 42, -42):
+            x = round((cx + dx) / 14.0) * 14.0; lane = lane_d(sec, x)
+            for d in (lane + 24, lane + 20, lane - 24, lane - 20):
+                d = round(d / 7.0) * 7.0
+                if d0 + 8 < d < d1 - 8 and float(inside(x, d)) >= 12 and sec['x0'] + 30 < x < sec['x1'] - 30: ok_ = (x, d); break
+            if ok_: break
+        if ok_:
+            lx, ld = tr(ok_); fn_set(k, lx, ld, rr); placed.append((lx, ld, 34)); chosen[sec['key']] = (ok_, fn_set.lit)
     for sec in secs:
         rr = rnd(sec['key'] + 'l')
-        xs = list(np.arange(sec['x0'] + 30, sec['x1'] - 14, 58.0)) if sec['kind'] == 'passage' else [rr.uniform(sec['x0'] + 14, sec['x1'] - 14) for _ in range(rr.choice((1, 1, 2)))]
-        for x in xs:
-            d = (lane_d(sec, x) + sec['hw'] + 3) if sec['kind'] == 'passage' else sec['ext'][1] - 6
-            lx, ld = tr((x, min(d, D - 6))); nb, nr = len(k.block), len(k.rects); lamp(k, lx, ld, rr); del k.block[nb:]; del k.rects[nr:]; M.flat(k, lx + 2, ld, 12, 4, (60, 52, 40))
-    for sec in secs:                                                            # 4.5) 방 대표 연출(set piece): 테마 고유의 구조물 묶음 + 큰 바닥 장식
+        if sec['kind'] == 'passage': xs = [(x, lane_d(sec, x) + sec['hw'] + 3) for x in np.arange(sec['x0'] + 50, sec['x1'] - 20, 120.0)]
+        else:
+            c = chosen.get(sec['key']); xs = [(c[0][0] + (26 if c[0][0] < (sec['x0'] + sec['x1']) / 2 else -26), min(sec['ext'][1] - 6, D - 6))] if (c and not c[1]) else []
+        for x, d in xs:
+            lx, ld = tr((x, min(d, D - 6))); nb, nr = len(k.block), len(k.rects); lamp(k, lx, ld, rr); del k.block[nb:]; del k.rects[nr:]
+    for sec in secs:                                                            # 5) 일반 소품: 방에만, 작은 것(걸을 수 있는 것) 최대 3종 1개씩, 길 밖
         if sec['kind'] != 'room': continue
-        rr = rnd(sec['key'] + 'set'); sets = TD.SETS[th]; fn_set = sets[rr.randrange(len(sets))]; d0, d1 = sec['ext']
-        for _ in range(80):
-            x = rr.uniform(sec['x0'] + 30, sec['x1'] - 30); lane = lane_d(sec, x)
-            d = rr.choice([lane + rr.uniform(20, 30), lane - rr.uniform(20, 30)])
-            if not (d0 + 8 < d < d1 - 8) or float(inside(x, d)) < 12: continue
-            lx, ld = tr((x, d)); fn_set(k, lx, ld, rr); placed.append((lx, ld, 34)); break
-    for sec in secs:                                                            # 5) 소품(막는 것은 가장자리·길 밖에만)
-        rr = rnd(sec['key'] + 'p' + str(spec['tries'])); d0, d1 = sec['ext']; w = sec['x1'] - sec['x0']
-        area = w * (d1 - d0) / 6800.0; dens = spec['density'] * max(.6, area) * (.12 if sec['kind'] == 'passage' else .3)
-        kinds = [p for p in T['props'] if p[3][0] > 0 or rr.random() < .55]
-        for (nm, fn, mode, (lo, hi), gap) in kinds:
-            n = max(0, int(round(rr.randint(lo, hi) * dens))); solid = nm in M.SOLID
-            if dens > 0 and lo > 0 and n == 0 and not solid: n = 1
-            tries = 0
-            while n > 0 and tries < 500:
-                tries += 1; x = rr.uniform(sec['x0'] + 6, sec['x1'] - 6); d = rr.uniform(d0 + 4, d1 - 4); e = float(inside(x, d)); lx, ld = tr((x, d))
-                if solid:
-                    if e < 3: continue
-                    if min(x - sec['x0'], sec['x1'] - x, d - d0, d1 - d) > 22: continue
+        rr = rnd(sec['key'] + 'p' + str(spec['tries'])); d0, d1 = sec['ext']
+        kinds = [p for p in T['props'] if p[0] not in M.SOLID and p[1].__name__ not in ('f',) and p[0] not in ('lamp', 'lamp_on', 'lamp_off', 'lantern')]; rr.shuffle(kinds)
+        for (nm, fn, mode, (lo, hi), gap) in kinds[:int(round(3 * spec['density'] + .4))]:
+            for _ in range(200):
+                x = rr.uniform(sec['x0'] + 8, sec['x1'] - 8); d = rr.uniform(d0 + 4, d1 - 4); e = float(inside(x, d)); lx, ld = tr((x, d))
+                if e < 6 or min(x - sec['x0'], sec['x1'] - x, d - d0, d1 - d) > 26: continue
                 if any(math.hypot(lx - a, (ld - b) * 1.5) < gap * .5 + g_ * .5 + 2 for a, b, g_ in placed): continue
-                nb, nr = len(k.block), len(k.rects); fn(k, lx, ld, rr)
-                if not solid: del k.block[nb:]; del k.rects[nr:]
-                placed.append((lx, ld, gap)); n -= 1
+                nb, nr = len(k.block), len(k.rects); fn(k, lx, ld, rr); del k.block[nb:]; del k.rects[nr:]; placed.append((lx, ld, gap)); break
 
 def reach(mask, meta, spec):
     g = np.array(mask) > 127; gh, gw = g.shape; cell = lambda x, d: (cl(int(d / CELL), 0, gh - 1), cl(int(x / CELL), 0, gw - 1))

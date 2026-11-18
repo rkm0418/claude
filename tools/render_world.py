@@ -345,7 +345,7 @@ def build(name):
             diff = ImageChops.difference(sc.img, before).convert('L').point(lambda v: 255 if v else 0); dep.paste(int(max(0, min(254, round((depth + 2) * 3)))) if depth < 82 else 254, (0, 0), diff)
     if GRADE.get(name):                                                          # 분위기 보정: 전체를 가라앉히고 빛 웅덩이는 다시 살린다
         g_ = np.asarray(sc.img).astype(float) * np.array(GRADE[name]); sc.img = Image.fromarray(np.clip(g_, 0, 255).astype(np.uint8), 'RGB'); sc.d = ImageDraw.Draw(sc.img); sc.px = sc.img.load()
-        for (gx_, gd_, gr_, gc_, gp_) in k.glows: sc.glow(gx_, gd_, gr_, col=gc_, power=min(.9, gp_ * 1.25))
+        for (gx_, gd_, gr_, gc_, gp_) in k.glows: sc.glow(gx_, gd_, gr_, col=gc_, power=min(.9, gp_))
     gw, gh = math.ceil(W / CELL), math.ceil(D / CELL); gx, gd = np.meshgrid((np.arange(gw) + .5) * CELL, (np.arange(gh) + .5) * CELL)
     ok = sd(sh, gx + x0, gd + d0, wob) < -2.6
     if name in STRICT: ok = (gx > 3.5) & (gx < W - 3.5) & (gd > 2.5) & (gd < D - 3.5)       # 바닥 전체를 걸을 수 있다(길은 그저 보이는 길일 뿐)

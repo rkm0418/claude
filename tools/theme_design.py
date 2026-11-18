@@ -105,7 +105,14 @@ def ring(k, x, d, rx, ry, c0, c1): M.flat(k, x, d, rx, ry, c0); M.flat(k, x, d, 
 def at(k, fn, x, d, r):
     nb, nr = len(k.block), len(k.rects); fn(k, x, d, r)
     if fn.__name__ not in SOLIDFN: del k.block[nb:]; del k.rects[nr:]
-def S(*items):
+LITFN = {'p_fire', 'p_flamp', 'p_hlantern', 'p_readtable', 'p_lantern', 'p_jar', 'p_stove', 'p_hut', 'p_lamp'}
+LIGHT = {'snow': (214, 232, 255), 'lake': (200, 226, 255), 'park': (255, 150, 170), 'reed': (255, 206, 130), 'woods': (130, 232, 212), 'ridge': (255, 190, 120), 'roofs': (190, 226, 255), 'hall': (226, 246, 214),
+         'cabin': (255, 200, 130), 'library': (255, 210, 140), 'office': (230, 240, 255), 'tree': (255, 214, 140)}                      # 테마별 광색 하나로 통일
+def S(*items):                                                                  # 대표 연출: 소품은 최대 3개로 줄여 가운데 정렬, 글로우는 절제
+    ps = [it for it in items if it[0] == 'p']; rest = [it for it in items if it[0] != 'p']
+    if len(ps) > 3: ps = ps[:3]
+    if ps: mx = sum(it[2] for it in ps) / len(ps); ps = [(it[0], it[1], round(it[2] - mx), it[3]) for it in ps]
+    items = tuple(ps + [(it[0], it[1], it[2], it[3] * .5, it[4], it[5]) if it[0] == 'glow' else it for it in [((it[0], int(it[1] * .7), it[2], it[3], it[4], it[5]) if it[0] == 'glow' else it) for it in rest]])
     def f(k, cx, cd, r):
         for it in items:
             if it[0] == 'p': at(k, it[1], cx + it[2], cd + it[3], r)
@@ -113,6 +120,7 @@ def S(*items):
             elif it[0] == 'flat': M.flat(k, cx + it[4], cd + it[5], it[1], it[2], it[3])
             elif it[0] == 'glow': k.glow(cx + it[4], cd + it[5], it[1], it[2], it[3])
             elif it[0] == 'hut': hut(k, cx + it[1], cd + it[2], *it[3:])
+    f.lit = any(it[0] == 'glow' or (it[0] == 'p' and getattr(it[1], '__name__', '') in LITFN) or (it[0] == 'hut' and len(it) > 9 and it[9]) for it in items)
     return f
 P = M
 SETS = {

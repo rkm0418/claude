@@ -102,10 +102,10 @@ def p_shard(k, x, d, r):
 def p_boat(k, x, d, r): k.B(x, d, 16, 6, 3, (112, 78, 56)); k.B(x + 1.5, d + 1.2, 13, 3.6, 1, (70, 48, 36), z0=2.6, solid=False); k.B(x + 13, d + 2, 3, 2, 1.5, (112, 78, 56), z0=3, solid=False)
 def p_stones(k, x, d, r): k.rock(x, d, 4, (150, 160, 172)); k.rock(x + 1, d, 3, (170, 178, 188)); k.sc.d  # 쌓은 돌
 
-def p_lamp(on):
+def p_lamp(on, color=(255, 214, 150), rad=30, pw=.4):
     def f(k, x, d, r):
-        k.post(x, d, 32, (60, 54, 76)); k.B(x - 1, d - 1, 4, 4, 3, (255, 226, 160) if on else (48, 46, 54), z0=32, solid=False)
-        if on: k.glow(x + 1, d, 40, (255, 214, 150), .6)
+        k.post(x, d, 32, (60, 54, 76)); k.B(x - 1, d - 1, 4, 4, 3, tuple(min(255, v + 12) for v in color) if on else (48, 46, 54), z0=32, solid=False)
+        if on: k.glow(x + 1, d, rad, color, pw)
     return f
 def p_bench(k, x, d, r): k.B(x, d, 14, 4, 4, (112, 84, 66)); k.B(x, d + 3.4, 14, 1, 7, (96, 70, 56), solid=False)
 def p_balloon(k, x, d, r):
@@ -156,7 +156,7 @@ def p_wstump(k, x, d, r): k.B(x, d, 5, 5, 4, (54, 44, 56)); k.B(x - .5, d - .5, 
 def p_shroom(k, x, d, r):
     def f(X, Y, g):
         for dx, hh in ((-3, 4), (0, 7), (3, 5)): g.line([(X + dx, Y), (X + dx, Y - hh)], fill=(150, 170, 160)); g.ellipse([X + dx - 2, Y - hh - 2, X + dx + 2, Y - hh], fill=(110, 200, 190))
-    job(k, x, d, f); k.glow(x, d, 16, (110, 220, 200), .3)
+    job(k, x, d, f); k.glow(x, d, 12, (110, 220, 200), .15)
 def p_wlog(k, x, d, r): k.B(x, d, 16, 4, 4, (50, 40, 50)); k.B(x, d, 16, 4, .6, (30, 52, 44), z0=4, solid=False)
 def p_wrock(k, x, d, r): k.rock(x, d, 3, (60, 66, 72))
 
@@ -170,7 +170,7 @@ def p_boulder(k, x, d, r): k.rock(x, d, 6, (130, 104, 96))
 
 def p_tank(k, x, d, r): k.B(x, d, 14, 12, 4, (60, 62, 86)); k.B(x + 1, d + 1, 12, 10, 16, (110, 104, 120), z0=4, solid=False); k.B(x, d, 14, 12, 2, (84, 80, 100), z0=20, solid=False)
 def p_ac(k, x, d, r): k.B(x, d, 10, 7, 7, (150, 154, 170)); k.F(x + 2, x + 8, 2, 5, (60, 62, 86), d)
-def p_hut(k, x, d, r): k.B(x, d, 20, 13, 24, (96, 98, 124)); k.F(x + 6, x + 14, 0, 18, (40, 42, 66), d); k.F(x + 7, x + 13, 0, 17, (255, 206, 130), d); k.glow(x + 10, d - 5, 24, (255, 200, 120), .5)
+def p_hut(k, x, d, r): k.B(x, d, 20, 13, 24, (96, 98, 124)); k.F(x + 6, x + 14, 0, 18, (40, 42, 66), d); k.F(x + 7, x + 13, 0, 17, (255, 206, 130), d); k.glow(x + 10, d - 5, 16, (255, 200, 120), 0.28)
 def p_line(k, x, d, r):
     k.post(x, d, 24, (58, 62, 88)); k.post(x + 30, d, 24, (58, 62, 88))
     def f(X, Y, g):
@@ -179,7 +179,7 @@ def p_line(k, x, d, r):
     job(k, x, d - .2, f)
 def p_antenna(k, x, d, r):
     k.post(x, d, 44, (130, 134, 150)); job(k, x, d, lambda X, Y, g: [g.line([(X - 7, Y - h), (X + 7, Y - h)], fill=(150, 154, 170)) for h in (34, 40)])
-def p_skylight(k, x, d, r): flat(k, x, d, 9, 4, (60, 62, 90)); flat(k, x, d, 7, 3, (255, 220, 150)); k.glow(x, d, 22, (255, 210, 140), .3)
+def p_skylight(k, x, d, r): flat(k, x, d, 9, 4, (60, 62, 90)); flat(k, x, d, 7, 3, (255, 220, 150)); k.glow(x, d, 14, (255, 210, 140), 0.17)
 def p_vent(k, x, d, r): k.B(x, d, 3, 3, 9, (120, 124, 140)); k.B(x - .6, d - .6, 4.2, 4.2, 1.2, (150, 154, 170), z0=9, solid=False)
 def p_planter(k, x, d, r): k.B(x, d, 10, 4, 4, (110, 84, 66)); k.B(x + 1, d + .5, 8, 3, 3, (60, 100, 66), z0=4, solid=False)
 def p_roofl(k, x, d, r): k.sc.lamp(x, d, h=46, side=1); k.block.append((x, d, 2))
@@ -196,35 +196,35 @@ def p_chair(k, x, d, r): k.B(x, d, 5, 5, 6, (150, 110, 76)); k.B(x, d + 4, 5, 1,
 
 def p_table(k, x, d, r): k.B(x, d, 14, 9, 1.6, (176, 128, 84), z0=8); [k.B(lx, ld, 1.2, 1.2, 8, (120, 84, 56), solid=False) for lx, ld in ((x + 1, d + 1), (x + 12, d + 1), (x + 1, d + 7), (x + 12, d + 7))]; k.block.append((x + 7, d + 4, 7))
 def p_bed(k, x, d, r): k.B(x, d, 20, 11, 5, (120, 84, 56)); k.B(x + 1, d + 1, 18, 9, 3, r.choice(((150, 80, 80), (80, 110, 140), (110, 130, 90))), z0=5, solid=False); k.B(x + 1, d + 1, 5, 9, 2, (230, 224, 210), z0=5, solid=False)
-def p_fire(k, x, d, r): k.B(x, d, 18, 7, 24, (110, 100, 96)); k.F(x + 5, x + 13, 0, 10, (30, 20, 20), d); k.F(x + 7, x + 11, 1, 6, (255, 170, 70), d - .1); k.glow(x + 9, d - 6, 34, (255, 170, 90), .6)
+def p_fire(k, x, d, r): k.B(x, d, 18, 7, 24, (110, 100, 96)); k.F(x + 5, x + 13, 0, 10, (30, 20, 20), d); k.F(x + 7, x + 11, 1, 6, (255, 170, 70), d - .1); k.glow(x + 9, d - 6, 22, (255, 170, 90), 0.33)
 def p_rug(k, x, d, r): flat(k, x, d, 14, 5, r.choice(((130, 54, 54), (60, 90, 120), (90, 110, 70)))); flat(k, x, d, 10, 3, (196, 170, 120))
 def p_crate(k, x, d, r): k.B(x, d, 8, 7, 7, (150, 112, 70)); k.B(x + 8, d + 1, 6, 6, 5, (130, 96, 60)); k.B(x + 1, d + 1, 7, 6, 5, (166, 124, 80), z0=7, solid=False)
 def p_shelf(k, x, d, r): k.B(x, d, 14, 4, 28, (112, 76, 50)); [k.F(x + 1, x + 13, z, z + .8, (80, 54, 36), d) for z in (9, 18)]; k.F(x + 2, x + 6, 10, 15, (190, 150, 90), d); k.F(x + 8, x + 12, 19, 24, (150, 170, 190), d)
 def p_barrel(k, x, d, r): k.B(x, d, 6, 6, 8, (130, 90, 56)); k.B(x - .4, d - .4, 6.8, 6.8, .8, (96, 64, 42), z0=3, solid=False)
 def p_stool(k, x, d, r): k.B(x, d, 4, 4, 5, (150, 110, 70)); k.B(x - .6, d - .6, 5.2, 5.2, 1, (176, 132, 86), z0=5, solid=False)
-def p_stove(k, x, d, r): k.B(x, d, 9, 8, 12, (60, 60, 68)); k.B(x + 3, d + 8, 3, 2, 14, (50, 50, 56), z0=12, solid=False); k.glow(x + 4, d, 16, (255, 150, 80), .25)
-def p_hlantern(k, x, d, r): k.post(x, d, 18, (90, 66, 46)); k.B(x - 1.4, d - 1.4, 4.8, 4.8, 4, (255, 220, 150), z0=18, solid=False); k.glow(x + 1, d, 30, (255, 210, 140), .5)
+def p_stove(k, x, d, r): k.B(x, d, 9, 8, 12, (60, 60, 68)); k.B(x + 3, d + 8, 3, 2, 14, (50, 50, 56), z0=12, solid=False); k.glow(x + 4, d, 10, (255, 150, 80), 0.14)
+def p_hlantern(k, x, d, r): k.post(x, d, 18, (90, 66, 46)); k.B(x - 1.4, d - 1.4, 4.8, 4.8, 4, (255, 220, 150), z0=18, solid=False); k.glow(x + 1, d, 13, (255, 210, 140), 0.17)
 
 def p_bookcase(k, x, d, r):
     k.B(x, d, 16, 5, 30, (78, 52, 38)); pal = ((150, 50, 50), (60, 90, 130), (200, 170, 70), (70, 110, 80), (120, 70, 120), (190, 190, 170))
     for z in (4, 13, 22):
         i = 0.0
         while i < 14: wd = r.choice((1, 1.5, 2)); k.F(x + 1 + i, x + 1 + i + wd - .2, z, z + r.randint(5, 8), r.choice(pal), d); i += wd
-def p_readtable(k, x, d, r): p_table(k, x, d, r); k.B(x + 5, d + 3, 3, 3, 4, (220, 200, 150), z0=9.6, solid=False); k.glow(x + 6, d + 4, 22, (255, 220, 150), .35)
+def p_readtable(k, x, d, r): p_table(k, x, d, r); k.B(x + 5, d + 3, 3, 3, 4, (220, 200, 150), z0=9.6, solid=False); k.glow(x + 6, d + 4, 10, (255, 220, 150), 0.11)
 def p_ladder(k, x, d, r): k.B(x, d, 1, 1, 26, (150, 112, 70), solid=False); k.B(x + 6, d, 1, 1, 26, (150, 112, 70), solid=False); [k.F(x, x + 7, z, z + 1, (176, 132, 86), d) for z in range(3, 24, 5)]; k.block.append((x + 3, d, 4))
 def p_globe(k, x, d, r): k.B(x, d, 1.2, 1.2, 8, (150, 112, 70), solid=False); job(k, x + .6, d, lambda X, Y, g: (g.ellipse([X - 4, Y - 16, X + 4, Y - 8], fill=(70, 110, 150)), g.line([(X - 2, Y - 14), (X + 1, Y - 11)], fill=(90, 150, 90)))); k.block.append((x, d, 3))
 def p_books(k, x, d, r): k.B(x, d, 6, 5, 2, (150, 50, 50)); k.B(x + .5, d + .5, 5, 4, 2, (60, 90, 130), z0=2, solid=False); k.B(x + 1, d + .8, 4, 3.4, 2, (200, 170, 70), z0=4, solid=False)
 def p_cart2(k, x, d, r): k.B(x, d, 12, 6, 2, (110, 84, 60), z0=4); k.B(x, d, 12, 6, 6, (90, 66, 48), z0=0, solid=False); k.B(x + 1, d + 1, 10, 4, 4, (150, 60, 60), z0=6, solid=False)
 def p_sofa(k, x, d, r): k.B(x, d, 18, 8, 6, (110, 60, 66)); k.B(x, d + 6.6, 18, 1.6, 12, (96, 50, 56), solid=False)
 def p_cabinet(k, x, d, r): k.B(x, d, 12, 6, 16, (112, 84, 60)); [k.F(x + 1, x + 11, z, z + 3, (84, 60, 42), d) for z in (2, 6, 10)]; [k.F(x + 5, x + 7, z + 1, z + 2, (220, 200, 140), d - .1) for z in (2, 6, 10)]
-def p_flamp(k, x, d, r): k.post(x, d, 22, (110, 88, 60)); k.B(x - 2, d - 2, 6, 6, 4, (255, 224, 160), z0=22, solid=False); k.glow(x + 1, d, 34, (255, 214, 150), .5)
+def p_flamp(k, x, d, r): k.post(x, d, 22, (110, 88, 60)); k.B(x - 2, d - 2, 6, 6, 4, (255, 224, 160), z0=22, solid=False); k.glow(x + 1, d, 14, (255, 214, 150), 0.17)
 
 def p_counter(k, x, d, r): k.B(x, d, 26, 6, 10, (130, 100, 72)); k.B(x - .6, d - .6, 27.2, 7.2, 1.4, (176, 140, 100), z0=10, solid=False); k.F(x + 3, x + 23, 11, 24, (150, 190, 210), d - .3); k.F(x + 2, x + 4, 11, 24, (96, 76, 56), d - .4); k.F(x + 22, x + 24, 11, 24, (96, 76, 56), d - .4)
 def p_odesk(k, x, d, r): p_table(k, x, d, r); k.B(x + 4, d + 2, 6, 4, 3, (230, 226, 210), z0=9.6, solid=False); p_chair(k, x + 4, d - 7, r)
 def p_filecab(k, x, d, r): k.B(x, d, 8, 6, 20, (96, 108, 112)); [k.F(x + 1, x + 7, z, z + .8, (60, 70, 76), d) for z in (6, 12)]; k.F(x + 3, x + 5, 3, 4, (210, 210, 200), d - .1)
 def p_safe(k, x, d, r): k.B(x, d, 10, 8, 12, (60, 66, 70)); k.F(x + 2, x + 8, 3, 10, (82, 90, 96), d); job(k, x + 5, d, lambda X, Y, g: g.ellipse([X - 2, Y - 8, X + 2, Y - 5], fill=(200, 180, 90)))
 def p_coat(k, x, d, r): k.post(x, d, 26, (110, 84, 60)); job(k, x, d, lambda X, Y, g: (g.line([(X, Y - 24), (X + 6, Y - 20)], fill=(110, 84, 60)), g.rectangle([X + 3, Y - 20, X + 8, Y - 10], fill=(90, 70, 90))))
-def p_machine(k, x, d, r): k.B(x, d, 8, 6, 15, (130, 56, 56)); k.F(x + 2, x + 6, 8, 12, (230, 210, 150), d); k.F(x + 3, x + 5, 3, 4, (30, 30, 36), d - .1); k.glow(x + 4, d, 14, (255, 220, 150), .2)
+def p_machine(k, x, d, r): k.B(x, d, 8, 6, 15, (130, 56, 56)); k.F(x + 2, x + 6, 8, 12, (230, 210, 150), d); k.F(x + 3, x + 5, 3, 4, (30, 30, 36), d - .1); k.glow(x + 4, d, 10, (255, 220, 150), 0.11)
 
 def p_root(k, x, d, r):
     def f(X, Y, g):
@@ -233,7 +233,7 @@ def p_root(k, x, d, r):
 def p_tshroom(k, x, d, r):
     def f(X, Y, g): g.line([(X, Y), (X, Y - 8)], fill=(220, 210, 180), width=2); g.ellipse([X - 6, Y - 14, X + 6, Y - 6], fill=r.choice(((200, 70, 60), (220, 170, 70)))); g.point((X - 2, Y - 11), fill=(255, 250, 240)); g.point((X + 2, Y - 9), fill=(255, 250, 240))
     job(k, x, d, f, 4)
-def p_jar(k, x, d, r): k.B(x, d, 4, 4, 6, (190, 220, 200)); k.B(x + 1, d + 1, 2, 2, 4, (255, 232, 150), z0=1, solid=False); k.glow(x + 2, d + 1, 22, (255, 232, 150), .45)
+def p_jar(k, x, d, r): k.B(x, d, 4, 4, 6, (190, 220, 200)); k.B(x + 1, d + 1, 2, 2, 4, (255, 232, 150), z0=1, solid=False); k.glow(x + 2, d + 1, 10, (255, 232, 150), 0.11)
 def p_hammock(k, x, d, r): flat(k, x, d, 12, 3, (170, 120, 90)); flat(k, x, d, 9, 2, (200, 150, 110)); k.post(x - 13, d, 14, (96, 66, 44)); k.post(x + 13, d, 14, (96, 66, 44))
 def p_pots(k, x, d, r): k.B(x, d, 4, 4, 5, (200, 150, 70)); k.B(x + 5, d + 1, 4, 4, 4, (180, 120, 60)); k.B(x + 2, d - 4, 3, 3, 3, (210, 160, 80))
 def p_acorns(k, x, d, r): k.B(x, d, 8, 6, 3, (150, 100, 56), solid=False); [k.rock(x + 1 + i * 2, d + 1, 2, (176, 120, 70)) for i in range(3)]
