@@ -75,7 +75,7 @@ function camZoom() {                                                            
 const DASH = [[.75, 64, 42], [1.2, 42, 20], [1.6, 20, 0]];                      // 다다닥 세 번: [시작 시각, 잠긴 깊이 처음, 끝]. 0.2초 동안 다섯 번 잘게 끊어 오른다
 function climb(tt) { let sink = 64, dash = false; for (const [a, s0, s1] of DASH) { if (tt >= a + .2) sink = s1; else if (tt >= a) { sink = s0 + (s1 - s0) * Math.min(1, (Math.floor((tt - a) / .04) + 1) / 5); dash = true; } } return [sink, dash]; }
 // ---------- 등장 후보 2~6 (고르기용) ----------
-const RDUR = { 2: 3.2, 3: 2.9, 4: 2.9, 5: 3.2, 6: 3.1, 7: 3.8 };
+const RDUR = { 2: 3.2, 3: 2.9, 4: 4.8, 5: 3.2, 6: 3.1, 7: 3.8 };
 const nowS = () => performance.now() / 1000;
 function rows(im, r0, r1, base, wob, kf) { const n = nowS(); for (let r = r1 - 2; r >= r0; r -= 2) { const k = kf ? kf(r) : 1; ctx.drawImage(im, 0, r, 30, 2, (-15 * k + (wob ? wob * Math.sin(r * .9 + n * 14) : 0)) * S, (r - base) * S, 30 * k * S, 2 * S + 1); } }   // 스프라이트의 r0~r1행을 2줄씩(base행이 y=0)
 const trunk = (h, a) => { ctx.globalAlpha = a === undefined ? 1 : a; ctx.fillStyle = '#28222e'; ctx.fillRect(-1.5 * S, -h * S, 3 * S, h * S); ctx.fillStyle = '#463c4e'; ctx.fillRect(-1.5 * S, -h * S, S, h * S); ctx.globalAlpha = 1; };
@@ -98,12 +98,17 @@ function drawAlt(K, t) {
     if (em > 0) { ctx.save(); ctx.globalAlpha = em; if (face < 0) ctx.scale(-1, 1); rows(chFrames.idle, 30, 64, 64, wob, () => k); ctx.translate(0, -34 * S); rows(chFrames.idle, 0, 30, 30, wob * 1.3, () => Math.min(1, k * 1.15)); ctx.restore(); }
     for (const sg of [-1, 1]) { ctx.save(); ctx.translate(sg * (1 + 3 * Math.min(1, a * 2)) * S, 0); ctx.rotate(sg * a); ctx.fillStyle = sg < 0 ? '#28222e' : '#3a3242'; ctx.fillRect((sg < 0 ? -2 : 0) * S, -52 * S, 2 * S, 52 * S); ctx.fillStyle = '#0c0a10'; ctx.fillRect((sg < 0 ? 0 : -1) * S, -52 * S, S, 52 * S);
       CAN.forEach(([ox, oy, rr, c], i) => { if ((i % 2 ? 1 : -1) !== sg) return; ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse((ox + sg * 3) * S, oy * S, rr * S, rr * .75 * S, 0, 0, 6.3); ctx.fill(); }); ctx.restore(); }
-  } else if (K === 4) {                                                         // 접힌 몸 펴기: 허리에서 뒤로 반 접혀 머리가 발밑에 있다가, 상체가 뒤로 큰 호를 그리며 넘어와 선다. 머리는 내내 똑바로 이쪽을 본다
-    const u = t < .6 ? 0 : t < 2.1 ? ease((t - .6) / 1.5) : 1, th = Math.PI * (1 - u), ca = 1 - ease((t - .25) / .35), mv = u > 0 && u < 1, im = chFrames[skf(mv && Math.floor(t / .18) % 2 === 0)], sy = 1 + .15 * ease((t - 2.2) / .4), wob = mv ? 1.6 : t < .6 ? 2 * t / .6 : .6; nz = t > .25 && t < 2.6 ? (mv ? .7 : .3) : 0;
+  } else if (K === 4) {                                                         // 4 회로식 악령: 허리에서 뒤로 접힌 몸이 끊긴 프레임(저프레임 정지)으로 조금씩 펴지고, 일어서서는 술 취한 듯 휘청이며 고개가 툭 떨어졌다 홱 돌아온다
+    const KF = [[0, 0], [.9, 0], [1, .1], [1.2, .1], [1.26, .06], [1.55, .06], [1.62, .3], [1.95, .3], [2.01, .26], [2.4, .26], [2.46, .55], [2.7, .55], [2.77, .5], [3.1, .5], [3.15, .82], [3.4, .82], [3.46, .78], [3.8, .78], [3.86, 1], [99, 1]];
+    let ki = 0; while (ki < KF.length - 2 && t >= KF[ki + 1][0]) ki++; const kt = t - KF[ki][0], u = kt < .05 && ki > 0 ? KF[ki - 1][1] + (KF[ki][1] - KF[ki - 1][1]) * kt / .05 : KF[ki][1], th = Math.PI * (1 - u);
+    const ca = 1 - ease((t - .5) / .4), mv = kt < .14 && ki > 0 && t < 3.95, im = chFrames[skf(mv)], q8 = Math.floor(t * 8) / 8;                                                              // 8프레임 정지
+    const st = t > 3.9, sway = st ? Math.sin(t * 1.9) : 0, HL = [0, .55, -.4, .7, -.6, .25, -.15, .5], hl = t > 2.9 ? HL[Math.floor(t / .38) % HL.length] * Math.min(1, (t - 2.9) / .5) : 0;   // 고개: 한 박자씩 툭 떨어진다
+    const jit = mv ? (Math.floor(t * 30) % 2 ? 2 : -2) : (t < .9 && t > .2 ? Math.sin(t * 90) * .8 : 0), glitch = Math.sin(t * 5.3) > .96 || Math.sin(t * 8.7 + 2) > .97;                         // 가끔 한 프레임 어긋남
+    nz = (mv ? .4 : t > .3 && t < 3.9 ? .12 : .05) + (glitch ? .3 : 0); const wob = mv ? 1.8 : t < .5 ? 2 * t / .5 : .7;
     if (ca > 0) { trunk(52, ca); canopy(ca, 1); }
-    ctx.save(); if (face < 0) ctx.scale(-1, 1); ctx.scale(1, sy); rows(im, 46, 64, 64, wob);
-    ctx.translate(0, -18 * S); ctx.rotate(-th); rows(im, 30, 46, 46, wob);                                         // 상체: 엉덩이를 축으로 뒤로 넘어온다
-    ctx.translate(0, -16 * S); ctx.rotate(th); ctx.globalAlpha = 1 - ca; rows(im, 0, 30, 30, wob * 1.3); ctx.restore();   // 머리: 방향은 그대로
+    ctx.save(); if (face < 0) ctx.scale(-1, 1); ctx.translate((jit + sway * 3 + (glitch ? 3 : 0)) * S, 0); ctx.scale(1, 1 + .1 * ease((t - 3.9) / .5) + (st ? .03 * Math.sin(t * 1.9) : 0)); ctx.globalAlpha = Math.min(1, (1 - ca) * 2.5 + .0); rows(im, 46, 64, 64, wob);
+    ctx.translate(0, -18 * S); ctx.rotate(-th + (st ? sway * .07 : 0)); rows(im, 30, 46, 46, wob);                                  // 상체: 엉덩이를 축으로 조금씩 넘어온다(서서는 좌우로 휘청)
+    ctx.translate(0, -16 * S); ctx.rotate(th + hl + (st ? -sway * .05 : 0)); ctx.globalAlpha = 1 - ca; rows(im, 0, 30, 30, wob * 1.3); ctx.restore();   // 머리: 툭 꺾였다 돌아온다
   } else if (K === 5) {                                                         // 여럿이 하나로: 세 그루가 녹아 땅을 기어와 뭉치고, 위로 뽑히듯 늘어나 몸이 된다. 머리가 마지막에 벌어진다
     const OFF = [[-36, -5], [31, -9], [9, 13]], melt = ease(t / .6), [p, d] = burst(t, [.65, 1, 1.35], .22), up = ease((t - 1.65) / .7), bloom = ease((t - 2.45) / .6); nz = t > .2 && t < 3 ? (d ? .9 : .5) : 0;
     OFF.forEach(([ox, oy], i) => { const cx = ox * (1 - p), cy = oy * (1 - p); ctx.save(); ctx.translate(cx * S, cy * S);
