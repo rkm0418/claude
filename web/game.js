@@ -14,12 +14,12 @@ let fadeCol = '20,14,16'; const TRAVEL = { L: [-1, 0], R: [1, 0], B: [0, 1], F: 
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
 const STATE = { lit: {}, solved: {}, seq: {}, flags: {}, got: {}, sw: {}, vi: {}, pv: {}, bag: [] };                                                  // 퍼즐 상태(방을 옮겨도 유지): 켠 등불
 const C = { st: 'none', x: 0, d: 0, t: 0, path: [], rep: 0, flip: false };    // 추격자(나무 머리): hidden(나무인 척) -> rise(일어남) -> chase / wait(뒤따라 들어옴)
-const CSPEED = 38, chFrames = {};
+const CSPEED = 38, chFrames = {}; const NOCHASE = !/chase/.test(location.hash);                  // 추격 없음: 등장한 뒤 그 자리에 서서 지켜볼 뿐 쫓아오지도 붙잡지도 않는다(주소에 #chase 를 붙이면 옛 추격)
 function setupChaser() {
   C.path = []; C.t = 0; C.rep = 0; C.tp = null; C.pl = null; C.face0 = false; C.preview = false;
   if (R.chaser && STATE.real === undefined) STATE.real = 2 + Math.floor(Math.random() * (R.chaser.spots.length - 2));   // 어느 나무가 진짜인지는 판마다 다르다
   if (R.chaser && !STATE.flags.met) { [C.x, C.d] = R.chaser.spots[STATE.real]; C.st = 'hidden'; }
-  else if ((R.chase || R.chaser) && STATE.flags.met) { C.x = P.x; C.d = P.d; C.st = 'wait'; }
+  else if ((R.chase || R.chaser) && STATE.flags.met && !NOCHASE) { C.x = P.x; C.d = P.d; C.st = 'wait'; }
   else C.st = 'none';
 }
 function route(ax, ad, bx, bd) {
@@ -31,14 +31,15 @@ function updChaser(dt) {
   if (C.st === 'hidden') { if (sdist(P.x, P.d, C.x, C.d) < R.chaser.radius) { C.st = 'rise'; C.t = 0; C.pl = null; C.trail = []; P.path = []; P.act = null; marker = null; C.face = (P.x - C.x) + (P.d - C.d) / 2 < 0 ? -1 : 1; } }
   else if (C.st === 'rise' && (STATE.riseKind || 7) > 1) {                         // 등장 후보 2~6: 정해진 길이만큼 재생
     const K = STATE.riseKind || 7, dur = RDUR[K];
-    if (C.t > dur) { if (C.preview) C.t = dur; else { if (K === 6 || K === 7) { const [ox, oy] = K === 7 ? blinkOff(9, 4, 6) : blinkOff(dur), d = -2 * oy; C.x += ox - d / 2; C.d += d; } C.st = 'chase'; C.tp = null; C.t0 = -99; C.lt = 0; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; } }
+    if (C.t > dur) { if (C.preview) C.t = dur; else { if (K === 6 || K === 7) { const [ox, oy] = K === 7 ? blinkOff(9, 4, 6) : blinkOff(dur), d = -2 * oy; C.x += ox - d / 2; C.d += d; } C.st = NOCHASE ? 'stand' : 'chase'; C.tp = null; C.t0 = -99; C.lt = 0; STATE.flags.met = true; if (!NOCHASE) msg = { text: '도망쳐야 한다', t: 1.6 }; } }
   }
   else if (C.st === 'rise') {
     const t = C.t; if (C.preview && t > 2.6) { C.t = 2.6; return false; }
     if (t >= 2.15 && !C.pl) { const q = sdist(C.x, C.d, P.x, P.d), k = Math.max(0, Math.min(16, q - 14)) / (q || 1); C.pl = [[C.x, C.d], [C.x + (P.x - C.x) * k, C.d + (P.d - C.d) * k]]; }
     if (C.pl && t < 2.6) { const k = ease((t - 2.15) / .35); C.x = C.pl[0][0] + (C.pl[1][0] - C.pl[0][0]) * k; C.d = C.pl[0][1] + (C.pl[1][1] - C.pl[0][1]) * k; }   // 마지막에 한 걸음 다가온다
-    if (t > 2.6) { C.st = 'chase'; C.tp = null; C.t0 = C.t; C.lt = 0; C.pl = null; STATE.flags.met = true; msg = { text: '도망쳐야 한다', t: 1.6 }; }
+    if (t > 2.6) { C.st = NOCHASE ? 'stand' : 'chase'; C.tp = null; C.t0 = C.t; C.lt = 0; C.pl = null; STATE.flags.met = true; if (!NOCHASE) msg = { text: '도망쳐야 한다', t: 1.6 }; }
   }
+  else if (C.st === 'stand') { C.face = (P.x - C.x) + (P.d - C.d) / 2 < 0 ? -1 : 1; }                                        // 추격 없음: 서서 아이 쪽을 바라볼 뿐
   else if (C.st === 'wait') { if (C.t >= .5 && !C.face0) { C.face0 = true; C.face = (P.x - C.x) + (P.d - C.d) / 2 < 0 ? -1 : 1; } if (C.t > 2.5) { C.st = 'chase'; C.tp = null; C.t0 = -99; C.lt = 0; } }
   else if (C.st === 'chase') {
     C.rep -= dt; if (C.rep <= 0) { C.rep = .4; C.path = route(C.x, C.d, P.x, P.d); }
@@ -170,6 +171,7 @@ function drawChaser() {
     head.ang = (!dash && up && !calm ? .07 * Math.sin(now * 120) : 0) - 1.22 * v; sy = 1 + .15 * v; bend = 3 * v;              // 멈춘 동안 고개만 더듬이처럼 떤다
     if (gap >= 1 && sink >= 64) gap = 1;
   }
+  else if (C.st === 'stand') { flip = face < 0; head.ang = 0; }
   else if (C.st === 'chase') {
     f = 'w' + (1 + Math.floor(C.an || 0) % 4); bend = C.tp ? Math.min(4, C.tp.v * 2) : 0; const back = 1 - ease((t - C.t0) / 2), fs = flip === (face < 0) ? 1 : -1;
     const hsh = (i) => { const v = Math.sin(i * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); }, gi = Math.floor(t * (hsh(Math.floor(t * 3)) < .5 ? 19 : 7)), gr = hsh(gi);   // 쫓아오는 내내 목이 오류 난 것처럼 꺾였다 돌아왔다 한다
