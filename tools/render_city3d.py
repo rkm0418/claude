@@ -172,15 +172,15 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
     else: s.floor(paving)
     if baked: s.glow(30, 30, 70, power=.35)
     if corridor:
-        s.box(0, D - 2, W, 7, 8, CURBT, CURBF, CURBR)                                                  # 위쪽(뒤) 연석
+        s.box(0, D, W, 14, 6, CURBT, CURBF, CURBR)                                                  # 위쪽(뒤) 연석
         bx = 0; br = random.Random(11)
         while bx < W:                                                                              # 연석 너머: 불 꺼진 현대 건물들
             bw = br.randint(40, 70); bh = br.randint(70, 125); bd = br.randint(24, 34); g = br.randint(4, 10); c = br.choice(((22, 24, 46), (26, 28, 50), (20, 22, 40)))
-            s.box(bx, D + 8, bw, bd, bh, dk(c, 1.15), c, dk(c, .7))
+            s.box(bx, D + 16, bw, bd, bh, dk(c, 1.15), c, dk(c, .7))
             def wins(bx=bx, bw=bw, bh=bh):
                 for xx in range(int(bx) + 5, int(bx + bw) - 8, 10):
-                    for zz in range(8, int(bh) - 8, 12): s.poly([(xx, D + 8, zz), (xx + 5, D + 8, zz), (xx + 5, D + 8, zz + 7), (xx, D + 8, zz + 7)], (14, 16, 32))
-            s.jobs.append((D + 7.5, wins)); bx += bw + g
+                    for zz in range(8, int(bh) - 8, 12): s.poly([(xx, D + 16, zz), (xx + 5, D + 16, zz), (xx + 5, D + 16, zz + 7), (xx, D + 16, zz + 7)], (14, 16, 32))
+            s.jobs.append((D + 15.5, wins)); bx += bw + g
     else: s.wall_back(0, W, D, 60)
     if bed: s.wall_left(0, D, 60)
     s.lamp(140, 74, 44, -1)
