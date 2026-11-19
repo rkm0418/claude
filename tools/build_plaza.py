@@ -15,6 +15,10 @@ def room(s, key, label, W, D, free, start, exits, rects=(), geom=None):
     """방 하나. 걷는 칸은 레이어 규칙(tools/layers.py, docs/layer-rules.md)으로 만든다: free 는 바닥 모양만 말하고,
     물체(상자·가로등 기둥·벽 면)에서 띄우는 것은 장면이 기록한 물체로 자동 계산한다. 깊이 지도도 장면이 그리며 남긴 zb 그대로."""
     g = geom or s
+    for e in exits:                                                                              # 문·통로를 누를 수 있는 화면 범위(논리 화소): 출구 구역을 위(문 높이 40)까지 세운 상자의 화면 윤곽
+        if (e.get('to') or e.get('need')) and 'hit' not in e:
+            z = e['zone']; pts = [(s.X0 + x + .5 * d, s.Y0 - .5 * d - h) for x in (z[0] - 4, z[1] + 4) for d in (z[2] - 3, z[3] + 3) for h in (0, 40)]
+            e['hit'] = [min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts)]
     walk, zone = L.walk_grid(g, W, D, free, exits); GEOM[key] = (g, walk, zone, start, exits)
     im = Image.fromarray((walk * 255).astype('uint8'), 'L')
     return s, dict(W=W, D=D, X0=s.X0, Y0=s.Y0, CW=s.CW, CH=s.CH, rects=[list(r) for r in rects], exits=exits, start=start, S=2, label=label, walk=uri(im.convert('RGB')),

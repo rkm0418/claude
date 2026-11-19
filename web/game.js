@@ -739,6 +739,8 @@ function onDown(ev) {
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
   let [x, d] = world(X, Y);
   x = Math.max(0, Math.min(R.W, x)); d = Math.max(0, Math.min(R.D, d));                // 벽이나 바깥을 눌러도 가장 가까운 바닥으로
+  const eh = (R.exits || []).filter((e) => e.hit && X >= e.hit[0] && X <= e.hit[2] && Y >= e.hit[1] && Y <= e.hit[3]).sort((p, q) => (p.hit[2] - p.hit[0]) * (p.hit[3] - p.hit[1]) - (q.hit[2] - q.hit[0]) * (q.hit[3] - q.hit[1]))[0];
+  if (eh) { audio(); P.act = null; const z = eh.zone; goTo((z[0] + z[1]) / 2, (z[2] + z[3]) / 2); return; }            // 문·통로를 어느 부분이든 누르면 그 문까지 걸어가 다음 공간으로 넘어간다
   audio(); const o = R.objects.find(o => { if (o.reach === 0 || (o.need && !STATE.flags[o.need])) return false; const [ox, oy] = scr(o.x, o.d); return Math.hypot(X - ox, Y - (oy - (o.z || 0) - (o.h || 28) / 2)) < (o.rad || (o.type === 'note' || o.type === 'poem' || o.type === 'key' || o.type === 'book' ? 9 : 12)); });   // 등불 기둥 근처를 눌렀는가
   if (o) { P.act = o; goTo(o.x, o.d + 8); if (!P.path.length && sdist(P.x, P.d, o.x, o.d) < 14) { /* 이미 곁에 있다 */ } return; }
   P.act = null; goTo(x, d);
