@@ -193,7 +193,7 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
         back_buildings(s, W, D)
     else: s.wall_back(0, W, D, 60)
     if bed: s.wall_left(0, D, 60)
-    s.lamp(140 if corridor else 96, 74, 44, -1)                                                  # 광장 가로등은 오른쪽 끝 그라데이션에 가리지 않게 왼쪽으로
+    s.lamp(140 if corridor else 112, 60, 44, -1)                                                  # 광장 가로등은 오른쪽 끝 그라데이션에 가리지 않게 왼쪽으로
     if corridor:
         for lx in range(210, W - 40, 70): s.lamp(lx, 74, 44, -1)                                 # 같은 가로등을 뒷벽 쪽 한 줄로 나열
     s.bed = (12, 38, 70, 30, 9)
@@ -270,7 +270,7 @@ def street():
 SQ0, SQ1 = 110, 250                                                                               # 광장(정사각형) 가로 범위
 FC = (180, 43); FR = 22
 BEN = [(122, 42), (222, 42)]; BIN = (246, 48)                                                      # 풀밭 대신: 위쪽 왼쪽·오른쪽에 벤치 둘, 오른쪽에 쓰레기통 하나
-LAMPS = [(50, 54), (126, 76), (234, 76), (310, 54)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
+LAMPS = [(50, 54), (310, 54)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
 def disc(s, cx, cd, r, z, col, n=36):
     s.poly([(cx + r * math.cos(2 * math.pi * k / n), cd + r * math.sin(2 * math.pi * k / n), z) for k in range(n)], col)
 def cyl(s, cx, cd, r, z0, z1, top, side, n=36):                                                   # 원통: 옆면은 앞쪽(d 작은 쪽)이 보인다
@@ -303,21 +303,32 @@ def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
                 col_ = rr.choice(((186, 76, 116), (186, 76, 116), (210, 120, 150), (214, 150, 96)))
                 s.px[px_, py_] = col_; s.px[px_ + 1, py_] = col_; s.px[px_, py_ - 1] = dk(col_, .7)
         s.jobs.append((gd1 - 1, roses))
+    WOOD, WOODD, IRON = (150, 96, 52), (112, 70, 38), (30, 30, 38)                                  # 공원 벤치: 주황 갈색 널 + 검은 주철 다리·팔걸이(참고 사진)
     for bx_, bd_ in BEN:
-        s.box(bx_, bd_, 16, 5, 4, (112, 92, 82), (88, 72, 66), (70, 58, 54), z0=5); s.box(bx_ + 1, bd_, 2, 4, 5, POLE, POLE, POLE); s.box(bx_ + 13, bd_, 2, 4, 5, POLE, POLE, POLE); s.box(bx_, bd_ + 4, 16, 1, 6, (100, 82, 74), (80, 66, 60), (64, 54, 50), z0=9)
+        for lx_ in (bx_, bx_ + 17):
+            s.box(lx_, bd_, 2, 6, 5, IRON, IRON, IRON); s.box(lx_, bd_ + 3.5, 2, 2.5, 13, IRON, IRON, IRON); s.box(lx_ - .2, bd_ + .5, 2.4, 5, 1.6, IRON, IRON, IRON, z0=9)   # 옆 다리 틀 + 등받이 기둥 + 팔걸이
+        s.box(bx_ + 2, bd_ + 1, 15, 5, 1, WOOD, WOODD, dk(WOODD, .8), z0=5)                              # 앉는 널
+        for k in range(3): s.box(bx_ + 2, bd_ + 1 + k * 1.7, 15, .25, .1, WOODD, WOODD, WOODD, z0=6)          # 널 사이 틈
+        for k in range(3): s.box(bx_ + 2, bd_ + 5.3, 15, .8, 1.8, WOOD, dk(WOOD, .85), WOODD, z0=8 + k * 2.2)  # 등받이 널 셋
     s.box(BIN[0], BIN[1], 5, 5, 9, (84, 92, 110), (62, 68, 86), (50, 54, 70)); s.box(BIN[0] - .5, BIN[1] - .5, 6, 6, 1.2, (104, 112, 130), (84, 92, 110), (70, 76, 92), z0=9)
     cx, cd = FC
     disc(s, cx, cd, FR + 9, 0.2, (52, 56, 82))                                                     # 분수 둘레의 둥근 바닥(연한 포장)
-    cyl(s, cx, cd, FR, 0, 7, (112, 112, 134), (92, 94, 118)); disc(s, cx, cd, FR - 3, 6, (30, 64, 118))   # 연한 돌 받침 + 물
-    for r_ in (15, 10):
-        for t in [k * .8 for k in range(8)]: s.poly([(cx + r_ * math.cos(t), cd + r_ * math.sin(t), 6.2), (cx + (r_ + 1) * math.cos(t), cd + (r_ + 1) * math.sin(t), 6.2), (cx + (r_ + 1) * math.cos(t + .25), cd + (r_ + 1) * math.sin(t + .25), 6.2), (cx + r_ * math.cos(t + .25), cd + r_ * math.sin(t + .25), 6.2)], (70, 118, 176))
-    cyl(s, cx, cd, 4, 6, 14, (122, 122, 146), (98, 98, 124)); cyl(s, cx, cd, 12, 14, 17, (112, 112, 134), (92, 94, 118)); disc(s, cx, cd, 10, 17.2, (40, 84, 140))   # 1단
-    cyl(s, cx, cd, 3, 17, 24, (122, 122, 146), (98, 98, 124)); cyl(s, cx, cd, 7.5, 24, 26.5, (112, 112, 134), (92, 94, 118)); disc(s, cx, cd, 6, 26.7, (40, 84, 140))   # 2단
-    cyl(s, cx, cd, 1.8, 26.5, 34, (150, 190, 226), (110, 150, 196))                                  # 가운데 물줄기
-    for t in range(0, 360, 45):                                                                    # 사방으로 떨어지는 물방울
-        for q in range(1, 5): px_, py_ = s.P(cx + math.cos(math.radians(t)) * q * 2.4, cd + math.sin(math.radians(t)) * q * 2.4, 33 - q * 2.2); s.px[px_, py_] = (150, 190, 226)
+    STONE, STONED = (112, 112, 134), (92, 94, 118)
+    cyl(s, cx, cd, FR, 0, 6, STONE, STONED, 48); cyl(s, cx, cd, FR - 2, 6, 7, dk(STONE, 1.12), STONED, 48)    # 둥근 받침 + 위 테두리(두께)
+    for k, rr_ in enumerate((FR - 3.5, FR - 8, FR - 13)): disc(s, cx, cd, rr_, 6.1 + k * .05, tuple(int(v * f_) for v, f_ in zip((30, 64, 118), (1, 1.12, 1.25))), 48)   # 가운데로 갈수록 밝은 물
+    for r_ in (16, 11):
+        for t in [k * .7 for k in range(9)]: s.poly([(cx + r_ * math.cos(t), cd + r_ * math.sin(t), 6.3), (cx + (r_ + 1) * math.cos(t), cd + (r_ + 1) * math.sin(t), 6.3), (cx + (r_ + 1) * math.cos(t + .22), cd + (r_ + 1) * math.sin(t + .22), 6.3), (cx + r_ * math.cos(t + .22), cd + r_ * math.sin(t + .22), 6.3)], (74, 124, 184))
+    for z0_, rs in ((6.5, 5.2), (8, 4.4), (10, 3.8), (12, 3.5)): cyl(s, cx, cd, rs, z0_, z0_ + 2, STONE, STONED, 32)              # 꽃병처럼 잘록한 기둥
+    for z0_, rs in ((14, 6.5), (15, 8.5), (16, 10.5), (17, 12)): cyl(s, cx, cd, rs, z0_, z0_ + 1.2, dk(STONE, 1.0 + (z0_ - 14) * .03), STONED, 40)   # 둥글게 벌어지는 1단 그릇
+    disc(s, cx, cd, 10, 18.4, (44, 90, 150), 40)
+    for z0_, rs in ((18.5, 2.6), (20, 2.2), (21.5, 2.6)): cyl(s, cx, cd, rs, z0_, z0_ + 1.6, STONE, STONED, 24)                    # 2단 기둥
+    for z0_, rs in ((23, 4.5), (24, 6), (25, 7.4)): cyl(s, cx, cd, rs, z0_, z0_ + 1.2, dk(STONE, 1.0 + (z0_ - 23) * .03), STONED, 32)   # 2단 그릇
+    disc(s, cx, cd, 6, 26.4, (44, 90, 150), 32)
+    cyl(s, cx, cd, 1.4, 26.4, 33, (150, 190, 226), (110, 150, 196), 16)                              # 가운데 물줄기
+    for t in range(0, 360, 30):                                                                    # 둥글게 퍼져 떨어지는 물방울
+        for q in range(1, 6): px_, py_ = s.P(cx + math.cos(math.radians(t)) * q * 2.2, cd + math.sin(math.radians(t)) * q * 2.2, 32.5 - q * q * .55); s.px[px_, py_] = (156, 196, 230)
     # 뒤쪽: 흰 아치 회랑 + 짙은 나무
-    ARC, AZ = (118, 124, 152), 30
+    ARC, AZ = CURBT, 30
     for ax in range(SQ0, SQ1 - 23, 28):
         s.box(ax, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6)); s.box(ax + 21, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6))
         zc = AZ - 8; pts_o = [(ax + 12 - 12 * math.cos(math.pi * k / 16), 86, zc + 12 * math.sin(math.pi * k / 16)) for k in range(17)]    # 바깥 반원(반지름 12) + 안쪽 반원(반지름 9): 같은 중심의 둥근 아치
