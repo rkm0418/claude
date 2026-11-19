@@ -402,12 +402,13 @@ def car(s, x, d, col, model='sedan'):                                           
         s.box(x, d, 14, ln, 12, col, dc, ds, z0=2)
         s.poly([(x + .6, d, 9), (x + 13.4, d, 9), (x + 13.4, d, 13.5), (x + .6, d, 13.5)], GL)
     else:
-        s.box(x, d, 14, 13, 6.5, col, dc, ds, z0=1.5); s.box(x + 1.2, d + 2, 11.6, 9, 4.5, dk(col, .85), dc, ds, z0=8)
+        s.box(x, d + 13, 14, 17, 1.5, dc, dc, ds, z0=1.5); s.box(x, d + 29, 14, 1.2, 4.5, col, dc, ds, z0=3)      # 짐칸(뒤쪽이라 먼저 그린다): 바닥 + 뒷판
+        s.box(x, d + 13, 1.2, 17, 4.5, col, dc, ds, z0=3); s.box(x + 12.8, d + 13, 1.2, 17, 4.5, col, dc, ds, z0=3)   # 짐칸 양옆 판
+        s.box(x, d, 14, 13, 6.5, col, dc, ds, z0=1.5); s.box(x + 1.2, d + 2, 11.6, 9, 4.5, dk(col, .85), dc, ds, z0=8)   # 앞쪽 운전석 칸
         s.poly([(x + 1.6, d + 2, 8.4), (x + 12.4, d + 2, 8.4), (x + 12.4, d + 2, 12), (x + 1.6, d + 2, 12)], GL)
-        s.box(x, d + 13, 14, 17, 1.5, dc, dc, ds, z0=1.5); s.box(x, d + 13, 1.2, 17, 4.5, col, dc, ds, z0=3); s.box(x + 12.8, d + 13, 1.2, 17, 4.5, col, dc, ds, z0=3); s.box(x, d + 29, 14, 1.2, 4.5, col, dc, ds, z0=3)   # 짐칸
     s.box(x + 2, d - .1, 3, .3, 1.6, LAMP, LAMP, LAMP, z0=4); s.box(x + 9, d - .1, 3, .3, 1.6, LAMP, LAMP, LAMP, z0=4)
 def note_sprite(s, nx, nd):                                                                        # 쪽지: 보내 주신 그림(X 접힌 네모 + 엇갈려 접은 두 장)을 바닥 위에 눕혀 놓는다
-    sc = 28.0 / 351; INK, PAP, PAP2 = (48, 38, 32), (232, 224, 196), (206, 196, 168)
+    sc = 5.0 / 351; INK, PAP, PAP2 = (48, 38, 32), (232, 224, 196), (206, 196, 168)
     def fp(u, v): return (nx + (u - 175) * sc, nd - (v - 175) * sc * 1.5, .15)                   # 그림의 (가로, 세로) -> 바닥 (x, d)
     def poly(pts, fill):
         q = [s.P(*fp(*t)) for t in pts]; s.d.polygon(q, fill=fill, outline=INK)
@@ -424,7 +425,7 @@ def lot_scene(W=LOT_W, name='city3d_lot', save=True):
     T = W3 = 4; H = 3; L, R_, F0, B1 = LX0 - W3, LX1 + W3, SQF - T, SQD + T
     curb_union(s, [(L, SQD, LP0 - W3 - L, T), (LP1 + W3, SQD, R_ - LP1 - W3, T), (LP0 - W3, SQD, W3, PL), (LP1, SQD, W3, PL), (L, F0, R_ - L, T), (L, F0, W3, B1 - F0), (LX1, F0, W3, B1 - F0)], H)
     LINE = (168, 170, 186); rr = random.Random(9)
-    NEUT = [(66, 68, 80), (140, 142, 152), (214, 214, 220), (36, 38, 48), (92, 96, 110), (56, 66, 86)]    # 다른 차는 무채색 계열
+    NEUT = [(214, 74, 72), (74, 128, 214), (92, 176, 120), (232, 232, 238), (176, 180, 194), (70, 74, 96), (226, 134, 150), (96, 190, 206)]    # 다른 차는 밝고 다양한 색(노란 차만 도드라지지 않게)
     bays = []
     for row_d in (SQD - 40, SQF + 6):
         for i in range(LX0 // 20, LX1 // 20):
