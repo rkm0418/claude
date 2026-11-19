@@ -408,7 +408,7 @@ def car(s, x, d, col, model='sedan'):                                           
         s.poly([(x + 1.6, d + 2, 8.4), (x + 12.4, d + 2, 8.4), (x + 12.4, d + 2, 12), (x + 1.6, d + 2, 12)], GL)
     s.box(x + 2, d - .1, 3, .3, 1.6, LAMP, LAMP, LAMP, z0=4); s.box(x + 9, d - .1, 3, .3, 1.6, LAMP, LAMP, LAMP, z0=4)
 def note_sprite(s, nx, nd):                                                                        # 쪽지: 보내 주신 그림(X 접힌 네모 + 엇갈려 접은 두 장)을 바닥 위에 눕혀 놓는다
-    sc = 5.0 / 351; INK, PAP, PAP2 = (48, 38, 32), (232, 224, 196), (206, 196, 168)
+    sc = 8.0 / 351; INK, PAP, PAP2 = (48, 38, 32), (232, 224, 196), (206, 196, 168)
     def fp(u, v): return (nx + (u - 175) * sc, nd - (v - 175) * sc * 1.5, .15)                   # 그림의 (가로, 세로) -> 바닥 (x, d)
     def poly(pts, fill):
         q = [s.P(*fp(*t)) for t in pts]; s.d.polygon(q, fill=fill, outline=INK)
@@ -417,7 +417,7 @@ def note_sprite(s, nx, nd):                                                     
     poly([(145, 225), (218, 152), (351, 258), (278, 352)], PAP)
     poly([(5, 215), (140, 75), (218, 152), (75, 292)], PAP)
 YELLOW = (230, 186, 48)                                                                           # 이스터에그: 이 차만 색이 있다
-NOTE_AT = (265, 62)                                                                                # 쪽지 자리(아래쪽 가운데 빈 칸)
+NOTE_AT = (132, 62)                                                                                # 쪽지 자리(아래쪽 가운데 빈 칸)
 def lot_scene(W=LOT_W, name='city3d_lot', save=True):
     D = SQD + PL; s = Scene(W, 255, 130, k=2); s.cars = []; s.egg = None; back_buildings(s, W, D)
     s.floor(asphalt2, x0=LX0, x1=LX1, d0=SQF, d1=SQD)
@@ -435,8 +435,9 @@ def lot_scene(W=LOT_W, name='city3d_lot', save=True):
             s.floor(lambda x, d, bx=bx: LINE if (abs(x - bx) < .5 or abs(x - (bx + 20)) < .5) else None, x0=bx - .5, x1=bx + 20.5, d0=row_d, d1=row_d + 34)
     egg_bay = [b_ for b_ in bays if b_[1] == SQD - 40 and b_[0] > 300][0]                           # 노란 차: 뒷줄 오른쪽 가운데쯤
     for (bx, row_d) in sorted(bays, key=lambda b_: (-b_[1], b_[0])):
-        if row_d == SQF + 6 and NOTE_AT[0] - 34 <= bx <= NOTE_AT[0] + 14: continue                                  # 쪽지가 놓이는 빈 칸
-        if row_d == SQD - 40 and (bx < LX0 + 34 or bx + 20 > LX1 - 34): continue                       # 모서리 가로등과 겹치지 않게
+        if row_d == SQF + 6 and NOTE_AT[0] - 12 <= bx <= NOTE_AT[0] + 2: continue                                  # 쪽지가 놓이는 빈 칸
+        if row_d == SQD - 40 and (bx < LX0 + 34 or bx + 20 > LX1 - 34): continue
+        if row_d == SQD - 40 and LP0 - 40 <= bx <= LP1 + 20: continue                                  # 입구(위쪽 통로) 쪽 차는 없앤다                       # 모서리 가로등과 겹치지 않게
         if (bx, row_d) == egg_bay: model, col = 'hatch', YELLOW; s.egg = (bx + 3, row_d + 3)
         elif rr.random() < .6: model, col = rr.choice(CAR_MODELS), rr.choice(NEUT)
         else: continue
