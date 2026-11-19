@@ -46,6 +46,7 @@ def build(check=False):
     def blk(x, d, x0, d0, w, dp): return x0 - 3 < x < x0 + w + 3 and d0 - 3 < d < d0 + dp + 3
     def free_r(x, d):
         if x < 3 or x > 297: return False
+        if d > C.SQD - 12: return False                                                                # 분리수거함·상자 뒤쪽 좁은 틈은 못 들어간다
         if C.P0 + 3 < x < C.P1 - 3 and 2 < d <= C.SQF + 6: return True
         return C.SQ0 + 4 < x < C.SQ1 - 4 and C.SQF + 4 < d < C.SQD - 2
     sr, rr_ = room(r1, 'recycle', '분리수거장', 300, 255, free_r, [205, 14], [dict(zone=[196, 214, 0, 6], to='fountain', spawn=[205, C.SQD + C.PL - 12], type='trans', dir='F')])

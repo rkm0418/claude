@@ -424,8 +424,27 @@ def fountain_scene(W=410, name='city3d_fountain', save=True, fade='lr'):
 
 # ---------------- 분수 광장에서 이어지는 두 공간: 분리수거장(오른쪽) · 같은 크기의 정사각형 공간(아래쪽) ----------------
 PL = 40                                                                                           # 위쪽 통로 길이(정사각형 공간용)
+def outline(s, x, d, w, dp, h, z0=0, col=(36, 34, 40), t=.6):
+    """상자의 보이는 모서리에 어두운 선을 그어 경계를 또렷하게 한다(그림만, 깊이는 건드리지 않는다)."""
+    X, Z = x + w, z0 + h
+    for pts in ([(x, d, z0), (X, d, z0), (X, d, z0 + t), (x, d, z0 + t)],            # 앞면 아래 모서리
+                [(x, d, Z - t), (X, d, Z - t), (X, d, Z), (x, d, Z)],                  # 앞면 위 모서리
+                [(x, d, z0), (x + t, d, z0), (x + t, d, Z), (x, d, Z)],                # 앞면 왼쪽 세로 모서리
+                [(X - t, d, z0), (X, d, z0), (X, d, Z), (X - t, d, Z)],                # 앞면 오른쪽 세로 모서리
+                [(X, d + dp - t, z0), (X, d + dp, z0), (X, d + dp, Z), (X, d + dp - t, Z)],   # 오른쪽 면 뒤 세로 모서리
+                [(X, d, z0), (X, d + dp, z0), (X, d + dp, z0 + t), (X, d, z0 + t)],    # 오른쪽 면 아래 모서리
+                [(x, d + dp - t, Z), (X, d + dp - t, Z), (X, d + dp, Z), (x, d + dp, Z)],   # 윗면 뒤 모서리
+                [(X - t, d, Z), (X, d, Z), (X, d + dp, Z), (X - t, d + dp, Z)]):        # 윗면 오른쪽 모서리
+        s.poly(pts, col, z=False)
+def cardboard(s, x, d, w, dp, h, z0=0, tone=0):
+    """쌓아 둔 종이 상자: 상자마다 색을 달리하고 모서리선·테이프 띠로 경계를 나눈다."""
+    T = [((172, 132, 86), (138, 102, 62), (110, 80, 48)), ((150, 114, 74), (120, 88, 54), (96, 68, 40)), ((188, 148, 98), (152, 114, 72), (122, 90, 56))][tone % 3]
+    s.box(x, d, w, dp, h, T[0], T[1], T[2], z0=z0); outline(s, x, d, w, dp, h, z0, dk(T[2], .55), .7)
+    s.poly([(x + w / 2 - 1, d, z0), (x + w / 2 + 1, d, z0), (x + w / 2 + 1, d, z0 + h), (x + w / 2 - 1, d, z0 + h)], (206, 178, 124), z=False)      # 앞면 테이프 띠
+    s.poly([(x + w / 2 - 1, d, z0 + h), (x + w / 2 + 1, d, z0 + h), (x + w / 2 + 1, d + dp, z0 + h), (x + w / 2 - 1, d + dp, z0 + h)], (206, 178, 124), z=False)   # 윗면 테이프 띠
+
 def bin_box(s, x, d, col, w=12, dp=8, h=18):                                                      # 분리수거함: 몸통 + 뚜껑 + 색 띠
-    s.box(x, d, w, dp, h, dk(col, .8), dk(col, .65), dk(col, .5)); s.box(x - .6, d - .6, w + 1.2, dp + 1.2, 2, dk(col, 1.0), dk(col, .8), dk(col, .6), z0=h)
+    s.box(x, d, w, dp, h, dk(col, .8), dk(col, .65), dk(col, .5)); outline(s, x, d, w, dp, h, 0, dk(col, .3)); s.box(x - .6, d - .6, w + 1.2, dp + 1.2, 2, dk(col, 1.0), dk(col, .8), dk(col, .6), z0=h); outline(s, x - .6, d - .6, w + 1.2, dp + 1.2, 2, h, dk(col, .35), .5)
     s.box(x + 1.5, d - .1, w - 3, .3, 4, (200, 204, 214), (200, 204, 214), (200, 204, 214), z0=h - 8)
 BINS = [(66, 120, 210), (60, 160, 96), (220, 190, 60), (214, 214, 220), (110, 114, 128)]          # 플라스틱·유리·캔·종이·일반
 def sq_scene(kind='recycle', W=300, name='city3d_recycle', save=True, fade=''):
@@ -436,8 +455,7 @@ def sq_scene(kind='recycle', W=300, name='city3d_recycle', save=True, fade=''):
     T = W3 = 4; H = 3; L, R_, F0, B1 = SQ0 - W3, SQ1 + W3, SQF - T, SQD + T
     curb_union(s, [(L, SQD, R_ - L, T), (L, F0, W3, B1 - F0), (SQ1, F0, W3, B1 - F0), (L, F0, P0 - W3 - L, T), (P1 + W3, F0, R_ - P1 - W3, T), (P0 - W3, 0, W3, SQF), (P1, 0, W3, SQF)], H)
     for i, c in enumerate(BINS): bin_box(s, SQ0 + 34 + i * 18, SQD - 13, c)                        # 뒤 연석 앞에 분리수거함 다섯
-    for k_, (bx, bw) in enumerate(((SQ1 - 52, 14), (SQ1 - 52, 14), (SQ1 - 40, 12))):
-        s.box(bx, SQD - 20, bw, 9, 9, (150, 112, 70), (118, 86, 52), (92, 66, 40), z0=(9 if k_ == 1 else 0))   # 쌓아 둔 종이 상자
+    cardboard(s, SQ1 - 52, SQD - 20, 14, 9, 9, 0, 0); cardboard(s, SQ1 - 51, SQD - 19.5, 12, 8, 8, 9.4, 2); cardboard(s, SQ1 - 36, SQD - 20, 12, 9, 9, 0, 1)   # 쌓아 둔 종이 상자(색·모서리·테이프로 구분, 위 상자는 살짝 작게 얹는다)
     s.lamp(SQ1 - 14, SQD - 4, 52, -1)                                                              # 가장자리 가로등 하나(오른쪽)
     s.run()
     return s.save(name) if save else s
@@ -668,7 +686,13 @@ def lounge(name='city3d_lounge', save=True):
         for z in range(0, 60, 6): s.poly([(0, d, z), (0, d + 6.2, z), (0, d + 6.2, z + 6), (0, d, z + 6)], WALL1 if z >= 14 else WALL2)
     # 소파(뒤 벽 가운데): 밑판·등받이·팔걸이, 위에 벽시계
     SOF, SOFD, SOFR = (92, 122, 108), (70, 96, 84), (58, 80, 70)
-    s.box(46, LD - 22, 56, 18, 9, SOF, SOFD, SOFR); s.box(46, LD - 8, 56, 6, 20, SOF, SOFD, SOFR); s.box(46, LD - 22, 6, 18, 14, SOF, SOFD, SOFR); s.box(96, LD - 22, 6, 18, 14, SOF, SOFD, SOFR)
+    SOFT, SOFE = (118, 152, 134), (52, 74, 64)                                                         # 윗면은 밝게, 모서리선은 어두운 초록
+    def part(x, d, w, dp, h, top, front, right):                                                          # 그린 바로 뒤에 모서리선: 앞의 것이 뒤의 선을 덮도록(먼 것부터)
+        s.box(x, d, w, dp, h, top, front, right); outline(s, x, d, w, dp, h, 0, SOFE, .5)
+    part(46, LD - 8, 56, 6, 20, SOF, SOFD, SOFR)                                                          # 등받이
+    part(46, LD - 22, 56, 18, 9, SOFT, SOF, SOFR)                                                         # 앉는 면
+    s.poly([(74 - .35, LD - 22, 9), (74 + .35, LD - 22, 9), (74 + .35, LD - 8, 9), (74 - .35, LD - 8, 9)], SOFE, z=False); s.poly([(74 - .35, LD - 22, 3), (74 + .35, LD - 22, 3), (74 + .35, LD - 22, 9), (74 - .35, LD - 22, 9)], SOFE, z=False)   # 쿠션 이음선(둘로 나눔)
+    part(46, LD - 22, 6, 18, 14, SOFT, SOF, SOFR); part(96, LD - 22, 6, 18, 14, SOFT, SOF, SOFR)       # 팔걸이
     s.poly([(70, LD, 36), (82, LD, 36), (82, LD, 46), (70, LD, 46)], (70, 58, 46)); s.poly([(71.2, LD, 37.2), (80.8, LD, 37.2), (80.8, LD, 44.8), (71.2, LD, 44.8)], (236, 228, 204)); s.poly([(75.6, LD, 38.4), (76.4, LD, 38.4), (76.4, LD, 41.6), (75.6, LD, 41.6)], (60, 50, 42)); s.poly([(75.6, LD, 40.8), (79, LD, 40.8), (79, LD, 41.6), (75.6, LD, 41.6)], (60, 50, 42))
     # 자판기(뒤 벽 오른쪽): 몸통 + 밝은 진열창 + 버튼
     s.box(124, LD - 16, 22, 12, 44, (150, 60, 56), (126, 48, 46), (100, 38, 36))
