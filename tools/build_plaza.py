@@ -73,17 +73,15 @@ def build(check=False):
     def free_u(x, d):
         if C.RV0 - 8 < x < C.RV1 - 3 and 3 < d < C.RTD - 4: return True
         return 5 < x <= C.RV0 - 6 and n0 + 2 < d < n1 - 2
-    su, ru = room(r4, 'rtunnel', '도로 터널', C.RTW, C.RTD, free_u, [76, 8], geom=r4a, exits=[dict(zone=[C.RV0, C.RV1 - 3, 0, 6], to='street', spawn=[88, 498], type='trans', dir='F'), dict(zone=[5, 9, n0 + 2, n1 - 2], to='annex', spawn=[(C.ADOOR[0] + C.ADOOR[1]) / 2, 26], type='trans', dir='L'), dict(zone=[C.RV0, C.RV1 - 3, C.RTD - 6, C.RTD], to=None, type='trans', dir='B', endMsg='터널은 아직 이어지지 않았어요')])
+    su, ru = room(r4, 'rtunnel', '도로 터널', C.RTW, C.RTD, free_u, [76, 8], geom=r4a, exits=[dict(zone=[C.RV0, C.RV1 - 3, 0, 6], to='street', spawn=[88, 498], type='trans', dir='F'), dict(zone=[5, 9, n0 + 2, n1 - 2], to='annex', spawn=[C.AL - 16, 28], type='trans', dir='L'), dict(zone=[C.RV0, C.RV1 - 3, C.RTD - 6, C.RTD], to=None, type='trans', dir='B', endMsg='터널은 아직 이어지지 않았어요')])
     ru['reveal'] = [dict(img=uri(patch), x=bb[0] / K, y=bb[1] / K, w=(bb[2] - bb[0]) / K, h=(bb[3] - bb[1]) / K, zone=[C.WX, C.WX + 30, n0 - 12, n1 + 12], r=46)]
     r6 = C.annex('city3d_annex', False)
-    def free_a2(x, d):
-        if 3 < x < C.AV - 3 and 3 < d < C.AD - 2: return True
-        return 3 < x < C.AW - 4 and 3 < d < C.AV - 4
-    sa2, ra2 = room(r6, 'annex', '정비 통로', C.AW, C.AD, free_a2, [(C.ADOOR[0] + C.ADOOR[1]) / 2, 26], [dict(zone=[C.ADOOR[0] + 2, C.ADOOR[1] - 2, C.AV - 8, C.AV - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='F'), dict(zone=[C.APASS[0], C.APASS[1], C.AD - 6, C.AD], to='tunnel', spawn=[32, 8], type='trans', dir='B')])
+    def free_a2(x, d): return 3 < x < C.AL - 3 and C.AF + 2 < d < C.AB - 2
+    sa2, ra2 = room(r6, 'annex', '정비 복도', C.AW, C.AD, free_a2, [C.AL - 16, 28], [dict(zone=[C.AL - 6, C.AL, C.AF + 2, C.AB - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='R'), dict(zone=[0, 6, C.APASS[0] + 2, C.APASS[1] - 2], to='tunnel', spawn=[32, 8], type='trans', dir='L')])
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < 297
-    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [32, 8], [dict(zone=[3, 61, 0, 4], to='annex', spawn=[(C.APASS[0] + C.APASS[1]) / 2, C.AD - 18], type='trans', dir='F'), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
+    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [32, 8], [dict(zone=[3, 61, 0, 4], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='F'), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
     if check:
         sp = {}
         for k, (g, w, z, st, ex) in GEOM.items():

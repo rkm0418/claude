@@ -593,48 +593,51 @@ def road_tunnel(name='city3d_roadtunnel', save=True, cover=False):
     s.run(); s.lamps = []
     return s.save(name) if save else s
 
-# ---------------- 비상구 안: ㄴ자 정비 통로(위쪽 끝에 이동통로) ----------------
-AW, AD = 170, 170                                                                                 # 방 크기
-AV = 40                                                                                           # 세로 통로 폭(왼쪽), 가로 통로 깊이(아래쪽)
-ADOOR = (112, 128)                                                                                # 들어온 문(아래 통로 뒤 벽)의 가로 범위
-APASS = (8, 32)                                                                                   # 위쪽 이동통로의 가로 범위
+# ---------------- 비상구 안: 오른쪽에서 시작해 왼쪽에서 끝나는 일자 정비 복도 ----------------
+AL = 300                                                                                          # 복도 길이(바닥 x 0..AL)
+AF, AB = 6, 50                                                                                    # 바닥 깊이 범위(앞쪽 낮은 벽 ~ 뒤 벽)
+AW, AD = AL + 8, 56                                                                               # 방 크기
+APASS = (18, 42)                                                                                  # 왼쪽 끝 벽의 이동통로가 열린 깊이 범위(d)
 def annex(name='city3d_annex', save=True):
-    s = Scene(AW, AD, 56, k=2); s.d.rectangle([0, 0, s.img.size[0], s.img.size[1]], fill=(10, 7, 6))
-    CON, CON2 = (112, 98, 84), (98, 85, 72)
+    """비상구 문을 지나면 나오는 일자 복도: 오른쪽 끝에서 들어와 왼쪽 끝 이동통로로 나간다. 뒤 벽은 키 큰 콘크리트 판벽(케이블 트레이·줄 조명·잠긴 문),
+    앞은 안이 보이게 낮은 벽. 레이어 규칙(docs/layer-rules.md): 단단한 것은 box, 평면은 poly, 먼 것부터."""
+    s = Scene(AW, AD, 60, k=2); s.d.rectangle([0, 0, s.img.size[0], s.img.size[1]], fill=(10, 7, 6))
+    CON, CON2 = (116, 104, 90), (104, 93, 80)
     def fl(x, d):
-        c = CON if (int(x // 10) + int(d // 10)) % 2 == 0 else CON2
-        return (70, 62, 56) if (x % 10 < .6 or d % 10 < .6) else c
-    def f2(x, d):
-        c = fl(x, d)
-        if d > AD - 44: f = (AD - d) / 44.0; c = tuple(int(v * (.1 + .9 * f)) for v in c)       # 위쪽 이동통로 쪽은 검게 사라진다
+        c = CON if (int(x // 11) + int(d // 11)) % 2 == 0 else CON2
+        if x % 11 < .6 or d % 11 < .6: c = (74, 66, 58)
+        if AF + 2 < d < AF + 3.6: c = (150, 140, 108)                                                # 앞쪽 가장자리 안내선(희미한 노랑)
+        if x > AL - 40: c = tuple(int(v * (.5 + .5 * (AL - x) / 40.0)) for v in c)                    # 지나온 문 쪽(오른쪽)은 조금 어둡다
+        if x < 60: f = x / 60.0; c = tuple(int(v * (.08 + .92 * f)) for v in c)                       # 이동통로 쪽(왼쪽)은 검게 사라진다
         return c
-    s.floor(f2, x0=0, x1=AV, d0=0, d1=AD); s.floor(fl, x0=AV, x1=AW, d0=0, d1=AV)
-    def wall_x(xp, d0, d1, h, c0=(150, 134, 112)):
-        for d in range(int(d0), int(d1), 5):
-            for z in range(0, int(h), 5):
-                c = tuple(int(v * (.9 + .15 * _nz(d, z, 3))) for v in c0); s.poly([(xp, d, z), (xp, d + 5, z), (xp, d + 5, min(h, z + 5)), (xp, d, min(h, z + 5))], c)
-        s.poly([(xp, d0, h - 4), (xp, d1, h - 4), (xp, d1, h), (xp, d0, h)], dk(c0, .55))
-    def wall_d(dp, x0, x1, h, c0=(160, 144, 120)):
-        for x in range(int(x0), int(x1), 5):
-            for z in range(0, int(h), 5):
-                c = tuple(int(v * (.9 + .15 * _nz(x, z, 7))) for v in c0); s.poly([(x, dp, z), (x + 5, dp, z), (x + 5, dp, min(h, z + 5)), (x, dp, min(h, z + 5))], c)
-        s.poly([(x0, dp, h - 4), (x1, dp, h - 4), (x1, dp, h), (x0, dp, h)], dk(c0, .55))
-    wall_d(AD, 0, AV, 56)                                                                             # 맨 위 벽(이동통로가 뚫린)
-    p0, p1 = APASS
-    s.poly([(p0, AD, 0), (p1, AD, 0), (p1, AD, 40), (p0, AD, 40)], (8, 6, 6))                          # 이동통로 입구(어둡다)
-    for k in range(0, 40): f = k / 40.0; s.poly([(p0, AD, k), (p1, AD, k), (p1, AD, k + 1.2), (p0, AD, k + 1.2)], (int(34 - 26 * f), int(24 - 18 * f), int(16 - 12 * f)))
-    s.poly([(p0 - 2, AD, 0), (p0, AD, 0), (p0, AD, 42), (p0 - 2, AD, 42)], (70, 62, 54)); s.poly([(p1, AD, 0), (p1 + 2, AD, 0), (p1 + 2, AD, 42), (p1, AD, 42)], (70, 62, 54)); s.poly([(p0 - 2, AD, 40), (p1 + 2, AD, 40), (p1 + 2, AD, 43), (p0 - 2, AD, 43)], (70, 62, 54))
-    s.glow((p0 + p1) / 2, AD - 6, 40, col=(255, 176, 76), power=.25)
-    wall_x(0, 0, AD, 56)                                                                              # 왼쪽 벽
-    # 아래 통로 뒤 벽: 들어온 문 구간만 높게, 나머지는 낮게(세로 통로를 가리지 않도록)
-    d0, d1 = ADOOR
-    wall_d(AV, AV, d0 - 6, 10); wall_d(AV, d0 - 6, AW, 56)
-    s.poly([(d0, AV, 0), (d1, AV, 0), (d1, AV, 34), (d0, AV, 34)], (50, 40, 34)); s.poly([(d0 + 2, AV, 0), (d1 - 2, AV, 0), (d1 - 2, AV, 32), (d0 + 2, AV, 32)], (150, 152, 146)); s.poly([(d0 + 3.5, AV, 1.5), (d1 - 3.5, AV, 1.5), (d1 - 3.5, AV, 30.5), (d0 + 3.5, AV, 30.5)], (168, 170, 164))
-    s.poly([(d0 + 4, AV, 36), (d1 - 4, AV, 36), (d1 - 4, AV, 41), (d0 + 4, AV, 41)], (236, 232, 214)); s.poly([(d0 + 6, AV, 37.2), (d1 - 6, AV, 37.2), (d1 - 6, AV, 39.8), (d0 + 6, AV, 39.8)], (178, 60, 52))
-    s.poly([(d0 + 6, AV, 36), (d1 - 6, AV, 36), (d1 - 6, AV, 36.7), (d0 + 6, AV, 36.7)], (255, 214, 130))
-    s.box(AV, AV, 5, AD - AV, 10, (150, 134, 112), (112, 98, 84), (86, 74, 62))                              # 세로 통로의 오른쪽 낮은 벽 (뒤쪽은 가려지지 않게)
-    s.poly([(AV + 6, 0, 10), (AW, 0, 10), (AW, 0, 9), (AV + 6, 0, 9)], (112, 98, 84))
-    for xx, dd in ((70, 20), (20, 110)): s.glow(xx, dd, 60, col=(255, 176, 76), power=.3)             # 천장 등 빛(어둡게)
+    s.floor(fl, x0=0, x1=AL, d0=AF, d1=AB)
+    def tiles_d(dp, x0, x1, h, c0=(156, 140, 118)):                                                  # 평면 d=dp 콘크리트 판벽(앞을 향한 면)
+        for x in range(int(x0), int(x1), 6):
+            for z in range(0, int(h), 6):
+                n = ((int(x * 12.9898 + z * 78.233) * 2654435761) >> 7) % 100 / 100.0; c = tuple(int(v * (.92 + .14 * n)) for v in c0)
+                if x % 30 < 6: c = dk(c, .85)                                                         # 판 이음
+                s.poly([(x, dp, z), (x + 6.2, dp, z), (x + 6.2, dp, min(h, z + 6)), (x, dp, min(h, z + 6))], c)
+    # 가장 먼 것부터: 뒤 벽 → 왼쪽 끝 벽(이동통로) → 앞 낮은 벽
+    tiles_d(AB, 0, AL, 60)
+    s.poly([(0, AB, 46), (AL, AB, 46), (AL, AB, 47.6), (0, AB, 47.6)], (232, 226, 200))                  # 벽에 이어진 한 줄 조명(점이 아니라 선)
+    s.poly([(0, AB, 40), (AL, AB, 40), (AL, AB, 43), (0, AB, 43)], (74, 70, 64)); s.poly([(0, AB, 38.6), (AL, AB, 38.6), (AL, AB, 40), (0, AB, 40)], (50, 46, 42))   # 케이블 트레이
+    for xx in (84, 164, 232):                                                                          # 벽의 잠긴 철문 셋(안 열린다)
+        s.poly([(xx - 1.5, AB, 0), (xx + 14.5, AB, 0), (xx + 14.5, AB, 30), (xx - 1.5, AB, 30)], (58, 52, 46)); s.poly([(xx, AB, 0), (xx + 13, AB, 0), (xx + 13, AB, 28.5), (xx, AB, 28.5)], (128, 132, 132))
+        s.poly([(xx + 6.3, AB, 0), (xx + 6.7, AB, 0), (xx + 6.7, AB, 28.5), (xx + 6.3, AB, 28.5)], (92, 96, 98)); s.poly([(xx + 10, AB, 12), (xx + 11, AB, 12), (xx + 11, AB, 16), (xx + 10, AB, 16)], (70, 72, 72))
+    # 왼쪽 끝 벽(오른쪽을 향한 면): 이동통로가 열려 있다
+    q0, q1 = APASS
+    for d in range(AF, AB, 6):
+        for z in range(0, 60, 6): s.poly([(0, d, z), (0, d + 6.2, z), (0, d + 6.2, z + 6), (0, d, z + 6)], tuple(int(v * (.92 + .1 * (((d * 7 + z * 13) % 10) / 10.0))) for v in (150, 134, 112)))
+    s.holes.append(('x', 0, q0, q1)); s.zpunch([(0, q0, 0), (0, q1, 0), (0, q1, 40), (0, q0, 40)])
+    for k in range(0, 40): f = k / 40.0; s.poly([(0, q0, k), (0, q1, k), (0, q1, k + 1.2), (0, q0, k + 1.2)], (int(34 - 26 * f), int(24 - 18 * f), int(16 - 12 * f)), z=False)
+    s.poly([(0, q0 - 2, 0), (0, q0, 0), (0, q0, 42), (0, q0 - 2, 42)], (70, 62, 54)); s.poly([(0, q1, 0), (0, q1 + 2, 0), (0, q1 + 2, 42), (0, q1, 42)], (70, 62, 54)); s.poly([(0, q0 - 2, 40), (0, q1 + 2, 40), (0, q1 + 2, 43), (0, q0 - 2, 43)], (70, 62, 54))
+    s.glow(8, (q0 + q1) / 2, 40, col=(255, 176, 76), power=.2)
+    # 소화기 함(바닥에 놓인 단단한 물체): 뒤 벽 앞에
+    s.box(120, AB - 6, 6, 5, 12, (170, 60, 52), (140, 48, 42), (110, 38, 34)); s.box(200, AB - 6, 6, 5, 12, (170, 60, 52), (140, 48, 42), (110, 38, 34))
+    # 앞쪽: 안이 보이도록 낮은 벽(윗면과 앞 단면만)
+    s.box(0, 0, AL, AF, 10, (150, 134, 112), (112, 98, 84), (86, 74, 62))
+    for x in range(0, AL, 4):                                                                          # 낮은 벽 위 줄 조명
+        f = min(1.0, .4 + .6 * (AL - x) / 40.0) if x > 60 else max(.1, x / 60.0); s.poly([(x, 1.2, 10.2), (x + 4.2, 1.2, 10.2), (x + 4.2, 2.6, 10.2), (x, 2.6, 10.2)], tuple(int(v * f) for v in (236, 228, 196)), z=False)
     s.run(); s.lamps = []
     return s.save(name) if save else s
 
