@@ -269,7 +269,7 @@ def street():
 # ---------------- 장면: 복도가 정사각형 광장으로 커지는 곳 (가운데 인공 분수와 풀) ----------------
 SQ0, SQ1 = 110, 250                                                                               # 광장(정사각형) 가로 범위
 FC = (180, 43); FR = 22
-BEN = [(112, 42), (216, 42)]; BIN = (252, 48)                                                      # 풀밭 대신: 위쪽 왼쪽·오른쪽에 벤치 둘, 오른쪽에 쓰레기통 하나
+BEN = [(SQ0 + 3, 74), (SQ1 - 33, 74)]; BIN = (SQ0 + 38, 74)                                                      # 풀밭 대신: 위쪽 왼쪽·오른쪽에 벤치 둘, 오른쪽에 쓰레기통 하나
 LAMPS = [(50, 54), (310, 54)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
 def disc(s, cx, cd, r, z, col, n=36):
     s.poly([(cx + r * math.cos(2 * math.pi * k / n), cd + r * math.sin(2 * math.pi * k / n), z) for k in range(n)], col)
@@ -320,11 +320,6 @@ def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
     s.box(cx - 10, cd - 10, 20, 20, 3, STONE, STONED, STONER, z0=14); sq_water(cx - 8, cd - 8, cx + 8, cd + 8, 17.05)   # 1단 그릇
     s.box(cx - 2, cd - 2, 4, 4, 6, STONE, STONED, STONER, z0=17)
     s.box(cx - 5.5, cd - 5.5, 11, 11, 2.5, STONE, STONED, STONER, z0=22); sq_water(cx - 4, cd - 4, cx + 4, cd + 4, 24.55)   # 2단 그릇
-    # 뒤쪽: 흰 아치 회랑 + 짙은 나무
-    ARC, AZ = CURBT, 30
-    for ax in range(SQ0, SQ1 - 23, 28):
-        s.box(ax, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6)); s.box(ax + 21, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6))
-    s.box(SQ0, 86, SQ1 - SQ0, 3, 3, ARC, dk(ARC, .8), dk(ARC, .6), z0=AZ + 3)
     for lx, ld_ in LAMPS: s.lamp(lx, ld_, 44, -1)                                          # 분수 뒤는 비우고 양옆 뒷줄에 같은 가로등
     s.run()
     for side in (fade or ''):
