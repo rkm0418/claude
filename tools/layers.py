@@ -113,6 +113,29 @@ def check_room(key, s, walk, zone, start, spawns):
     return probs, seen
 
 
+def check_dirs(rooms):
+    """공간 연결 방향 규칙: 어느 방향(dir)으로 나갔으면 다음 방에는 그 방향 그대로 들어와야 한다.
+    R(+x로 나감) → 다음 방 왼쪽 끝에서 시작, L → 오른쪽 끝, B(+d, 위로 나감) → 아래(앞) 끝, F → 위(뒤) 끝.
+    또 출구 자체도 그 방향 쪽 끝에 있어야 한다. 방향이 꺾이는 연결(가로↔세로 방)은 출구에 turn=True 를 적어 예외로 표시한다."""
+    probs = []; ext = {}
+    for k, (g, w, z, st, ex, sp) in rooms.items():
+        ys, xs = np.nonzero(w & ~z); ext[k] = (xs.min() * CELL, xs.max() * CELL, ys.min() * CELL, ys.max() * CELL)
+    def frac(v, lo, hi): return .5 if hi <= lo else (v - lo) / float(hi - lo)
+    for k, (g, w, z, st, ex, sp) in rooms.items():
+        for e in ex:
+            dr = e.get('dir'); to = e.get('to'); sw = e.get('spawn')
+            if not dr: continue
+            x0, x1, d0, d1 = ext[k]; zc = ((e['zone'][0] + e['zone'][1]) / 2, (e['zone'][2] + e['zone'][3]) / 2)
+            fx, fd = frac(zc[0], x0, x1), frac(zc[1], d0, d1)
+            ok = {'R': fx >= .65, 'L': fx <= .35, 'B': fd >= .65, 'F': fd <= .35}[dr]
+            if not ok: probs.append('%s: 출구(→%s, dir=%s)가 그 방향 쪽 끝에 있지 않음' % (k, to, dr))
+            if to and sw and not e.get('turn'):
+                a0, a1, b0, b1 = ext[to]; tx, td = frac(sw[0], a0, a1), frac(sw[1], b0, b1)
+                ok2 = {'R': tx <= .35, 'L': tx >= .65, 'B': td <= .35, 'F': td >= .65}[dr]
+                if not ok2: probs.append('%s → %s: %s 로 나갔는데 다음 방에는 반대쪽 끝에서 시작하지 않음(spawn=%s). 가로↔세로로 꺾이는 연결이면 출구에 turn=True' % (k, to, dr, sw))
+    return probs
+
+
 def main():
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import build_plaza
@@ -126,6 +149,7 @@ def main():
             m = (xs[None, :] >= z[0]) & (xs[None, :] <= z[1]) & (ds[:, None] >= z[2]) & (ds[:, None] <= z[3])
             if not (seen & m).any(): probs.append('%s: 출구(→%s) 에 걸어서 닿을 수 없음' % (key, e.get('to')))
         print(('OK  ' if not probs else 'XX  ') + key); [print('    ' + p) for p in probs]; allp += probs
+    dp = check_dirs(rooms); print(('OK  ' if not dp else 'XX  ') + '방 연결 방향'); [print('    ' + p) for p in dp]; allp += dp
     print('문제 %d개' % len(allp)); sys.exit(1 if allp else 0)
 
 if __name__ == '__main__': main()

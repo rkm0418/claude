@@ -78,7 +78,7 @@ def build(check=False):
     ru['reveal'] = [dict(img=uri(patch), x=bb[0] / K, y=bb[1] / K, w=(bb[2] - bb[0]) / K, h=(bb[3] - bb[1]) / K, zone=[C.WX, C.WX + 30, n0 - 12, n1 + 12], r=46)]
     r6 = C.annex('city3d_annex', False)
     def free_a2(x, d): return 3 < x < C.AL - 3 and C.AF + 2 < d < C.AB - 2
-    sa2, ra2 = room(r6, 'annex', '정비 복도', C.AW, C.AD, free_a2, [C.AL - 16, 28], [dict(zone=[C.AL - 6, C.AL, C.AF + 2, C.AB - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='R'), dict(zone=[0, 6, C.APASS[0] + 2, C.APASS[1] - 2], to='tunnel', spawn=[32, 8], type='trans', dir='L'),
+    sa2, ra2 = room(r6, 'annex', '정비 복도', C.AW, C.AD, free_a2, [C.AL - 16, 28], [dict(zone=[C.AL - 6, C.AL, C.AF + 2, C.AB - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='R'), dict(zone=[0, 6, C.APASS[0] + 2, C.APASS[1] - 2], to='tunnel', spawn=[32, 8], type='trans', dir='L', turn=True),
         dict(zone=[233, 244, C.AB - 6, C.AB], to='lounge', spawn=[C.LDOOR[0] + 7, 20], type='trans', dir='B'), dict(zone=[85, 96, C.AB - 6, C.AB], to='annex', need='never_open', needMsg='문이 잠겨 있다', side='back')])
     r7 = C.lounge('city3d_lounge', False)
     def free_l(x, d): return 3 < x < C.LW - 3 and 8 < d < C.LD - 2 or (C.LDOOR[0] < x < C.LDOOR[1] and 0 <= d <= 8)
@@ -86,7 +86,7 @@ def build(check=False):
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < 297
-    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [32, 8], [dict(zone=[3, 61, 0, 4], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='F'), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
+    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [32, 8], [dict(zone=[3, 61, 0, 4], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='F', turn=True), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
     if check:
         sp = {}
         for k, (g, w, z, st, ex) in GEOM.items():
@@ -98,5 +98,24 @@ def build(check=False):
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
     h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + open(os.path.join(WEB, 'plaza_data.js'), encoding='utf-8').read() + '</script><script>' + open(os.path.join(WEB, 'game.js'), encoding='utf-8').read() + '</script>')
+    NAMES = [('plaza', '광장 · 시작'), ('corridor', '긴 복도'), ('fountain', '분수 광장'), ('recycle', '분리수거장'), ('lot', '주차장'), ('street', '거리'), ('rtunnel', '도로 터널'), ('annex', '정비 복도'), ('lounge', '휴게실'), ('tunnel', '터널')]
+    assert [k for k, _ in NAMES] == list(full['rooms'].keys()), 'NAMES 가 방 목록과 다르다'
+    ui = """<style>
+#where{position:fixed;left:8px;top:8px;z-index:9;font:14px/1.2 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:6px 10px;pointer-events:none}
+#jumpb{position:fixed;right:8px;top:8px;z-index:9;font:14px system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.55);border:1px solid #888;border-radius:6px;padding:6px 12px;cursor:pointer}
+#jumpl{position:fixed;right:8px;top:44px;z-index:9;display:none;flex-direction:column;gap:3px;background:rgba(0,0,0,.75);border:1px solid #888;border-radius:6px;padding:6px;max-height:80vh;overflow:auto}
+#jumpl button{font:14px system-ui,sans-serif;color:#fff;background:#2a2a30;border:1px solid #666;border-radius:4px;padding:5px 14px;text-align:left;cursor:pointer}
+#jumpl button.on{background:#3a5a8a}
+#dbg{top:8px !important;right:84px !important}
+</style>
+<div id="where">-</div><button id="jumpb">이동</button><div id="jumpl"></div>
+<script>
+(function(){var N=%s,W=document.getElementById('where'),B=document.getElementById('jumpb'),L=document.getElementById('jumpl'),cur='';
+N.forEach(function(n,i){var b=document.createElement('button');b.dataset.k=n[0];b.textContent=(i+1)+'. '+n[1];b.onclick=function(){L.style.display='none';var g=window.__game;if(!g)return;var st=window.GAME_DATA.rooms[n[0]].start;g.enter(n[0],[st[0],st[1]]);};L.appendChild(b);});
+B.onclick=function(e){e.stopPropagation();L.style.display=L.style.display==='flex'?'none':'flex';};
+['pointerdown','touchstart','mousedown'].forEach(function(t){[B,L].forEach(function(el){el.addEventListener(t,function(e){e.stopPropagation();});});});
+setInterval(function(){var g=window.__game;if(!g||!g.room)return;var k=g.room;if(k===cur)return;cur=k;var i=N.findIndex(function(n){return n[0]===k;});W.textContent=i<0?k:(i+1)+'. '+N[i][1];Array.prototype.forEach.call(L.children,function(b){b.className=b.dataset.k===k?'on':'';});},150);})();
+</script>""" % json.dumps(NAMES, ensure_ascii=False)
+    h = h.replace('</body>', ui + '</body>')
     open(os.path.join(WEB, 'plaza.html'), 'w', encoding='utf-8').write(h); print('web/plaza.html', len(h) // 1024, 'KB')
 if __name__ == '__main__': build()
