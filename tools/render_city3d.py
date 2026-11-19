@@ -509,15 +509,9 @@ def road_tunnel(name='city3d_roadtunnel', save=True, cover=False):
         mid = (cuts[1] + cuts[2]) / 2; s.poly([(XB, mid - .25, 0), (XB, mid + .25, 0), (XB, mid + .25, DH), (XB, mid - .25, DH)], STEELD)
         for dd in (cuts[1] + 1.2, mid + .8):                                                               # 붉은 안내문(흰 종이 + 붉은 줄)
             s.poly([(XB, dd, 13), (XB, dd + 3.4, 13), (XB, dd + 3.4, 19), (XB, dd, 19)], (232, 230, 222)); s.poly([(XB, dd + .5, 16.5), (XB, dd + 2.9, 16.5), (XB, dd + 2.9, 17.8), (XB, dd + .5, 17.8)], (198, 64, 56))
-        sd = cuts[2] + 3                                                                                    # 오른쪽 문의 흰 세로 '비상구' 표지(붉은 글자 덩어리 셋)
-        s.poly([(XB, sd, 6), (XB, sd + 4.2, 6), (XB, sd + 4.2, 22), (XB, sd, 22)], (238, 236, 228))
-        for z_ in (17.5, 12.3, 7.6): s.poly([(XB, sd + .9, z_), (XB, sd + 3.3, z_), (XB, sd + 3.3, z_ + 3), (XB, sd + .9, z_ + 3)], (200, 56, 50))
         s.poly([(XB, cuts[0] + 2.2, 8), (XB, cuts[0] + 2.8, 8), (XB, cuts[0] + 2.8, 15), (XB, cuts[0] + 2.2, 15)], (96, 98, 98))      # 손잡이
-        mx_ = (n0 + n1) / 2                                                                                 # 문 위 작은 초록 비상구 등 + 천장 등
-        s.poly([(XB, mx_ - 2.2, DH + 5.5), (XB, mx_ + 2.2, DH + 5.5), (XB, mx_ + 2.2, DH + 9), (XB, mx_ - 2.2, DH + 9)], (36, 150, 92)); s.poly([(XB, mx_ - .6, DH + 6.2), (XB, mx_ + .6, DH + 6.2), (XB, mx_ + .6, DH + 8.4), (XB, mx_ - .6, DH + 8.4)], (240, 255, 244))
+        mx_ = (n0 + n1) / 2
         s.poly([(XB, mx_ - 3, HZ + 6.5), (XB, mx_ + 3, HZ + 6.5), (XB, mx_ + 3, HZ + 8.5), (XB, mx_ - 3, HZ + 8.5)], (246, 244, 232))
-        for dd in (n0 + 5, n1 - 7):                                                                         # 황흑 말뚝(문 앞 양옆)
-            for k in range(8): s.poly([(WX - 3, dd, k * 1.6), (WX - 3 + 2, dd, k * 1.6), (WX - 3 + 2, dd, k * 1.6 + 1.6), (WX - 3, dd, k * 1.6 + 1.6)], (232, 192, 40) if k % 2 == 0 else (26, 24, 22))
         for k in range(0, 24):                                                                               # 아치 테두리(밝은 콘크리트 띠, 두껍게)
             p1, p2 = A0[1 + k], A0[2 + k]; s.poly([(WX, p1[0], p1[1]), (WX, p2[0], p2[1]), (WX, p2[0], p2[1] + 2.4), (WX, p1[0], p1[1] + 2.4)], CONL)
     # 오른쪽: 낮은 벽(윗면과 앞 단면만) 위에 등 한 줄
