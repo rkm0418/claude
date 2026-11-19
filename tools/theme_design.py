@@ -138,7 +138,7 @@ def S(*items):                                                                  
     return f
 P = M
 SETS_KEY = {                                                                   # 특정 방(key)에 정해 놓는 대표 연출. 여기에 적은 방은 무작위 대신 이것을 쓴다(수정·추가 자유)
- 'cityx01': S(('p', P.p_hedgebed, 0, 0), ('p', P.p_streetlamp(), 40, 4), ('p', P.p_bench, 22, 12)),
+ 'cityx01': (lambda k, cx, cd, r: (at(k, P.p_hedgebed, cx - 24, cd - 4, r), at(k, P.p_bench, cx + 14, cd + 6, r), at(k, P.p_streetlamp(), cx + 24, 81, r))),   # 광장: 화단(왼쪽) + 벤치 + 가로등(오른쪽)
 }
 SETS_KEY['cityx01'].lit = True                                                    # 이 연출이 자기 가로등을 가지므로 방에 가로등을 더 세우지 않는다
 SETS = {

@@ -249,18 +249,18 @@ def p_streetlamp(on=True, color=(255, 214, 150), rad=26, pw=.35):               
     return f
 def p_car(k, x, d, r):                                                            # 세워 둔 차
     c = r.choice(((120, 40, 50), (50, 70, 110), (150, 152, 164), (70, 72, 84))); k.B(x, d, 24, 10, 7, tuple(int(v * .7) for v in c)); k.B(x + 5, d + 1, 13, 8, 6, c, z0=7, solid=False); k.F(x + 6.5, x + 17.5, 8.2, 12, (30, 40, 62), d); k.B(x + 22, d + 2, 2, 2, 2, (255, 232, 170), z0=2, solid=False)
-def p_hedgebed(k, x, d, r, n=5):
-    """처음 떨어진 곳: 낮은 콘크리트 화단 위의 인공 수풀(조화). 가운데 덩어리 둘은 눌려 있다(아이가 떨어진 자리). 걸어서 지나갈 수 있다(막지 않음)."""
+def p_hedgebed(k, x, d, r, n=6):
+    """처음 떨어진 곳(사용자 광장): 낮은 콘크리트 화단(70x30, 높이 9) 위에 같은 모양의 수풀 덩어리 3줄. 가운데 덩어리는 눌려 있다. 걸어서 지나갈 수 있다(막지 않음)."""
     import render_city as RC
-    w = 10 * n; sc = k.sc                                                         # 화단 받침은 수풀보다 먼저 그려야 하므로 같은 그리기 순서(job)에 넣는다
+    w, dp, ph = 70, 30, 9; sc = k.sc; x0, d0 = x - w / 2, d - dp / 2
     def plinth():
-        sc.box(x - w / 2, d - 7, w, 14, 5, (66, 70, 96), (62, 66, 92), (50, 54, 78)); sc.poly([(x - w / 2 + 1.2, d - 5.8, 5), (x + w / 2 - 1.2, d - 5.8, 5), (x + w / 2 - 1.2, d + 5.8, 5), (x - w / 2 + 1.2, d + 5.8, 5)], (48, 40, 36))
-    sc.jobs.append((d + 4, plinth))
-    rng = random.Random(7)
-    for i in range(n):
-        dent = 4 if i in (n // 2, n // 2 - 1) and n >= 4 else 0
-        def f(X, Y, g, dent=dent): RC.hedge(g, X, Y - 12 + dent, 7, rng)
-        job(k, x - w / 2 + 5 + i * 10, d + 2, f)
+        sc.box(x0, d0, w, dp, ph, (60, 64, 88), (66, 70, 96), (52, 56, 80)); sc.poly([(x0, d0, ph), (x0 + w, d0, ph), (x0 + w, d0 + dp, ph), (x0, d0 + dp, ph)], (48, 40, 36))
+    sc.jobs.append((d0 + dp + 1, plinth)); rng = random.Random(5)
+    for dd, dent_ok in ((d0 + dp - 6, 0), (d0 + dp / 2, 1), (d0 + 5, 1)):
+        for xx in range(int(x0 + 8), int(x0 + w - 4), 12):
+            if dent_ok and abs(xx - x) < 9 and dd < d0 + dp - 8: continue                  # 가운데는 움푹(아이가 있는 곳)
+            def f(X, Y, g): RC.hedge(g, X, Y - ph - 8, 9, rng)
+            job(k, xx, dd, f)
 def p_vending(k, x, d, r): k.B(x, d, 7, 6, 20, (60, 70, 110)); k.F(x + 1, x + 6, 6, 17, (160, 210, 236), d); k.glow(x + 3.5, d - 3, 14, (160, 210, 236), .16)
 def p_busstop(k, x, d, r):
     k.post(x, d, 24, (80, 84, 100)); k.post(x + 22, d, 24, (80, 84, 100)); k.B(x - 1, d - 3, 26, 8, 2, (90, 94, 110), z0=24, solid=False); k.B(x + 10, d + 1, 3, 1.5, 14, (200, 60, 70), solid=False); k.B(x + 4, d + 3, 14, 4, 4, (110, 84, 66))

@@ -65,7 +65,7 @@ def strip_spec(th, chain):
         if sec['kind'] == 'room' and sec['shape'] in ('square', 'wide') and rnd(sec['key'] + 'c').random() < .6: shapes.append(('circle', M.polymid(sec['pts'])[0], M.polymid(sec['pts'])[1], rnd(sec['key'] + 'r').randint(20, 26)))
     spec = dict(theme=th, W=Wt, D=D, secs=secs, shapes=shapes, wall=r.choice(T['walls']), tries=0, density=1.0, alleys=[], tips=[], H=min(T['H'], 44 if inter else 64))
     spec['erode'] = 3 if any(s['shape'] == 'switch' for s in secs) else 4
-    spec['start'] = (14, secs[0]['d_in']) if th != 'city' else ((secs[0]['x0'] + secs[0]['x1']) / 2 - 6, secs[0]['d_in'] - 2); spec['end'] = (Wt - 14, secs[-1]['d_out'])
+    spec['start'] = (14, secs[0]['d_in']) if th != 'city' else (secs[0]['x0'] + 18, 52); spec['end'] = (Wt - 14, secs[-1]['d_out'])
     for sec in secs:                                                                                                       # 딸린 골목(뒷벽에 붙은 칸): 뒷벽까지 열린 방에만
         if sec['kind'] != 'room' or sec['ext'][1] < D - 8: continue
         rr = rnd(sec['key'] + 'a'); n = rr.choice((1, 2)) if sec['shape'] == 'long' else 0; xs = []
