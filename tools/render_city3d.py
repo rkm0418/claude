@@ -251,7 +251,6 @@ def street(ret=False):
     s.poly([(LS, 0, 0), (LS, 0, 3), (LS, D, 3), (LS, D, 0)], CURBF); s.poly([(RS, 0, 0), (RS, 0, 3), (RS, D, 3), (RS, D, 0)], CURBR)
     # 도로 표시: 얇고 길고 간격이 넓은 네 개(맨 위 하나만 비스듬히)
     for x in (87, 89): s.poly([(x, 76, 0), (x + 1, 76, 0), (x + 1, D, 0), (x, D, 0)], (196, 170, 90))   # 얇은 이중 중앙선(횡단보도 뒤부터 끝까지)
-    for x in (LS + 3, RS - 5.4): s.poly([(x, 0, 0), (x + 2, 0, 0), (x + 2, D, 0), (x, D, 0)], (176, 176, 160))   # 인도 쪽 가장자리선: 끊김 없는 실선
     for k in range(12, D - 12, 24):                                           # 차로 점선: 같은 굵기(2.4)·길이(11)·간격(24)
         for x in (62, 114): s.poly([(x, k, 0), (x + 2.4, k, 0), (x + 2.4, k + 11, 0), (x, k + 11, 0)], (176, 176, 160))
     # 횡단보도 + 신호등(첫 가로등 자리): 얇은 줄 여러 개, 줄은 차가 가는 방향
@@ -450,7 +449,7 @@ def lot_scene(W=LOT_W, name='city3d_lot', save=True):
 RTW, RTD = 140, 420                                                                               # 도로 터널 크기(세로로 쭉)
 WX = 12                                                                                           # 왼쪽 벽 면의 x(그 뒤는 비상구가 파인 자리)
 RV0, RV1 = 24, 128                                                                                # 차도 가로 범위(왼쪽 인도 12..24, 오른쪽 낮은 벽 128..)
-NICHE = (240, 272)                                                                                # 비상구가 파인 깊이 범위(왼쪽 벽)
+NICHE = (228, 276)                                                                                # 비상구가 파인 깊이 범위(왼쪽 벽)
 def _nz(x, d, s=0): return ((int(x * 12.9898 + d * 78.233 + s * 37.7) * 2654435761) >> 7) % 100 / 100.0
 def road_tunnel(name='city3d_roadtunnel', save=True, cover=False):
     s = Scene(RTW, RTD, 72, k=2); s.d.rectangle([0, 0, s.img.size[0], s.img.size[1]], fill=(10, 7, 6))
@@ -485,28 +484,42 @@ def road_tunnel(name='city3d_roadtunnel', save=True, cover=False):
     for d0 in range(0, RTD, 4):                                                                       # 천장 모서리를 따라 이어진 한 줄 조명(점이 아니라 선)
         fade = min(1.0, .25 + .75 * d0 / 70.0); c = tuple(int(v * fade) for v in (255, 226, 160)); s.poly([(WX, d0, 46), (WX, d0 + 4.2, 46), (WX, d0 + 4.2, 48.4), (WX, d0, 48.4)], c)
         c2 = tuple(int(v * fade) for v in (150, 104, 66)); s.poly([(WX, d0, 49), (WX, d0 + 4.2, 49), (WX, d0 + 4.2, 50), (WX, d0, 50)], c2)
-    # 비상구: 벽이 둥근 아치로 옆에 움푹 파이고, 안쪽에 큰 회색 철제 문 (참고 사진) + 옆에 초록 비상구 표지
-    n0, n1 = NICHE; XB = 3; NR = 14
+    # 비상구(참고 사진): 벽이 큰 둥근 아치로 깊게 파이고, 안쪽에 회색 철제 미닫이 문 + 붉은 안내문 + 흰 '비상구' 표지 + 황흑 말뚝 + 작은 초록 표지
+    n0, n1 = NICHE; XB = -3; HZ, RZ = 30, 12
+    A0 = [(n0, 0)] + [(n0 + (n1 - n0) / 2 * (1 - math.cos(math.pi * k / 24)), HZ + RZ * math.sin(math.pi * k / 24)) for k in range(0, 25)] + [(n1, 0)]
     if cover:                                                                                            # 평소엔 벽에 난 아치 모양이 검게 가려져 있다
-        A0 = [(n0, 0)] + [(n0 + (n1 - n0) / 2 * (1 - math.cos(math.pi * k / 18)), 26 + 11 * math.sin(math.pi * k / 18)) for k in range(0, 19)] + [(n1, 0)]
         s.poly([(WX, a_[0], a_[1]) for a_ in A0], (8, 6, 6))
     else:
-        def arch(pl, hz=26, rz=11): return [(n0, 0)] + [(n0 + (n1 - n0) / 2 * (1 - math.cos(math.pi * k / 18)), hz + rz * math.sin(math.pi * k / 18)) for k in range(0, 19)] + [(n1, 0)]
-        A = arch(0)
-        s.poly([(XB, n0, 0), (WX, n0, 0), (WX, n1, 0), (XB, n1, 0)], (58, 46, 40))                           # 파인 바닥
-        s.poly([(WX, d_, z_) for d_, z_ in [(a_[0], a_[1]) for a_ in A]][:0] or [(WX - 0, a_[0], a_[1]) for a_ in A], (44, 34, 30))      # 벽에 난 아치 구멍(어두운 속)
-        s.poly([(XB, a_[0], a_[1]) for a_ in A], (150, 154, 156))                                            # 안쪽 면: 철제 문
-        seams = 5
-        for k in range(1, seams): dd = n0 + (n1 - n0) * k / seams; s.poly([(XB, dd - .35, 0), (XB, dd + .35, 0), (XB, dd + .35, 28), (XB, dd - .35, 28)], (96, 100, 102))
-        s.poly([(XB, n0, 0), (XB, n1, 0), (XB, n1, 1.6), (XB, n0, 1.6)], (110, 114, 116))
-        for dd in (n0 + (n1 - n0) / 2 - 3, n0 + (n1 - n0) / 2 + 1.4): s.poly([(XB, dd, 13), (XB, dd + 1.6, 13), (XB, dd + 1.6, 16), (XB, dd, 16)], (196, 70, 62))   # 붉은 주의 딱지
-        s.poly([(XB, n1, 0), (WX, n1, 0), (WX, n1, 26), (XB, n1, 26)], (70, 56, 48))                          # 먼쪽 옆면(앞을 향함)
-        for k in range(0, 18):                                                                               # 아치 테두리(밝은 띠)
-            p1, p2 = A[1 + k], A[2 + k]; s.poly([(WX, p1[0], p1[1]), (WX, p2[0], p2[1]), (WX, p2[0], p2[1] + 1.6), (WX, p1[0], p1[1] + 1.6)], (212, 196, 170))
-        gx, gd = WX, n0 - 8                                                                                  # 옆의 초록 비상구 표지(작고 세로)
-        s.poly([(gx, gd, 12), (gx, gd + 6, 12), (gx, gd + 6, 28), (gx, gd, 28)], (230, 232, 220)); s.poly([(gx, gd + .8, 12.8), (gx, gd + 5.2, 12.8), (gx, gd + 5.2, 27.2), (gx, gd + .8, 27.2)], (38, 170, 98))
-        s.poly([(gx, gd + 2, 21), (gx, gd + 3.6, 21), (gx, gd + 3.6, 24.4), (gx, gd + 2, 24.4)], (240, 255, 244)); s.poly([(gx, gd + 1.4, 17), (gx, gd + 4.6, 17), (gx, gd + 4.6, 20), (gx, gd + 1.4, 20)], (240, 255, 244))
-
+        W = n1 - n0; CON, CONL = (128, 120, 108), (156, 148, 134)
+        s.poly([(XB, n0, 0), (WX, n0, 0), (WX, n1, 0), (XB, n1, 0)], (118, 110, 98))                      # 파인 바닥(밝은 콘크리트)
+        s.poly([(WX, a_[0], a_[1]) for a_ in A0], (52, 44, 38))                                            # 아치 구멍(어두운 속)
+        s.poly([(XB, n1, 0), (WX, n1, 0), (WX, n1, HZ), (XB, n1, HZ)], CON)                                # 먼쪽 옆면(둥근 콘크리트)
+        s.poly([(XB, a_[0], a_[1]) for a_ in A0], (96, 92, 86))                                            # 안쪽 면(둥근 지붕 콘크리트)
+        # 안쪽 작은 아치(문틀) + 철제 문
+        i0, i1, ih = n0 + 4, n1 - 4, 30
+        AI = [(i0, 0)] + [(i0 + (i1 - i0) / 2 * (1 - math.cos(math.pi * k / 24)), ih + 6 * math.sin(math.pi * k / 24)) for k in range(0, 25)] + [(i1, 0)]
+        s.poly([(XB, a_[0], a_[1]) for a_ in AI], (140, 144, 144))
+        d0_, d1_ = i0 + 3, i1 - 3; DH = 26; STEEL, STEELD, STEELL = (160, 164, 164), (120, 124, 126), (184, 188, 188)
+        s.poly([(XB, d0_ - 1, 0), (XB, d1_ + 1, 0), (XB, d1_ + 1, DH + 4), (XB, d0_ - 1, DH + 4)], STEELD)                  # 문틀
+        s.poly([(XB, d0_ - 1, DH), (XB, d1_ + 1, DH), (XB, d1_ + 1, DH + 4), (XB, d0_ - 1, DH + 4)], STEELL)                # 위 가로 보
+        cuts = [d0_, d0_ + (d1_ - d0_) * .34, d0_ + (d1_ - d0_) * .62, d1_]
+        for k in range(3):
+            x0_, x1_ = cuts[k], cuts[k + 1]; s.poly([(XB, x0_ + .4, 0), (XB, x1_ - .4, 0), (XB, x1_ - .4, DH), (XB, x0_ + .4, DH)], STEEL if k != 1 else (170, 174, 174))
+        s.poly([(XB, cuts[1] - .3, 0), (XB, cuts[1] + .3, 0), (XB, cuts[1] + .3, DH), (XB, cuts[1] - .3, DH)], STEELD); s.poly([(XB, cuts[2] - .3, 0), (XB, cuts[2] + .3, 0), (XB, cuts[2] + .3, DH), (XB, cuts[2] - .3, DH)], STEELD)
+        mid = (cuts[1] + cuts[2]) / 2; s.poly([(XB, mid - .25, 0), (XB, mid + .25, 0), (XB, mid + .25, DH), (XB, mid - .25, DH)], STEELD)
+        for dd in (cuts[1] + 1.2, mid + .8):                                                               # 붉은 안내문(흰 종이 + 붉은 줄)
+            s.poly([(XB, dd, 13), (XB, dd + 3.4, 13), (XB, dd + 3.4, 19), (XB, dd, 19)], (232, 230, 222)); s.poly([(XB, dd + .5, 16.5), (XB, dd + 2.9, 16.5), (XB, dd + 2.9, 17.8), (XB, dd + .5, 17.8)], (198, 64, 56))
+        sd = cuts[2] + 3                                                                                    # 오른쪽 문의 흰 세로 '비상구' 표지(붉은 글자 덩어리 셋)
+        s.poly([(XB, sd, 6), (XB, sd + 4.2, 6), (XB, sd + 4.2, 22), (XB, sd, 22)], (238, 236, 228))
+        for z_ in (17.5, 12.3, 7.6): s.poly([(XB, sd + .9, z_), (XB, sd + 3.3, z_), (XB, sd + 3.3, z_ + 3), (XB, sd + .9, z_ + 3)], (200, 56, 50))
+        s.poly([(XB, cuts[0] + 2.2, 8), (XB, cuts[0] + 2.8, 8), (XB, cuts[0] + 2.8, 15), (XB, cuts[0] + 2.2, 15)], (96, 98, 98))      # 손잡이
+        mx_ = (n0 + n1) / 2                                                                                 # 문 위 작은 초록 비상구 등 + 천장 등
+        s.poly([(XB, mx_ - 2.2, DH + 5.5), (XB, mx_ + 2.2, DH + 5.5), (XB, mx_ + 2.2, DH + 9), (XB, mx_ - 2.2, DH + 9)], (36, 150, 92)); s.poly([(XB, mx_ - .6, DH + 6.2), (XB, mx_ + .6, DH + 6.2), (XB, mx_ + .6, DH + 8.4), (XB, mx_ - .6, DH + 8.4)], (240, 255, 244))
+        s.poly([(XB, mx_ - 3, HZ + 6.5), (XB, mx_ + 3, HZ + 6.5), (XB, mx_ + 3, HZ + 8.5), (XB, mx_ - 3, HZ + 8.5)], (246, 244, 232))
+        for dd in (n0 + 5, n1 - 7):                                                                         # 황흑 말뚝(문 앞 양옆)
+            for k in range(8): s.poly([(WX - 3, dd, k * 1.6), (WX - 3 + 2, dd, k * 1.6), (WX - 3 + 2, dd, k * 1.6 + 1.6), (WX - 3, dd, k * 1.6 + 1.6)], (232, 192, 40) if k % 2 == 0 else (26, 24, 22))
+        for k in range(0, 24):                                                                               # 아치 테두리(밝은 콘크리트 띠, 두껍게)
+            p1, p2 = A0[1 + k], A0[2 + k]; s.poly([(WX, p1[0], p1[1]), (WX, p2[0], p2[1]), (WX, p2[0], p2[1] + 2.4), (WX, p1[0], p1[1] + 2.4)], CONL)
     # 오른쪽: 낮은 벽(윗면과 앞 단면만) 위에 등 한 줄
     s.box(RV1, 0, 10, RTD, 12, (150, 112, 80), (126, 92, 64), (100, 72, 50))
     for d in range(0, RTD, 4):
