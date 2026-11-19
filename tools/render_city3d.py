@@ -179,10 +179,11 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
             s.box(bx, BD, bw, bd, bh, dk(c, 1.15), c, dk(c, .7))
             cols = list(range(int(bx) + 5, int(bx + bw) - 8, 10)); rows = list(range(8, int(bh) - 8, 12)); lit = set()
             if bi in (1, 4, 6):
-                for _ in range(40):                                                                # 불규칙하게, 서로 붙지 않게 5~7개
+                want = br.randint(1, 3)
+                for _ in range(40):                                                                # 불규칙하게, 서로 붙지 않게 1~3개
                     cc, rr_ = br.randrange(len(cols)), br.randrange(len(rows))
                     if all(max(abs(cc - a_), abs(rr_ - b_)) > 1 for a_, b_ in lit): lit.add((cc, rr_))
-                    if len(lit) >= br.randint(5, 7): break
+                    if len(lit) >= want: break
             def wins(cols=cols, rows=rows, lit=lit):
                 for ci, xx in enumerate(cols):
                     for ri, zz in enumerate(rows): s.poly([(xx, BD, zz), (xx + 5, BD, zz), (xx + 5, BD, zz + 7), (xx, BD, zz + 7)], (226, 188, 112) if (ci, ri) in lit else (14, 16, 32))
