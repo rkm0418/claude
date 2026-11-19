@@ -14,6 +14,11 @@ CURBT, CURBF, CURBR = (96, 100, 130), (66, 70, 96), (52, 56, 80)
 LAMPC = (255, 214, 140); PAINT = (214, 214, 196); POLE = (58, 62, 88)
 def dk(c, f): return tuple(int(v * f) for v in c)
 
+def grad(s, quad, h, k):                                                        # 벽 세로 그라데이션: 바닥 쪽은 연하고 위로 갈수록 어둡게
+    n = int(h)
+    for i in range(n):
+        f = i / max(1, n - 1); c = tuple(int(v * k * (1.35 - .5 * f)) for v in WALL); s.poly(quad(i * h / n, (i + 1) * h / n + .6), c)
+
 class Scene:
     def __init__(s, W, D, H, pad=8):
         s.W, s.D, s.pad = W, D, pad; s.CW = int(W + .5 * D + pad * 2); s.CH = int(H + .5 * D + pad * 2)
@@ -59,8 +64,8 @@ class Scene:
     def wall_left(s, d0, d1, h, x=0, seed=1, plain=False):
         """왼쪽 건물 벽(안쪽 면)과 창. 평면 x 고정, 깊이 d0..d1."""
         r = random.Random(seed)
+        if plain: grad(s, lambda z0, z1: [(x, d0, z0), (x, d1, z0), (x, d1, z1), (x, d0, z1)], h, 1.0); return
         s.poly([(x, d0, 0), (x, d1, 0), (x, d1, h), (x, d0, h)], WALL)
-        if plain: return
         for z in range(10, int(h) - 4, 12): s.poly([(x, d0, z), (x, d1, z), (x, d1, z + .8), (x, d0, z + .8)], WALLD)
         for dd in range(int(d0) + 6, int(d1) - 8, 16):
             for z in range(14, int(h) - 8, 12):
@@ -69,8 +74,8 @@ class Scene:
         s.poly([(x, d0, h - 3), (x, d1, h - 3), (x, d1, h), (x, d0, h)], dk(WALL, .7))
     def wall_back(s, x0, x1, d, h, seed=2, sign=False, plain=False):
         r = random.Random(seed)
+        if plain: grad(s, lambda z0, z1: [(x0, d, z0), (x1, d, z0), (x1, d, z1), (x0, d, z1)], h, 1.0); return
         s.poly([(x0, d, 0), (x1, d, 0), (x1, d, h), (x0, d, h)], WALL)
-        if plain: return
         for z in range(10, int(h) - 4, 12): s.poly([(x0, d, z), (x1, d, z), (x1, d, z + .8), (x0, d, z + .8)], WALLD)
         for xx in range(int(x0) + 6, int(x1) - 10, 16):
             for z in range(14, int(h) - 8, 12):
