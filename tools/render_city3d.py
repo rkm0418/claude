@@ -67,7 +67,9 @@ class Scene:
         dv = (e - a * Xs[None, :] - c * Ys[:, None]) / den
         zb = s.zb[Y0c:Y1c, X0c:X1c]; zm = s.zmin[Y0c:Y1c, X0c:X1c]
         if punch: zb[mk] = 1e9; zm[mk] = 1e9; return
-        zb[mk] = dv[mk]; np.minimum(zm, np.where(mk, dv, 1e9), out=zm)
+        if getattr(s, 'zmin_only', False): np.minimum(zb, np.where(mk, dv, 1e9), out=zb)                   # 겹쳐 그리는 둥근 덩어리 묶음: 가장 앞 면을 남긴다
+        else: zb[mk] = dv[mk]
+        np.minimum(zm, np.where(mk, dv, 1e9), out=zm)
         if face:
             xs, ds, zs = [p_[0] for p_ in pts], [p_[1] for p_ in pts], [p_[2] for p_ in pts]
             if max(xs) - min(xs) < 1e-6: s.faces.append(('x', xs[0], min(ds), max(ds), min(zs), max(zs)))

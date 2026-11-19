@@ -41,6 +41,9 @@ def tree(sc, x, d, h, kind, rng, spread=14):
         top = sc.P(x, d, h)
         for dx, dy, r in ((-spread * .45, 6, spread * .75), (spread * .45, 5, spread * .7), (0, -2, spread * .9), (-spread * .2, 12, spread * .6), (spread * .3, 11, spread * .6)):
             blob(sc, top[0] + dx, top[1] + dy, r, FALL[kind], rng)
+        sc.zmin_only = True; sc.zbox(x - 2, d - 1.5, 4, 3, h)                                                                          # 레이어 규칙: 줄기는 단단한 물체, 잎덩어리는 둥근 깊이
+        for ox_, oz_, rr_ in ((0, 4, .95), (-.45, 2, .75), (.45, 2, .75)): sc.zsphere(x + ox_ * spread, d, h + oz_, spread * rr_)
+        sc.zmin_only = False
     sc.jobs.append((d, draw))
 
 def build():
@@ -123,7 +126,7 @@ def build():
         lay = sc.img.copy(); ld = ImageDraw.Draw(lay)
         ld.polygon([sc.P(x1, d0, 0), sc.P(x1, d1, 0), sc.P(x1, d1, h), sc.P(x1, d0, h)], fill=(18, 20, 34))
         ld.polygon([sc.P(x1 - 14, cx - hw, 0), sc.P(x1, cx - hw, 0), sc.P(x1, cx + hw, 0), sc.P(x1 - 14, cx + hw, 0)], fill=(30, 34, 56))   # 안쪽 바닥(차가운 푸른 기운)
-        sc.img.paste(lay, (0, 0), mask); sc.px = sc.img.load(); sc.d = ImageDraw.Draw(sc.img)
+        sc.img.paste(lay, (0, 0), mask); sc.px = sc.img.load(); sc.d = ImageDraw.Draw(sc.img); sc.zclear(mask); sc.holes.append(('x', x1, cx - hw, cx + hw))     # 아치 입구는 걸어 들어갈 수 있는 구멍
         for k in range(21):                                                                                          # 아치 테두리(밝은 콘크리트)
             a = sc.P(x1, cx - hw * math.cos(math.pi * k / 20), 12 + 9 * math.sin(math.pi * k / 20)); sc.d.rectangle([a[0], a[1] - 2, a[0] + 1, a[1]], fill=(150, 148, 138))
         LC2 = [(214, 104, 44), (236, 160, 60), (170, 56, 36), (246, 206, 92), (190, 80, 40)]; rl = random.Random(77)
