@@ -18,7 +18,7 @@ def room(s, key, label, W, D, free, start, exits, rects=()):
 
 def main():
     # --- 광장(첫 장면)
-    a = C.landing(150, False, 'city3d_landing', True, False, False, 'r', False)
+    a = C.landing(150, False, 'city3d_landing', True, False, False, 'r', False, 30)
     dep = Image.new('RGB', (a.CW, a.CH), (255, 255, 255)); dd = ImageDraw.Draw(dep)
     for (x, d, z, r) in a.front: cx, cy = a.P(x, d, z); dd.ellipse([cx - r, cy - r, cx + r, cy + r], fill=((d + 2) * 3,) * 3); dd.rectangle([cx - r, cy - r - 1, cx + r, cy + r // 5], fill=(255, 255, 255))    # 앞줄 수풀이 아이 아랫도리를 가린다
     dd.polygon([a.P(12, 38, 0), a.P(82, 38, 0), a.P(82, 38, 9), a.P(12, 38, 9)], fill=((38 + 2) * 3,) * 3)

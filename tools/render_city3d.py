@@ -180,7 +180,7 @@ def back_buildings(s, W, D):
                 for ri, zz in enumerate(rows): s.poly([(xx, BD, zz), (xx + 5, BD, zz), (xx + 5, BD, zz + 7), (xx, BD, zz + 7)], (226, 188, 112) if (ci, ri) in lit else (14, 16, 32))
         wins(); bx += bw + g; bi += 1
 
-def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, baked=True, fade=None, dent=True):
+def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, baked=True, fade=None, dent=True, flen=46):
     D = 80; s = Scene(W, 170 if corridor else D, 130 if corridor else 70); rng = random.Random(5)
     if corridor:                                                                                   # 같은 보도블록 바닥의 긴 복도: 앞쪽은 낮은 연석, 맨 끝은 아래(앞)로 열려 어둠으로 나간다
         EX = W
@@ -193,7 +193,7 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
         back_buildings(s, W, D)
     else: s.wall_back(0, W, D, 60)
     if bed: s.wall_left(0, D, 60)
-    s.lamp(140 if corridor else 84, 74, 44, -1)                                                  # 광장 가로등은 오른쪽 끝 그라데이션에 가리지 않게 왼쪽으로
+    s.lamp(140 if corridor else 96, 74, 44, -1)                                                  # 광장 가로등은 오른쪽 끝 그라데이션에 가리지 않게 왼쪽으로
     if corridor:
         for lx in range(210, W - 40, 70): s.lamp(lx, 74, 44, -1)                                 # 같은 가로등을 뒷벽 쪽 한 줄로 나열
     s.bed = (12, 38, 70, 30, 9)
@@ -225,7 +225,7 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
     if fade:                                                                                   # 이동 통로 표시: 끝쪽으로 갈수록 검게 사라지는 그라데이션('r' 오른쪽 끝, 'l' 왼쪽 끝)
         for side in fade:
             for X in range(s.CW):
-                u = (X - (s.X0 + W - 46)) / 46.0 if side == 'r' else ((s.X0 + 46) - X) / 46.0
+                u = (X - (s.X0 + W - flen)) / float(flen) if side == 'r' else ((s.X0 + flen) - X) / float(flen)
                 if u <= 0: continue
                 f = min(1.0, u) * .92
                 for Y in range(s.CH): q = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (6, 7, 16)[i] * f) for i, v in enumerate(q))
@@ -269,7 +269,7 @@ def street():
 # ---------------- 장면: 복도가 정사각형 광장으로 커지는 곳 (가운데 인공 분수와 풀) ----------------
 SQ0, SQ1 = 110, 250                                                                               # 광장(정사각형) 가로 범위
 FC = (180, 43); FR = 22
-BEN = [(134, 62), (208, 62)]; BIN = (243, 68)                                                      # 풀밭 대신: 위쪽 왼쪽·오른쪽에 벤치 둘, 오른쪽에 쓰레기통 하나
+BEN = [(122, 42), (222, 42)]; BIN = (246, 48)                                                      # 풀밭 대신: 위쪽 왼쪽·오른쪽에 벤치 둘, 오른쪽에 쓰레기통 하나
 LAMPS = [(50, 54), (126, 76), (234, 76), (310, 54)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
 def disc(s, cx, cd, r, z, col, n=36):
     s.poly([(cx + r * math.cos(2 * math.pi * k / n), cd + r * math.sin(2 * math.pi * k / n), z) for k in range(n)], col)
@@ -320,8 +320,8 @@ def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
     ARC, AZ = (118, 124, 152), 30
     for ax in range(SQ0, SQ1 - 23, 28):
         s.box(ax, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6)); s.box(ax + 21, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6))
-        pts_o = [(ax + 1.5 + 12 * (1 - math.cos(math.pi * k / 16)), 86, AZ - 8 + 11 * math.sin(math.pi * k / 16)) for k in range(17)]
-        pts_i = [(ax + 1.5 + 12 * (1 - math.cos(math.pi * k / 16)) , 86, AZ - 8 + 8 * math.sin(math.pi * k / 16)) for k in range(17)]
+        zc = AZ - 8; pts_o = [(ax + 12 - 12 * math.cos(math.pi * k / 16), 86, zc + 12 * math.sin(math.pi * k / 16)) for k in range(17)]    # 바깥 반원(반지름 12) + 안쪽 반원(반지름 9): 같은 중심의 둥근 아치
+        pts_i = [(ax + 12 - 9 * math.cos(math.pi * k / 16), 86, zc + 9 * math.sin(math.pi * k / 16)) for k in range(17)]
         for k in range(16): s.poly([pts_o[k], pts_o[k + 1], pts_i[k + 1], pts_i[k]], dk(ARC, .95))
     s.box(SQ0, 86, SQ1 - SQ0, 3, 3, ARC, dk(ARC, .8), dk(ARC, .6), z0=AZ + 3)
     for lx, ld_ in LAMPS: s.lamp(lx, ld_, 44, -1)                                          # 분수 뒤는 비우고 양옆 뒷줄에 같은 가로등
@@ -336,7 +336,7 @@ def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
     return s.save(name) if save else s
 
 def main():
-    a, b = landing(), street(); landing(520, True, 'city3d_corridor'); fountain_scene()
+    a, b = landing(150, False, 'city3d_landing', True, True, True, None, True), street(); landing(520, True, 'city3d_corridor'); fountain_scene()
     ov = Image.new('RGB', (a.width * 2 + b.width * 2 + 50, max(a.height, b.height) * 2 + 20), (40, 40, 48))
     ov.paste(a.resize((a.width * 2, a.height * 2), Image.NEAREST), (10, 10)); ov.paste(b.resize((b.width * 2, b.height * 2), Image.NEAREST), (a.width * 2 + 40, 10))
     ov.save(os.path.join(OUT, 'city3d_overview.png')); print('city3d ok', a.size, b.size)
