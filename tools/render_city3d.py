@@ -602,9 +602,9 @@ def road_tunnel(name='city3d_roadtunnel', save=True, cover=False):
     seg(RV0, 0, RV0 + 1.6, RTD, (214, 206, 180)); seg(RV1 - 1.8, 0, RV1, RTD, (214, 206, 180))   # 차도 양옆 흰 실선
     for k in range(14, RTD - 10, 26): seg((RV0 + RV1) / 2 - 1.2, k, (RV0 + RV1) / 2 + 1.2, k + 12, (236, 214, 130))   # 가운데 점선
     E = RTD
-    s.poly([(WX, E, 0), (RTW, E, 0), (RTW, E, 72), (WX, E, 72)], (46, 40, 36))                           # 맨 끝 벽(콘크리트)
+    s.poly([(WX, E, 0), (RTW, E, 0), (RTW, E, 72), (WX, E, 72)], (176, 126, 82))                         # 맨 끝 벽(왼쪽 벽과 같은 노란빛 주황 패널)
     for xx in range(int(WX), RTW, 6):
-        for zz in range(0, 72, 6): s.poly([(xx, E, zz), (xx + 6.2, E, zz), (xx + 6.2, E, zz + 6), (xx, E, zz + 6)], tuple(int(v * (.9 + .16 * _nz(xx, zz, 4))) for v in ((74, 66, 58) if zz >= 8 else (96, 88, 78))))
+        for zz in range(0, 72, 6): s.poly([(xx, E, zz), (xx + 6.2, E, zz), (xx + 6.2, E, zz + 6), (xx, E, zz + 6)], tuple(int(v * (.9 + .16 * _nz(xx, zz, 4))) for v in (((186, 134, 88) if (zz // 6) % 2 == 0 else (176, 126, 82)) if zz >= 6 else (150, 112, 80))))
     ax0, ax1, abase, arise = RV0 - 8, RV1 + 6, 30, 22                                                   # 끝도 아치형 출구: 안쪽은 차가운 밤 하늘빛(따뜻한 빛 없음)
     AP = [(ax0, E, 0)] + [((ax0 + ax1) / 2 - ((ax1 - ax0) / 2) * math.cos(math.pi * k_ / 24), E, abase + arise * math.sin(math.pi * k_ / 24)) for k_ in range(0, 25)] + [(ax1, E, 0)]
     amask = Image.new('L', s.img.size, 0); ImageDraw.Draw(amask).polygon([s.P(*q) for q in AP], fill=255)
@@ -614,7 +614,7 @@ def road_tunnel(name='city3d_roadtunnel', save=True, cover=False):
         yy = 3 + kk * 4.2; ww = max(.5, 2.0 - kk * .28); cx_ = (RV0 + RV1) / 2; ald.rectangle([s.P(cx_ - ww, E, yy)[0], s.P(cx_, E, yy)[1], s.P(cx_ + ww, E, yy)[0], s.P(cx_, E, yy)[1] + max(1, s.k)], fill=(44, 48, 66))
     s.img.paste(alay, (0, 0), amask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img); s.zclear(amask); s.holes.append(('d', E, ax0, ax1))
     for q in AP[1:-1]:                                                                                   # 아치 테두리(밝은 콘크리트 띠)
-        a_ = s.P(*q); s.d.rectangle([a_[0] - s.k, a_[1] - 2 * s.k, a_[0] + s.k, a_[1]], fill=(176, 126, 82))
+        a_ = s.P(*q); s.d.rectangle([a_[0] - s.k, a_[1] - 2 * s.k, a_[0] + s.k, a_[1]], fill=(226, 182, 124))
     # 왼쪽 벽: 가로 결이 있는 연한 주황 패널 타일 + 위쪽 어두운 둥근 천장 띠 + 줄지어 켜진 등
     LAMPD = list(range(20, RTD - 8, 14))
     def lit(d): return .8 + .3 * max(0.0, math.cos(math.pi * ((d - 20) % 14 - 7) / 14 * 1.0)) * 0 + .0
