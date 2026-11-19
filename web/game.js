@@ -384,12 +384,11 @@ function isCorr(sc, vw) { return !!sc && (sc.kind === 'passage' || sc.x1 - sc.x0
 function camTarget() {
   let [fx, fy1] = scr(P.x, P.d); const fy = fy1 - zAt(P.x, P.d), vw = VW / S, vh = VH / S, c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   if (R.sections) {
-    // 카메라는 아이가 있는 구역(방 + 양쪽 통로 절반)의 방 가운데에 고정된다. 분기점을 넘어 다음 방이 켜지면 그 방 가운데로 쑥 이동한다.
-    // 구역의 방이 화면보다 길면 아이를 따라가고, 통로에서 방 가운데가 너무 멀면 아이가 화면 가장자리 안에 남도록만 끌려간다(빈 곳은 그대로 둔다).
-    const rm = ROOMS[Math.min(zone, ROOMS.length - 1)], w = rm ? rm.x1 - rm.x0 : 0, m = vw / 2 - 26;
-    let ax = (rm && w <= vw + 10) ? R.X0 + rm.x0 + w / 2 + R.D / 4 : fx;
-    ax = c(ax, fx - m, fx + m);
-    const sc = R.sections[secIdx(P.x)], cx = ax;
+    // 카메라는 아이의 가로 위치만으로 정해지는 연속 함수다(스프링·지연 없음). 방 안에서는 방 가운데에 멈춰 있고,
+    // 방을 벗어나면 아이와 같은 속도로(아이는 화면에 거의 고정, 맵이 움직인다) 다음 방 가운데까지 가서, 방에 들어오면 다시 멈춘다.
+    const pts = CAMK, n = pts.length, fk = (x) => { if (!n) return x; if (x <= pts[0][0]) return pts[0][1]; if (x >= pts[n - 1][0]) return pts[n - 1][1]; for (let i = 1; i < n; i++) if (x <= pts[i][0]) { const [x1, f1] = pts[i - 1], [x2, f2] = pts[i]; return x2 > x1 ? f1 + (f2 - f1) * (x - x1) / (x2 - x1) : f2; } return x; };
+    let f = 0; for (let k = -4; k <= 4; k++) f += fk(P.x + k * 3) / 9;                    // 멈춤↔이동 모서리를 ±12px 로 둥글려 출발·정지가 뚝 끊기지 않게 한다
+    const sc = R.sections[secIdx(P.x)], cx = R.X0 + f + R.D / 4;
     return [c(cx - vw / 2, 0, Math.max(0, R.CW - vw)), (sc && !isCorr(sc, vw)) ? (R.CH <= vh ? -(vh - R.CH) / 2 : c(R.CH / 2 - vh / 2, 0, R.CH - vh)) : (R.CH <= vh ? -(vh - R.CH) / 2 : c(fy - vh * .6, 0, R.CH - vh))];
   }
   return [R.CW <= vw ? -(vw - R.CW) / 2 : c(fx - vw / 2 + LEAD.v, 0, R.CW - vw), R.CH <= vh ? -(vh - R.CH) / 2 : c(fy - vh * .6, 0, R.CH - vh)];
@@ -499,7 +498,7 @@ function drawLabel() {                                                          
   ctx.fillStyle = 'rgba(11,9,16,.7)'; ctx.fillRect(4, 3, lbW * 2 + 8, 22); ctx.imageSmoothingEnabled = false; ctx.drawImage(lbC, 0, 0, 160, 10, 6, 5, 320, 20);
 }
 // ---- 구간 조명: 한 장의 긴 띠 안에서 아이가 걷는 대로 앞 구간은 켜지고 지나온 구간은 어두워진다
-let LS = null, DIVX = [], ROOMS = [], zone = 0; const FLK = [.2, .7, .1, .6, .3, .8, .5, .9, 1];
+let LS = null, DIVX = [], ROOMS = [], CAMK = [], zone = 0; const FLK = [.2, .7, .1, .6, .3, .8, .5, .9, 1];
 const secIdx = (x) => { const s = R.sections; for (let i = 0; i < s.length; i++) if (x < s[i].x1) return i; return s.length - 1; };
 // 분기점(통로 한가운데)이 띠를 구역으로 나눈다. 아이가 있는 구역만 켜지고, 분기점을 넘으면 뒤는 무너지듯 꺼지고 앞은 켜진다. 경계는 검은 띠.
 const zoneOf = (x) => { let z = 0; for (let i = 0; i < DIVX.length; i++) if (x > DIVX[i]) z = i + 1; return z; };
@@ -630,7 +629,7 @@ function update(dt) {
     else if (e.to) { if (e.type === 'trans' && !trans) startTrans(e); else if (!trans) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; CAMK = []; { const vw = VW / S; for (const rm of ROOMS) { const w = rm.x1 - rm.x0, cr = rm.x0 + w / 2; if (w <= vw + 10) { const h = Math.min(w / 2 + 4, 50); CAMK.push([cr - h, cr], [cr + h, cr]); } else CAMK.push([rm.x0 + 70, rm.x0 + 70], [rm.x1 - 70, rm.x1 - 70]); } } LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
@@ -650,8 +649,8 @@ function drawChild() {
 function draw(dt) {
   ctx.imageSmoothingEnabled = false; ctx.fillStyle = '#1e1618'; ctx.fillRect(0, 0, VW, VH); if (!R) return;
   const cz = camZoom(); ctx.save(); if (cz !== 1) { ctx.translate(VW / 2, VH * .55); ctx.scale(cz, cz); ctx.translate(-VW / 2, -VH * .55); }
-  const [tx, ty] = camTarget(); if (!cam.init) { cam.x = tx; cam.y = ty; cam.init = true; } else if (R.sections) { cam.x = smoothDamp(cam.x, tx, CAMV, 'x', .5, dt || .016); { const fx = R.X0 + P.x + P.d / 2, lim = VW / S / 2 - 12, cc = cam.x + VW / S / 2; if (fx > cc + lim) cam.x = fx - lim - VW / S / 2; else if (fx < cc - lim) cam.x = fx + lim - VW / S / 2; } cam.y = smoothDamp(cam.y, ty, CAMV, 'y', .3, dt || .016); } else { const k = 1 - Math.exp(-(dt || .016) * 7); cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; }
-  R.ox = -Math.round(cam.x); R.oy = -Math.round(cam.y);
+  const [tx, ty] = camTarget(); if (!cam.init) { cam.x = tx; cam.y = ty; cam.init = true; } else if (R.sections) { cam.x = tx; cam.y = ty; } else { const k = 1 - Math.exp(-(dt || .016) * 7); cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; }
+  R.ox = -Math.round(cam.x * S) / S; R.oy = -Math.round(cam.y * S) / S;
   ctx.drawImage(R.im, R.ox * S, R.oy * S, R.CW * S, R.CH * S); drawLight();
   const dot = (x, d, c, r = 1) => { const [X, Y] = scr(x, d); ctx.fillStyle = c; ctx.fillRect((R.ox + X - r / 2) * S, (R.oy + Y - r / 2) * S, r * S, r * S); };
   if (debug) {
