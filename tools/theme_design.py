@@ -92,7 +92,7 @@ def L_office(x, d, e, n): return col([(nz(x / 2, d / 2, 6) >= 0, (156, 160, 140)
 def L_tree(x, d, e, n): q = nz(x / 2, d / 2, 8); return col([(q >= 0, (126, 90, 56)), (q > .8, (146, 106, 66)), (nz(x, d, 4) > .95, (96, 150, 80)), (e > -2.5, (96, 68, 44))], n)
 def L_city(x, d, e, n):                                                        # 차도: 아스팔트 + 노란 중앙 점선 + 흰 가장자리선
     q = nz(x / 2, d / 2, 3); return col([(q >= 0, (46, 48, 62)), (q > .8, (52, 54, 70)), ((np.abs(e + 13) < .8) & (np.floor(x / 7) % 2 == 0), (206, 176, 76)), ((e > -3.4) & (e < -2.3), (150, 152, 170)), (e > -1.8, (84, 86, 106))], n)
-LANE = {'city': (lambda x, d, e, n: M.city_ground(x, d, e, n)), 'snow': L_snow, 'lake': L_lake, 'park': L_park, 'reed': L_reed, 'woods': L_woods, 'ridge': L_ridge, 'roofs': L_roofs, 'hall': L_hall, 'cabin': L_cabin, 'library': L_library, 'office': L_office, 'tree': L_tree}
+LANE = {'city': (lambda x, d, e, n: col([(np.ones_like(x, bool), (26, 28, 42)), ((np.floor(x / 16) + np.floor(d / 16)) % 3 == 0, (30, 32, 48)), (e > -1.5, (36, 38, 56))], n)), 'snow': L_snow, 'lake': L_lake, 'park': L_park, 'reed': L_reed, 'woods': L_woods, 'ridge': L_ridge, 'roofs': L_roofs, 'hall': L_hall, 'cabin': L_cabin, 'library': L_library, 'office': L_office, 'tree': L_tree}
 
 # ---------------- 통로 연속 벽 (상자를 이음새 없이 이어 붙인다) ----------------
 # (뒤쪽 높이, 앞쪽 높이, 뒤 색, 앞 색, 윗면 색)

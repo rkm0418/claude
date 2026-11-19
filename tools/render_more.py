@@ -241,7 +241,7 @@ def p_tstump(k, x, d, r): k.B(x, d, 7, 7, 6, (140, 96, 60)); k.B(x - .6, d - .6,
 
 def city_ground(x, d, e, n):                                                      # 사용자가 만든 광장의 매트한 보도블록: 16px 칸, 어두운 이음새(길도 같은 바닥)
     t = (np.floor(x / 16) + np.floor(d / 16)) % 3 == 0; seam = (np.abs(x % 16) < 1) | (np.abs(d % 16) < 1)
-    return col([(t, (38, 42, 64)), (~t, (44, 48, 72)), (seam, (28, 31, 50)), (e > -1.5, (66, 70, 98))], n)
+    return col([(t, (30, 32, 48)), (~t, (26, 28, 42)), (seam, (22, 24, 38)), (e > -1.5, (36, 38, 56))], n)
 def p_streetlamp(on=True, color=(255, 214, 150), rad=26, pw=.35):                 # 사용자가 만든 가로등: 가는 기둥 + 꺾인 팔 + 등
     def f(k, x, d, r):
         k.post(x, d, 44, (58, 62, 88)); k.B(x, d - .5, 9, 1.6, 1.4, (58, 62, 88), z0=44, solid=False); k.B(x + 6, d - 1, 5, 3, 1.6, (255, 228, 164) if on else (48, 46, 54), z0=43, solid=False)
