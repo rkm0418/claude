@@ -23,6 +23,9 @@ def layout(th, chain):                                                          
         if s['kind'] == 'passage':
             w = {'tunnel': r.randint(170, 240), 'hall': r.randint(80, 110), 'bend': r.randint(90, 120) if inter else r.randint(130, 170), 'zig': r.randint(160, 200), 'switch': r.randint(150, 190)}[sh]
             sg = 1 if d_in < D * .5 else -1
+            if s.get('bend') == 'down': sg = -1
+            if s.get('bend') == 'up': sg = 1
+            if s.get('len'): w = s['len']
             if sh == 'switch':                                                      # ㄱ 밑에 ㄴ이 붙은 S자(ㄹ) 공간: 위 칸 오른쪽으로 → 내려와 가운데 칸 왼쪽으로 → 내려와 아래 칸 오른쪽으로
                 d_in = D * .2; dB = d_in + 30; dC = dB + 30; d_out = dC                                        # 3차원: 앞 칸(바닥) → 계단으로 뒤로 올라 가운데 칸(높음) → 계단으로 더 올라 뒤 칸(가장 높음) → 오른쪽 끝에서 계단으로 내려온다
                 pts = [(x, d_in), (x + w * .82, d_in), (x + w * .82, dB), (x + w * .18, dB), (x + w * .18, dC), (x + w, dC)]
@@ -36,6 +39,7 @@ def layout(th, chain):                                                          
             elif sh == 'square': w = r.randint(56, 60) if inter else r.randint(78, 84); h = min(D - 6, w)
             else: w = r.randint(80, 96) if inter else r.randint(92, 112); h = r.randint(46, 52) if inter else r.randint(56, 66)
             d_out = r.uniform(D * .34, D * .66)
+            if s.get('dout') is not None: d_out = D * s['dout']
             if nxt is not None and nxt['shape'] == 'switch': d_out = D * .2       # S자 통로로 들어가기 좋은 높이에서 나간다
             d0 = max(3, min(d_in, d_out) - 16); d1 = min(D - 3, d0 + h)
             if d1 < max(d_in, d_out) + 16: d1 = min(D - 3, max(d_in, d_out) + 16); d0 = max(3, d1 - h)
@@ -181,7 +185,7 @@ def strip_props(name, k, tr, inside, rng):
     for sec in secs:
         rr = rnd(sec['key'] + 'l')
         if sec['kind'] == 'passage' and sec['shape'] == 'switch': xs = []
-        elif sec['kind'] == 'passage': xs = [(x, lane_d(sec, x) + sec['hw'] + 3) for x in np.arange(sec['x0'] + 50, sec['x1'] - 20, 120.0)]
+        elif sec['kind'] == 'passage': xs = [(x, lane_d(sec, x) + sec['hw'] + 3) for x in np.arange(sec['x0'] + 50, sec['x1'] - 20, float(sec['s'].get('lamp', 120)))]
         else:
             c = chosen.get(sec['key']); xs = [(c[0][0] + (26 if c[0][0] < (sec['x0'] + sec['x1']) / 2 else -26), min(sec['ext'][1] - 6, D - 6))] if (c and not c[1]) else []
         for x, d in xs:
