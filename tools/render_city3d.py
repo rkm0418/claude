@@ -440,11 +440,9 @@ def cardboard(s, x, d, w, dp, h, z0=0, tone=0):
     """쌓아 둔 종이 상자: 상자마다 색을 달리하고 모서리선·테이프 띠로 경계를 나눈다."""
     T = [((172, 132, 86), (138, 102, 62), (110, 80, 48)), ((150, 114, 74), (120, 88, 54), (96, 68, 40)), ((188, 148, 98), (152, 114, 72), (122, 90, 56))][tone % 3]
     s.box(x, d, w, dp, h, T[0], T[1], T[2], z0=z0); outline(s, x, d, w, dp, h, z0, dk(T[2], .55), .7)
-    s.poly([(x + w / 2 - 1, d, z0), (x + w / 2 + 1, d, z0), (x + w / 2 + 1, d, z0 + h), (x + w / 2 - 1, d, z0 + h)], (206, 178, 124), z=False)      # 앞면 테이프 띠
-    s.poly([(x + w / 2 - 1, d, z0 + h), (x + w / 2 + 1, d, z0 + h), (x + w / 2 + 1, d + dp, z0 + h), (x + w / 2 - 1, d + dp, z0 + h)], (206, 178, 124), z=False)   # 윗면 테이프 띠
 
 def bin_box(s, x, d, col, w=12, dp=8, h=18):                                                      # 분리수거함: 몸통 + 뚜껑 + 색 띠
-    s.box(x, d, w, dp, h, dk(col, .8), dk(col, .65), dk(col, .5)); outline(s, x, d, w, dp, h, 0, dk(col, .3)); s.box(x - .6, d - .6, w + 1.2, dp + 1.2, 2, dk(col, 1.0), dk(col, .8), dk(col, .6), z0=h); outline(s, x - .6, d - .6, w + 1.2, dp + 1.2, 2, h, dk(col, .35), .5)
+    s.box(x, d, w, dp, h, dk(col, .8), dk(col, .65), dk(col, .5)); s.box(x - .6, d - .6, w + 1.2, dp + 1.2, 2, dk(col, 1.0), dk(col, .8), dk(col, .6), z0=h)
     s.box(x + 1.5, d - .1, w - 3, .3, 4, (200, 204, 214), (200, 204, 214), (200, 204, 214), z0=h - 8)
 BINS = [(66, 120, 210), (60, 160, 96), (220, 190, 60), (214, 214, 220), (110, 114, 128)]          # 플라스틱·유리·캔·종이·일반
 def sq_scene(kind='recycle', W=300, name='city3d_recycle', save=True, fade=''):
