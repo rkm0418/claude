@@ -163,7 +163,7 @@ def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
     s.img.paste(lay, (0, 0), mask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
 
 # ---------------- 장면 1: 광장 ----------------
-def landing(W=150, corridor=False, name='city3d_landing'):
+def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, baked=True):
     D = 80; s = Scene(W, 120 if corridor else D, 130 if corridor else 70); rng = random.Random(5)
     if corridor:                                                                                   # 같은 보도블록 바닥의 긴 복도: 앞쪽은 낮은 연석, 맨 끝은 아래(앞)로 열려 어둠으로 나간다
         EX = W - 56
@@ -184,31 +184,37 @@ def landing(W=150, corridor=False, name='city3d_landing'):
                     for zz in range(8, int(bh) - 8, 12): s.poly([(xx, D + 8, zz), (xx + 5, D + 8, zz), (xx + 5, D + 8, zz + 7), (xx, D + 8, zz + 7)], (14, 16, 32))
             s.jobs.append((D + 7.5, wins)); bx += bw + g
     else: s.wall_back(0, W, D, 60)
-    s.wall_left(0, D, 60)
+    if bed: s.wall_left(0, D, 60)
     s.lamp(140, 74, 44, -1)
     if corridor:
         for lx in range(210, W - 40, 70): s.lamp(lx, 74, 44, -1)                                 # 같은 가로등을 뒷벽 쪽 한 줄로 나열
-    # 인공 수풀 화단(왼쪽 안쪽): 낮은 콘크리트 화단 위에 같은 모양의 덩어리
-    px0, pd0, pw, pdp, ph = 12, 38, 70, 30, 9
-    s.box(px0, pd0, pw, pdp, ph, (60, 64, 88), (66, 70, 96), (52, 56, 80))
-    s.poly([(px0, pd0, ph), (px0 + pw, pd0, ph), (px0 + pw, pd0 + pdp, ph), (px0, pd0 + pdp, ph)], (48, 40, 36))   # 흙
-    def clump(x, d, r=9, dent=0):
-        def draw():
-            cx, cy = s.P(x, d, ph + 8 - dent); hedge(s.d, cx, cy, r, rng)
-        s.jobs.append((d, draw))
-    for x in range(20, 80, 12):
-        for d, dent in ((62, 0), (51, 0), (41, 0)):
-            if d == 51 and 38 < x < 66: continue                                                   # 가운데는 움푹(아이가 있는 곳)
-            clump(x, d, 9, dent)
-    for x in (44, 56): clump(x, 58, 9, 6)                                                         # 꺼진 덩어리
-    ch = Image.open(os.path.join(SPR, 'child8', 'child_d_idle.png')).convert('RGBA'); ch = ch.resize((21, 36), Image.NEAREST)
-    def child():
-        cx, cy = s.P(50, 50, ph + 2); s.img.paste(ch, (cx - 10, cy - 30), ch)
-    s.jobs.append((52, child))
-    for _ in range(26):                                                                            # 흩어진 잎
-        lx, ld = rng.uniform(20, 84), rng.uniform(26, 38)
-        px_, py_ = s.P(lx, ld, 0); s.px[px_, py_] = (60, 150, 80); s.px[px_ + 1, py_] = (46, 122, 66)
-    s.run(); return s.save(name)
+    s.bed = (12, 38, 70, 30, 9)
+    s.front = []
+    if bed:
+        # 인공 수풀 화단(왼쪽 안쪽): 낮은 콘크리트 화단 위에 같은 모양의 덩어리
+        px0, pd0, pw, pdp, ph = 12, 38, 70, 30, 9
+        s.box(px0, pd0, pw, pdp, ph, (60, 64, 88), (66, 70, 96), (52, 56, 80))
+        s.poly([(px0, pd0, ph), (px0 + pw, pd0, ph), (px0 + pw, pd0 + pdp, ph), (px0, pd0 + pdp, ph)], (48, 40, 36))   # 흙
+        s.front = []
+        def clump(x, d, r=9, dent=0):
+            if d == 41: s.front.append((x, d, ph + 8 - dent, r))
+            def draw():
+                cx, cy = s.P(x, d, ph + 8 - dent); hedge(s.d, cx, cy, r, rng)
+            s.jobs.append((d, draw))
+        for x in range(20, 80, 12):
+            for d, dent in ((62, 0), (51, 0), (41, 0)):
+                if d == 51 and 38 < x < 66: continue                                                   # 가운데는 움푹(아이가 있는 곳)
+                clump(x, d, 9, dent)
+        for x in (44, 56): clump(x, 58, 9, 6)                                                         # 꺼진 덩어리
+        ch = Image.open(os.path.join(SPR, 'child8', 'child_d_idle.png')).convert('RGBA'); ch = ch.resize((21, 36), Image.NEAREST)
+        def child():
+            cx, cy = s.P(50, 50, ph + 2); s.img.paste(ch, (cx - 10, cy - 30), ch)
+        if baked: s.jobs.append((52, child))
+        for _ in range(26):                                                                            # 흩어진 잎
+            lx, ld = rng.uniform(20, 84), rng.uniform(26, 38)
+            px_, py_ = s.P(lx, ld, 0); s.px[px_, py_] = (60, 150, 80); s.px[px_ + 1, py_] = (46, 122, 66)
+    s.run(); s.lampx = list(range(140, W - 40, 70)) if corridor else [140]
+    return s.save(name) if save else s
 
 # ---------------- 장면 2: 긴 거리 (새벽 직전의 큰 도시: 길고 넓다) ----------------
 def street():

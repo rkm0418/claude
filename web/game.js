@@ -629,7 +629,7 @@ function update(dt) {
     else if (e.to) { if (e.type === 'trans' && !trans) startTrans(e); else if (!trans) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.sections ? 1.5 : (R.CH > 140 ? 1 : 2); R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; CAMK = []; { const vw = VW / S; for (const rm of ROOMS) { const w = rm.x1 - rm.x0, cr = rm.x0 + w / 2; if (w <= vw + 10) { const h = Math.min(w / 2 + 4, 50); CAMK.push([cr - h, cr], [cr + h, cr]); } else CAMK.push([rm.x0 + 70, rm.x0 + 70], [rm.x1 - 70, rm.x1 - 70]); } } LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.sections ? 1.5 : (R.S || (R.CH > 140 ? 1 : 2)); R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; CAMK = []; { const vw = VW / S; for (const rm of ROOMS) { const w = rm.x1 - rm.x0, cr = rm.x0 + w / 2; if (w <= vw + 10) { const h = Math.min(w / 2 + 4, 50); CAMK.push([cr - h, cr], [cr + h, cr]); } else CAMK.push([rm.x0 + 70, rm.x0 + 70], [rm.x1 - 70, rm.x1 - 70]); } } LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
@@ -742,7 +742,7 @@ addEventListener('resize', fit); fit();
   for (const k in G.child) frames[k] = await img(G.child[k]);
   for (const k in (G.chaser || {})) chFrames[k] = await img(G.chaser[k]);
   if (G.adult) adultIm = await img(G.adult);
-  const sk = (location.hash || '#city0').slice(1), st = G.starts[sk] || G.starts.city0 || G.starts.snow;                  // 기본 시작: 초반 도시 띠의 첫 방
+  const sk = (location.hash || '#city0').slice(1), st = G.starts[sk] || G.starts.city0 || G.starts.snow || Object.values(G.starts)[0];                  // 기본 시작: 초반 도시 띠의 첫 방
   await enter(st.room, [st.x, st.d]);
   let last = performance.now();
   const loop = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; try { update(dt); draw(dt); } catch (e) { console.error(e); } requestAnimationFrame(loop); };
