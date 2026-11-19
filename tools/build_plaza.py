@@ -93,8 +93,8 @@ def build(check=False):
     sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, T.D - 4, T.D], to='autumn', spawn=[44, 20], type='trans', dir='B')])
     import render_autumn as AU
     r9 = AU.build()
+    AU_W, AU_D = r9.W, r9.D
     def free_au(x, d): return 4 < x < AU_W - 4 and 3 < d < AU_D - 4
-    AU_W, AU_D = 112, 112
     sau, rau = room(r9, 'autumn', '가을 낙엽길', AU_W, AU_D, free_au, [44, 20], [dict(zone=[27, 33, 12, 28], to='tunnel', spawn=[52, T.D - 18], type='trans', dir='L')])
     r8 = C.street(True, 'out'); D8 = 480
     def free_o(x, d): return 4 < x < 171 and 2 < d < r8.erode_front - 6                          # 끝에서 뾰족하게 번져 오는 검은 이빨 앞에서 막힌다(로딩 안 된 곳)
