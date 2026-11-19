@@ -41,14 +41,14 @@ def main():
     # --- 복도가 정사각형 광장으로 커지는 곳(인공 분수와 풀)
     f = C.fountain_scene(330, 'city3d_fountain', False, 'lr'); fx, fd = C.FC; fr = C.FR
     dep3 = Image.new('RGB', (f.CW, f.CH), (255, 255, 255)); d3 = ImageDraw.Draw(dep3); v = ((fd - fr + 4) + 2) * 3          # 분수가 뒤로 지나가는 아이를 가린다
-    d3.polygon([f.P(fx + fr * math.cos(t), fd + fr * math.sin(t), z) for z in (0, 6) for t in [k * math.pi / 18 for k in range(36)]], fill=(v,) * 3)
-    for z in (0, 6): d3.polygon([f.P(fx + fr * math.cos(t), fd + fr * math.sin(t), z) for t in [k * math.pi / 18 for k in range(36)]], fill=(v,) * 3)
-    d3.rectangle([f.P(fx - 10, fd, 0)[0], f.P(fx, fd, 27)[1], f.P(fx + 10, fd, 0)[0], f.P(fx, fd, 0)[1]], fill=(v,) * 3)
+    for z in (0, 6): d3.polygon([f.P(fx - fr, fd - fr, z), f.P(fx + fr, fd - fr, z), f.P(fx + fr, fd + fr, z), f.P(fx - fr, fd + fr, z)], fill=(v,) * 3)
+    d3.polygon([f.P(fx - fr, fd - fr, 0), f.P(fx + fr, fd - fr, 0), f.P(fx + fr, fd - fr, 6), f.P(fx - fr, fd - fr, 6)], fill=(v,) * 3)
+    d3.rectangle([f.P(fx - 10, fd, 0)[0], f.P(fx, fd, 27)[1], f.P(fx + 10, fd, 0)[0], f.P(fx, fd, 6)[1]], fill=(v,) * 3)
     def free_f(x, d):
         if x < 3 or x > 329.5: return False
-        if math.hypot(x - fx, (d - fd)) < fr + 3: return False
+        if abs(x - fx) < fr + 3 and abs(d - fd) < fr + 3: return False
         if any(abs(x - lx) < 4 and abs(d - ld_) < 4 for lx, ld_ in C.LAMPS): return False
-        if any(bx - 3 < x < bx + 19 and bd - 3 < d < bd + 9 for bx, bd in C.BEN) or (C.BIN[0] - 3 < x < C.BIN[0] + 8 and C.BIN[1] - 3 < d < C.BIN[1] + 8): return False
+        if any(bx - 3 < x < bx + 33 and bd - 3 < d < bd + 9 for bx, bd in C.BEN) or (C.BIN[0] - 3 < x < C.BIN[0] + 8 and C.BIN[1] - 3 < d < C.BIN[1] + 8): return False
         if C.SQ0 + 4 < x < C.SQ1 - 4: return 8 < d < 78
         return 37 < d < 56
     sf, rf = room(f, 'fountain', '분수 광장', 330, 170, free_f, [14, 46], [dict(zone=[0, 5, 37, 56], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[324, 330, 37, 56], to=None, type='trans', dir='R')])
