@@ -41,9 +41,9 @@ def main():
     # --- 복도가 정사각형 광장으로 커지는 곳(인공 분수와 풀)
     f = C.fountain_scene(410, 'city3d_fountain', False, 'lr'); fx, fd = C.FC; fr = C.FR
     dep3 = Image.new('RGB', (f.CW, f.CH), (255, 255, 255)); d3 = ImageDraw.Draw(dep3); v = ((fd - fr + 4) + 2) * 3          # 분수가 뒤로 지나가는 아이를 가린다
-    for z in (0, 7): d3.polygon([f.P(fx - fr, fd - fr, z), f.P(fx + fr, fd - fr, z), f.P(fx + fr, fd + fr, z), f.P(fx - fr, fd + fr, z)], fill=(v,) * 3)
-    d3.polygon([f.P(fx - fr, fd - fr, 0), f.P(fx + fr, fd - fr, 0), f.P(fx + fr, fd - fr, 7), f.P(fx - fr, fd - fr, 7)], fill=(v,) * 3)
-    d3.rectangle([f.P(fx - 9, fd, 0)[0], f.P(fx, fd, 28)[1], f.P(fx + 9, fd, 0)[0], f.P(fx, fd, 7)[1]], fill=(v,) * 3)
+    for z in (0, 7): d3.polygon([f.P1(fx - fr, fd - fr, z), f.P1(fx + fr, fd - fr, z), f.P1(fx + fr, fd + fr, z), f.P1(fx - fr, fd + fr, z)], fill=(v,) * 3)
+    d3.polygon([f.P1(fx - fr, fd - fr, 0), f.P1(fx + fr, fd - fr, 0), f.P1(fx + fr, fd - fr, 7), f.P1(fx - fr, fd - fr, 7)], fill=(v,) * 3)
+    d3.rectangle([f.P1(fx - 9, fd, 0)[0], f.P1(fx, fd, 28)[1], f.P1(fx + 9, fd, 0)[0], f.P1(fx, fd, 7)[1]], fill=(v,) * 3)
     def free_f(x, d):
         if x < 3 or x > 409.5: return False
         if abs(x - fx) < fr + 3 and abs(d - fd) < fr + 3: return False

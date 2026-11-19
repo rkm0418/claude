@@ -20,28 +20,29 @@ def grad(s, quad, h, k):                                                        
         f = i / max(1, n - 1); c = tuple(int(v * k * .72) for v in WALL); s.poly(quad(i * h / n, (i + 1) * h / n + .6), c)
 
 class Scene:
-    def __init__(s, W, D, H, pad=8):
-        s.W, s.D, s.pad = W, D, pad; s.CW = int(W + .5 * D + pad * 2); s.CH = int(H + .5 * D + pad * 2)
+    def __init__(s, W, D, H, pad=8, k=1):                                                    # k: 그림 해상도 배율(2면 도트가 절반 크기, 좌표·크기는 그대로)
+        s.W, s.D, s.pad, s.k = W, D, pad, k; s.CW = int(W + .5 * D + pad * 2); s.CH = int(H + .5 * D + pad * 2)
         s.X0, s.Y0 = pad, s.CH - pad
-        s.img = Image.new('RGB', (s.CW, s.CH), (12, 14, 30)); s.d = ImageDraw.Draw(s.img); s.px = s.img.load()
+        s.img = Image.new('RGB', (s.CW * k, s.CH * k), (12, 14, 30)); s.d = ImageDraw.Draw(s.img); s.px = s.img.load()
         s.jobs = []                                     # (깊이, 그리기 함수) — 먼 것부터
-    def P(s, x, d, z=0): return (round(s.X0 + x + .5 * d), round(s.Y0 - .5 * d - z))
+    def P1(s, x, d, z=0): return (round(s.X0 + x + .5 * d), round(s.Y0 - .5 * d - z))          # 논리 좌표(깊이 지도용)
+    def P(s, x, d, z=0): return (round((s.X0 + x + .5 * d) * s.k), round((s.Y0 - .5 * d - z) * s.k))
     def poly(s, pts, col): s.d.polygon([s.P(*p) for p in pts], fill=col)
     def floor(s, fn, x0=0, x1=None, d0=0, d1=None, z=0):
         """바닥(높이 z) 영역을 화소마다 칠한다. fn(x, d) -> 색 또는 None."""
-        x1 = s.W if x1 is None else x1; d1 = s.D if d1 is None else d1
-        for Y in range(int(s.Y0 - .5 * d1 - z) - 1, int(s.Y0 - .5 * d0 - z) + 2):
-            d = (s.Y0 - z - Y - .5) / .5
+        x1 = s.W if x1 is None else x1; d1 = s.D if d1 is None else d1; k = s.k; IW, IH = s.img.size
+        for Y in range(int((s.Y0 - .5 * d1 - z) * k) - 1, int((s.Y0 - .5 * d0 - z) * k) + 2):
+            d = (s.Y0 - z - (Y + .5) / k) / .5
             if not (d0 <= d < d1): continue
-            for X in range(int(s.X0 + x0), int(s.X0 + x1 + .5 * d1) + 2):
-                x = X + .5 - s.X0 - .5 * d
-                if x0 <= x < x1 and 0 <= X < s.CW and 0 <= Y < s.CH:
+            for X in range(int((s.X0 + x0) * k), int((s.X0 + x1 + .5 * d1) * k) + 2):
+                x = (X + .5) / k - s.X0 - .5 * d
+                if x0 <= x < x1 and 0 <= X < IW and 0 <= Y < IH:
                     c = fn(x, d)
                     if c: s.px[X, Y] = c
     def glow(s, x, d, r, col=LAMPC, power=.5, z=0):
-        cx, cy = s.P(x, d, z)
-        for Y in range(max(0, cy - r // 2 - 1), min(s.CH, cy + r // 2 + 2)):
-            for X in range(max(0, cx - r), min(s.CW, cx + r + 1)):
+        cx, cy = s.P(x, d, z); r = r * s.k; IW, IH = s.img.size
+        for Y in range(max(0, cy - r // 2 - 1), min(IH, cy + r // 2 + 2)):
+            for X in range(max(0, cx - r), min(IW, cx + r + 1)):
                 q = math.hypot(X - cx, (Y - cy) * 2)
                 if q < r:
                     f = round((1 - q / r) ** 2.2 * power * 8) / 8; p = s.px[X, Y]
@@ -53,10 +54,10 @@ class Scene:
     def lamp(s, x, d, h=46, side=1):
         """가로등: 기둥 + 꺾인 팔 + 등. 불빛은 바닥에 번진다(등 아래)."""
         def draw():
-            b = s.P(x, d, 0); t = s.P(x, d, h); tt = s.P(x + side * 9, d, h + 1)
-            s.d.rectangle([b[0] - 1, b[1] + 0, b[0] + 1, b[1] + 1], fill=dk(POLE, .7))
-            s.d.line([b, t], fill=POLE, width=2); s.d.line([t, tt], fill=POLE, width=2)
-            s.d.rectangle([tt[0] - 3, tt[1], tt[0] + 3, tt[1] + 2], fill=(255, 228, 164)); s.d.line([tt[0] - 3, tt[1] - 1, tt[0] + 3, tt[1] - 1], fill=(96, 98, 124))
+            k = s.k; b = s.P(x, d, 0); t = s.P(x, d, h); tt = s.P(x + side * 9, d, h + 1)
+            s.d.rectangle([b[0] - k, b[1], b[0] + k, b[1] + k], fill=dk(POLE, .7))
+            s.d.line([b, t], fill=POLE, width=2 * k); s.d.line([t, tt], fill=POLE, width=2 * k)
+            s.d.rectangle([tt[0] - 3 * k, tt[1], tt[0] + 3 * k, tt[1] + 2 * k], fill=(255, 228, 164)); s.d.rectangle([tt[0] - 3 * k, tt[1] - k, tt[0] + 3 * k, tt[1] - 1], fill=(96, 98, 124))
         s.jobs.append((d, draw)); s.glow(x + side * 9, d, 30, power=.55)
     def run(s):
         for _, f in sorted(s.jobs, key=lambda j: -j[0]): f()
@@ -87,7 +88,7 @@ class Scene:
             s.poly([(sx + 2, d, h - 16), (sx + 38, d, h - 16), (sx + 38, d, h - 10), (sx + 2, d, h - 10)], (236, 84, 150))
             s.poly([(sx + 4, d, h - 15), (sx + 9, d, h - 15), (sx + 9, d, h - 12), (sx + 4, d, h - 12)], (255, 220, 240))
     def save(s, name):
-        s.img.save(os.path.join(OUT, name + '.png')); s.img.resize((s.CW * 2, s.CH * 2), Image.NEAREST).save(os.path.join(OUT, name + '_x2.png'))
+        s.img.save(os.path.join(OUT, name + '.png')); s.img.resize((s.CW * 2, s.CH * 2), Image.NEAREST if s.k <= 2 else Image.BOX).save(os.path.join(OUT, name + '_x2.png'))
         return s.img
 
 def paving(x, d):
@@ -302,7 +303,7 @@ def curb_union(s, rects, H):                                                    
         s.poly([(ix, idd, H), (ix + 1.02, idd, H), (ix + 1.02, idd + 1.02, H), (ix, idd + 1.02, H)], CURBT)
 
 def fountain_scene(W=410, name='city3d_fountain', save=True, fade='lr'):
-    D = SQD; s = Scene(W, 215, 130)
+    D = SQD; s = Scene(W, 215, 130, k=2)                                                            # 2배 해상도: 사선 연석의 계단이 절반 크기
     back_buildings(s, W, D)                                                                         # 가장 먼 건물부터 그린다
     s.floor(paving, x0=0, x1=W, d0=C0, d1=C1); s.floor(paving2, x0=SQ0, x1=SQ1, d0=SQF, d1=SQD)      # 좌우 복도 + 한가운데 높이에서 위·아래로 넓어지는 광장(벽돌 포장)
     s.floor(lambda x, d: dk(paving2(x, d), .08 + .92 * min(1.0, d / 34.0)), x0=P0, x1=P1, d0=0, d1=SQF)   # 아래쪽 가운데 통로(끝으로 갈수록 검게)
@@ -343,11 +344,11 @@ def fountain_scene(W=410, name='city3d_fountain', save=True, fade='lr'):
     for lx, ld_ in LAMPS: s.lamp(lx, ld_, 52, -1)                                          # 분수 뒤는 비우고 양옆 뒷줄에 같은 가로등
     s.run()
     for side in (fade or ''):
-        for X in range(s.CW):
-            u = (X - (s.X0 + W - 46)) / 46.0 if side == 'r' else ((s.X0 + 46) - X) / 46.0
+        for X in range(s.img.size[0]):
+            Xl = X / s.k; u = (Xl - (s.X0 + W - 46)) / 46.0 if side == 'r' else ((s.X0 + 46) - Xl) / 46.0
             if u <= 0: continue
             f = min(1.0, u) * .92
-            for Y in range(s.CH): q = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (6, 7, 16)[i] * f) for i, v in enumerate(q))
+            for Y in range(s.img.size[1]): q = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (6, 7, 16)[i] * f) for i, v in enumerate(q))
     s.lampx = [l[0] for l in LAMPS]
     return s.save(name) if save else s
 
