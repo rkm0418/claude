@@ -178,7 +178,7 @@ def back_buildings(s, W, D):
         def wins(cols=cols, rows=rows, lit=lit):
             for ci, xx in enumerate(cols):
                 for ri, zz in enumerate(rows): s.poly([(xx, BD, zz), (xx + 5, BD, zz), (xx + 5, BD, zz + 7), (xx, BD, zz + 7)], (226, 188, 112) if (ci, ri) in lit else (14, 16, 32))
-        s.jobs.append((BD - .5, wins)); bx += bw + g; bi += 1
+        wins(); bx += bw + g; bi += 1
 
 def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, baked=True, fade=None, dent=True):
     D = 80; s = Scene(W, 170 if corridor else D, 130 if corridor else 70); rng = random.Random(5)
@@ -283,21 +283,50 @@ def grass(x, d):
     return (46, 104, 64) if (int(x // 4) + int(d // 4)) % 2 == 0 else (40, 94, 58)                # 일정한 무늬의 인조 잔디
 def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
     D = 80; s = Scene(W, 170, 130); S0 = 34
+    back_buildings(s, W, D)                                                                         # 가장 먼 건물부터 그린다
     s.floor(paving, x0=0, x1=W, d0=S0, d1=D); s.floor(paving, x0=SQ0, x1=SQ1, d0=6, d1=S0)
     s.box(0, D, W, 3, 4, CURBT, CURBF, CURBR)                                                      # 뒤 연석
     s.box(0, 31, SQ0, 3, 4, CURBT, CURBF, CURBR); s.box(SQ1, 31, W - SQ1, 3, 4, CURBT, CURBF, CURBR)   # 복도 부분의 앞 연석
     s.box(SQ0, 3, SQ1 - SQ0, 3, 4, CURBT, CURBF, CURBR)                                            # 광장 앞 연석
     s.box(SQ0, 6, 3, 25, 4, CURBT, CURBF, CURBR); s.box(SQ1 - 3, 6, 3, 25, 4, CURBT, CURBF, CURBR)  # 복도→광장으로 넓어지는 옆 연석
-    for (gx0, gx1, gd0, gd1) in ((SQ0 + 8, SQ0 + 34, 10, 28), (SQ1 - 34, SQ1 - 8, 10, 28), (SQ0 + 8, SQ0 + 34, 58, 76), (SQ1 - 34, SQ1 - 8, 58, 76)):   # 풀밭 넷(광장 네 모퉁이)
+    rr = random.Random(21)
+    def bed(gx0, gx1, gd0, gd1):                                                                   # 회양목 울타리를 두른 장미 화단(낮은 울타리 + 안쪽 잔디와 분홍 꽃)
         s.floor(grass, x0=gx0, x1=gx1, d0=gd0, d1=gd1, z=0)
-        for (a, b, c, d_) in ((gx0, gd0 - 1, gx1 - gx0, 1), (gx0, gd1, gx1 - gx0, 1), (gx0 - 1, gd0, 1, gd1 - gd0), (gx1, gd0, 1, gd1 - gd0)): s.box(a, b, c, d_, 2, (60, 64, 88), (50, 54, 76), (44, 48, 68))
+        H1, H2, H3 = (34, 84, 56), (28, 70, 48), (22, 56, 40)
+        for (a_, b_, c_, d_) in ((gx0, gd0 - 3, gx1 - gx0, 3), (gx0, gd1, gx1 - gx0, 3), (gx0 - 3, gd0 - 3, 3, gd1 - gd0 + 6), (gx1, gd0 - 3, 3, gd1 - gd0 + 6)): s.box(a_, b_, c_, d_, 5, H1, H2, H3)
+        def roses():
+            for _ in range(int((gx1 - gx0) * (gd1 - gd0) / 26)):
+                x_, d_ = rr.uniform(gx0 + 3, gx1 - 3), rr.uniform(gd0 + 2, gd1 - 2); px_, py_ = s.P(x_, d_, 6)
+                col_ = rr.choice(((186, 76, 116), (186, 76, 116), (210, 120, 150), (214, 150, 96)))
+                s.px[px_, py_] = col_; s.px[px_ + 1, py_] = col_; s.px[px_, py_ - 1] = dk(col_, .7)
+        s.jobs.append((gd1 - 1, roses))
+    for (gx0, gx1, gd0, gd1) in ((SQ0 + 6, SQ0 + 44, 9, 27), (SQ1 - 44, SQ1 - 6, 9, 27), (SQ0 + 10, SQ0 + 36, 59, 73), (SQ1 - 36, SQ1 - 10, 59, 73)): bed(gx0, gx1, gd0, gd1)
     cx, cd = FC
-    cyl(s, cx, cd, FR, 0, 6, (74, 78, 106), (58, 62, 88)); disc(s, cx, cd, FR - 3, 5, (30, 64, 118))   # 분수 바닥 + 물
-    for rr in (14, 9): [s.poly([(cx + rr * math.cos(t), cd + rr * math.sin(t), 5.2), (cx + (rr + 1) * math.cos(t), cd + (rr + 1) * math.sin(t), 5.2), (cx + (rr + 1) * math.cos(t + .25), cd + (rr + 1) * math.sin(t + .25), 5.2), (cx + rr * math.cos(t + .25), cd + rr * math.sin(t + .25), 5.2)], (70, 118, 176)) for t in [k * .8 for k in range(8)]]
-    cyl(s, cx, cd, 4, 5, 17, (84, 88, 116), (64, 68, 96)); cyl(s, cx, cd, 10, 17, 20, (74, 78, 106), (58, 62, 88)); disc(s, cx, cd, 8, 20.2, (40, 84, 140))
-    cyl(s, cx, cd, 1.6, 20, 27, (150, 190, 226), (110, 150, 196))                                    # 가운데 물줄기
+    disc(s, cx, cd, FR + 9, 0.2, (52, 56, 82))                                                     # 분수 둘레의 둥근 바닥(연한 포장)
+    cyl(s, cx, cd, FR, 0, 7, (112, 112, 134), (92, 94, 118)); disc(s, cx, cd, FR - 3, 6, (30, 64, 118))   # 연한 돌 받침 + 물
+    for r_ in (15, 10):
+        for t in [k * .8 for k in range(8)]: s.poly([(cx + r_ * math.cos(t), cd + r_ * math.sin(t), 6.2), (cx + (r_ + 1) * math.cos(t), cd + (r_ + 1) * math.sin(t), 6.2), (cx + (r_ + 1) * math.cos(t + .25), cd + (r_ + 1) * math.sin(t + .25), 6.2), (cx + r_ * math.cos(t + .25), cd + r_ * math.sin(t + .25), 6.2)], (70, 118, 176))
+    cyl(s, cx, cd, 4, 6, 14, (122, 122, 146), (98, 98, 124)); cyl(s, cx, cd, 12, 14, 17, (112, 112, 134), (92, 94, 118)); disc(s, cx, cd, 10, 17.2, (40, 84, 140))   # 1단
+    cyl(s, cx, cd, 3, 17, 24, (122, 122, 146), (98, 98, 124)); cyl(s, cx, cd, 7.5, 24, 26.5, (112, 112, 134), (92, 94, 118)); disc(s, cx, cd, 6, 26.7, (40, 84, 140))   # 2단
+    cyl(s, cx, cd, 1.8, 26.5, 34, (150, 190, 226), (110, 150, 196))                                  # 가운데 물줄기
+    for t in range(0, 360, 45):                                                                    # 사방으로 떨어지는 물방울
+        for q in range(1, 5): px_, py_ = s.P(cx + math.cos(math.radians(t)) * q * 2.4, cd + math.sin(math.radians(t)) * q * 2.4, 33 - q * 2.2); s.px[px_, py_] = (150, 190, 226)
+    # 뒤쪽: 흰 아치 회랑 + 짙은 나무
+    tr_ = random.Random(33)
+    for tx in range(14, W, 34):
+        rad, hz = tr_.randint(12, 17), tr_.randint(34, 46)
+        def tree():
+            cx_, cy_ = s.P(tx, 96, hz); s.d.ellipse([cx_ - rad, cy_ - rad, cx_ + rad, cy_ + rad], fill=(24, 54, 44)); s.d.ellipse([cx_ - rad + 3, cy_ - rad + 3, cx_ + rad - 5, cy_ + rad - 6], fill=(30, 66, 52))
+        tree()
+    ARC, AZ = (118, 124, 152), 30
+    for ax in range(8, W - 24, 28):
+        s.box(ax, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6)); s.box(ax + 21, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6))
+        pts_o = [(ax + 1.5 + 12 * (1 - math.cos(math.pi * k / 16)), 86, AZ - 8 + 11 * math.sin(math.pi * k / 16)) for k in range(17)]
+        pts_i = [(ax + 1.5 + 12 * (1 - math.cos(math.pi * k / 16)) , 86, AZ - 8 + 8 * math.sin(math.pi * k / 16)) for k in range(17)]
+        for k in range(16): s.poly([pts_o[k], pts_o[k + 1], pts_i[k + 1], pts_i[k]], dk(ARC, .95))
+    s.box(0, 86, W, 3, 3, ARC, dk(ARC, .8), dk(ARC, .6), z0=AZ + 3)
     for lx in (50, 120, 240, 310): s.lamp(lx, 74, 44, -1)                                          # 분수 뒤는 비우고 양옆 뒷줄에 같은 가로등
-    back_buildings(s, W, D); s.run()
+    s.run()
     for side in (fade or ''):
         for X in range(s.CW):
             u = (X - (s.X0 + W - 46)) / 46.0 if side == 'r' else ((s.X0 + 46) - X) / 46.0
