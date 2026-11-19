@@ -133,6 +133,10 @@ def S(*items):                                                                  
     f.lit = any(it[0] == 'glow' or (it[0] == 'p' and getattr(it[1], '__name__', '') in LITFN) or (it[0] == 'hut' and len(it) > 9 and it[9]) for it in items)
     return f
 P = M
+SETS_KEY = {                                                                   # 특정 방(key)에 정해 놓는 대표 연출. 여기에 적은 방은 무작위 대신 이것을 쓴다(수정·추가 자유)
+ 'cityx01': S(('p', P.p_hedgebed, 0, 0), ('p', P.p_lamp(True, (255, 214, 150), 26, .35), 40, 4), ('p', P.p_bench, 22, 12)),
+}
+SETS_KEY['cityx01'].lit = True                                                    # 이 연출이 자기 가로등을 가지므로 방에 가로등을 더 세우지 않는다
 SETS = {
  'city': [S(('p', P.p_crosswalk, -20, -6), ('p', P.p_trafficlight, 26, 4), ('p', P.p_car, -10, 12), ('p', P.p_manhole, 6, 2)),
           S(('hut', 0, 0, 32, 16, 26, (70, 76, 104), (60, 64, 90), (14, 12, 20), (255, 232, 176)), ('p', P.p_vending, -24, 6), ('p', P.p_vending, 24, 6), ('p', P.p_bench, 0, 14)),

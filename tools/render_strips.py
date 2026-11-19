@@ -61,7 +61,7 @@ def strip_spec(th, chain):
         if sec['kind'] == 'room' and sec['shape'] in ('square', 'wide') and rnd(sec['key'] + 'c').random() < .6: shapes.append(('circle', M.polymid(sec['pts'])[0], M.polymid(sec['pts'])[1], rnd(sec['key'] + 'r').randint(20, 26)))
     spec = dict(theme=th, W=Wt, D=D, secs=secs, shapes=shapes, wall=r.choice(T['walls']), tries=0, density=1.0, alleys=[], tips=[], H=min(T['H'], 44 if inter else 64))
     spec['erode'] = 3 if any(s['shape'] == 'switch' for s in secs) else 4
-    spec['start'] = (14, secs[0]['d_in']); spec['end'] = (Wt - 14, secs[-1]['d_out'])
+    spec['start'] = (14, secs[0]['d_in']) if th != 'city' else ((secs[0]['x0'] + secs[0]['x1']) / 2 - 6, secs[0]['d_in'] - 2); spec['end'] = (Wt - 14, secs[-1]['d_out'])
     for sec in secs:                                                                                                       # 딸린 골목(뒷벽에 붙은 칸): 뒷벽까지 열린 방에만
         if sec['kind'] != 'room' or sec['ext'][1] < D - 8: continue
         rr = rnd(sec['key'] + 'a'); n = rr.choice((1, 2)) if sec['shape'] == 'long' else 0; xs = []
@@ -169,12 +169,12 @@ def strip_props(name, k, tr, inside, rng):
     chosen = {}
     for sec in secs:                                                            # 4.5) 방 대표 연출(set piece): 방 뒤쪽 중앙에 줄 맞춰 하나
         if sec['kind'] != 'room': continue
-        rr = rnd(sec['key'] + 'set'); sets = TD.SETS[th]; fn_set = sets[rr.randrange(len(sets))]; d0, d1 = sec['ext']; cx = (sec['x0'] + sec['x1']) / 2; ok_ = None
+        rr = rnd(sec['key'] + 'set'); sets = TD.SETS[th]; fn_set = TD.SETS_KEY.get(sec['key']) or sets[rr.randrange(len(sets))]; d0, d1 = sec['ext']; cx = (sec['x0'] + sec['x1']) / 2; ok_ = None
         for dx in (0, 14, -14, 28, -28, 42, -42):
             x = round((cx + dx) / 14.0) * 14.0; lane = lane_d(sec, x)
             for d in (lane + 24, lane + 20, lane - 24, lane - 20):
                 d = round(d / 7.0) * 7.0
-                if d0 + 8 < d < d1 - 8 and float(inside(x, d)) >= 12 and sec['x0'] + 30 < x < sec['x1'] - 30: ok_ = (x, d); break
+                if d0 + 8 < d < d1 - 8 and float(inside(x, d)) >= (0 if sec['key'] in TD.SETS_KEY else 12) and sec['x0'] + 30 < x < sec['x1'] - 30: ok_ = (x, d); break
             if ok_: break
         if ok_:
             lx, ld = tr(ok_); fn_set(k, lx, ld, rr); placed.append((lx, ld, 34)); chosen[sec['key']] = (ok_, fn_set.lit)
@@ -194,7 +194,7 @@ def strip_props(name, k, tr, inside, rng):
             wx, wd = tr((cx - 22 if (int(sec['x0']) % 2) else cx + 22, D)); win = tuple(int(min(255, v * .85)) for v in LC); fr = tuple(int(v * .35) for v in LC)
             k.F(wx - 9, wx + 9, 18, 40, win, Dl - 1.2, back=True); k.F(wx - 10.5, wx - 9, 17, 41.5, fr, Dl - 1.3, back=True); k.F(wx + 9, wx + 10.5, 17, 41.5, fr, Dl - 1.3, back=True); k.F(wx - 10.5, wx + 10.5, 40, 41.5, fr, Dl - 1.3, back=True); k.F(wx - .6, wx + .6, 18, 40, fr, Dl - 1.3, back=True); k.F(wx - 9, wx + 9, 28.2, 29.4, fr, Dl - 1.3, back=True)
     for sec in secs:                                                            # 5) 일반 소품: 방에만, 작은 것(걸을 수 있는 것) 최대 3종 1개씩, 길 밖
-        if sec['kind'] != 'room': continue
+        if sec['kind'] != 'room' or sec['key'] in TD.SETS_KEY: continue
         rr = rnd(sec['key'] + 'p' + str(spec['tries'])); d0, d1 = sec['ext']
         kinds = [p for p in T['props'] if p[0] not in M.SOLID and p[1].__name__ not in ('f',) and p[0] not in ('lamp', 'lamp_on', 'lamp_off', 'lantern')]; rr.shuffle(kinds)
         for (nm, fn, mode, (lo, hi), gap) in kinds[:int(round(3 * spec['density'] + .4))]:
@@ -257,7 +257,7 @@ def main():
         if bad: print('!! 길이 막힘', name, 'reason', WHYLAST[0])
         o = meta['origin']; meta['theme'] = th; meta['kind'] = 'strip'; meta['label'] = THEMES[th]['label']
         meta['sections'] = [dict(key=s['key'], kind=s['kind'], shape=s['shape'], x0=round(s['x0'] - o[0], 1), x1=round(s['x1'] - o[0], 1), mid=[round(s['mid'][0] - o[0], 1), round(s['mid'][1] - o[1], 1)],
-                                  label='%s %s%s' % (THEMES[th]['label'], '통로' if s['kind'] == 'passage' else '', s['key'][-2:].lstrip('0') or '0'), **({'z3': {kk: round((vv - (o[0] if kk in ('xr', 'xl', 'xd') else o[1] if kk in ('dA', 'dB', 'dC') else 0)), 1) for kk, vv in s['z3'].items()}} if s.get('z3') else {})) for s in spec['secs']]
+                                  label='%s %s%d' % (THEMES[th]['label'], '통로' if s['kind'] == 'passage' else '', 1 + sum(1 for t in spec['secs'][:i_] if t['kind'] == s['kind'])), **({'z3': {kk: round((vv - (o[0] if kk in ('xr', 'xl', 'xd') else o[1] if kk in ('dA', 'dB', 'dC') else 0)), 1) for kk, vv in s['z3'].items()}} if s.get('z3') else {})) for i_, s in enumerate(spec['secs'])]
         nav[name] = meta; im.save(os.path.join(OUT, 'world_%s.png' % name)); dep.save(os.path.join(OUT, 'world_%s_depth.png' % name)); mask.save(os.path.join(OUT, 'world_%s_walk.png' % name))
         print(name, im.size, 'sections', len(spec['secs']), 'W', round(spec['W']), 'try', spec['tries'])
     p = os.path.join(OUT, 'more_nav.json'); old = {}

@@ -2544,6 +2544,94 @@
    "gate": 2
   },
   {
+   "key": "cityp10",
+   "kind": "passage",
+   "shape": "hall",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 1
+  },
+  {
+   "key": "cityx11",
+   "kind": "room",
+   "shape": "square",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.45,
+   "link": "trans",
+   "gate": 0
+  },
+  {
+   "key": "cityp11",
+   "kind": "passage",
+   "shape": "bend",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityx12",
+   "kind": "room",
+   "shape": "square",
+   "entry": "B",
+   "epos": 0.6,
+   "exit": "L",
+   "xpos": 0.4,
+   "link": "trans",
+   "gate": 1
+  },
+  {
+   "key": "cityp12",
+   "kind": "passage",
+   "shape": "hall",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 0
+  },
+  {
+   "key": "cityx13",
+   "kind": "room",
+   "shape": "square",
+   "entry": "L",
+   "epos": 0.45,
+   "exit": "B",
+   "xpos": 0.55,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityp13",
+   "kind": "passage",
+   "shape": "bend",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 1
+  },
+  {
+   "key": "cityx14",
+   "kind": "room",
+   "shape": "square",
+   "entry": "L",
+   "epos": 0.55,
+   "exit": "B",
+   "xpos": 0.4,
+   "link": "trans",
+   "gate": 0
+  },
+  {
    "key": "cityp01",
    "kind": "passage",
    "shape": "tunnel",
