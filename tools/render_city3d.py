@@ -95,6 +95,11 @@ def paving(x, d):
     return JOINT if (x % 16 < 1 or d % 16 < 1) else c
 def asphalt(x, d): return ASPH
 
+def paving2(x, d):                                                              # 분수 광장 바닥: 24x12 벽돌 포장(엇갈려 쌓기)
+    row = int(d // 12); xs = x + (12 if row % 2 else 0); col = int(xs // 24)
+    if d % 12 < 1 or xs % 24 < 1: return (24, 27, 44)
+    return ((44, 48, 72), (40, 44, 68), (38, 42, 64))[(row * 3 + col) % 3]
+
 def alley(s, d0, d1, kind, depth=18, h=42, z=3):
     """벽(x=0 평면)에 뚫린 어두운 골목 입구. 안쪽: 바닥, 먼 벽(x=-depth), 오른쪽 안벽, 간단한 소품. 입구 모양으로만 보이게 마스크."""
     mask = Image.new('L', s.img.size, 0)
@@ -289,13 +294,14 @@ def grass(x, d):
 def fountain_scene(W=410, name='city3d_fountain', save=True, fade='lr'):
     D = SQD; s = Scene(W, 215, 130)
     back_buildings(s, W, D)                                                                         # 가장 먼 건물부터 그린다
-    s.floor(paving, x0=0, x1=W, d0=C0, d1=C1); s.floor(paving, x0=SQ0, x1=SQ1, d0=SQF, d1=SQD)      # 좌우 복도 + 한가운데 높이에서 위·아래로 넓어지는 광장
-    s.floor(lambda x, d: dk(paving(x, d), .08 + .92 * min(1.0, d / 34.0)), x0=P0, x1=P1, d0=0, d1=SQF)   # 아래쪽 가운데 통로(끝으로 갈수록 검게)
-    T = 6                                                                                          # 가로 연석 깊이 6(윗면 띠 3화소) = 세로 연석 폭 3(윗면 3화소): 두께가 같게 보인다
-    curbs = [(0, C1, SQ0, T, 4), (SQ1, C1, W - SQ1, T, 4), (0, C0 - T, SQ0, T, 4), (SQ1, C0 - T, W - SQ1, T, 4),                 # 복도 뒤·앞 연석
-             (SQ0, SQD, SQ1 - SQ0, T, 4),                                                                                         # 광장 뒤 연석
-             (SQ0 - 3, SQF, 3, C0 - T - SQF, 4), (SQ0 - 3, C1, 3, SQD - C1, 4), (SQ1, SQF, 3, C0 - T - SQF, 4), (SQ1, C1, 3, SQD - C1, 4),   # 광장 옆 연석(세로)
-             (SQ0, SQF - T, P0 - SQ0, T, 4), (P1, SQF - T, SQ1 - P1, T, 4), (P0 - 3, 0, 3, SQF - T, 4), (P1, 0, 3, SQF - T, 4)]   # 광장 앞 연석 + 아래 통로 옆 연석
+    s.floor(paving, x0=0, x1=W, d0=C0, d1=C1); s.floor(paving2, x0=SQ0, x1=SQ1, d0=SQF, d1=SQD)      # 좌우 복도 + 한가운데 높이에서 위·아래로 넓어지는 광장(벽돌 포장)
+    s.floor(lambda x, d: dk(paving2(x, d), .08 + .92 * min(1.0, d / 34.0)), x0=P0, x1=P1, d0=0, d1=SQF)   # 아래쪽 가운데 통로(끝으로 갈수록 검게)
+    T, W3, H = 4, 3, 3                                                                              # 가로 연석: 깊이 4(윗면 2화소)+앞면 높이 3, 세로 연석: 폭 3 → 화면 두께가 비슷
+    L, R_, F0, B1 = SQ0 - W3, SQ1 + W3, SQF - T, SQD + T                                            # 광장 바깥 테두리
+    curbs = [(0, C1, L, T, H), (R_, C1, W - R_, T, H), (0, C0 - T, L, T, H), (R_, C0 - T, W - R_, T, H),                    # 복도 뒤·앞 연석(옆 연석 바깥 모서리에서 딱 이어짐)
+             (L, SQD, R_ - L, T, H),                                                                                        # 광장 뒤 연석
+             (L, F0, W3, C0 - F0, H), (L, C1, W3, B1 - C1, H), (SQ1, F0, W3, C0 - F0, H), (SQ1, C1, W3, B1 - C1, H),      # 광장 옆 연석(세로): 복도 연석과 모서리에서 만난다
+             (L, F0, P0 - W3 - L, T, H), (P1 + W3, F0, R_ - P1 - W3, T, H), (P0 - W3, 0, W3, SQF, H), (P1, 0, W3, SQF, H)]  # 광장 앞 연석 + 아래 통로 옆 연석
     for (cx_, cd_, cw_, cp_, ch_) in sorted(curbs, key=lambda c: -c[1]): s.box(cx_, cd_, cw_, cp_, ch_, CURBT, CURBF, CURBR)   # 먼 것(뒤)부터 그려야 겹침 순서가 맞다
     rr = random.Random(21)
     def bed(gx0, gx1, gd0, gd1):                                                                   # 회양목 울타리를 두른 장미 화단(낮은 울타리 + 안쪽 잔디와 분홍 꽃)
