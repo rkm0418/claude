@@ -103,12 +103,16 @@ def main():
     st_, rt_ = room(r3, 'street', '거리', 176, 520, free_t, [22, 30], [dict(zone=[0, 6, 16, 42], to='fountain', spawn=[400, 87], type='trans', dir='L'), dict(zone=[40, 136, 512, 520], to='rtunnel', spawn=[76, 8], type='trans', dir='B')])
     rt_['img'] = uri(r3.img.convert('RGB')); rt_['depth'] = uri(occl(r3))
     # --- 아치 안 일자 도로 터널 → 옆으로 파인 비상구 → ㄴ자 정비 통로 → 사용자가 만든 터널
-    r4 = C.road_tunnel('city3d_roadtunnel', False); n0, n1 = C.NICHE
+    r4 = C.road_tunnel('city3d_roadtunnel', False, True); r4a = C.road_tunnel('city3d_roadtunnel_open', False, False); n0, n1 = C.NICHE
+    from PIL import ImageChops
+    bb = ImageChops.difference(r4.img.convert('RGB'), r4a.img.convert('RGB')).getbbox(); K = r4.k          # 가려진 그림과 열린 그림이 다른 부분 = 비상구 자리
+    patch = r4a.img.convert('RGB').crop(bb)
     def free_u(x, d):
         if C.RV0 - 8 < x < C.RV1 - 3 and 3 < d < C.RTD - 4: return True
         return 5 < x <= C.RV0 - 6 and n0 + 2 < d < n1 - 2
     su, ru = room(r4, 'rtunnel', '도로 터널', C.RTW, C.RTD, free_u, [76, 8], [dict(zone=[C.RV0, C.RV1 - 3, 0, 6], to='street', spawn=[88, 498], type='trans', dir='F'), dict(zone=[5, 9, n0 + 2, n1 - 2], to='annex', spawn=[(C.ADOOR[0] + C.ADOOR[1]) / 2, 26], type='trans', dir='L'), dict(zone=[C.RV0, C.RV1 - 3, C.RTD - 6, C.RTD], to=None, type='trans', dir='B', endMsg='터널은 아직 이어지지 않았어요')])
     ru['img'] = uri(r4.img.convert('RGB')); ru['depth'] = uri(occl(r4))
+    ru['reveal'] = [dict(img=uri(patch), x=bb[0] / K, y=bb[1] / K, w=(bb[2] - bb[0]) / K, h=(bb[3] - bb[1]) / K, zone=[C.WX, C.WX + 30, n0 - 12, n1 + 12], r=46)]
     r6 = C.annex('city3d_annex', False)
     def free_a2(x, d):
         if 3 < x < C.AV - 3 and 3 < d < C.AD - 2: return True

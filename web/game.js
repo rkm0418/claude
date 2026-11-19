@@ -429,6 +429,7 @@ async function prepare(key) {
     const wim = await img(r.walk), wc = document.createElement('canvas'); wc.width = r.gw; wc.height = r.gh; const w = wc.getContext('2d'); w.drawImage(wim, 0, 0);
     const wd = w.getImageData(0, 0, r.gw, r.gh).data; for (let i = 0; i < r.free.length; i++) if (wd[i * 4] < 128) r.free[i] = 0;
   }
+  if (r.reveal) for (const v of r.reveal) { v.im = await img(v.img); v.a = 0; }
   r.free0 = r.free.slice(); r.start = r.start || [r.W / 2, r.D / 2]; r.objects = r.objects || [];
   r.cr = (r.cracks || []).map(c => ({ ...c, st: 'ok', t: 0, cells: [] })); r.cr.forEach(c => { c.cells = cellsOf(r, c); });
   r.ready = true; return r;
@@ -649,7 +650,12 @@ function draw(dt) {
   const cz = camZoom(); ctx.save(); if (cz !== 1) { ctx.translate(VW / 2, VH * .55); ctx.scale(cz, cz); ctx.translate(-VW / 2, -VH * .55); }
   const [tx, ty] = camTarget(); if (!cam.init) { cam.x = tx; cam.y = ty; cam.init = true; } else if (R.sections) { cam.x = tx; cam.y = ty; } else { const k = 1 - Math.exp(-(dt || .016) * 7); cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; }
   R.ox = -Math.round(cam.x * S) / S; R.oy = -Math.round(cam.y * S) / S;
-  ctx.drawImage(R.im, R.ox * S, R.oy * S, R.CW * S, R.CH * S); drawLight();
+  ctx.drawImage(R.im, R.ox * S, R.oy * S, R.CW * S, R.CH * S);
+  if (R.reveal) for (const v of R.reveal) {                                                     // 검게 가려진 벽: 가까이 가면 벽이 투시되어 안쪽이 서서히 보인다
+    const z = v.zone, dx = Math.max(z[0] - P.x, 0, P.x - z[1]), dd = Math.max(z[2] - P.d, 0, P.d - z[3]), tg = Math.max(0, Math.min(1, 1 - Math.hypot(dx, dd) / (v.r || 40)));
+    v.a += (tg - v.a) * (1 - Math.exp(-(dt || .016) * 6)); if (v.a > .01) { ctx.globalAlpha = v.a; ctx.drawImage(v.im, (R.ox + v.x) * S, (R.oy + v.y) * S, v.w * S, v.h * S); ctx.globalAlpha = 1; }
+  }
+  drawLight();
   const dot = (x, d, c, r = 1) => { const [X, Y] = scr(x, d); ctx.fillStyle = c; ctx.fillRect((R.ox + X - r / 2) * S, (R.oy + Y - r / 2) * S, r * S, r * S); };
   if (debug) {
     for (let j = 0; j < R.gh; j++) for (let i = 0; i < R.gw; i++) dot((i + .5) * CELL, (j + .5) * CELL, R.free[j * R.gw + i] ? '#5f85' : '#f556');
