@@ -380,9 +380,13 @@ const inCrack = (c, x, d, pad = 0) => ((x - c.x) / (c.rx + pad)) ** 2 + ((d - c.
 function restoreCracks() { for (const c of R.cr) { if (c.st === 'broken') for (const k of c.cells) if (R.free0[k]) R.free[k] = 1; c.st = 'ok'; c.t = 0; } }
 function respawn() { P.path = []; P.x = R.start[0]; P.d = R.start[1]; marker = null; cam.init = false; msg = { text: '얼음이 깨져 물에 빠졌다', t: 1.8 }; }
 const cam = { x: 0, y: 0, init: false };                                   // 카메라(그림 px): 지도가 화면보다 크면 아이를 따라간다
+function isCorr(sc, vw) { return !!sc && (sc.kind === 'passage' || sc.x1 - sc.x0 > vw + 10); }       // 복도(통로)나 화면보다 긴 공간만 아이를 따라간다
 function camTarget() {
   let [fx, fy1] = scr(P.x, P.d); const fy = fy1 - zAt(P.x, P.d), vw = VW / S, vh = VH / S, c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-  if (R.sections) { const sc = R.sections[secIdx(P.x)]; if (sc && sc.kind === 'room' && sc.x1 - sc.x0 <= vw + 10) fx = fx * .35 + (R.X0 + (sc.x0 + sc.x1) / 2 + R.D / 4) * .65; }   // 짧은 방은 방 전체를 화면에 담는다(공간으로 쑥 들어간 느낌)
+  if (R.sections) {
+    const sc = R.sections[secIdx(P.x)];
+    if (sc && !isCorr(sc, vw)) return [c(R.X0 + (sc.x0 + sc.x1) / 2 + R.D / 4 - vw / 2, 0, Math.max(0, R.CW - vw)), R.CH <= vh ? -(vh - R.CH) / 2 : c(R.CH / 2 - vh / 2, 0, R.CH - vh)];   // 방: 카메라 고정(방 전체가 보인다)
+  }
   return [R.CW <= vw ? -(vw - R.CW) / 2 : c(fx - vw / 2 + LEAD.v, 0, R.CW - vw), R.CH <= vh ? -(vh - R.CH) / 2 : c(fy - vh * .6, 0, R.CH - vh)];
 }
 
@@ -499,6 +503,7 @@ function smoothDamp(cur, target, vel, key, smooth, dt) { const w = 2 / smooth, x
 const LEAD = { v: 0, dir: 1 };                                                // 카메라 선행: 다음 분기점이 가까워지면 카메라가 아이보다 먼저 앞(어두운 구역)을 비춘다
 function leadTarget() {
   if (!R.sections) return 0;
+  if (!isCorr(R.sections[secIdx(P.x)], VW / S)) return 0;                              // 고정 카메라인 방에서는 선행 없음
   if (P.path.length) { const dx = P.path[P.path.length - 1][0] - P.x; if (Math.abs(dx) > 6) LEAD.dir = dx > 0 ? 1 : -1; }
   const dir = LEAD.dir; let nd = null;
   if (dir > 0) { for (const d of DIVX) if (d > P.x) { nd = d; break; } } else { for (let i = DIVX.length - 1; i >= 0; i--) if (DIVX[i] < P.x) { nd = DIVX[i]; break; } }
