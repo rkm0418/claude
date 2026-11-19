@@ -74,19 +74,22 @@ def build(check=False):
     def free_u(x, d):
         if C.RV0 - 8 < x < C.RV1 - 3 and 3 < d < C.RTD - 4: return True
         return 5 < x <= C.RV0 - 6 and n0 + 2 < d < n1 - 2
-    su, ru = room(r4, 'rtunnel', '도로 터널', C.RTW, C.RTD, free_u, [76, 8], geom=r4a, exits=[dict(zone=[C.RV0, C.RV1 - 3, 0, 6], to='street', spawn=[88, 498], type='trans', dir='F'), dict(zone=[5, 9, n0 + 2, n1 - 2], to='annex', spawn=[C.AL - 16, 28], type='trans', dir='L'), dict(zone=[C.RV0, C.RV1 - 3, C.RTD - 6, C.RTD], to=None, type='trans', dir='B', endMsg='터널은 아직 이어지지 않았어요')])
+    su, ru = room(r4, 'rtunnel', '도로 터널', C.RTW, C.RTD, free_u, [76, 8], geom=r4a, exits=[dict(zone=[C.RV0, C.RV1 - 3, 0, 6], to='street', spawn=[88, 498], type='trans', dir='F'), dict(zone=[5, 9, n0 + 2, n1 - 2], to='annex', spawn=[C.AL - 16, 28], type='trans', dir='L'), dict(zone=[C.RV0, C.RV1 - 3, C.RTD - 6, C.RTD], to='outroad', spawn=[88, 12], type='trans', dir='B')])
     ru['reveal'] = [dict(img=uri(patch), x=bb[0] / K, y=bb[1] / K, w=(bb[2] - bb[0]) / K, h=(bb[3] - bb[1]) / K, zone=[C.WX, C.WX + 30, n0 - 12, n1 + 12], r=46)]
     r6 = C.annex('city3d_annex', False)
-    def free_a2(x, d): return 3 < x < C.AL - 3 and C.AF + 2 < d < C.AB - 2
+    def free_a2(x, d): return 3 < x < C.AL - 3 and C.AF + 2 < d < C.AB - 8
     sa2, ra2 = room(r6, 'annex', '정비 복도', C.AW, C.AD, free_a2, [C.AL - 16, 28], [dict(zone=[C.AL - 6, C.AL, C.AF + 2, C.AB - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='R'), dict(zone=[0, 6, C.APASS[0] + 2, C.APASS[1] - 2], to='tunnel', spawn=[52, 40], type='trans', dir='L'),
-        dict(zone=[233, 244, C.AB - 6, C.AB], to='lounge', spawn=[C.LDOOR[0] + 7, 20], type='trans', dir='B'), dict(zone=[85, 96, C.AB - 6, C.AB], to='annex', need='never_open', needMsg='문이 잠겨 있다', side='back')])
+        dict(zone=[233, 244, C.AB - 10, C.AB], to='lounge', spawn=[C.LDOOR[0] + 7, 20], type='trans', dir='B'), dict(zone=[85, 96, C.AB - 10, C.AB], to='annex', need='never_open', needMsg='문이 잠겨 있다', side='back')])
     r7 = C.lounge('city3d_lounge', False)
-    def free_l(x, d): return 3 < x < C.LW - 3 and 8 < d < C.LD - 2 or (C.LDOOR[0] < x < C.LDOOR[1] and 0 <= d <= 8)
+    def free_l(x, d): return 3 < x < C.LW - 3 and 8 < d < C.LD - 5 or (C.LDOOR[0] < x < C.LDOOR[1] and 0 <= d <= 8)
     sl, rl = room(r7, 'lounge', '휴게실', C.LW, C.LD, free_l, [C.LDOOR[0] + 7, 20], [dict(zone=[C.LDOOR[0] + 1, C.LDOOR[1] - 1, 0, 6], to='annex', spawn=[238, C.AB - 14], type='trans', dir='F')])
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < 297
     sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
+    r8 = C.street(True, 'out'); D8 = 480
+    def free_o(x, d): return 4 < x < 171 and 2 < d < D8 - 120                                    # 끝의 검은 번짐 안쪽은 못 간다(로딩 안 된 곳)
+    so, ro = room(r8, 'outroad', '터널 밖 길', 176, D8, free_o, [88, 12], [dict(zone=[24, 150, 0, 4], to='rtunnel', spawn=[(C.RV0 + C.RV1) / 2, C.RTD - 14], type='trans', dir='F')])
     if check:
         sp = {}
         for k, (g, w, z, st, ex) in GEOM.items():
@@ -94,11 +97,11 @@ def build(check=False):
                 if e.get('to') and e.get('spawn'): sp.setdefault(e['to'], []).append((k, e['spawn']))
         return {k: (g, w, z, st, ex, sp.get(k, [])) for k, (g, w, z, st, ex) in GEOM.items()}
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
-    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'lounge': rl, 'tunnel': rv}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
+    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'lounge': rl, 'tunnel': rv, 'outroad': ro}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
     h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + open(os.path.join(WEB, 'plaza_data.js'), encoding='utf-8').read() + '</script><script>' + open(os.path.join(WEB, 'game.js'), encoding='utf-8').read() + '</script>')
-    NAMES = [('plaza', '광장 · 시작'), ('corridor', '긴 복도'), ('fountain', '분수 광장'), ('recycle', '분리수거장'), ('lot', '주차장'), ('street', '거리'), ('rtunnel', '도로 터널'), ('annex', '정비 복도'), ('lounge', '휴게실'), ('tunnel', '터널')]
+    NAMES = [('plaza', '광장 · 시작'), ('corridor', '긴 복도'), ('fountain', '분수 광장'), ('recycle', '분리수거장'), ('lot', '주차장'), ('street', '거리'), ('rtunnel', '도로 터널'), ('annex', '정비 복도'), ('lounge', '휴게실'), ('tunnel', '터널'), ('outroad', '터널 밖 길')]
     assert [k for k, _ in NAMES] == list(full['rooms'].keys()), 'NAMES 가 방 목록과 다르다'
     ui = """<style>
 #where{position:fixed;left:8px;top:8px;z-index:9;font:14px/1.2 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:6px 10px;pointer-events:none}

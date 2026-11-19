@@ -309,8 +309,22 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
     return s.save(name) if save else s
 
 # ---------------- 장면 2: 긴 거리 (새벽 직전의 큰 도시: 길고 넓다) ----------------
-def street(ret=False):
-    W, D = 176, 520; s = Scene(W, D, 84, k=2); rng = random.Random(9)
+def ink_smear(s, band):
+    """먼 끝(화면 위쪽)이 '아직 로딩되지 않은 것처럼' 번진 검은 먹물로 사라진다: 가장자리가 울퉁불퉁하다. 이 안쪽으로는 못 걷게 막는다(방의 free 에서 막음).
+    band: 번지는 화면 높이(논리 화소). 그림만 바꾸며 깊이는 건드리지 않는다."""
+    rs = np.random.RandomState(7); H, W_ = s.img.size[1], s.img.size[0]; k = s.k
+    lo = rs.rand(H // (6 * k) + 3, W_ // (6 * k) + 3); big = np.array(Image.fromarray((lo * 255).astype('uint8')).resize((W_, H), Image.BICUBIC)) / 255.0
+    lo2 = rs.rand(H // (2 * k) + 3, W_ // (2 * k) + 3); fine = np.array(Image.fromarray((lo2 * 255).astype('uint8')).resize((W_, H), Image.BICUBIC)) / 255.0
+    Y = np.arange(H)[:, None] * np.ones((1, W_)); top = (s.CH - (s.CH - 1 - .5 * s.D - 8)) * 0   # 바닥 맨 끝(d=D)의 화면 Y
+    yfar = (s.Y0 - .5 * s.D) * k; g = np.clip((yfar + band * k - Y) / (band * 2.0 * k), 0, 1)             # 끝에서 아래로 갈수록 옅어지는 기본 번짐(바닥 끝 위쪽은 완전히 검다)
+    n = ((big - .5) * .8 + (fine - .5) * .3) * np.minimum(1.0, g * 3.0)                                    # 번진 가장자리만 울퉁불퉁하게(번짐이 없는 곳엔 잡음 없음)
+    a = np.clip((g + n - .3) * 2.6, 0, 1); a[Y < yfar - 6 * k] = 1.0
+    arr = np.array(s.img.convert('RGB')).astype(float); ink = np.array([6, 7, 16], float)
+    out = arr * (1 - a[..., None]) + ink * a[..., None]; s.img.paste(Image.fromarray(out.astype('uint8')), (0, 0)); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
+
+def street(ret=False, mode='street'):
+    """mode='out': 도로 터널 출구 밖 길(거리와 비슷하지만 횡단보도·신호등·골목·아치 없이, 끝이 검은 번짐으로 막힌다)."""
+    OUT_ = mode == 'out'; W, D = 176, 480 if OUT_ else 520; s = Scene(W, D, 84, k=2); rng = random.Random(9)
     for Y in range(s.img.size[1]):                                           # 새벽 직전: 아래(먼 쪽 아님) 가장자리로 갈수록 살짝 밝은 남색
         f = Y / s.img.size[1]; c = (int(14 + 12 * f), int(16 + 14 * f), int(36 + 30 * f))
         s.d.line([(0, Y), (s.img.size[0], Y)], fill=c)
@@ -319,27 +333,30 @@ def street(ret=False):
     s.floor(asphalt, x0=LS, x1=RS); s.floor(paving, x0=0, x1=LS, z=3); s.floor(paving, x0=RS, x1=W, z=3)        # 낮은 차도 먼저, 높은 인도는 그 위에(인도가 앞을 덮는다)
     s.poly([(LS, 0, 0), (LS, 0, 3), (LS, D, 3), (LS, D, 0)], CURBF)                                           # 왼쪽 인도의 오른쪽 턱 면만 보인다(오른쪽 인도의 턱은 뒤를 향해 안 보인다)
     # 도로 표시: 얇고 길고 간격이 넓은 네 개(맨 위 하나만 비스듬히)
-    for x in (87, 89): s.poly([(x, 76, 0), (x + 1, 76, 0), (x + 1, D, 0), (x, D, 0)], (196, 170, 90))   # 얇은 이중 중앙선(횡단보도 뒤부터 끝까지)
+    for x in (87, 89): s.poly([(x, 0 if OUT_ else 76, 0), (x + 1, 0 if OUT_ else 76, 0), (x + 1, D, 0), (x, D, 0)], (196, 170, 90))   # 얇은 이중 중앙선(횡단보도 뒤부터 끝까지)
     for k in range(12, D - 12, 24):                                           # 차로 점선: 같은 굵기(2.4)·길이(11)·간격(24)
         for x in (62, 114): s.poly([(x, k, 0), (x + 2.4, k, 0), (x + 2.4, k + 11, 0), (x, k + 11, 0)], (176, 176, 160))
-    # 횡단보도 + 신호등(첫 가로등 자리): 얇은 줄 여러 개, 줄은 차가 가는 방향
-    for x in range(LS + 4, RS - 4, 7): s.poly([(x, 56, 0), (x + 3, 56, 0), (x + 3, 74, 0), (x, 74, 0)], PAINT)
-    s.poly([(LS, 52, 0), (RS, 52, 0), (RS, 53, 0), (LS, 53, 0)], (150, 150, 130))        # 정지선
-    s.floor(paving, x0=RS, x1=W, z=3, d0=40, d1=64)                                            # 바닥 표시가 높은 오른쪽 인도 가장자리를 덮지 않게 인도를 다시 덮는다
-    for x, c in ((LS - 6, (230, 60, 60)), (RS + 6, (230, 60, 60))):               # 보행 신호등(빨간불 점등)
-        def sig(x=x, c=c):
-            b = s.P(x, 56, 3); t = s.P(x, 56, 30); k = s.k
-            s.d.line([b, t], fill=POLE, width=2 * k); s.d.rectangle([t[0] - 3 * k, t[1] - 8 * k, t[0] + 3 * k, t[1] + k], fill=(30, 32, 48)); s.d.rectangle([t[0] - k, t[1] - 7 * k, t[0] + k, t[1] - 5 * k], fill=c); s.d.rectangle([t[0] - k // 2, t[1] - 2 * k, t[0] + k // 2, t[1] - k], fill=(30, 90, 50))
-            s.zbox(x - 1, 55.5, 2, 1, 27, z0=3, solid=False); s.zbox(x - 3, 55.5, 6, 1, 9, z0=29, solid=False)
-        s.log.append((x - 1, 55.5, 2, 1, 30, 0)); s.jobs.append((56, sig)); s.glow(x, 56, 18, col=(230, 60, 60), power=.35, z=3)
-    # 왼쪽 건물 벽에 골목 입구: 광장으로 이어지는 통로(아래) + 골목 3개. 모두 어둡다.
-    alley(s, 14, 44, 'link', depth=34); alley_back(s, 36, 140, h=46, z=0, depth=40, road=True)
-    for x, d, side in [(30, 170, 1), (146, 240, -1), (30, 330, 1), (146, 400, -1), (30, 452, 1)]: s.lamp(x, d, 50, side)
-    s.box(12, 200, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(12, 202, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(12, 214, 3, 2, 4, POLE, POLE, POLE, z0=3)
-    s.box(14, 420, 5, 5, 9, (70, 70, 96), (96, 40, 40), (70, 30, 30), z0=3)
+    if not OUT_:
+        # 횡단보도 + 신호등(첫 가로등 자리): 얇은 줄 여러 개, 줄은 차가 가는 방향
+        for x in range(LS + 4, RS - 4, 7): s.poly([(x, 56, 0), (x + 3, 56, 0), (x + 3, 74, 0), (x, 74, 0)], PAINT)
+        s.poly([(LS, 52, 0), (RS, 52, 0), (RS, 53, 0), (LS, 53, 0)], (150, 150, 130))        # 정지선
+        s.floor(paving, x0=RS, x1=W, z=3, d0=40, d1=64)                                            # 바닥 표시가 높은 오른쪽 인도 가장자리를 덮지 않게 인도를 다시 덮는다
+        for x, c in ((LS - 6, (230, 60, 60)), (RS + 6, (230, 60, 60))):               # 보행 신호등(빨간불 점등)
+            def sig(x=x, c=c):
+                b = s.P(x, 56, 3); t = s.P(x, 56, 30); k = s.k
+                s.d.line([b, t], fill=POLE, width=2 * k); s.d.rectangle([t[0] - 3 * k, t[1] - 8 * k, t[0] + 3 * k, t[1] + k], fill=(30, 32, 48)); s.d.rectangle([t[0] - k, t[1] - 7 * k, t[0] + k, t[1] - 5 * k], fill=c); s.d.rectangle([t[0] - k // 2, t[1] - 2 * k, t[0] + k // 2, t[1] - k], fill=(30, 90, 50))
+                s.zbox(x - 1, 55.5, 2, 1, 27, z0=3, solid=False); s.zbox(x - 3, 55.5, 6, 1, 9, z0=29, solid=False)
+            s.log.append((x - 1, 55.5, 2, 1, 30, 0)); s.jobs.append((56, sig)); s.glow(x, 56, 18, col=(230, 60, 60), power=.35, z=3)
+        # 왼쪽 건물 벽에 골목 입구: 광장으로 이어지는 통로(아래) + 골목 3개. 모두 어둡다.
+        alley(s, 14, 44, 'link', depth=34); alley_back(s, 36, 140, h=46, z=0, depth=40, road=True)
+    for x, d, side in ([(30, 90, 1), (146, 160, -1), (30, 230, 1), (146, 300, -1), (30, 370, 1)] if OUT_ else [(30, 170, 1), (146, 240, -1), (30, 330, 1), (146, 400, -1), (30, 452, 1)]): s.lamp(x, d, 50, side)
+    if not OUT_:
+        s.box(12, 200, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(12, 202, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(12, 214, 3, 2, 4, POLE, POLE, POLE, z0=3)
+        s.box(14, 420, 5, 5, 9, (70, 70, 96), (96, 40, 40), (70, 30, 30), z0=3)
     s.run()
+    if OUT_: ink_smear(s, 110)
     if ret: return s
-    return s.save('city3d_street')
+    return s.save('city3d_outroad' if OUT_ else 'city3d_street')
 
 # ---------------- 장면: 복도가 정사각형 광장으로 커지는 곳 (가운데 인공 분수와 풀) ----------------
 SQ0, SQ1 = 110, 300                                                                               # 광장(정사각형) 가로 범위
@@ -562,7 +579,19 @@ def road_tunnel(name='city3d_roadtunnel', save=True, cover=False):
     seg(RV0, 0, RV0 + 1.6, RTD, (214, 206, 180)); seg(RV1 - 1.8, 0, RV1, RTD, (214, 206, 180))   # 차도 양옆 흰 실선
     for k in range(14, RTD - 10, 26): seg((RV0 + RV1) / 2 - 1.2, k, (RV0 + RV1) / 2 + 1.2, k + 12, (236, 214, 130))   # 가운데 점선
     E = RTD
-    s.poly([(WX, E, 0), (RTW, E, 0), (RTW, E, 72), (WX, E, 72)], (22, 15, 12))                          # 맨 끝은 어두운 벽(빛 없음)
+    s.poly([(WX, E, 0), (RTW, E, 0), (RTW, E, 72), (WX, E, 72)], (46, 40, 36))                           # 맨 끝 벽(콘크리트)
+    for xx in range(int(WX), RTW, 6):
+        for zz in range(0, 72, 6): s.poly([(xx, E, zz), (xx + 6.2, E, zz), (xx + 6.2, E, zz + 6), (xx, E, zz + 6)], tuple(int(v * (.9 + .16 * _nz(xx, zz, 4))) for v in ((74, 66, 58) if zz >= 8 else (96, 88, 78))))
+    ax0, ax1, abase, arise = RV0 - 8, RV1 + 6, 30, 22                                                   # 끝도 아치형 출구: 안쪽은 차가운 밤 하늘빛(따뜻한 빛 없음)
+    AP = [(ax0, E, 0)] + [((ax0 + ax1) / 2 - ((ax1 - ax0) / 2) * math.cos(math.pi * k_ / 24), E, abase + arise * math.sin(math.pi * k_ / 24)) for k_ in range(0, 25)] + [(ax1, E, 0)]
+    amask = Image.new('L', s.img.size, 0); ImageDraw.Draw(amask).polygon([s.P(*q) for q in AP], fill=255)
+    alay = s.img.copy(); ald = ImageDraw.Draw(alay)
+    for zz in range(0, 60): ald.polygon([s.P(0, E, zz), s.P(RTW, E, zz), s.P(RTW, E, zz + 1.2), s.P(0, E, zz + 1.2)], fill=(int(34 - zz * .35), int(42 - zz * .42), int(74 - zz * .7)))
+    for kk in range(6):                                                                                  # 멀리 이어지는 길: 중앙선 점이 점점 작아진다
+        yy = 3 + kk * 4.2; ww = max(.5, 2.0 - kk * .28); cx_ = (RV0 + RV1) / 2; ald.rectangle([s.P(cx_ - ww, E, yy)[0], s.P(cx_, E, yy)[1], s.P(cx_ + ww, E, yy)[0], s.P(cx_, E, yy)[1] + max(1, s.k)], fill=(150, 140, 100))
+    s.img.paste(alay, (0, 0), amask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img); s.zclear(amask); s.holes.append(('d', E, ax0, ax1))
+    for q in AP[1:-1]:                                                                                   # 아치 테두리(밝은 콘크리트 띠)
+        a_ = s.P(*q); s.d.rectangle([a_[0] - s.k, a_[1] - 2 * s.k, a_[0] + s.k, a_[1]], fill=(108, 112, 134))
     # 왼쪽 벽: 가로 결이 있는 연한 주황 패널 타일 + 위쪽 어두운 둥근 천장 띠 + 줄지어 켜진 등
     LAMPD = list(range(20, RTD - 8, 14))
     def lit(d): return .8 + .3 * max(0.0, math.cos(math.pi * ((d - 20) % 14 - 7) / 14 * 1.0)) * 0 + .0
@@ -647,11 +676,10 @@ def annex(name='city3d_annex', save=True):
     tiles_d(AB, 0, AL, 60)
     s.poly([(0, AB, 46), (AL, AB, 46), (AL, AB, 47.6), (0, AB, 47.6)], (232, 226, 200))                  # 벽에 이어진 한 줄 조명(점이 아니라 선)
     s.poly([(0, AB, 40), (AL, AB, 40), (AL, AB, 43), (0, AB, 43)], (74, 70, 64)); s.poly([(0, AB, 38.6), (AL, AB, 38.6), (AL, AB, 40), (0, AB, 40)], (50, 46, 42))   # 케이블 트레이
-    for xx in (84, 232):                                                                                # 벽의 철문 둘: 왼쪽은 잠겨 있고(붉은 점), 오른쪽은 휴게실(컵 표지)
+    for xx in (84, 232):                                                                                # 벽의 철문 둘: 왼쪽은 잠겨 있고(붉은 점), 오른쪽은 휴게실
         s.poly([(xx - 1.5, AB, 0), (xx + 14.5, AB, 0), (xx + 14.5, AB, 30), (xx - 1.5, AB, 30)], (58, 52, 46)); s.poly([(xx, AB, 0), (xx + 13, AB, 0), (xx + 13, AB, 28.5), (xx, AB, 28.5)], (128, 132, 132))
         s.poly([(xx + 6.3, AB, 0), (xx + 6.7, AB, 0), (xx + 6.7, AB, 28.5), (xx + 6.3, AB, 28.5)], (92, 96, 98)); s.poly([(xx + 10, AB, 12), (xx + 11, AB, 12), (xx + 11, AB, 16), (xx + 10, AB, 16)], (70, 72, 72))
     s.poly([(88.6, AB, 33), (90.6, AB, 33), (90.6, AB, 35), (88.6, AB, 35)], (214, 70, 60))                # 잠긴 문 위 붉은 점
-    s.poly([(234, AB, 32), (243, AB, 32), (243, AB, 38.5), (234, AB, 38.5)], (236, 226, 190)); s.poly([(236.8, AB, 33.2), (240.2, AB, 33.2), (240.2, AB, 35.6), (236.8, AB, 35.6)], (120, 84, 56)); s.poly([(240.2, AB, 34.2), (241.4, AB, 34.2), (241.4, AB, 35.0), (240.2, AB, 35.0)], (120, 84, 56)); s.poly([(236.8, AB, 36.2), (240.2, AB, 36.2), (240.2, AB, 36.8), (236.8, AB, 36.8)], (214, 196, 160))   # 휴게실 표지(컵)
     # 왼쪽 끝 벽(오른쪽을 향한 면): 이동통로가 열려 있다
     q0, q1 = APASS
     for d in range(AF, AB, 6):
