@@ -77,7 +77,11 @@ def build(check=False):
     ru['reveal'] = [dict(img=uri(patch), x=bb[0] / K, y=bb[1] / K, w=(bb[2] - bb[0]) / K, h=(bb[3] - bb[1]) / K, zone=[C.WX, C.WX + 30, n0 - 12, n1 + 12], r=46)]
     r6 = C.annex('city3d_annex', False)
     def free_a2(x, d): return 3 < x < C.AL - 3 and C.AF + 2 < d < C.AB - 2
-    sa2, ra2 = room(r6, 'annex', '정비 복도', C.AW, C.AD, free_a2, [C.AL - 16, 28], [dict(zone=[C.AL - 6, C.AL, C.AF + 2, C.AB - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='R'), dict(zone=[0, 6, C.APASS[0] + 2, C.APASS[1] - 2], to='tunnel', spawn=[32, 8], type='trans', dir='L')])
+    sa2, ra2 = room(r6, 'annex', '정비 복도', C.AW, C.AD, free_a2, [C.AL - 16, 28], [dict(zone=[C.AL - 6, C.AL, C.AF + 2, C.AB - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='R'), dict(zone=[0, 6, C.APASS[0] + 2, C.APASS[1] - 2], to='tunnel', spawn=[32, 8], type='trans', dir='L'),
+        dict(zone=[233, 244, C.AB - 6, C.AB], to='lounge', spawn=[C.LDOOR[0] + 7, C.LD - 16], type='trans', dir='B'), dict(zone=[85, 96, C.AB - 6, C.AB], to='annex', need='never_open', needMsg='문이 잠겨 있다', side='back')])
+    r7 = C.lounge('city3d_lounge', False)
+    def free_l(x, d): return 3 < x < C.LW - 3 and 8 < d < C.LD - 2
+    sl, rl = room(r7, 'lounge', '휴게실', C.LW, C.LD, free_l, [C.LDOOR[0] + 7, C.LD - 16], [dict(zone=[C.LDOOR[0] + 1, C.LDOOR[1] - 1, C.LD - 6, C.LD], to='annex', spawn=[238, C.AB - 14], type='trans', dir='F')])
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < 297
@@ -89,7 +93,7 @@ def build(check=False):
                 if e.get('to') and e.get('spawn'): sp.setdefault(e['to'], []).append((k, e['spawn']))
         return {k: (g, w, z, st, ex, sp.get(k, [])) for k, (g, w, z, st, ex) in GEOM.items()}
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
-    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'tunnel': rv}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
+    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'lounge': rl, 'tunnel': rv}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
     h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + open(os.path.join(WEB, 'plaza_data.js'), encoding='utf-8').read() + '</script><script>' + open(os.path.join(WEB, 'game.js'), encoding='utf-8').read() + '</script>')
