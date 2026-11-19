@@ -436,6 +436,15 @@ def outline(s, x, d, w, dp, h, z0=0, col=(36, 34, 40), t=.6):
                 [(x, d + dp - t, Z), (X, d + dp - t, Z), (X, d + dp, Z), (x, d + dp, Z)],   # 윗면 뒤 모서리
                 [(X - t, d, Z), (X, d, Z), (X, d + dp, Z), (X - t, d + dp, Z)]):        # 윗면 오른쪽 모서리
         s.poly(pts, col, z=False)
+def outline_px(s, x, d, w, dp, h, z0=0, col=(36, 34, 40), wpx=1):
+    """상자의 보이는 모서리를 화면 화소 기준 같은 굵기(wpx 논리 화소)로 긋는다: 가로·세로·사선 모두 두께가 같다(그림만, 깊이는 건드리지 않는다)."""
+    X, Z = x + w, z0 + h; P = s.P; wd = max(1, int(round(wpx * s.k)))
+    E = [((x, d, z0), (X, d, z0)), ((x, d, Z), (X, d, Z)), ((x, d, z0), (x, d, Z)), ((X, d, z0), (X, d, Z)),                    # 앞면 네 변
+         ((X, d + dp, z0), (X, d + dp, Z)), ((X, d, z0), (X, d + dp, z0)), ((X, d, Z), (X, d + dp, Z)),                          # 오른쪽 면 뒤 세로·아래·위
+         ((x, d + dp, Z), (X, d + dp, Z)), ((x, d, Z), (x, d + dp, Z))]                                                          # 윗면 뒤·왼쪽
+    for a_, b_ in E:
+        pa, pb = P(*a_), P(*b_); s.d.line([pa, pb], fill=col, width=wd)
+        for q in (pa, pb): s.d.ellipse([q[0] - wd // 2, q[1] - wd // 2, q[0] + (wd - 1) // 2 - (1 if wd > 1 else 0), q[1] + (wd - 1) // 2 - (1 if wd > 1 else 0)], fill=col) if wd > 2 else None
 def cardboard(s, x, d, w, dp, h, z0=0, tone=0):
     """쌓아 둔 종이 상자: 상자마다 색을 달리하고 모서리선·테이프 띠로 경계를 나눈다."""
     T = [((172, 132, 86), (138, 102, 62), (110, 80, 48)), ((150, 114, 74), (120, 88, 54), (96, 68, 40)), ((188, 148, 98), (152, 114, 72), (122, 90, 56))][tone % 3]
@@ -686,10 +695,10 @@ def lounge(name='city3d_lounge', save=True):
     SOF, SOFD, SOFR = (92, 122, 108), (70, 96, 84), (58, 80, 70)
     SOFT, SOFE = (118, 152, 134), (52, 74, 64)                                                         # 윗면은 밝게, 모서리선은 어두운 초록
     def part(x, d, w, dp, h, top, front, right):                                                          # 그린 바로 뒤에 모서리선: 앞의 것이 뒤의 선을 덮도록(먼 것부터)
-        s.box(x, d, w, dp, h, top, front, right); outline(s, x, d, w, dp, h, 0, SOFE, .5)
+        s.box(x, d, w, dp, h, top, front, right); outline_px(s, x, d, w, dp, h, 0, SOFE, 1)
     part(46, LD - 8, 56, 6, 20, SOF, SOFD, SOFR)                                                          # 등받이
     part(46, LD - 22, 56, 18, 9, SOFT, SOF, SOFR)                                                         # 앉는 면
-    s.poly([(74 - .35, LD - 22, 9), (74 + .35, LD - 22, 9), (74 + .35, LD - 8, 9), (74 - .35, LD - 8, 9)], SOFE, z=False); s.poly([(74 - .35, LD - 22, 3), (74 + .35, LD - 22, 3), (74 + .35, LD - 22, 9), (74 - .35, LD - 22, 9)], SOFE, z=False)   # 쿠션 이음선(둘로 나눔)
+    for a_, b_ in (((74, LD - 22, 9), (74, LD - 8, 9)), ((74, LD - 22, 3), (74, LD - 22, 9))): s.d.line([s.P(*a_), s.P(*b_)], fill=SOFE, width=s.k)   # 쿠션 이음선(둘로 나눔, 모서리선과 같은 굵기)
     part(46, LD - 22, 6, 18, 14, SOFT, SOF, SOFR); part(96, LD - 22, 6, 18, 14, SOFT, SOF, SOFR)       # 팔걸이
     s.poly([(70, LD, 36), (82, LD, 36), (82, LD, 46), (70, LD, 46)], (70, 58, 46)); s.poly([(71.2, LD, 37.2), (80.8, LD, 37.2), (80.8, LD, 44.8), (71.2, LD, 44.8)], (236, 228, 204)); s.poly([(75.6, LD, 38.4), (76.4, LD, 38.4), (76.4, LD, 41.6), (75.6, LD, 41.6)], (60, 50, 42)); s.poly([(75.6, LD, 40.8), (79, LD, 40.8), (79, LD, 41.6), (75.6, LD, 41.6)], (60, 50, 42))
     # 자판기(뒤 벽 오른쪽): 몸통 + 밝은 진열창 + 버튼
