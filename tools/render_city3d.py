@@ -56,19 +56,21 @@ class Scene:
     def run(s):
         for _, f in sorted(s.jobs, key=lambda j: -j[0]): f()
         s.jobs = []
-    def wall_left(s, d0, d1, h, x=0, seed=1):
+    def wall_left(s, d0, d1, h, x=0, seed=1, plain=False):
         """왼쪽 건물 벽(안쪽 면)과 창. 평면 x 고정, 깊이 d0..d1."""
         r = random.Random(seed)
         s.poly([(x, d0, 0), (x, d1, 0), (x, d1, h), (x, d0, h)], WALL)
+        if plain: return
         for z in range(10, int(h) - 4, 12): s.poly([(x, d0, z), (x, d1, z), (x, d1, z + .8), (x, d0, z + .8)], WALLD)
         for dd in range(int(d0) + 6, int(d1) - 8, 16):
             for z in range(14, int(h) - 8, 12):
                 c = WIN_OFF
                 s.poly([(x, dd, z), (x, dd + 8, z), (x, dd + 8, z + 6), (x, dd, z + 6)], c)
         s.poly([(x, d0, h - 3), (x, d1, h - 3), (x, d1, h), (x, d0, h)], dk(WALL, .7))
-    def wall_back(s, x0, x1, d, h, seed=2, sign=False):
+    def wall_back(s, x0, x1, d, h, seed=2, sign=False, plain=False):
         r = random.Random(seed)
         s.poly([(x0, d, 0), (x1, d, 0), (x1, d, h), (x0, d, h)], WALL)
+        if plain: return
         for z in range(10, int(h) - 4, 12): s.poly([(x0, d, z), (x1, d, z), (x1, d, z + .8), (x0, d, z + .8)], WALLD)
         for xx in range(int(x0) + 6, int(x1) - 10, 16):
             for z in range(14, int(h) - 8, 12):
@@ -159,13 +161,8 @@ def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
 def landing():
     W, D = 150, 80; s = Scene(W, D, 70); rng = random.Random(5)
     s.floor(paving)
-    s.floor(lambda x, d: (CURBT if d < 1 else dk(asphalt(x, d), 1.0)), x0=96, x1=W)                     # 오른쪽: 어두운 길(골목처럼 이어짐)
-    for X in range(int(s.X0 + 96), s.CW):                                                              # 오른쪽 끝으로 갈수록 어둠에 잠긴다
-        f = min(1.0, (X - (s.X0 + 96)) / 60.0) * .85
-        for Y in range(s.CH):
-            p = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (8, 9, 20)[i] * f) for i, v in enumerate(p))
     s.glow(30, 30, 70, power=.35)
-    s.wall_back(0, W, D, 60); s.wall_left(0, D, 60)
+    s.wall_back(0, W, D, 60, plain=True); s.wall_left(0, D, 60, plain=True)
     s.lamp(140, 74, 44, -1)
     # 인공 수풀 화단(왼쪽 안쪽): 낮은 콘크리트 화단 위에 같은 모양의 덩어리
     px0, pd0, pw, pdp, ph = 12, 38, 70, 30, 9
