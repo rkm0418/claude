@@ -268,7 +268,8 @@ def street():
 
 # ---------------- 장면: 복도가 정사각형 광장으로 커지는 곳 (가운데 인공 분수와 풀) ----------------
 SQ0, SQ1 = 110, 250                                                                               # 광장(정사각형) 가로 범위
-FC = (180, 43); FR = 22                                                                           # 분수 중심(x, d), 바깥 반지름
+FC = (180, 43); FR = 22
+LAMPS = [(50, 54), (126, 76), (234, 76), (310, 54)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
 def disc(s, cx, cd, r, z, col, n=36):
     s.poly([(cx + r * math.cos(2 * math.pi * k / n), cd + r * math.sin(2 * math.pi * k / n), z) for k in range(n)], col)
 def cyl(s, cx, cd, r, z0, z1, top, side, n=36):                                                   # 원통: 옆면은 앞쪽(d 작은 쪽)이 보인다
@@ -284,8 +285,9 @@ def grass(x, d):
 def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
     D = 80; s = Scene(W, 170, 130); S0 = 34
     back_buildings(s, W, D)                                                                         # 가장 먼 건물부터 그린다
-    s.floor(paving, x0=0, x1=W, d0=S0, d1=D); s.floor(paving, x0=SQ0, x1=SQ1, d0=6, d1=S0)
-    s.box(0, D, W, 3, 4, CURBT, CURBF, CURBR)                                                      # 뒤 연석
+    s.floor(paving, x0=0, x1=W, d0=S0, d1=58); s.floor(paving, x0=SQ0, x1=SQ1, d0=6, d1=D)          # 복도(좁게) + 앞뒤로 넓어지는 정사각형 광장
+    s.box(0, 58, SQ0, 3, 4, CURBT, CURBF, CURBR); s.box(SQ1, 58, W - SQ1, 3, 4, CURBT, CURBF, CURBR); s.box(SQ0, D, SQ1 - SQ0, 3, 4, CURBT, CURBF, CURBR)   # 뒤 연석
+    s.box(SQ0, 58, 3, D - 58, 4, CURBT, CURBF, CURBR); s.box(SQ1 - 3, 58, 3, D - 58, 4, CURBT, CURBF, CURBR)   # 뒤로 넓어지는 옆 연석
     s.box(0, 31, SQ0, 3, 4, CURBT, CURBF, CURBR); s.box(SQ1, 31, W - SQ1, 3, 4, CURBT, CURBF, CURBR)   # 복도 부분의 앞 연석
     s.box(SQ0, 3, SQ1 - SQ0, 3, 4, CURBT, CURBF, CURBR)                                            # 광장 앞 연석
     s.box(SQ0, 6, 3, 25, 4, CURBT, CURBF, CURBR); s.box(SQ1 - 3, 6, 3, 25, 4, CURBT, CURBF, CURBR)  # 복도→광장으로 넓어지는 옆 연석
@@ -312,20 +314,14 @@ def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
     for t in range(0, 360, 45):                                                                    # 사방으로 떨어지는 물방울
         for q in range(1, 5): px_, py_ = s.P(cx + math.cos(math.radians(t)) * q * 2.4, cd + math.sin(math.radians(t)) * q * 2.4, 33 - q * 2.2); s.px[px_, py_] = (150, 190, 226)
     # 뒤쪽: 흰 아치 회랑 + 짙은 나무
-    tr_ = random.Random(33)
-    for tx in range(14, W, 34):
-        rad, hz = tr_.randint(12, 17), tr_.randint(34, 46)
-        def tree():
-            cx_, cy_ = s.P(tx, 96, hz); s.d.ellipse([cx_ - rad, cy_ - rad, cx_ + rad, cy_ + rad], fill=(24, 54, 44)); s.d.ellipse([cx_ - rad + 3, cy_ - rad + 3, cx_ + rad - 5, cy_ + rad - 6], fill=(30, 66, 52))
-        tree()
     ARC, AZ = (118, 124, 152), 30
-    for ax in range(8, W - 24, 28):
+    for ax in range(SQ0, SQ1 - 23, 28):
         s.box(ax, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6)); s.box(ax + 21, 86, 3, 3, AZ - 8, ARC, dk(ARC, .8), dk(ARC, .6))
         pts_o = [(ax + 1.5 + 12 * (1 - math.cos(math.pi * k / 16)), 86, AZ - 8 + 11 * math.sin(math.pi * k / 16)) for k in range(17)]
         pts_i = [(ax + 1.5 + 12 * (1 - math.cos(math.pi * k / 16)) , 86, AZ - 8 + 8 * math.sin(math.pi * k / 16)) for k in range(17)]
         for k in range(16): s.poly([pts_o[k], pts_o[k + 1], pts_i[k + 1], pts_i[k]], dk(ARC, .95))
-    s.box(0, 86, W, 3, 3, ARC, dk(ARC, .8), dk(ARC, .6), z0=AZ + 3)
-    for lx in (50, 120, 240, 310): s.lamp(lx, 74, 44, -1)                                          # 분수 뒤는 비우고 양옆 뒷줄에 같은 가로등
+    s.box(SQ0, 86, SQ1 - SQ0, 3, 3, ARC, dk(ARC, .8), dk(ARC, .6), z0=AZ + 3)
+    for lx, ld_ in LAMPS: s.lamp(lx, ld_, 44, -1)                                          # 분수 뒤는 비우고 양옆 뒷줄에 같은 가로등
     s.run()
     for side in (fade or ''):
         for X in range(s.CW):
@@ -333,7 +329,7 @@ def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
             if u <= 0: continue
             f = min(1.0, u) * .92
             for Y in range(s.CH): q = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (6, 7, 16)[i] * f) for i, v in enumerate(q))
-    s.lampx = [50, 120, 240, 310]
+    s.lampx = [l[0] for l in LAMPS]
     return s.save(name) if save else s
 
 def main():

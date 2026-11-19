@@ -36,7 +36,7 @@ def main():
         if x < 3 or x > 519.5: return False
         if any(abs(x - lx) < 4 and abs(d - 74) < 4 for lx in b.lampx): return False
         return 37 < d < 78
-    sb, rb = room(b, 'corridor', '긴 복도', 520, 170, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L'), dict(zone=[514, 520, 37, 78], to='fountain', spawn=[12, 56], type='trans', dir='R')])
+    sb, rb = room(b, 'corridor', '긴 복도', 520, 170, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L'), dict(zone=[514, 520, 37, 78], to='fountain', spawn=[12, 46], type='trans', dir='R')])
     rb['img'] = uri(b.img.convert('RGB')); rb['depth'] = uri(dep2)
     # --- 복도가 정사각형 광장으로 커지는 곳(인공 분수와 풀)
     f = C.fountain_scene(330, 'city3d_fountain', False, 'lr'); fx, fd = C.FC; fr = C.FR
@@ -47,10 +47,10 @@ def main():
     def free_f(x, d):
         if x < 3 or x > 329.5: return False
         if math.hypot(x - fx, (d - fd)) < fr + 3: return False
-        if any(abs(x - lx) < 4 and abs(d - 74) < 4 for lx in f.lampx): return False
+        if any(abs(x - lx) < 4 and abs(d - ld_) < 4 for lx, ld_ in C.LAMPS): return False
         if C.SQ0 + 4 < x < C.SQ1 - 4: return 8 < d < 78
-        return 37 < d < 78
-    sf, rf = room(f, 'fountain', '분수 광장', 330, 170, free_f, [14, 56], [dict(zone=[0, 5, 37, 78], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[324, 330, 37, 78], to=None, type='trans', dir='R')])
+        return 37 < d < 56
+    sf, rf = room(f, 'fountain', '분수 광장', 330, 170, free_f, [14, 46], [dict(zone=[0, 5, 37, 56], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[324, 330, 37, 56], to=None, type='trans', dir='R')])
     rf['img'] = uri(f.img.convert('RGB')); rf['depth'] = uri(dep3)
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
     full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
