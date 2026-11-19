@@ -18,19 +18,19 @@ def room(s, key, label, W, D, free, start, exits, rects=()):
 
 def main():
     # --- 광장(첫 장면)
-    a = C.landing(150, False, 'city3d_landing', True, False, False)
+    a = C.landing(150, False, 'city3d_landing', True, False, False, 'r', False)
     dep = Image.new('RGB', (a.CW, a.CH), (255, 255, 255)); dd = ImageDraw.Draw(dep)
     for (x, d, z, r) in a.front: cx, cy = a.P(x, d, z); dd.ellipse([cx - r, cy - r, cx + r, cy + r], fill=((d + 2) * 3,) * 3); dd.rectangle([cx - r, cy - r - 1, cx + r, cy + r // 5], fill=(255, 255, 255))    # 앞줄 수풀이 아이 아랫도리를 가린다
     dd.polygon([a.P(12, 38, 0), a.P(82, 38, 0), a.P(82, 38, 9), a.P(12, 38, 9)], fill=((38 + 2) * 3,) * 3)
     def free_a(x, d):
         if d < 4 or d > 77 or x < 4 or x > 146: return False
-        if 8 < x < 86 and 34 < d < 72 and not (36 < x < 68 and d < 60): return False        # 화단(가운데 움푹한 곳으로만 드나든다)
+        if 8 < x < 86 and 34 < d < 72: return False                                        # 화단
         if math.hypot(x - 140, d - 74) < 4: return False
         return True
-    sa, ra = room(a, 'plaza', '광장', 150, 80, free_a, [50, 57], [dict(zone=[144, 150, 4, 77], to='corridor', spawn=[12, 56])])
+    sa, ra = room(a, 'plaza', '광장', 150, 80, free_a, [60, 24], [dict(zone=[144, 150, 4, 77], to='corridor', spawn=[12, 56])])
     ra['img'] = uri(a.img.convert('RGB')); ra['depth'] = uri(dep)
     # --- 긴 복도(화단 없이)
-    b = C.landing(520, True, 'city3d_corridor', False, False); EX = 520 - 56
+    b = C.landing(520, True, 'city3d_corridor', False, False, False, 'l'); EX = 520 - 56
     dep2 = Image.new('RGB', (b.CW, b.CH), (255, 255, 255))
     def free_b(x, d):
         if x < 3 or x > 517: return False
@@ -40,7 +40,7 @@ def main():
     sb, rb = room(b, 'corridor', '긴 복도', 520, 120, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40])])
     rb['img'] = uri(b.img.convert('RGB')); rb['depth'] = uri(dep2)
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
-    full['rooms'] = {'plaza': ra, 'corridor': rb}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 50, 'd': 57}}
+    full['rooms'] = {'plaza': ra, 'corridor': rb}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
     h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + open(os.path.join(WEB, 'plaza_data.js'), encoding='utf-8').read() + '</script><script>' + open(os.path.join(WEB, 'game.js'), encoding='utf-8').read() + '</script>')

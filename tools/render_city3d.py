@@ -163,7 +163,7 @@ def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
     s.img.paste(lay, (0, 0), mask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
 
 # ---------------- 장면 1: 광장 ----------------
-def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, baked=True):
+def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, baked=True, fade=None, dent=True):
     D = 80; s = Scene(W, 120 if corridor else D, 130 if corridor else 70); rng = random.Random(5)
     if corridor:                                                                                   # 같은 보도블록 바닥의 긴 복도: 앞쪽은 낮은 연석, 맨 끝은 아래(앞)로 열려 어둠으로 나간다
         EX = W - 56
@@ -172,7 +172,7 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
         s.floor(paving, x0=0, x1=EX, d0=0, d1=34, z=-200) if False else None
         s.box(0, 31, EX, 3, 4, CURBT, CURBF, CURBR)
     else: s.floor(paving)
-    s.glow(30, 30, 70, power=.35)
+    if baked: s.glow(30, 30, 70, power=.35)
     if corridor:
         s.box(0, D, W, 3, 4, CURBT, CURBF, CURBR)                                                  # 위쪽(뒤) 연석
         bx = 0; br = random.Random(11)
@@ -203,9 +203,9 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
             s.jobs.append((d, draw))
         for x in range(20, 80, 12):
             for d, dent in ((62, 0), (51, 0), (41, 0)):
-                if d == 51 and 38 < x < 66: continue                                                   # 가운데는 움푹(아이가 있는 곳)
+                if dent and d == 51 and 38 < x < 66: continue                                                   # 가운데는 움푹(아이가 있는 곳)
                 clump(x, d, 9, dent)
-        for x in (44, 56): clump(x, 58, 9, 6)                                                         # 꺼진 덩어리
+        for x in ((44, 56) if dent else ()): clump(x, 58, 9, 6)                                                         # 꺼진 덩어리
         ch = Image.open(os.path.join(SPR, 'child8', 'child_d_idle.png')).convert('RGBA'); ch = ch.resize((21, 36), Image.NEAREST)
         def child():
             cx, cy = s.P(50, 50, ph + 2); s.img.paste(ch, (cx - 10, cy - 30), ch)
@@ -213,7 +213,15 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
         for _ in range(26):                                                                            # 흩어진 잎
             lx, ld = rng.uniform(20, 84), rng.uniform(26, 38)
             px_, py_ = s.P(lx, ld, 0); s.px[px_, py_] = (60, 150, 80); s.px[px_ + 1, py_] = (46, 122, 66)
-    s.run(); s.lampx = list(range(140, W - 40, 70)) if corridor else [140]
+    s.run()
+    if fade:                                                                                   # 이동 통로 표시: 끝쪽으로 갈수록 검게 사라지는 그라데이션('r' 오른쪽 끝, 'l' 왼쪽 끝)
+        for side in fade:
+            for X in range(s.CW):
+                u = (X - (s.X0 + W - 46)) / 46.0 if side == 'r' else ((s.X0 + 46) - X) / 46.0
+                if u <= 0: continue
+                f = min(1.0, u) * .92
+                for Y in range(s.CH): q = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (6, 7, 16)[i] * f) for i, v in enumerate(q))
+    s.lampx = list(range(140, W - 40, 70)) if corridor else [140]
     return s.save(name) if save else s
 
 # ---------------- 장면 2: 긴 거리 (새벽 직전의 큰 도시: 길고 넓다) ----------------
