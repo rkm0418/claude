@@ -381,13 +381,30 @@ function restoreCracks() { for (const c of R.cr) { if (c.st === 'broken') for (c
 function respawn() { P.path = []; P.x = R.start[0]; P.d = R.start[1]; marker = null; cam.init = false; msg = { text: '얼음이 깨져 물에 빠졌다', t: 1.8 }; }
 const cam = { x: 0, y: 0, init: false };                                   // 카메라(그림 px): 지도가 화면보다 크면 아이를 따라간다
 function camTarget() {
-  const [fx, fy] = scr(P.x, P.d), vw = VW / S, vh = VH / S, c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const [fx, fy1] = scr(P.x, P.d), fy = fy1 - zAt(P.x, P.d), vw = VW / S, vh = VH / S, c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   return [R.CW <= vw ? -(vw - R.CW) / 2 : c(fx - vw / 2 + LEAD.v, 0, R.CW - vw), R.CH <= vh ? -(vh - R.CH) / 2 : c(fy - vh * .6, 0, R.CH - vh)];
 }
 
 const img = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = src; });
 const scr = (x, d) => [R.X0 + x + d / 2, R.Y0 - d / 2];                    // 바닥 -> 그림 화소
 const world = (X, Y) => { const d = (R.Y0 - Y) * 2; return [X - R.X0 - d / 2, d]; };
+function zAt(x, d) {                                                            // 3차원 바닥 높이: S자 통로의 계단·단(앞 칸 0 → 가운데 칸 → 뒤 칸 → 오른쪽 끝에서 내려옴)
+  if (!R || !R.sections) return 0;
+  for (const s of R.sections) {
+    const z = s.z3; if (!z || x < s.x0 || x >= s.x1) continue; const hw = z.hw;
+    if (d <= z.dA + hw) return 0;
+    if (d < z.dB - hw) return z.zB * (d - (z.dA + hw)) / ((z.dB - hw) - (z.dA + hw));
+    if (d <= z.dB + hw) return z.zB;
+    if (d < z.dC - hw) return z.zB + (z.zC - z.zB) * (d - (z.dB + hw)) / ((z.dC - hw) - (z.dB + hw));
+    return z.zC * (x > z.xd ? 1 - Math.min(1, (x - z.xd) / (s.x1 - z.xd)) : 1);
+  }
+  return 0;
+}
+function worldZ(X, Y) {                                                         // 화면 → 바닥(높이 포함): d/2 + z(d) 가 단조 증가라 이분법으로 푼다
+  let [x, d] = worldZ(X, Y); if (!R.sections || !R.sections.some((s) => s.z3)) return [x, d];
+  let lo = 0, hi = R.D; for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2, xm = X - R.X0 - m / 2; if (m / 2 + zAt(xm, m) - (R.Y0 - Y) > 0) hi = m; else lo = m; }
+  d = (lo + hi) / 2; return [X - R.X0 - d / 2, d];
+}
 const sdist = (ax, ad, bx, bd) => Math.hypot((bx - ax) + (bd - ad) / 2, (bd - ad) / 2);   // 화면에서 보이는 거리
 
 // ---------- 방 준비: 그림, 깊이 지도, 걸을 수 있는 격자 ----------
@@ -607,7 +624,7 @@ function drawChild() {
   const cvw = curView(); if (cvw && cvw.mode === 'adult' && adultIm) { const [ax, ay] = scr(P.x, P.d), bob = P.moving ? Math.round(Math.sin(P.t * 12)) : 0; ctx.save(); ctx.translate((R.ox + ax) * S, (R.oy + ay + 1) * S); if (['l', 'ul', 'dl'].includes(P.dir)) ctx.scale(-1, 1); ctx.drawImage(adultIm, -6.5 * S, (-38 + bob) * S, 13 * S, 38 * S); ctx.restore(); return; }
   const f = P.moving ? 'w' + (1 + (Math.floor(P.t * WALK_FPS) % 4)) : 'idle'; const im = frames[P.dir + '_' + f]; if (!im) return;
   sprX.clearRect(0, 0, w, h); sprX.drawImage(im, 0, 0);
-  const [fx, fy] = scr(P.x, P.d), x0 = Math.round(fx - w / 2), y0 = Math.round(fy - h + 1);
+  const [fx, fy0] = scr(P.x, P.d), fy = fy0 - zAt(P.x, P.d), x0 = Math.round(fx - w / 2), y0 = Math.round(fy - h + 1);
   const id = sprX.getImageData(0, 0, w, h), a = id.data;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const X = x0 + x, Y = y0 + y; if (X < 0 || Y < 0 || X >= R.CW || Y >= R.CH) continue;
@@ -628,7 +645,7 @@ function draw(dt) {
     let px = P.x, pd = P.d; for (const [x, d] of P.path) { const n = Math.ceil(sdist(px, pd, x, d)); for (let k = 0; k <= n; k++) dot(px + (x - px) * k / n, pd + (d - pd) * k / n, '#fff'); px = x; pd = d; }
   }
   if (marker) {                                   // 누른 자리: 바닥에 퍼지는 고리
-    const [X, Y] = scr(marker.x, marker.d), k = Math.min(1, marker.t / .35), rx = 2 + 5 * k; ctx.strokeStyle = `rgba(255,236,190,${.9 - .6 * k})`; ctx.lineWidth = S;
+    const [X, Y1] = scr(marker.x, marker.d), Y = Y1 - zAt(marker.x, marker.d), k = Math.min(1, marker.t / .35), rx = 2 + 5 * k; ctx.strokeStyle = `rgba(255,236,190,${.9 - .6 * k})`; ctx.lineWidth = S;
     ctx.beginPath(); ctx.ellipse((R.ox + X) * S, (R.oy + Y) * S, rx * S, rx * S / 2, 0, 0, Math.PI * 2); ctx.stroke();
   }
   for (const c of R.cr) {                                                      // 약한 얼음 칸의 상태

@@ -19,13 +19,14 @@ cl = lambda v, a, b: max(a, min(b, v))
 def layout(th, chain):                                                          # 구간을 왼→오로 배치하고 구간마다 길(lane)과 영역을 정한다
     inter = th in INTERIOR; D = 64 if inter else 84; x = 0.0; d_in = D * .5; secs = []
     for si, s in enumerate(chain):
-        r = rnd(s['key']); sh = 'square' if s['shape'] == 'deep' else s['shape']; hw = (9 if sh == 'switch' else 13) if s['kind'] == 'passage' else 14; nxt = chain[si + 1] if si + 1 < len(chain) else None
+        z3 = None; r = rnd(s['key']); sh = 'square' if s['shape'] == 'deep' else s['shape']; hw = (9 if sh == 'switch' else 13) if s['kind'] == 'passage' else 14; nxt = chain[si + 1] if si + 1 < len(chain) else None
         if s['kind'] == 'passage':
             w = {'tunnel': r.randint(170, 240), 'hall': r.randint(80, 110), 'bend': r.randint(90, 120) if inter else r.randint(130, 170), 'zig': r.randint(160, 200), 'switch': r.randint(150, 190)}[sh]
             sg = 1 if d_in < D * .5 else -1
             if sh == 'switch':                                                      # ㄱ 밑에 ㄴ이 붙은 S자(ㄹ) 공간: 위 칸 오른쪽으로 → 내려와 가운데 칸 왼쪽으로 → 내려와 아래 칸 오른쪽으로
-                sg2 = -1 if d_in > D * .5 else 1; dB = d_in + sg2 * 30; dC = dB + sg2 * 30; d_out = dC
+                d_in = D * .2; dB = d_in + 30; dC = dB + 30; d_out = dC                                        # 3차원: 앞 칸(바닥) → 계단으로 뒤로 올라 가운데 칸(높음) → 계단으로 더 올라 뒤 칸(가장 높음) → 오른쪽 끝에서 계단으로 내려온다
                 pts = [(x, d_in), (x + w * .82, d_in), (x + w * .82, dB), (x + w * .18, dB), (x + w * .18, dC), (x + w, dC)]
+                z3 = dict(dA=d_in, dB=dB, dC=dC, zB=12, zC=24, xr=x + w * .82, xl=x + w * .18, xd=x + w - 48, hw=hw)
             elif sh in ('tunnel', 'hall'): d_out = d_in; pts = [(x, d_in), (x + w, d_in)]
             elif sh == 'bend': d_out = cl(d_in + sg * r.uniform(20, 26), 22, D - 22); xm = x + w * .5; pts = [(xm - w * .5, d_in), (xm, d_in), (xm, d_out), (x + w, d_out)]
             else: d_mid = cl(d_in + sg * 24, 22, D - 22); d_out = d_in; pts = [(x, d_in), (x + w * .3, d_in), (x + w * .3, d_mid), (x + w * .7, d_mid), (x + w * .7, d_in), (x + w, d_in)]
@@ -35,13 +36,13 @@ def layout(th, chain):                                                          
             elif sh == 'square': w = r.randint(56, 60) if inter else r.randint(78, 84); h = min(D - 6, w)
             else: w = r.randint(80, 96) if inter else r.randint(92, 112); h = r.randint(46, 52) if inter else r.randint(56, 66)
             d_out = r.uniform(D * .34, D * .66)
-            if nxt is not None and nxt['shape'] == 'switch': d_out = D * (.92 if rnd(nxt['key'] + 'sw').random() < .5 else .2)       # S자 통로로 들어가기 좋은 높이에서 나간다
+            if nxt is not None and nxt['shape'] == 'switch': d_out = D * .2       # S자 통로로 들어가기 좋은 높이에서 나간다
             d0 = max(3, min(d_in, d_out) - 16); d1 = min(D - 3, d0 + h)
             if d1 < max(d_in, d_out) + 16: d1 = min(D - 3, max(d_in, d_out) + 16); d0 = max(3, d1 - h)
             d0 = max(3, min(d0, min(d_in, d_out) - 14)); d1 = min(D - 3, max(d1, max(d_in, d_out) + 14))                  # 들어오는 길·나가는 길이 항상 방 영역 안에 들어오게
             ext = (d0, d1); dm = (d_in + d_out) / 2 + r.uniform(-8, 8)
             pts = [(x, d_in), (x + w * .35, d_in), (x + w * .65, d_out), (x + w, d_out)] if sh == 'long' else [(x, d_in), (x + w * .5, cl(dm, d0 + 14, d1 - 14)), (x + w, d_out)]
-        secs.append(dict(s=s, key=s['key'], kind=s['kind'], shape=sh, x0=x, x1=x + w, pts=pts, hw=hw, d_in=d_in, d_out=d_out, ext=ext, mid=M.polymid(pts)))
+        secs.append(dict(s=s, key=s['key'], kind=s['kind'], shape=sh, x0=x, x1=x + w, pts=pts, hw=hw, d_in=d_in, d_out=d_out, ext=ext, mid=M.polymid(pts), z3=(z3 if sh == 'switch' and s['kind'] == 'passage' else None)))
         x += w; d_in = d_out
     return secs, x, D
 
@@ -113,6 +114,18 @@ def strip_props(name, k, tr, inside, rng):
             for dd in np.arange(min(dA, dB) - hw, max(dA, dB) + hw, 7.0):
                 lx, ld = tr((xr + hw + 6, dd))
                 if put(lx, ld, 7): unit(k, th, lx, ld, False, rr)
+            z3 = sec['z3']; hwz = z3['hw']; tc = TD.RUN[th][3]; top = tuple(min(255, int(v * 1.12) + 8) for v in tc); fr = tuple(int(v * .78) for v in tc); rt = tuple(int(v * .62) for v in tc)
+            def plat(x, d, w_, dp_, h_, z0=0, alt=False):                                           # 입체 바닥판/계단 한 칸: 바닥처럼 가장 먼저 그리고 깊이 지도에는 남기지 않는다(아이를 가리지 않는다)
+                lx, ld = tr((x, d)); tp = tuple(min(255, v + 14) for v in top) if alt else top
+                k.sc.jobs.append((390 + d / 100.0, lambda lx=lx, ld=ld, w_=w_, dp_=dp_, h_=h_, z0=z0, tp=tp: k.sc.box(lx, ld, w_, dp_, h_, tp, fr, rt, z0=z0)))
+            plat(z3['xl'] - hwz, z3['dC'] - hwz, z3['xd'] - (z3['xl'] - hwz), 2 * hwz, z3['zC'])                       # 뒤 칸(가장 높음)
+            plat(z3['xl'] - hwz, z3['dB'] - hwz, z3['xr'] + hwz - (z3['xl'] - hwz), 2 * hwz, z3['zB'])                 # 가운데 칸
+            for i in range(6):                                                                         # 앞 칸 → 가운데 칸 계단(오른쪽 끝)
+                plat(z3['xr'] - hwz, z3['dA'] + hwz + 2 * i, 2 * hwz, 2, z3['zB'] * (i + 1) / 6.5, alt=i % 2 == 1)
+            for i in range(6):                                                                         # 가운데 칸 → 뒤 칸 계단(왼쪽 끝)
+                plat(z3['xl'] - hwz, z3['dB'] + hwz + 2 * i, 2 * hwz, 2, z3['zB'] + (z3['zC'] - z3['zB']) * (i + 1) / 6.5, alt=i % 2 == 1)
+            for i in range(6):                                                                         # 뒤 칸 → 바닥 내림 계단(오른쪽 끝)
+                plat(z3['xd'] + 8 * i, z3['dC'] - hwz, 8, 2 * hwz, z3['zC'] * (1 - (i + 1) / 7.0), alt=i % 2 == 1)
         elif sec['kind'] == 'passage':
             hw = sec['hw'] + 7
             for p0, p1 in zip(sec['pts'], sec['pts'][1:]):
@@ -167,7 +180,8 @@ def strip_props(name, k, tr, inside, rng):
             lx, ld = tr(ok_); fn_set(k, lx, ld, rr); placed.append((lx, ld, 34)); chosen[sec['key']] = (ok_, fn_set.lit)
     for sec in secs:
         rr = rnd(sec['key'] + 'l')
-        if sec['kind'] == 'passage': xs = [(x, lane_d(sec, x) + sec['hw'] + 3) for x in np.arange(sec['x0'] + 50, sec['x1'] - 20, 120.0)]
+        if sec['kind'] == 'passage' and sec['shape'] == 'switch': xs = []
+        elif sec['kind'] == 'passage': xs = [(x, lane_d(sec, x) + sec['hw'] + 3) for x in np.arange(sec['x0'] + 50, sec['x1'] - 20, 120.0)]
         else:
             c = chosen.get(sec['key']); xs = [(c[0][0] + (26 if c[0][0] < (sec['x0'] + sec['x1']) / 2 else -26), min(sec['ext'][1] - 6, D - 6))] if (c and not c[1]) else []
         for x, d in xs:
@@ -243,7 +257,7 @@ def main():
         if bad: print('!! 길이 막힘', name, 'reason', WHYLAST[0])
         o = meta['origin']; meta['theme'] = th; meta['kind'] = 'strip'; meta['label'] = THEMES[th]['label']
         meta['sections'] = [dict(key=s['key'], kind=s['kind'], shape=s['shape'], x0=round(s['x0'] - o[0], 1), x1=round(s['x1'] - o[0], 1), mid=[round(s['mid'][0] - o[0], 1), round(s['mid'][1] - o[1], 1)],
-                                  label='%s %s%s' % (THEMES[th]['label'], '통로' if s['kind'] == 'passage' else '', s['key'][-2:].lstrip('0') or '0')) for s in spec['secs']]
+                                  label='%s %s%s' % (THEMES[th]['label'], '통로' if s['kind'] == 'passage' else '', s['key'][-2:].lstrip('0') or '0'), **({'z3': {kk: round((vv - (o[0] if kk in ('xr', 'xl', 'xd') else o[1] if kk in ('dA', 'dB', 'dC') else 0)), 1) for kk, vv in s['z3'].items()}} if s.get('z3') else {})) for s in spec['secs']]
         nav[name] = meta; im.save(os.path.join(OUT, 'world_%s.png' % name)); dep.save(os.path.join(OUT, 'world_%s_depth.png' % name)); mask.save(os.path.join(OUT, 'world_%s_walk.png' % name))
         print(name, im.size, 'sections', len(spec['secs']), 'W', round(spec['W']), 'try', spec['tries'])
     p = os.path.join(OUT, 'more_nav.json'); old = {}
