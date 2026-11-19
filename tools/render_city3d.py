@@ -449,7 +449,7 @@ def lot_scene(W=LOT_W, name='city3d_lot', save=True):
 RTW, RTD = 140, 420                                                                               # 도로 터널 크기(세로로 쭉)
 WX = 12                                                                                           # 왼쪽 벽 면의 x(그 뒤는 비상구가 파인 자리)
 RV0, RV1 = 24, 128                                                                                # 차도 가로 범위(왼쪽 인도 12..24, 오른쪽 낮은 벽 128..)
-NICHE = (250, 264)                                                                                # 비상구가 파인 깊이 범위(왼쪽 벽)
+NICHE = (240, 272)                                                                                # 비상구가 파인 깊이 범위(왼쪽 벽)
 def _nz(x, d, s=0): return ((int(x * 12.9898 + d * 78.233 + s * 37.7) * 2654435761) >> 7) % 100 / 100.0
 def road_tunnel(name='city3d_roadtunnel', save=True):
     s = Scene(RTW, RTD, 72, k=2); s.d.rectangle([0, 0, s.img.size[0], s.img.size[1]], fill=(10, 7, 6))
@@ -457,7 +457,9 @@ def road_tunnel(name='city3d_roadtunnel', save=True):
     def road(x, d):
         c = (96, 66, 42) if _nz(x // 2, d // 2) > .15 else (90, 62, 40)
         if x < RV0: c = (126, 98, 70)                                                              # 인도(조금 밝다)
+        c = tuple(int(v * (.86 + .14 * (.5 + .5 * math.cos(2 * math.pi * d / 56.0))) * (.92 + .1 * math.sin(math.pi * min(1.0, max(0.0, (x - WX) / (RV1 - WX)))))) for v in c)   # 길이 방향으로 부드럽게 밝아졌다 어두워지는 줄 조명(동그란 빛 없음)
         if d < 70: c = dk(c, .3 + .7 * d / 70.0)                                                   # 입구(아치) 쪽은 어둠에서 서서히 드러난다
+        if d > RTD - 80: f = ((d - (RTD - 80)) / 80.0) ** 1.6 * .55; c = tuple(int(c[i] + ((255, 206, 140)[i] - c[i]) * f) for i in range(3))   # 출구 빛이 바닥으로 부드럽게 번진다
         return c
     s.floor(road, x0=WX, x1=RV1 + 2, d0=0, d1=RTD)
     def seg(x0, d0, x1, d1, c, z=0): s.poly([(x0, d0, z), (x1, d0, z), (x1, d1, z), (x0, d1, z)], c)
@@ -471,7 +473,6 @@ def road_tunnel(name='city3d_roadtunnel', save=True):
     lay = s.img.copy(); ld = ImageDraw.Draw(lay)
     for z in range(0, 56): ld.polygon([s.P(0, E, z), s.P(RTW, E, z), s.P(RTW, E, z + 1.2), s.P(0, E, z + 1.2)], fill=(255, int(238 - z * .9), int(186 - z * 1.6)))
     s.img.paste(lay, (0, 0), mask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
-    s.glow((RV0 + RV1) / 2, E - 8, 90, col=(255, 214, 140), power=.7)
     # 왼쪽 벽: 가로 결이 있는 연한 주황 패널 타일 + 위쪽 어두운 둥근 천장 띠 + 줄지어 켜진 등
     LAMPD = list(range(20, RTD - 8, 14))
     def lit(d): return .8 + .3 * max(0.0, math.cos(math.pi * ((d - 20) % 14 - 7) / 14 * 1.0)) * 0 + .0
@@ -486,26 +487,30 @@ def road_tunnel(name='city3d_roadtunnel', save=True):
             s.poly([(WX, d0, z0), (WX, d0 + 4.2, z0), (WX, d0 + 4.2, z0 + 5), (WX, d0, z0 + 5)], c)
         for z0 in range(40, 70, 6):                                                                  # 위쪽: 어두운 천장 곡면
             f = 1 - (z0 - 40) / 36.0; c = tuple(int(v * f * fade) for v in (84, 56, 38)); s.poly([(WX, d0, z0), (WX, d0 + 4.2, z0), (WX, d0 + 4.2, z0 + 6), (WX, d0, z0 + 6)], c)
-    for d in LAMPD:                                                                                   # 천장 모서리를 따라 줄지어 켜진 등
-        fade = min(1.0, .25 + .75 * d / 70.0); c = tuple(int(v * fade) for v in (255, 214, 130))
-        s.poly([(WX, d, 46), (WX, d + 4, 46), (WX, d + 4, 49), (WX, d, 49)], c)
-    for d in range(60, RTD, 56): s.glow(WX + 8, d, 60, col=AMB, power=.32, z=28)                      # 벽에 번지는 주황 빛(낮게)
-    for d in range(40, RTD, 56): s.glow((RV0 + RV1) / 2, d, 80, col=AMB, power=.33)                   # 도로 위 빛 웅덩이
-    # 비상구: 벽이 옆으로 움푹 파인 곳(안쪽 면 + 먼쪽 옆면) + 안쪽 철문
-    n0, n1 = NICHE; XB = 3
-    s.poly([(XB, n0, 0), (WX, n0, 0), (WX, n1, 0), (XB, n1, 0)], (38, 28, 22))                      # 파인 바닥
-    s.poly([(XB, n0, 0), (XB, n1, 0), (XB, n1, 40), (XB, n0, 40)], (96, 72, 56))                    # 안쪽 벽
-    s.poly([(XB, n1, 0), (WX, n1, 0), (WX, n1, 40), (XB, n1, 40)], (44, 32, 26))                    # 먼쪽 옆면(앞을 향함)
-    s.poly([(XB, n0 + 3, 0), (XB, n1 - 3, 0), (XB, n1 - 3, 30), (XB, n0 + 3, 30)], (136, 138, 134))   # 철문
-    s.poly([(XB, n0 + 4.5, 1.5), (XB, n1 - 4.5, 1.5), (XB, n1 - 4.5, 28.5), (XB, n0 + 4.5, 28.5)], (156, 158, 152))
-    s.poly([(XB, (n0 + n1) / 2 - .4, 1.5), (XB, (n0 + n1) / 2 + .4, 1.5), (XB, (n0 + n1) / 2 + .4, 28.5), (XB, (n0 + n1) / 2 - .4, 28.5)], (110, 112, 108))
-    s.poly([(XB, n1 - 7, 12), (XB, n1 - 5.5, 12), (XB, n1 - 5.5, 18), (XB, n1 - 7, 18)], (60, 60, 58))      # 손잡이
-    s.poly([(XB, n0 + 4, 33), (XB, n1 - 4, 33), (XB, n1 - 4, 38), (XB, n0 + 4, 38)], (236, 232, 214)); s.poly([(XB, n0 + 6, 34.2), (XB, n1 - 6, 34.2), (XB, n1 - 6, 36.8), (XB, n0 + 6, 36.8)], (178, 60, 52))   # 흰 표지 + 붉은 띠
-    s.glow(8, (n0 + n1) / 2, 30, col=(255, 236, 200), power=.3, z=2)
+    for d0 in range(0, RTD, 4):                                                                       # 천장 모서리를 따라 이어진 한 줄 조명(점이 아니라 선)
+        fade = min(1.0, .25 + .75 * d0 / 70.0); c = tuple(int(v * fade) for v in (255, 226, 160)); s.poly([(WX, d0, 46), (WX, d0 + 4.2, 46), (WX, d0 + 4.2, 48.4), (WX, d0, 48.4)], c)
+        c2 = tuple(int(v * fade) for v in (150, 104, 66)); s.poly([(WX, d0, 49), (WX, d0 + 4.2, 49), (WX, d0 + 4.2, 50), (WX, d0, 50)], c2)
+    # 비상구: 벽이 둥근 아치로 옆에 움푹 파이고, 안쪽에 큰 회색 철제 문 (참고 사진) + 옆에 초록 비상구 표지
+    n0, n1 = NICHE; XB = 3; NR = 14
+    def arch(pl, hz=26, rz=11): return [(n0, 0)] + [(n0 + (n1 - n0) / 2 * (1 - math.cos(math.pi * k / 18)), hz + rz * math.sin(math.pi * k / 18)) for k in range(0, 19)] + [(n1, 0)]
+    A = arch(0)
+    s.poly([(XB, n0, 0), (WX, n0, 0), (WX, n1, 0), (XB, n1, 0)], (58, 46, 40))                           # 파인 바닥
+    s.poly([(WX, d_, z_) for d_, z_ in [(a_[0], a_[1]) for a_ in A]][:0] or [(WX - 0, a_[0], a_[1]) for a_ in A], (44, 34, 30))      # 벽에 난 아치 구멍(어두운 속)
+    s.poly([(XB, a_[0], a_[1]) for a_ in A], (150, 154, 156))                                            # 안쪽 면: 철제 문
+    seams = 5
+    for k in range(1, seams): dd = n0 + (n1 - n0) * k / seams; s.poly([(XB, dd - .35, 0), (XB, dd + .35, 0), (XB, dd + .35, 28), (XB, dd - .35, 28)], (96, 100, 102))
+    s.poly([(XB, n0, 0), (XB, n1, 0), (XB, n1, 1.6), (XB, n0, 1.6)], (110, 114, 116))
+    for dd in (n0 + (n1 - n0) / 2 - 3, n0 + (n1 - n0) / 2 + 1.4): s.poly([(XB, dd, 13), (XB, dd + 1.6, 13), (XB, dd + 1.6, 16), (XB, dd, 16)], (196, 70, 62))   # 붉은 주의 딱지
+    s.poly([(XB, n1, 0), (WX, n1, 0), (WX, n1, 26), (XB, n1, 26)], (70, 56, 48))                          # 먼쪽 옆면(앞을 향함)
+    for k in range(0, 18):                                                                               # 아치 테두리(밝은 띠)
+        p1, p2 = A[1 + k], A[2 + k]; s.poly([(WX, p1[0], p1[1]), (WX, p2[0], p2[1]), (WX, p2[0], p2[1] + 1.6), (WX, p1[0], p1[1] + 1.6)], (212, 196, 170))
+    gx, gd = WX, n0 - 8                                                                                  # 옆의 초록 비상구 표지(작고 세로)
+    s.poly([(gx, gd, 12), (gx, gd + 6, 12), (gx, gd + 6, 28), (gx, gd, 28)], (230, 232, 220)); s.poly([(gx, gd + .8, 12.8), (gx, gd + 5.2, 12.8), (gx, gd + 5.2, 27.2), (gx, gd + .8, 27.2)], (38, 170, 98))
+    s.poly([(gx, gd + 2, 21), (gx, gd + 3.6, 21), (gx, gd + 3.6, 24.4), (gx, gd + 2, 24.4)], (240, 255, 244)); s.poly([(gx, gd + 1.4, 17), (gx, gd + 4.6, 17), (gx, gd + 4.6, 20), (gx, gd + 1.4, 20)], (240, 255, 244))
     # 오른쪽: 낮은 벽(윗면과 앞 단면만) 위에 등 한 줄
     s.box(RV1, 0, 10, RTD, 12, (150, 112, 80), (126, 92, 64), (100, 72, 50))
-    for d in LAMPD[::2]:
-        fade = min(1.0, .25 + .75 * d / 70.0); c = tuple(int(v * fade) for v in (255, 214, 130)); s.poly([(RV1 + 3, d, 12.2), (RV1 + 6, d, 12.2), (RV1 + 6, d + 4, 12.2), (RV1 + 3, d + 4, 12.2)], c)
+    for d in range(0, RTD, 4):
+        fade = min(1.0, .25 + .75 * d / 70.0); c = tuple(int(v * fade) for v in (255, 214, 130)); s.poly([(RV1 + 4, d, 12.2), (RV1 + 6, d, 12.2), (RV1 + 6, d + 4.2, 12.2), (RV1 + 4, d + 4.2, 12.2)], c)
     s.run(); s.lamps = []
     return s.save(name) if save else s
 
