@@ -406,12 +406,13 @@ def car(s, x, d, col, model='sedan'):                                           
         s.poly([(x + 1.6, d + 2, 8.4), (x + 12.4, d + 2, 8.4), (x + 12.4, d + 2, 12), (x + 1.6, d + 2, 12)], GL)
         s.box(x, d + 13, 14, 17, 1.5, dc, dc, ds, z0=1.5); s.box(x, d + 13, 1.2, 17, 4.5, col, dc, ds, z0=3); s.box(x + 12.8, d + 13, 1.2, 17, 4.5, col, dc, ds, z0=3); s.box(x, d + 29, 14, 1.2, 4.5, col, dc, ds, z0=3)   # 짐칸
     s.box(x + 2, d - .1, 3, .3, 1.6, LAMP, LAMP, LAMP, z0=4); s.box(x + 9, d - .1, 3, .3, 1.6, LAMP, LAMP, LAMP, z0=4)
-def note_sprite(s, nx, nd):                                                                        # 쪽지: 보내 주신 그림(X 접힌 네모 + 엇갈려 접은 두 장)
-    cx, cy = s.P(nx, nd, 0); sc = 44.0 / 351 * (s.k / 2); INK, PAP, PAP2 = (48, 38, 32), (232, 224, 196), (206, 196, 168)
-    def pt(u, v): return (cx + (u - 175) * sc, cy + (v - 345) * sc)
-    def poly(pts, fill): s.d.polygon([pt(*q) for q in pts], fill=fill, outline=INK)
+def note_sprite(s, nx, nd):                                                                        # 쪽지: 보내 주신 그림(X 접힌 네모 + 엇갈려 접은 두 장)을 바닥 위에 눕혀 놓는다
+    sc = 28.0 / 351; INK, PAP, PAP2 = (48, 38, 32), (232, 224, 196), (206, 196, 168)
+    def fp(u, v): return (nx + (u - 175) * sc, nd - (v - 175) * sc * 1.5, .15)                   # 그림의 (가로, 세로) -> 바닥 (x, d)
+    def poly(pts, fill):
+        q = [s.P(*fp(*t)) for t in pts]; s.d.polygon(q, fill=fill, outline=INK)
     poly([(65, 5), (218, 5), (218, 152), (65, 152)], PAP2)
-    for a_, b_ in (((65, 5), (218, 152)), ((218, 5), (65, 152))): s.d.line([pt(*a_), pt(*b_)], fill=INK, width=max(1, s.k // 2))
+    for a_, b_ in (((65, 5), (218, 152)), ((218, 5), (65, 152))): s.d.line([s.P(*fp(*a_)), s.P(*fp(*b_))], fill=INK, width=max(1, s.k // 2))
     poly([(145, 225), (218, 152), (351, 258), (278, 352)], PAP)
     poly([(5, 215), (140, 75), (218, 152), (75, 292)], PAP)
 YELLOW = (230, 186, 48)                                                                           # 이스터에그: 이 차만 색이 있다
@@ -432,7 +433,7 @@ def lot_scene(W=LOT_W, name='city3d_lot', save=True):
             bays.append((bx, row_d))
             s.floor(lambda x, d, bx=bx: LINE if (abs(x - bx) < .5 or abs(x - (bx + 20)) < .5) else None, x0=bx - .5, x1=bx + 20.5, d0=row_d, d1=row_d + 34)
     egg_bay = [b_ for b_ in bays if b_[1] == SQD - 40 and b_[0] > 300][0]                           # 노란 차: 뒷줄 오른쪽 가운데쯤
-    for (bx, row_d) in sorted(bays, key=lambda b_: (-b_[1], -b_[0])):
+    for (bx, row_d) in sorted(bays, key=lambda b_: (-b_[1], b_[0])):
         if row_d == SQF + 6 and NOTE_AT[0] - 34 <= bx <= NOTE_AT[0] + 14: continue                                  # 쪽지가 놓이는 빈 칸
         if row_d == SQD - 40 and (bx < LX0 + 34 or bx + 20 > LX1 - 34): continue                       # 모서리 가로등과 겹치지 않게
         if (bx, row_d) == egg_bay: model, col = 'hatch', YELLOW; s.egg = (bx + 3, row_d + 3)
