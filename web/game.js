@@ -737,7 +737,7 @@ addEventListener('resize', fit); fit();
   for (const k in G.child) frames[k] = await img(G.child[k]);
   for (const k in (G.chaser || {})) chFrames[k] = await img(G.chaser[k]);
   if (G.adult) adultIm = await img(G.adult);
-  const sk = (location.hash || '#snow').slice(1), st = G.starts[sk] || G.starts.snow;
+  const sk = (location.hash || '#city0').slice(1), st = G.starts[sk] || G.starts.city0 || G.starts.snow;                  // 기본 시작: 초반 도시 띠의 첫 방
   await enter(st.room, [st.x, st.d]);
   let last = performance.now();
   const loop = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; try { update(dt); draw(dt); } catch (e) { console.error(e); } requestAnimationFrame(loop); };
