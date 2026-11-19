@@ -163,12 +163,20 @@ def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
     s.img.paste(lay, (0, 0), mask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
 
 # ---------------- 장면 1: 광장 ----------------
-def landing():
-    W, D = 150, 80; s = Scene(W, D, 70); rng = random.Random(5)
-    s.floor(paving)
+def landing(W=150, corridor=False, name='city3d_landing'):
+    D = 80; s = Scene(W, D, 70); rng = random.Random(5)
+    if corridor:                                                                                   # 같은 보도블록 바닥의 긴 복도: 앞쪽은 낮은 연석, 맨 끝은 아래(앞)로 열려 어둠으로 나간다
+        EX = W - 56
+        s.floor(paving, x0=0, x1=EX, d0=34); s.floor(paving, x0=0, x1=W, d0=34, d1=D, z=0)
+        s.floor(lambda x, d: dk(paving(x, d), max(.12, d / 34.0 * .9)), x0=EX, x1=W, d0=0, d1=34)
+        s.floor(paving, x0=0, x1=EX, d0=0, d1=34, z=-200) if False else None
+        s.box(0, 31, EX, 3, 4, CURBT, CURBF, CURBR)
+    else: s.floor(paving)
     s.glow(30, 30, 70, power=.35)
     s.wall_back(0, W, D, 60); s.wall_left(0, D, 60)
     s.lamp(140, 74, 44, -1)
+    if corridor:
+        for lx in range(210, W - 40, 70): s.lamp(lx, 74, 44, -1)                                 # 같은 가로등을 뒷벽 쪽 한 줄로 나열
     # 인공 수풀 화단(왼쪽 안쪽): 낮은 콘크리트 화단 위에 같은 모양의 덩어리
     px0, pd0, pw, pdp, ph = 12, 38, 70, 30, 9
     s.box(px0, pd0, pw, pdp, ph, (60, 64, 88), (66, 70, 96), (52, 56, 80))
@@ -189,9 +197,7 @@ def landing():
     for _ in range(26):                                                                            # 흩어진 잎
         lx, ld = rng.uniform(20, 84), rng.uniform(26, 38)
         px_, py_ = s.P(lx, ld, 0); s.px[px_, py_] = (60, 150, 80); s.px[px_ + 1, py_] = (46, 122, 66)
-    # 소품: 벤치, 쓰레기통
-    s.box(96, 62, 16, 5, 4, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=5); s.box(98, 62, 2, 4, 5, POLE, POLE, POLE); s.box(110, 62, 2, 4, 5, POLE, POLE, POLE)
-    s.run(); return s.save('city3d_landing')
+    s.run(); return s.save(name)
 
 # ---------------- 장면 2: 긴 거리 (새벽 직전의 큰 도시: 길고 넓다) ----------------
 def street():
@@ -228,7 +234,7 @@ def street():
     s.run(); return s.save('city3d_street')
 
 def main():
-    a, b = landing(), street()
+    a, b = landing(), street(); landing(520, True, 'city3d_corridor')
     ov = Image.new('RGB', (a.width * 2 + b.width * 2 + 50, max(a.height, b.height) * 2 + 20), (40, 40, 48))
     ov.paste(a.resize((a.width * 2, a.height * 2), Image.NEAREST), (10, 10)); ov.paste(b.resize((b.width * 2, b.height * 2), Image.NEAREST), (a.width * 2 + 40, 10))
     ov.save(os.path.join(OUT, 'city3d_overview.png')); print('city3d ok', a.size, b.size)
