@@ -48,6 +48,7 @@ def main():
         if x < 3 or x > 329.5: return False
         if math.hypot(x - fx, (d - fd)) < fr + 3: return False
         if any(abs(x - lx) < 4 and abs(d - ld_) < 4 for lx, ld_ in C.LAMPS): return False
+        if any(bx - 3 < x < bx + 19 and bd - 3 < d < bd + 9 for bx, bd in C.BEN) or (C.BIN[0] - 3 < x < C.BIN[0] + 8 and C.BIN[1] - 3 < d < C.BIN[1] + 8): return False
         if C.SQ0 + 4 < x < C.SQ1 - 4: return 8 < d < 78
         return 37 < d < 56
     sf, rf = room(f, 'fountain', '분수 광장', 330, 170, free_f, [14, 46], [dict(zone=[0, 5, 37, 56], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[324, 330, 37, 56], to=None, type='trans', dir='R')])

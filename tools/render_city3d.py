@@ -269,6 +269,7 @@ def street():
 # ---------------- 장면: 복도가 정사각형 광장으로 커지는 곳 (가운데 인공 분수와 풀) ----------------
 SQ0, SQ1 = 110, 250                                                                               # 광장(정사각형) 가로 범위
 FC = (180, 43); FR = 22
+BEN = [(134, 62), (208, 62)]; BIN = (243, 68)                                                      # 풀밭 대신: 위쪽 왼쪽·오른쪽에 벤치 둘, 오른쪽에 쓰레기통 하나
 LAMPS = [(50, 54), (126, 76), (234, 76), (310, 54)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
 def disc(s, cx, cd, r, z, col, n=36):
     s.poly([(cx + r * math.cos(2 * math.pi * k / n), cd + r * math.sin(2 * math.pi * k / n), z) for k in range(n)], col)
@@ -302,7 +303,9 @@ def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
                 col_ = rr.choice(((186, 76, 116), (186, 76, 116), (210, 120, 150), (214, 150, 96)))
                 s.px[px_, py_] = col_; s.px[px_ + 1, py_] = col_; s.px[px_, py_ - 1] = dk(col_, .7)
         s.jobs.append((gd1 - 1, roses))
-    for (gx0, gx1, gd0, gd1) in ((SQ0 + 6, SQ0 + 44, 9, 27), (SQ1 - 44, SQ1 - 6, 9, 27), (SQ0 + 10, SQ0 + 36, 59, 73), (SQ1 - 36, SQ1 - 10, 59, 73)): bed(gx0, gx1, gd0, gd1)
+    for bx_, bd_ in BEN:
+        s.box(bx_, bd_, 16, 5, 4, (112, 92, 82), (88, 72, 66), (70, 58, 54), z0=5); s.box(bx_ + 1, bd_, 2, 4, 5, POLE, POLE, POLE); s.box(bx_ + 13, bd_, 2, 4, 5, POLE, POLE, POLE); s.box(bx_, bd_ + 4, 16, 1, 6, (100, 82, 74), (80, 66, 60), (64, 54, 50), z0=9)
+    s.box(BIN[0], BIN[1], 5, 5, 9, (84, 92, 110), (62, 68, 86), (50, 54, 70)); s.box(BIN[0] - .5, BIN[1] - .5, 6, 6, 1.2, (104, 112, 130), (84, 92, 110), (70, 76, 92), z0=9)
     cx, cd = FC
     disc(s, cx, cd, FR + 9, 0.2, (52, 56, 82))                                                     # 분수 둘레의 둥근 바닥(연한 포장)
     cyl(s, cx, cd, FR, 0, 7, (112, 112, 134), (92, 94, 118)); disc(s, cx, cd, FR - 3, 6, (30, 64, 118))   # 연한 돌 받침 + 물
