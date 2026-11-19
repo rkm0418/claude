@@ -52,10 +52,10 @@ def main():
         if C.P0 + 3 < x < C.P1 - 3 and 2 < d <= C.SQF + 6: return True                                  # 아래쪽 가운데 통로
         if C.SQ0 + 4 < x < C.SQ1 - 4: return C.SQF + 4 < d < C.SQD - 2
         return C.C0 + 3 < d < C.C1 - 2
-    sf, rf = room(f, 'fountain', '분수 광장', 410, 215, free_f, [14, 87], [dict(zone=[0, 5, 78, 96], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[404, 410, 78, 96], to='recycle', spawn=[12, 87], type='trans', dir='R'), dict(zone=[196, 214, 0, 6], to='square2', spawn=[205, 160], type='trans', dir='F')])
+    sf, rf = room(f, 'fountain', '분수 광장', 410, 215, free_f, [14, 87], [dict(zone=[0, 5, 78, 96], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[404, 410, 78, 96], to='recycle', spawn=[12, 87], type='trans', dir='R'), dict(zone=[196, 214, 0, 6], to='square2', spawn=[265, 160], type='trans', dir='F')])
     rf['img'] = uri(f.img.convert('RGB')); rf['depth'] = uri(dep3)
     # --- 분리수거장(오른쪽) · 같은 크기의 정사각형 공간(아래쪽)
-    r1 = C.sq_scene('recycle', 300, 'city3d_recycle', False, 'l'); r2 = C.sq_scene('plain', 300, 'city3d_square', False, '')
+    r1 = C.sq_scene('recycle', 300, 'city3d_recycle', False, 'l'); r2 = C.lot_scene(C.LOT_W, 'city3d_lot', False)
     def blk(x, d, x0, d0, w, dp): return x0 - 3 < x < x0 + w + 3 and d0 - 3 < d < d0 + dp + 3
     def free_r(x, d):
         if x < 3 or x > 297: return False
@@ -66,11 +66,12 @@ def main():
     sr, rr_ = room(r1, 'recycle', '분리수거장', 300, 255, free_r, [14, 87], [dict(zone=[0, 5, 78, 96], to='fountain', spawn=[400, 87], type='trans', dir='L')])
     rr_['img'] = uri(r1.img.convert('RGB')); rr_['depth'] = uri(Image.new('RGB', (r1.CW, r1.CH), (255, 255, 255)))
     def free_s(x, d):
-        if x < 3 or x > 297: return False
-        if any(abs(x - lx) < 4 and abs(d - (C.SQD - 4)) < 4 for lx in (C.SQ0 + 20, C.SQ1 - 20)): return False
-        if C.P0 + 3 < x < C.P1 - 3 and C.SQD - 4 <= d < C.SQD + C.PL: return True
-        return C.SQ0 + 4 < x < C.SQ1 - 4 and C.SQF + 4 < d < C.SQD + 3
-    ss, rs_ = room(r2, 'square2', '정사각형 공간', 300, 255, free_s, [205, 160], [dict(zone=[196, 214, C.SQD + C.PL - 6, C.SQD + C.PL], to='fountain', spawn=[205, 14], type='trans', dir='B')])
+        if x < 3 or x > C.LOT_W - 3: return False
+        if any(abs(x - cx_ - 7) < 11 and abs(d - cd_ - 14) < 17 for cx_, cd_ in r2.cars): return False        # 세워 둔 차
+        if any(abs(x - lx) < 4 and abs(d - (C.SQD - 4)) < 4 for lx in (C.LX0 + 14, C.LX1 - 14, (C.LX0 + C.LX1) // 2 - 40, (C.LX0 + C.LX1) // 2 + 60)): return False
+        if C.LP0 + 3 < x < C.LP1 - 3 and C.SQD - 4 <= d < C.SQD + C.PL: return True
+        return C.LX0 + 4 < x < C.LX1 - 4 and C.SQF + 4 < d < C.SQD + 3
+    ss, rs_ = room(r2, 'square2', '주차장', C.LOT_W, 255, free_s, [265, 160], [dict(zone=[C.LP0 + 3, C.LP1 - 3, C.SQD + C.PL - 6, C.SQD + C.PL], to='fountain', spawn=[205, 14], type='trans', dir='B')])
     rs_['img'] = uri(r2.img.convert('RGB')); rs_['depth'] = uri(Image.new('RGB', (r2.CW, r2.CH), (255, 255, 255)))
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
     full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'square2': rs_}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}

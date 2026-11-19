@@ -375,8 +375,7 @@ def sq_scene(kind, W=300, name='city3d_square', save=True, fade='l'):
         for i, c in enumerate(BINS): bin_box(s, SQ0 + 34 + i * 18, SQD - 13, c)                    # 뒤 연석 앞에 분리수거함 다섯
         for k_, (bx, bd, bw, bh_) in enumerate(((SQ1 - 52, SQD - 20, 14, 9), (SQ1 - 52, SQD - 20, 14, 9), (SQ1 - 40, SQD - 20, 12, 9))):
             s.box(bx + (0 if k_ else 0), bd, bw, 9, bh_, (150, 112, 70), (118, 86, 52), (92, 66, 40), z0=(9 if k_ == 1 else 0))   # 쌓아 둔 종이 상자
-        s.lamp(SQ0 + 22, C1 - 4, 52, -1); s.lamp(SQ1 - 14, SQD - 4, 52, -1)
-        s.lamp(50, C1 - 4, 52, -1)
+        s.lamp(SQ1 - 14, SQD - 4, 52, -1)                                                           # 왼쪽 가로등은 모두 없앴다
     else:
         s.lamp(SQ0 + 20, SQD - 4, 52, -1); s.lamp(SQ1 - 20, SQD - 4, 52, -1)
     s.run()
@@ -388,8 +387,42 @@ def sq_scene(kind, W=300, name='city3d_square', save=True, fade='l'):
             for Y in range(s.img.size[1]): q = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (6, 7, 16)[i] * f) for i, v in enumerate(q))
     return s.save(name) if save else s
 
+# ---------------- 아래쪽 공간: 주차장 ----------------
+LX0, LX1 = 110, 420                                                                               # 주차장 가로 범위(분수 광장보다 넓다)
+LP0, LP1 = 253, 277                                                                               # 위쪽 가운데 통로
+LOT_W = 530
+def asphalt2(x, d):
+    n = (int(x * 7 + d * 13) * 2654435761) % 97
+    return (30, 32, 46) if n > 6 else (36, 38, 54)
+def car(s, x, d, col, face='d'):                                                                   # 세워 둔 차(앞이 화면 아래쪽): 길이 28(d 방향), 폭 14
+    dc = dk(col, .6)
+    s.box(x, d, 14, 28, 6, col, dc, dk(col, .5), z0=1.5)                                          # 차체
+    s.box(x + 1.2, d + 6, 11.6, 14, 5, dk(col, .85), dc, dk(col, .5), z0=7.5)                      # 지붕 칸
+    s.poly([(x + 1.6, d + 6, 8), (x + 12.4, d + 6, 8), (x + 12.4, d + 6, 11.5), (x + 1.6, d + 6, 11.5)], (22, 30, 50))   # 앞유리
+    for wx in (x + .4, x + 11.6): s.box(wx, d + 3, 2, 5, 3, (14, 14, 18), (10, 10, 14), (8, 8, 12))   # 바퀴(앞)
+    for wx in (x + .4, x + 11.6): s.box(wx, d + 20, 2, 5, 3, (14, 14, 18), (10, 10, 14), (8, 8, 12))  # 바퀴(뒤)
+    s.box(x + 2, d - .1, 3, .3, 1.6, (124, 116, 84), (124, 116, 84), (124, 116, 84), z0=4); s.box(x + 9, d - .1, 3, .3, 1.6, (124, 116, 84), (124, 116, 84), (124, 116, 84), z0=4)   # 꺼진 전조등(연한 색)
+def lot_scene(W=LOT_W, name='city3d_lot', save=True):
+    D = SQD + PL; s = Scene(W, 255, 130, k=2); s.cars = []; back_buildings(s, W, D)
+    s.floor(asphalt2, x0=LX0, x1=LX1, d0=SQF, d1=SQD)
+    s.floor(lambda x, d: dk(asphalt2(x, d), .08 + .92 * min(1.0, (SQD + PL - d) / 34.0)), x0=LP0, x1=LP1, d0=SQD, d1=SQD + PL)
+    T = W3 = 4; H = 3; L, R_, F0, B1 = LX0 - W3, LX1 + W3, SQF - T, SQD + T
+    curb_union(s, [(L, SQD, LP0 - W3 - L, T), (LP1 + W3, SQD, R_ - LP1 - W3, T), (LP0 - W3, SQD, W3, PL), (LP1, SQD, W3, PL), (L, F0, R_ - L, T), (L, F0, W3, B1 - F0), (LX1, F0, W3, B1 - F0)], H)
+    LINE = (168, 170, 186)
+    rr = random.Random(9); cols = [(70, 72, 96), (110, 40, 52), (150, 152, 166), (46, 66, 100), (88, 90, 104), (60, 84, 74)]
+    for row_d in (SQD - 40, SQF + 6):                                                              # 뒤·앞 줄 주차칸(폭 20, 길이 34)
+        for i in range(LX0 // 20 + 0, LX1 // 20):
+            bx = i * 20 + 2
+            if bx < LX0 + 4 or bx + 20 > LX1 - 4: continue
+            if row_d > SQD - 50 and LP0 - 4 < bx + 10 < LP1 + 4 and False: continue
+            s.floor(lambda x, d, bx=bx: LINE if (abs(x - bx) < .5 or abs(x - (bx + 20)) < .5) else None, x0=bx - .5, x1=bx + 20.5, d0=row_d, d1=row_d + 34)
+            if rr.random() < .6: car(s, bx + 3, row_d + 3, rr.choice(cols)); s.cars.append((bx + 3, row_d + 3))
+    s.lamp(LX0 + 14, SQD - 4, 52, -1); s.lamp(LX1 - 14, SQD - 4, 52, -1); s.lamp((LX0 + LX1) // 2 - 40, SQD - 4, 52, -1); s.lamp((LX0 + LX1) // 2 + 60, SQD - 4, 52, -1)
+    s.run()
+    return s.save(name) if save else s
+
 def main():
-    a, b = landing(150, False, 'city3d_landing', True, True, True, None, True), street(); landing(520, True, 'city3d_corridor'); fountain_scene(); sq_scene('recycle', 300, 'city3d_recycle'); sq_scene('plain', 300, 'city3d_square', True, '')
+    a, b = landing(150, False, 'city3d_landing', True, True, True, None, True), street(); landing(520, True, 'city3d_corridor'); fountain_scene(); sq_scene('recycle', 300, 'city3d_recycle'); lot_scene()
     ov = Image.new('RGB', (a.width * 2 + b.width * 2 + 50, max(a.height, b.height) * 2 + 20), (40, 40, 48))
     ov.paste(a.resize((a.width * 2, a.height * 2), Image.NEAREST), (10, 10)); ov.paste(b.resize((b.width * 2, b.height * 2), Image.NEAREST), (a.width * 2 + 40, 10))
     ov.save(os.path.join(OUT, 'city3d_overview.png')); print('city3d ok', a.size, b.size)
