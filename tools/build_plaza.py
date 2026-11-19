@@ -78,7 +78,7 @@ def build(check=False):
     ru['reveal'] = [dict(img=uri(patch), x=bb[0] / K, y=bb[1] / K, w=(bb[2] - bb[0]) / K, h=(bb[3] - bb[1]) / K, zone=[C.WX, C.WX + 30, n0 - 12, n1 + 12], r=46)]
     r6 = C.annex('city3d_annex', False)
     def free_a2(x, d): return 3 < x < C.AL - 3 and C.AF + 2 < d < C.AB - 2
-    sa2, ra2 = room(r6, 'annex', '정비 복도', C.AW, C.AD, free_a2, [C.AL - 16, 28], [dict(zone=[C.AL - 6, C.AL, C.AF + 2, C.AB - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='R'), dict(zone=[0, 6, C.APASS[0] + 2, C.APASS[1] - 2], to='tunnel', spawn=[32, 8], type='trans', dir='L', turn=True),
+    sa2, ra2 = room(r6, 'annex', '정비 복도', C.AW, C.AD, free_a2, [C.AL - 16, 28], [dict(zone=[C.AL - 6, C.AL, C.AF + 2, C.AB - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='R'), dict(zone=[0, 6, C.APASS[0] + 2, C.APASS[1] - 2], to='tunnel', spawn=[52, 40], type='trans', dir='L'),
         dict(zone=[233, 244, C.AB - 6, C.AB], to='lounge', spawn=[C.LDOOR[0] + 7, 20], type='trans', dir='B'), dict(zone=[85, 96, C.AB - 6, C.AB], to='annex', need='never_open', needMsg='문이 잠겨 있다', side='back')])
     r7 = C.lounge('city3d_lounge', False)
     def free_l(x, d): return 3 < x < C.LW - 3 and 8 < d < C.LD - 2 or (C.LDOOR[0] < x < C.LDOOR[1] and 0 <= d <= 8)
@@ -86,7 +86,7 @@ def build(check=False):
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < 297
-    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [32, 8], [dict(zone=[3, 61, 0, 4], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='F', turn=True), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
+    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
     if check:
         sp = {}
         for k, (g, w, z, st, ex) in GEOM.items():
