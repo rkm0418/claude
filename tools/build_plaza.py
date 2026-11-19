@@ -78,10 +78,10 @@ def build(check=False):
     r6 = C.annex('city3d_annex', False)
     def free_a2(x, d): return 3 < x < C.AL - 3 and C.AF + 2 < d < C.AB - 2
     sa2, ra2 = room(r6, 'annex', '정비 복도', C.AW, C.AD, free_a2, [C.AL - 16, 28], [dict(zone=[C.AL - 6, C.AL, C.AF + 2, C.AB - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='R'), dict(zone=[0, 6, C.APASS[0] + 2, C.APASS[1] - 2], to='tunnel', spawn=[32, 8], type='trans', dir='L'),
-        dict(zone=[233, 244, C.AB - 6, C.AB], to='lounge', spawn=[C.LDOOR[0] + 7, C.LD - 16], type='trans', dir='B'), dict(zone=[85, 96, C.AB - 6, C.AB], to='annex', need='never_open', needMsg='문이 잠겨 있다', side='back')])
+        dict(zone=[233, 244, C.AB - 6, C.AB], to='lounge', spawn=[C.LDOOR[0] + 7, 20], type='trans', dir='B'), dict(zone=[85, 96, C.AB - 6, C.AB], to='annex', need='never_open', needMsg='문이 잠겨 있다', side='back')])
     r7 = C.lounge('city3d_lounge', False)
-    def free_l(x, d): return 3 < x < C.LW - 3 and 8 < d < C.LD - 2
-    sl, rl = room(r7, 'lounge', '휴게실', C.LW, C.LD, free_l, [C.LDOOR[0] + 7, C.LD - 16], [dict(zone=[C.LDOOR[0] + 1, C.LDOOR[1] - 1, C.LD - 6, C.LD], to='annex', spawn=[238, C.AB - 14], type='trans', dir='F')])
+    def free_l(x, d): return 3 < x < C.LW - 3 and 8 < d < C.LD - 2 or (C.LDOOR[0] < x < C.LDOOR[1] and 0 <= d <= 8)
+    sl, rl = room(r7, 'lounge', '휴게실', C.LW, C.LD, free_l, [C.LDOOR[0] + 7, 20], [dict(zone=[C.LDOOR[0] + 1, C.LDOOR[1] - 1, 0, 6], to='annex', spawn=[238, C.AB - 14], type='trans', dir='F')])
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < 297
