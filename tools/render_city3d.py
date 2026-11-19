@@ -697,7 +697,7 @@ def lounge(name='city3d_lounge', save=True):
     SOFT, SOFE = (118, 152, 134), (52, 74, 64)                                                         # 윗면은 밝게, 모서리선은 어두운 초록
     def part(x, d, w, dp, h, top, front, right):                                                          # 그린 바로 뒤에 모서리선: 앞의 것이 뒤의 선을 덮도록(먼 것부터)
         s.box(x, d, w, dp, h, top, front, right); outline_px(s, x, d, w, dp, h, 0, SOFE, 1)
-    s.box(46, LD - 8, 56, 6, 20, SOFT, SOF, (86, 118, 102)); outline_px(s, 46, LD - 8, 56, 6, 20, 0, SOFE, 1, skip=(0, 3, 5))      # 등받이(좁은 옆면은 앞면 오른쪽 세로선과 아래 모서리선을 빼 점처럼 튀지 않게)
+    s.box(46, LD - 8, 56, 6, 20, SOFT, SOF, (86, 118, 102)); outline_px(s, 46, LD - 8, 56, 6, 20, 0, SOFE, 1, skip=(0,))      # 등받이(좁은 옆면은 앞면 오른쪽 세로선과 아래 모서리선을 빼 점처럼 튀지 않게)
     ARMR = (86, 118, 102)                                                                                 # 팔걸이 안쪽 면: 등받이 앞면과 다른 밝기로 해서 서로 비쳐 보이지 않게
     part(46, LD - 22, 6, 18, 14, SOFT, SOF, ARMR)                                                          # 왼쪽 팔걸이(왼쪽이 더 멀다: 먼 쪽부터 그린다)
     part(52, LD - 22, 44, 14, 9, SOFT, SOF, SOFR)                                                         # 앉는 면: 팔걸이 사이에만 두고 팔걸이 다음에 그려 팔걸이 안쪽 면 아랫부분을 덮는다(선이 이어진다)
