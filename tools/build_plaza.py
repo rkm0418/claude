@@ -27,7 +27,7 @@ def main():
         if 8 < x < 86 and 34 < d < 72: return False                                        # 화단
         if math.hypot(x - 140, d - 74) < 4: return False
         return True
-    sa, ra = room(a, 'plaza', '광장', 150, 80, free_a, [60, 24], [dict(zone=[144, 150, 4, 77], to='corridor', spawn=[12, 56])])
+    sa, ra = room(a, 'plaza', '광장', 150, 80, free_a, [60, 24], [dict(zone=[144, 150, 4, 77], to='corridor', spawn=[12, 56], type='trans', dir='R')])
     ra['img'] = uri(a.img.convert('RGB')); ra['depth'] = uri(dep)
     # --- 긴 복도(화단 없이)
     b = C.landing(520, True, 'city3d_corridor', False, False, False, 'l'); EX = 520 - 56
@@ -37,7 +37,7 @@ def main():
         if x >= EX: return 3 < d < 78
         if any(abs(x - lx) < 4 and abs(d - 74) < 4 for lx in b.lampx): return False
         return 37 < d < 78
-    sb, rb = room(b, 'corridor', '긴 복도', 520, 120, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40])])
+    sb, rb = room(b, 'corridor', '긴 복도', 520, 120, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L')])
     rb['img'] = uri(b.img.convert('RGB')); rb['depth'] = uri(dep2)
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
     full['rooms'] = {'plaza': ra, 'corridor': rb}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
