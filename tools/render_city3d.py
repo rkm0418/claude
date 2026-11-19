@@ -309,18 +309,41 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
     return s.save(name) if save else s
 
 # ---------------- 장면 2: 긴 거리 (새벽 직전의 큰 도시: 길고 넓다) ----------------
-def ink_smear(s, band):
-    """먼 끝(화면 위쪽)이 '아직 로딩되지 않은 것처럼' 번진 검은 먹물로 사라진다: 가장자리가 울퉁불퉁하다. 이 안쪽으로는 못 걷게 막는다(방의 free 에서 막음).
-    band: 번지는 화면 높이(논리 화소). 그림만 바꾸며 깊이는 건드리지 않는다."""
-    rs = np.random.RandomState(7); H, W_ = s.img.size[1], s.img.size[0]; k = s.k
-    lo = rs.rand(H // (6 * k) + 3, W_ // (6 * k) + 3); big = np.array(Image.fromarray((lo * 255).astype('uint8')).resize((W_, H), Image.BICUBIC)) / 255.0
-    lo2 = rs.rand(H // (2 * k) + 3, W_ // (2 * k) + 3); fine = np.array(Image.fromarray((lo2 * 255).astype('uint8')).resize((W_, H), Image.BICUBIC)) / 255.0
-    Y = np.arange(H)[:, None] * np.ones((1, W_)); top = (s.CH - (s.CH - 1 - .5 * s.D - 8)) * 0   # 바닥 맨 끝(d=D)의 화면 Y
-    yfar = (s.Y0 - .5 * s.D) * k; g = np.clip((yfar + band * k - Y) / (band * 2.0 * k), 0, 1)             # 끝에서 아래로 갈수록 옅어지는 기본 번짐(바닥 끝 위쪽은 완전히 검다)
-    n = ((big - .5) * .8 + (fine - .5) * .3) * np.minimum(1.0, g * 3.0)                                    # 번진 가장자리만 울퉁불퉁하게(번짐이 없는 곳엔 잡음 없음)
-    a = np.clip((g + n - .3) * 2.6, 0, 1); a[Y < yfar - 6 * k] = 1.0
-    arr = np.array(s.img.convert('RGB')).astype(float); ink = np.array([6, 7, 16], float)
-    out = arr * (1 - a[..., None]) + ink * a[..., None]; s.img.paste(Image.fromarray(out.astype('uint8')), (0, 0)); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
+def road_erode(s, base, seed=7):
+    """길 끝이 뾰족뾰족한 검은 이빨들에 잠식당한다(로딩이 안 된 곳): 바닥(차도·인도)만 검게 먹히고, 가장자리는 톱니처럼 뾰족하다.
+    base: 잠식이 시작되는 깊이(이보다 먼 곳은 모두 검다). 이빨 끝은 base 보다 앞(가까운 쪽)까지 나온다. 방의 걷는 칸은 이 이빨 끝보다 앞에서 막는다."""
+    rs = random.Random(seed); k = s.k; arr = np.array(s.img.convert('RGB')).astype(float); H, W_ = arr.shape[:2]
+    Xs = (np.arange(W_) + .5) / k - s.X0; Ys = (np.arange(H) + .5) / k
+    dg = 2 * (s.Y0 - Ys)[:, None] * np.ones((1, W_)); xg = Xs[None, :] - .5 * dg
+    floor = (xg >= 0) & (xg <= s.W) & (dg >= 0) & (dg <= s.D + 1)
+    tips = []; x = 0.0                                                                                    # 이빨: 너비 6~16, 길이 8~58(끝이 뾰족한 삼각형), 깊이 방향으로 자란다
+    while x < s.W + 16:
+        w = rs.uniform(6, 16); h = rs.choice([rs.uniform(8, 26), rs.uniform(26, 58), rs.uniform(14, 40)]); tips.append((x, w, h)); x += w * rs.uniform(.7, 1.0)
+    thr = np.full(W_ * 0 + len(Xs), base)                                                                 # 열마다 잠식 경계(깊이): 이빨 안에서는 앞으로 튀어나온다
+    xlog = Xs + .0
+    prof = np.zeros(len(xlog))
+    for (x0, w, h) in tips:
+        t = np.clip(1 - np.abs((xlog - (x0 + w / 2)) / (w / 2)), 0, 1); prof = np.maximum(prof, h * t)       # 삼각형 지붕
+    # 같은 x 에서도 깊이에 따라 다른 이빨(비스듬한 투영)이 되지 않도록 x 는 바닥 좌표 xg 로 계산한다
+    prof2 = np.zeros_like(dg)
+    for (x0, w, h) in tips:
+        t = np.clip(1 - np.abs((xg - (x0 + w / 2)) / (w / 2)), 0, 1); prof2 = np.maximum(prof2, h * t)
+    eaten = floor & (dg >= base - prof2); dark = np.array([5, 6, 14], float)
+    edge = floor & (dg >= base - prof2 - 6) & ~eaten                                                       # 이빨 끝 바로 앞은 살짝 어둡게(먹히기 직전)
+    # 벽도 같이 잠식된다: 왼쪽 벽(x=0 면)은 높이(z)에 따라 다른 이빨로, 뒤쪽 벽(d=D 면)은 base 보다 멀어 통째로 먹힌다
+    Xl = (np.arange(W_) + .5) / k; Yl = Ys
+    dw = 2 * (Xl[None, :] - s.X0) * np.ones((H, 1)); zw = (s.Y0 - .5 * dw) - Yl[:, None]                    # 왼쪽 벽 화소의 (d, z)
+    wallL = (xg < 0) & (dw >= 0) & (dw <= s.D + 1) & (zw >= 0) & (zw <= 74)
+    profz = np.zeros_like(dw)
+    for (x0, w, h) in tips:
+        t = np.clip(1 - np.abs((zw * 2.4 - (x0 + w / 2)) / (w / 2)), 0, 1); profz = np.maximum(profz, h * t)
+    eatenL = wallL & (dw >= base - profz); edgeL = wallL & (dw >= base - profz - 6) & ~eatenL
+    xb = Xs[None, :] - .5 * s.D; zb_ = (s.Y0 - .5 * s.D) - Yl[:, None]                                       # 뒤쪽 벽 화소의 (x, z)
+    wallB = (xb >= 0) & (xb <= s.W) & (zb_ >= 0) & (zb_ <= 66) & (dg > s.D + 1)
+    eaten = eaten | eatenL | wallB; edge = (edge | edgeL) & ~eaten
+    arr[edge] = arr[edge] * .6 + dark * .4; arr[eaten] = dark
+    s.img.paste(Image.fromarray(arr.astype('uint8')), (0, 0)); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
+    return base - max(h for _, _, h in tips)                                                              # 가장 앞으로 나온 이빨 끝의 깊이
 
 def street(ret=False, mode='street'):
     """mode='out': 도로 터널 출구 밖 길(거리와 비슷하지만 횡단보도·신호등·골목·아치 없이, 끝이 검은 번짐으로 막힌다)."""
@@ -354,7 +377,7 @@ def street(ret=False, mode='street'):
         s.box(12, 200, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(12, 202, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(12, 214, 3, 2, 4, POLE, POLE, POLE, z0=3)
         s.box(14, 420, 5, 5, 9, (70, 70, 96), (96, 40, 40), (70, 30, 30), z0=3)
     s.run()
-    if OUT_: ink_smear(s, 110)
+    if OUT_: s.erode_front = road_erode(s, D - 100)
     if ret: return s
     return s.save('city3d_outroad' if OUT_ else 'city3d_street')
 
@@ -588,10 +611,10 @@ def road_tunnel(name='city3d_roadtunnel', save=True, cover=False):
     alay = s.img.copy(); ald = ImageDraw.Draw(alay)
     for zz in range(0, 60): ald.polygon([s.P(0, E, zz), s.P(RTW, E, zz), s.P(RTW, E, zz + 1.2), s.P(0, E, zz + 1.2)], fill=(int(34 - zz * .35), int(42 - zz * .42), int(74 - zz * .7)))
     for kk in range(6):                                                                                  # 멀리 이어지는 길: 중앙선 점이 점점 작아진다
-        yy = 3 + kk * 4.2; ww = max(.5, 2.0 - kk * .28); cx_ = (RV0 + RV1) / 2; ald.rectangle([s.P(cx_ - ww, E, yy)[0], s.P(cx_, E, yy)[1], s.P(cx_ + ww, E, yy)[0], s.P(cx_, E, yy)[1] + max(1, s.k)], fill=(150, 140, 100))
+        yy = 3 + kk * 4.2; ww = max(.5, 2.0 - kk * .28); cx_ = (RV0 + RV1) / 2; ald.rectangle([s.P(cx_ - ww, E, yy)[0], s.P(cx_, E, yy)[1], s.P(cx_ + ww, E, yy)[0], s.P(cx_, E, yy)[1] + max(1, s.k)], fill=(44, 48, 66))
     s.img.paste(alay, (0, 0), amask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img); s.zclear(amask); s.holes.append(('d', E, ax0, ax1))
     for q in AP[1:-1]:                                                                                   # 아치 테두리(밝은 콘크리트 띠)
-        a_ = s.P(*q); s.d.rectangle([a_[0] - s.k, a_[1] - 2 * s.k, a_[0] + s.k, a_[1]], fill=(108, 112, 134))
+        a_ = s.P(*q); s.d.rectangle([a_[0] - s.k, a_[1] - 2 * s.k, a_[0] + s.k, a_[1]], fill=(176, 126, 82))
     # 왼쪽 벽: 가로 결이 있는 연한 주황 패널 타일 + 위쪽 어두운 둥근 천장 띠 + 줄지어 켜진 등
     LAMPD = list(range(20, RTD - 8, 14))
     def lit(d): return .8 + .3 * max(0.0, math.cos(math.pi * ((d - 20) % 14 - 7) / 14 * 1.0)) * 0 + .0

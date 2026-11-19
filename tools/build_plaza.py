@@ -88,7 +88,7 @@ def build(check=False):
     def free_v(x, d): return 3 < x < 61 and 2 < d < 297
     sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
     r8 = C.street(True, 'out'); D8 = 480
-    def free_o(x, d): return 4 < x < 171 and 2 < d < D8 - 120                                    # 끝의 검은 번짐 안쪽은 못 간다(로딩 안 된 곳)
+    def free_o(x, d): return 4 < x < 171 and 2 < d < r8.erode_front - 6                          # 끝에서 뾰족하게 번져 오는 검은 이빨 앞에서 막힌다(로딩 안 된 곳)
     so, ro = room(r8, 'outroad', '터널 밖 길', 176, D8, free_o, [88, 12], [dict(zone=[24, 150, 0, 4], to='rtunnel', spawn=[(C.RV0 + C.RV1) / 2, C.RTD - 14], type='trans', dir='F')])
     if check:
         sp = {}
