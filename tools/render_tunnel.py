@@ -9,8 +9,9 @@ from render_city3d import Scene, dk, OUT
 
 def mix(a, b, f): f = max(0.0, min(1.0, f)); return tuple(int(a[i] + (b[i] - a[i]) * f) for i in range(3))
 def noise(x, d, s=0): return ((int(x * 12.9898 + d * 78.233 + s * 37.7) * 2654435761) >> 7) % 100 / 100.0
-W, D, H = 64, 300, 58
-def f_of(d): return (d - D * .30) / (D * .55)                 # 0 = 도시, 1 = 가을 세계
+W, D, H = 64, 480, 58                                          # 길이 300 → 480: 낙엽·흙이 없는 도시 쪽 구간을 더 길게(앞 250까지는 순수 도시 터널)
+LEAF0, LEAFN = 250, 165                                        # 변화가 시작되는 깊이, 변화가 끝날 때까지의 길이(예전과 같은 165)
+def f_of(d): return (d - LEAF0) / float(LEAFN)                 # <=0 = 도시(낙엽 없음), 1 = 가을 세계
 
 def build():
     sc = Scene(W, D, H); rng = random.Random(7); sc.img.paste((14, 14, 24), (0, 0, sc.CW, sc.CH)); sc.d = ImageDraw.Draw(sc.img)
@@ -49,7 +50,7 @@ def build():
     sc.img.paste(lay, (0, 0), mask); sc.px = sc.img.load(); sc.d = ImageDraw.Draw(sc.img)
     sc.glow(32, D - 10, 70, col=(255, 200, 120), power=.8)                        # 끝에서 새어 나오는 따뜻한 빛이 바닥에 번진다
     # 벽등: 처음엔 차가운 형광등 빛, 위로 갈수록 따뜻하게(같은 간격)
-    for d in (30, 90, 150, 210, 262):
+    for d in list(range(30, D - 30, 60)):
         f = f_of(d); lc = mix((170, 214, 255), (255, 200, 120), f)
         def draw(d=d, lc=lc): sc.box(0, d, 3, 5, 5, lc, mix(lc, (0, 0, 0), .25), mix(lc, (0, 0, 0), .45), z0=34)
         sc.jobs.append((d, draw)); sc.glow(8, d, 34, col=lc, power=.5)
@@ -57,12 +58,12 @@ def build():
     sc.run()
     # 낙엽: 끝으로 갈수록 많아지고, 가까운 쪽엔 거의 없다(몇 장은 안쪽으로 날려 들어온다)
     LC = [(214, 104, 44), (236, 160, 60), (170, 56, 36), (246, 206, 92)]
-    for _ in range(420):
+    for _ in range(900):
         d = D * rng.random() ** .6; x = rng.uniform(1, W - 1)
-        if rng.random() < f_of(d) + .08:
+        if f_of(d) > 0 and rng.random() < f_of(d) + .08:                       # 도시 구간(f<=0)에는 낙엽이 하나도 없다
             X, Y = sc.P(x, d, 0); sc.px[X, Y] = rng.choice(LC); sc.px[X + 1, Y] = rng.choice(LC)
     for _ in range(26):
-        d = rng.uniform(D * .55, D - 4); X, Y = sc.P(rng.uniform(4, W - 4), d, rng.uniform(4, 30)); sc.d.rectangle([X, Y, X + 1, Y + 1], fill=rng.choice(LC))
+        d = rng.uniform(LEAF0 + LEAFN * .5, D - 4); X, Y = sc.P(rng.uniform(4, W - 4), d, rng.uniform(4, 30)); sc.d.rectangle([X, Y, X + 1, Y + 1], fill=rng.choice(LC))
     return sc
 
 def main():
