@@ -415,7 +415,7 @@ def note_sprite(s, nx, nd):                                                     
     poly([(145, 225), (218, 152), (351, 258), (278, 352)], PAP)
     poly([(5, 215), (140, 75), (218, 152), (75, 292)], PAP)
 YELLOW = (230, 186, 48)                                                                           # 이스터에그: 이 차만 색이 있다
-NOTE_AT = (136, 70)                                                                                # 쪽지 자리(아래쪽 가운데 빈 칸)
+NOTE_AT = (124, 70)                                                                                # 쪽지 자리(아래쪽 가운데 빈 칸)
 def lot_scene(W=LOT_W, name='city3d_lot', save=True):
     SD = LSQD; D = SD + PL; s = Scene(W, 300, 130, k=2); s.cars = []; s.egg = None; back_buildings(s, W, D)
     s.floor(asphalt2, x0=LX0, x1=LX1, d0=SQF, d1=SD)
