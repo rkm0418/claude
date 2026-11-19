@@ -172,7 +172,7 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
     else: s.floor(paving)
     if baked: s.glow(30, 30, 70, power=.35)
     if corridor:
-        s.box(0, D, W, 3, 4, CURBT, CURBF, CURBR)                                                  # 위쪽(뒤) 연석
+        s.box(0, D - 2, W, 7, 8, CURBT, CURBF, CURBR)                                                  # 위쪽(뒤) 연석
         bx = 0; br = random.Random(11)
         while bx < W:                                                                              # 연석 너머: 불 꺼진 현대 건물들
             bw = br.randint(40, 70); bh = br.randint(70, 125); bd = br.randint(24, 34); g = br.randint(4, 10); c = br.choice(((22, 24, 46), (26, 28, 50), (20, 22, 40)))
