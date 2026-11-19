@@ -36,22 +36,23 @@ def main():
         if x < 3 or x > 519.5: return False
         if any(abs(x - lx) < 4 and abs(d - 74) < 4 for lx in b.lampx): return False
         return 37 < d < 78
-    sb, rb = room(b, 'corridor', '긴 복도', 520, 170, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L'), dict(zone=[514, 520, 37, 78], to='fountain', spawn=[12, 46], type='trans', dir='R')])
+    sb, rb = room(b, 'corridor', '긴 복도', 520, 170, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L'), dict(zone=[514, 520, 37, 78], to='fountain', spawn=[12, 87], type='trans', dir='R')])
     rb['img'] = uri(b.img.convert('RGB')); rb['depth'] = uri(dep2)
     # --- 복도가 정사각형 광장으로 커지는 곳(인공 분수와 풀)
     f = C.fountain_scene(410, 'city3d_fountain', False, 'lr'); fx, fd = C.FC; fr = C.FR
     dep3 = Image.new('RGB', (f.CW, f.CH), (255, 255, 255)); d3 = ImageDraw.Draw(dep3); v = ((fd - fr + 4) + 2) * 3          # 분수가 뒤로 지나가는 아이를 가린다
-    for z in (0, 9): d3.polygon([f.P(fx - fr, fd - fr, z), f.P(fx + fr, fd - fr, z), f.P(fx + fr, fd + fr, z), f.P(fx - fr, fd + fr, z)], fill=(v,) * 3)
-    d3.polygon([f.P(fx - fr, fd - fr, 0), f.P(fx + fr, fd - fr, 0), f.P(fx + fr, fd - fr, 9), f.P(fx - fr, fd - fr, 9)], fill=(v,) * 3)
-    d3.rectangle([f.P(fx - 11, fd, 0)[0], f.P(fx, fd, 34)[1], f.P(fx + 11, fd, 0)[0], f.P(fx, fd, 9)[1]], fill=(v,) * 3)
+    for z in (0, 7): d3.polygon([f.P(fx - fr, fd - fr, z), f.P(fx + fr, fd - fr, z), f.P(fx + fr, fd + fr, z), f.P(fx - fr, fd + fr, z)], fill=(v,) * 3)
+    d3.polygon([f.P(fx - fr, fd - fr, 0), f.P(fx + fr, fd - fr, 0), f.P(fx + fr, fd - fr, 7), f.P(fx - fr, fd - fr, 7)], fill=(v,) * 3)
+    d3.rectangle([f.P(fx - 9, fd, 0)[0], f.P(fx, fd, 28)[1], f.P(fx + 9, fd, 0)[0], f.P(fx, fd, 7)[1]], fill=(v,) * 3)
     def free_f(x, d):
         if x < 3 or x > 409.5: return False
         if abs(x - fx) < fr + 3 and abs(d - fd) < fr + 3: return False
         if any(abs(x - lx) < 4 and abs(d - ld_) < 4 for lx, ld_ in C.LAMPS): return False
-        if any(bx - 3 < x < bx + 39 and bd - 3 < d < bd + 9 for bx, bd in C.BEN) or (C.BIN[0] - 3 < x < C.BIN[0] + 10 and C.BIN[1] - 3 < d < C.BIN[1] + 10): return False
-        if C.SQ0 + 4 < x < C.SQ1 - 4: return 8 < d < C.SQD - 2
-        return 37 < d < 56
-    sf, rf = room(f, 'fountain', '분수 광장', 410, 190, free_f, [14, 46], [dict(zone=[0, 5, 37, 56], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[404, 410, 37, 56], to=None, type='trans', dir='R')])
+        if any(bx - 3 < x < bx + 31 and bd - 3 < d < bd + 9 for bx, bd in C.BEN) or (C.BIN[0] - 3 < x < C.BIN[0] + 9 and C.BIN[1] - 3 < d < C.BIN[1] + 9): return False
+        if C.P0 + 3 < x < C.P1 - 3 and 2 < d <= C.SQF + 6: return True                                  # 아래쪽 가운데 통로
+        if C.SQ0 + 4 < x < C.SQ1 - 4: return C.SQF + 4 < d < C.SQD - 2
+        return C.C0 + 3 < d < C.C1 - 2
+    sf, rf = room(f, 'fountain', '분수 광장', 410, 215, free_f, [14, 87], [dict(zone=[0, 5, 78, 96], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[404, 410, 78, 96], to=None, type='trans', dir='R'), dict(zone=[196, 214, 0, 6], to=None, type='trans', dir='F')])
     rf['img'] = uri(f.img.convert('RGB')); rf['depth'] = uri(dep3)
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
     full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
