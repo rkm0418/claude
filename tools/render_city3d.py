@@ -432,6 +432,7 @@ def lot_scene(W=LOT_W, name='city3d_lot', save=True):
             bx = i * 20 + 2
             if bx < LX0 + 4 or bx + 20 > LX1 - 4: continue
             bays.append((bx, row_d))
+            if row_d == SQD - 40 and LP0 - 40 <= bx <= LP1 + 20: continue                                  # 입구 바로 앞은 주차선을 긋지 않는다
             s.floor(lambda x, d, bx=bx: LINE if (abs(x - bx) < .5 or abs(x - (bx + 20)) < .5) else None, x0=bx - .5, x1=bx + 20.5, d0=row_d, d1=row_d + 34)
     egg_bay = [b_ for b_ in bays if b_[1] == SQD - 40 and b_[0] > 300][0]                           # 노란 차: 뒷줄 오른쪽 가운데쯤
     for (bx, row_d) in sorted(bays, key=lambda b_: (-b_[1], b_[0])):
