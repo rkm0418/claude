@@ -438,7 +438,7 @@ def lot_scene(W=LOT_W, name='city3d_lot', save=True):
     for (bx, row_d) in sorted(bays, key=lambda b_: (-b_[1], b_[0])):
         if row_d == SQF + 6 and NOTE_AT[0] - 12 <= bx <= NOTE_AT[0] + 2: continue                                  # 쪽지가 놓이는 빈 칸
         if row_d == SQD - 40 and (bx < LX0 + 34 or bx + 20 > LX1 - 34): continue
-        if row_d == SQD - 40 and LP0 - 40 <= bx <= LP1 + 20: continue                                  # 입구(위쪽 통로) 쪽 차는 없앤다                       # 모서리 가로등과 겹치지 않게
+        if row_d == SQD - 40 and LP0 - 40 <= bx <= LP1 + 20 and bx != min(b_[0] for b_ in bays if b_[1] == SQD - 40 and b_[0] >= LP0 - 40): continue   # 입구(위쪽 통로) 쪽 차는 없애되 가장 왼쪽 칸에는 한 대 둔다                       # 모서리 가로등과 겹치지 않게
         if (bx, row_d) == egg_bay: model, col = 'hatch', YELLOW; s.egg = (bx + 3, row_d + 3)
         elif rr.random() < .6: model, col = rr.choice(CAR_MODELS), rr.choice(NEUT)
         else: continue
