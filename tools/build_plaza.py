@@ -11,8 +11,8 @@ WEB = os.path.join(HERE, '..', 'web'); CELL = 2
 def room(s, key, label, W, D, free, start, exits, rects=()):
     CW, CH = s.CW, s.CH; gw, gh = math.ceil(W / CELL), math.ceil(D / CELL)
     walk = Image.new('L', (gw, gh), 0); px = walk.load()
-    F = [[bool(free((i + .5) * CELL, (j + .5) * CELL)) for i in range(gw)] for j in range(gh)]
     inx = lambda x, d: any(e['zone'][0] <= x <= e['zone'][1] and e['zone'][2] <= d <= e['zone'][3] for e in exits)
+    F = [[bool(free((i + .5) * CELL, (j + .5) * CELL)) or inx((i + .5) * CELL, (j + .5) * CELL) for i in range(gw)] for j in range(gh)]   # 출구 칸도 '빈 칸'으로 쳐서 출구 앞 칸이 고립되지 않게
     for j in range(gh):                                                                           # 아이 발 크기(좌우 4, 앞뒤 2.2)만큼 물체에서 띄운다: 몸이 물체를 뚫고 지나가지 않게
         for i in range(gw):
             if not F[j][i]: continue
