@@ -507,8 +507,6 @@ def road_tunnel(name='city3d_roadtunnel', save=True, cover=False):
             x0_, x1_ = cuts[k], cuts[k + 1]; s.poly([(XB, x0_ + .4, 0), (XB, x1_ - .4, 0), (XB, x1_ - .4, DH), (XB, x0_ + .4, DH)], STEEL if k != 1 else (170, 174, 174))
         s.poly([(XB, cuts[1] - .3, 0), (XB, cuts[1] + .3, 0), (XB, cuts[1] + .3, DH), (XB, cuts[1] - .3, DH)], STEELD); s.poly([(XB, cuts[2] - .3, 0), (XB, cuts[2] + .3, 0), (XB, cuts[2] + .3, DH), (XB, cuts[2] - .3, DH)], STEELD)
         mid = (cuts[1] + cuts[2]) / 2; s.poly([(XB, mid - .25, 0), (XB, mid + .25, 0), (XB, mid + .25, DH), (XB, mid - .25, DH)], STEELD)
-        for dd in (cuts[1] + 1.2, mid + .8):                                                               # 붉은 안내문(흰 종이 + 붉은 줄)
-            s.poly([(XB, dd, 13), (XB, dd + 3.4, 13), (XB, dd + 3.4, 19), (XB, dd, 19)], (232, 230, 222)); s.poly([(XB, dd + .5, 16.5), (XB, dd + 2.9, 16.5), (XB, dd + 2.9, 17.8), (XB, dd + .5, 17.8)], (198, 64, 56))
         s.poly([(XB, cuts[0] + 2.2, 8), (XB, cuts[0] + 2.8, 8), (XB, cuts[0] + 2.8, 15), (XB, cuts[0] + 2.2, 15)], (96, 98, 98))      # 손잡이
         mx_ = (n0 + n1) / 2
         s.poly([(XB, mx_ - 3, HZ + 6.5), (XB, mx_ + 3, HZ + 6.5), (XB, mx_ + 3, HZ + 8.5), (XB, mx_ - 3, HZ + 8.5)], (246, 244, 232))
