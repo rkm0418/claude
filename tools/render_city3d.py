@@ -168,7 +168,7 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
     if corridor:                                                                                   # 같은 보도블록 바닥의 긴 복도: 앞쪽은 낮은 연석, 맨 끝은 아래(앞)로 열려 어둠으로 나간다
         EX = W
         s.floor(paving, x0=0, x1=W, d0=34, d1=D)
-        s.box(0, 31, W, 3, 4, CURBT, CURBF, CURBR)
+        s.box(0, 20, W, 14, 6, CURBT, CURBF, CURBR)
     else: s.floor(paving)
     if baked: s.glow(30, 30, 70, power=.35)
     if corridor:
