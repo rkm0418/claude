@@ -296,13 +296,16 @@ def fountain_scene(W=410, name='city3d_fountain', save=True, fade='lr'):
     back_buildings(s, W, D)                                                                         # 가장 먼 건물부터 그린다
     s.floor(paving, x0=0, x1=W, d0=C0, d1=C1); s.floor(paving2, x0=SQ0, x1=SQ1, d0=SQF, d1=SQD)      # 좌우 복도 + 한가운데 높이에서 위·아래로 넓어지는 광장(벽돌 포장)
     s.floor(lambda x, d: dk(paving2(x, d), .08 + .92 * min(1.0, d / 34.0)), x0=P0, x1=P1, d0=0, d1=SQF)   # 아래쪽 가운데 통로(끝으로 갈수록 검게)
-    T, W3, H = 4, 3, 3                                                                              # 가로 연석: 깊이 4(윗면 2화소)+앞면 높이 3, 세로 연석: 폭 3 → 화면 두께가 비슷
+    T, W3, H = 4, 7, 3                                                                              # 가로 연석: 깊이 4(윗면 2화소)+앞면 3 = 화면 두께 5, 세로 연석: 폭 7 → 사선 방향 두께 약 5(같게 보임)
     L, R_, F0, B1 = SQ0 - W3, SQ1 + W3, SQF - T, SQD + T                                            # 광장 바깥 테두리
-    curbs = [(0, C1, L, T, H), (R_, C1, W - R_, T, H), (0, C0 - T, L, T, H), (R_, C0 - T, W - R_, T, H),                    # 복도 뒤·앞 연석(옆 연석 바깥 모서리에서 딱 이어짐)
-             (L, SQD, R_ - L, T, H),                                                                                        # 광장 뒤 연석
-             (L, F0, W3, C0 - F0, H), (L, C1, W3, B1 - C1, H), (SQ1, F0, W3, C0 - F0, H), (SQ1, C1, W3, B1 - C1, H),      # 광장 옆 연석(세로): 복도 연석과 모서리에서 만난다
-             (L, F0, P0 - W3 - L, T, H), (P1 + W3, F0, R_ - P1 - W3, T, H), (P0 - W3, 0, W3, SQF, H), (P1, 0, W3, SQF, H)]  # 광장 앞 연석 + 아래 통로 옆 연석
-    for (cx_, cd_, cw_, cp_, ch_) in sorted(curbs, key=lambda c: -c[1]): s.box(cx_, cd_, cw_, cp_, ch_, CURBT, CURBF, CURBR)   # 먼 것(뒤)부터 그려야 겹침 순서가 맞다
+    groups = [[(L, SQD, R_ - L, T, H)],                                                                                          # 1 광장 뒤 연석
+              [(L, C1, W3, B1 - C1, H), (SQ1, C1, W3, B1 - C1, H)],                                                              # 2 뒤쪽 옆 연석(세로)
+              [(0, C1, SQ0, T, H), (SQ1, C1, W - SQ1, T, H)],                                                                    # 3 복도 뒤 연석: 옆 연석 위로 덮어 모서리가 L자로 이어진다
+              [(L, F0, W3, C0 - F0, H), (SQ1, F0, W3, C0 - F0, H)],                                                              # 4 앞쪽 옆 연석(세로)
+              [(0, C0 - T, SQ0, T, H), (SQ1, C0 - T, W - SQ1, T, H)],                                                            # 5 복도 앞 연석
+              [(L, F0, P0 - W3 - L, T, H), (P1 + W3, F0, R_ - P1 - W3, T, H), (P0 - W3, 0, W3, SQF, H), (P1, 0, W3, SQF, H)]]    # 6 광장 앞 연석 + 아래 통로 옆 연석
+    for g_ in groups:
+        for (cx_, cd_, cw_, cp_, ch_) in g_: s.box(cx_, cd_, cw_, cp_, ch_, CURBT, CURBF, CURBR)                               # 먼 곳부터, 이어지는 연석은 나중에 그려 이음새를 덮는다
     rr = random.Random(21)
     def bed(gx0, gx1, gd0, gd1):                                                                   # 회양목 울타리를 두른 장미 화단(낮은 울타리 + 안쪽 잔디와 분홍 꽃)
         s.floor(grass, x0=gx0, x1=gx1, d0=gd0, d1=gd1, z=0)
