@@ -25,6 +25,7 @@ class Scene:
         s.X0, s.Y0 = pad, s.CH - pad
         s.img = Image.new('RGB', (s.CW * k, s.CH * k), (12, 14, 30)); s.d = ImageDraw.Draw(s.img); s.px = s.img.load()
         s.jobs = []                                     # (깊이, 그리기 함수) — 먼 것부터
+        s.log = []                                      # 그린 상자 기록 (x,d,w,dp,h,z0): 깊이 지도(몸 가림)를 자동으로 만드는 데 쓴다
     def P1(s, x, d, z=0): return (round(s.X0 + x + .5 * d), round(s.Y0 - .5 * d - z))          # 논리 좌표(깊이 지도용)
     def P(s, x, d, z=0): return (round((s.X0 + x + .5 * d) * s.k), round((s.Y0 - .5 * d - z) * s.k))
     def poly(s, pts, col): s.d.polygon([s.P(*p) for p in pts], fill=col)
@@ -48,6 +49,7 @@ class Scene:
                     f = round((1 - q / r) ** 2.2 * power * 8) / 8; p = s.px[X, Y]
                     s.px[X, Y] = tuple(int(p[i] + (col[i] - p[i]) * f) for i in range(3))
     def box(s, x, d, w, dp, h, top, front, right, z0=0):
+        s.log.append((x, d, w, dp, h, z0))
         s.poly([(x, d, z0 + h), (x + w, d, z0 + h), (x + w, d + dp, z0 + h), (x, d + dp, z0 + h)], top)
         s.poly([(x, d, z0), (x + w, d, z0), (x + w, d, z0 + h), (x, d, z0 + h)], front)
         s.poly([(x + w, d, z0), (x + w, d + dp, z0), (x + w, d + dp, z0 + h), (x + w, d, z0 + h)], right)
@@ -58,7 +60,7 @@ class Scene:
             s.d.rectangle([b[0] - k, b[1], b[0] + k, b[1] + k], fill=dk(POLE, .7))
             s.d.line([b, t], fill=POLE, width=2 * k); s.d.line([t, tt], fill=POLE, width=2 * k)
             s.d.rectangle([tt[0] - 3 * k, tt[1], tt[0] + 3 * k, tt[1] + 2 * k], fill=(255, 228, 164)); s.d.rectangle([tt[0] - 3 * k, tt[1] - k, tt[0] + 3 * k, tt[1] - 1], fill=(96, 98, 124))
-        s.jobs.append((d, draw)); s.glow(x + side * 9, d, 30, power=.55)
+        s.log.append((x - .8, d - .8, 1.6, 1.6, h, 0)); s.jobs.append((d, draw)); s.glow(x + side * 9, d, 30, power=.55)
     def run(s):
         for _, f in sorted(s.jobs, key=lambda j: -j[0]): f()
         s.jobs = []
@@ -240,18 +242,17 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
 
 # ---------------- 장면 2: 긴 거리 (새벽 직전의 큰 도시: 길고 넓다) ----------------
 def street(ret=False):
-    W, D = 176, 520; s = Scene(W, D, 84); rng = random.Random(9)
-    for Y in range(s.CH):                                                    # 새벽 직전: 아래(먼 쪽 아님) 가장자리로 갈수록 살짝 밝은 남색
-        f = Y / s.CH; c = (int(14 + 12 * f), int(16 + 14 * f), int(36 + 30 * f))
-        s.d.line([(0, Y), (s.CW, Y)], fill=c)
+    W, D = 176, 520; s = Scene(W, D, 84, k=2); rng = random.Random(9)
+    for Y in range(s.img.size[1]):                                           # 새벽 직전: 아래(먼 쪽 아님) 가장자리로 갈수록 살짝 밝은 남색
+        f = Y / s.img.size[1]; c = (int(14 + 12 * f), int(16 + 14 * f), int(36 + 30 * f))
+        s.d.line([(0, Y), (s.img.size[0], Y)], fill=c)
     LS, RS = 36, 140                                                          # 도로 x 범위 36..140 (폭 104, 4차로 느낌)
     s.floor(paving, x0=0, x1=LS, z=3); s.floor(paving, x0=RS, x1=W, z=3); s.floor(asphalt, x0=LS, x1=RS)
     s.poly([(LS, 0, 0), (LS, 0, 3), (LS, D, 3), (LS, D, 0)], CURBF); s.poly([(RS, 0, 0), (RS, 0, 3), (RS, D, 3), (RS, D, 0)], CURBR)
     # 도로 표시: 얇고 길고 간격이 넓은 네 개(맨 위 하나만 비스듬히)
     for x in (87, 89): s.poly([(x, 76, 0), (x + 1, 76, 0), (x + 1, D, 0), (x, D, 0)], (196, 170, 90))   # 얇은 이중 중앙선(횡단보도 뒤부터 끝까지)
-    for k in range(10, D, 28):                                                # 차로 점선(가장자리 선, 얇게)
-        for x in (LS + 3, RS - 4): s.poly([(x, k, 0), (x + 1.5, k, 0), (x + 1.5, k + 9, 0), (x, k + 9, 0)], (150, 150, 130))
-        for x in (62, 114): s.poly([(x, k, 0), (x + 1.5, k, 0), (x + 1.5, k + 7, 0), (x, k + 7, 0)], (110, 110, 100))
+    for k in range(12, D - 12, 24):                                           # 차로 점선: 모두 같은 굵기(2.4)·같은 길이(11)·같은 간격(24)
+        for x in (LS + 4, RS - 6.4, 62, 114): s.poly([(x, k, 0), (x + 2.4, k, 0), (x + 2.4, k + 11, 0), (x, k + 11, 0)], (176, 176, 160))
     # 횡단보도 + 신호등(첫 가로등 자리): 얇은 줄 여러 개, 줄은 차가 가는 방향
     for x in range(LS + 4, RS - 4, 7): s.poly([(x, 56, 0), (x + 3, 56, 0), (x + 3, 74, 0), (x, 74, 0)], PAINT)
     s.poly([(LS, 52, 0), (RS, 52, 0), (RS, 53, 0), (LS, 53, 0)], (150, 150, 130))        # 정지선
@@ -263,13 +264,9 @@ def street(ret=False):
     s.wall_left(0, D, 72, seed=4); s.wall_back(0, W, D, 60, seed=6)
     # 왼쪽 건물 벽에 골목 입구: 광장으로 이어지는 통로(아래) + 골목 3개. 모두 어둡다.
     alley(s, 14, 44, 'link', depth=34); alley_back(s, 36, 140, h=46, z=0, depth=40, road=True)
-    s.box(176, 236, 40, 56, 30, (22, 24, 44), (16, 18, 34), (12, 14, 28)); s.box(176, 292, 40, 30, 20, (22, 24, 44), (16, 18, 34), (12, 14, 28))   # 오른쪽: 골목 대신 막힌 구조물
     for x, d, side in [(30, 170, 1), (146, 240, -1), (30, 330, 1), (146, 400, -1), (30, 452, 1)]: s.lamp(x, d, 50, side)
     s.box(12, 200, 5, 18, 5, (74, 58, 46), (56, 44, 36), (44, 34, 28), z0=4); s.box(12, 202, 3, 2, 4, POLE, POLE, POLE, z0=3); s.box(12, 214, 3, 2, 4, POLE, POLE, POLE, z0=3)
-    s.box(158, 270, 8, 8, 10, (60, 64, 88), (50, 54, 78), (40, 44, 66), z0=3)
     s.box(14, 420, 5, 5, 9, (70, 70, 96), (96, 40, 40), (70, 30, 30), z0=3)
-    for d in range(30, D, 60):
-        s.box(172, d, 2, 2, 12, POLE, POLE, POLE, z0=3)
     s.run()
     if ret: return s
     return s.save('city3d_street')
@@ -445,6 +442,71 @@ def lot_scene(W=LOT_W, name='city3d_lot', save=True):
     note_sprite(s, *NOTE_AT)
     s.lamp(LX0 + 14, SD - 4, 52, 1); s.lamp(LX1 - 14, SD - 4, 52, -1)                               # 가장자리 가로등만(왼쪽 것은 좌우 반전)
     s.run()
+    return s.save(name) if save else s
+
+
+# ---------------- 거리 끝 아치 안: 도로 터널 (ㄱ자로 꺾이고, 위쪽 벽에 비상구) ----------------
+RTW, RTD = 428, 260                                                                               # 방 크기
+RV0, RV1 = 316, 420                                                                               # 아래에서 올라오는 도로(오른쪽 줄기)의 가로 범위
+RH0 = 196                                                                                         # 위쪽 가로 도로(왼쪽으로 꺾인 줄기)의 앞 끝 깊이
+DOOR = (54, 74)                                                                                   # 비상구 문의 가로 범위(맨 위 벽)
+def _nz(x, d, s=0): return ((int(x * 12.9898 + d * 78.233 + s * 37.7) * 2654435761) >> 7) % 100 / 100.0
+def road_tunnel(name='city3d_roadtunnel', save=True):
+    s = Scene(RTW, RTD, 70, k=2); s.d.rectangle([0, 0, s.img.size[0], s.img.size[1]], fill=(8, 9, 20))
+    TILE, TILED, ASPHT = (74, 88, 110), (56, 66, 86), (30, 32, 46)
+    def road(x, d):
+        c = ASPHT if _nz(x // 2, d // 2) > .12 else (34, 36, 52)
+        if d < 70 and x > RV0 - 1: c = dk(c, .35 + .65 * d / 70.0)                              # 입구(아치) 쪽은 어둠에서 서서히 드러난다
+        return c
+    s.floor(road, x0=RV0, x1=RV1, d0=0, d1=RTD); s.floor(road, x0=0, x1=RV0, d0=RH0, d1=RTD)
+    WL, WL2 = (205, 205, 190), (150, 150, 138)
+    def seg(x0, d0, x1, d1, c=WL):                                                            # 바닥 표시선(0 두께의 얇은 직사각형)
+        s.poly([(x0, d0, 0), (x1, d0, 0), (x1, d1, 0), (x0, d1, 0)], c)
+    for k in range(12, RH0 - 6, 24): seg(368, k, 370.4, k + 11)                                # 세로 도로 가운데 점선(같은 굵기·길이·간격)
+    for k in range(10, int(RV0) - 6, 24): seg(k, 227, k + 11, 229.4)                           # 가로 도로 가운데 점선
+    seg(RV0 + 4, 0, RV0 + 5.5, RTD - 4, WL2); seg(RV1 - 6, 0, RV1 - 4.5, RTD - 4, WL2)        # 세로 도로 가장자리 실선
+    seg(2, RH0 + 4, RV0 + 5.5, RH0 + 5.5, WL2); seg(2, RTD - 6, RV1 - 4.5, RTD - 4.5, WL2)    # 가로 도로 가장자리 실선
+    seg(2, RTD - 2.5, RV1 - 4.5, RTD - 1.2, (30, 100, 66))                                      # 비상구로 이어지는 축광 띠(뒤 벽 아래)
+    def tiles_x(xp, d0, d1, h):                                                               # 평면 x=xp 타일 벽(오른쪽을 향한 면)
+        for dd in range(int(d0), int(d1), 6):
+            for z in range(0, int(h), 6):
+                n = _nz(dd, z, 5); c = tuple(int(v * (.9 + .2 * n)) for v in (TILE if z >= 10 else (118, 126, 142)))
+                s.poly([(xp, dd, z), (xp, dd + 6, z), (xp, dd + 6, min(h, z + 6)), (xp, dd, min(h, z + 6))], c)
+                s.poly([(xp, dd, z), (xp, dd + 6, z), (xp, dd + 6, z + .7), (xp, dd, z + .7)], dk(c, .7))
+    def tiles_d(dp, x0, x1, h, door=None):                                                    # 평면 d=dp 타일 벽(앞을 향한 면)
+        for xx in range(int(x0), int(x1), 6):
+            for z in range(0, int(h), 6):
+                n = _nz(xx, z, 9); c = tuple(int(v * (.9 + .2 * n)) for v in (TILE if z >= 10 else (118, 126, 142)))
+                s.poly([(xx, dp, z), (xx + 6, dp, z), (xx + 6, dp, min(h, z + 6)), (xx, dp, min(h, z + 6))], c)
+                s.poly([(xx, dp, z), (xx + 6, dp, z), (xx + 6, dp, z + .7), (xx, dp, z + .7)], dk(c, .7))
+    # 가장 먼 벽부터: 맨 위 벽(키 큰 타일 벽) → 왼쪽 끝 벽 → 낮은 벽들
+    tiles_d(RTD, 0, RTW, 66); s.poly([(0, RTD, 58), (RTW, RTD, 58), (RTW, RTD, 66), (0, RTD, 66)], (28, 32, 46)); s.poly([(0, RTD, 44), (RTW, RTD, 44), (RTW, RTD, 45.5), (0, RTD, 45.5)], (214, 150, 60))   # 천장 띠 + 주황 반사띠
+    tiles_x(0, RH0, RTD, 66); s.poly([(0, RH0, 58), (0, RTD, 58), (0, RTD, 66), (0, RH0, 66)], (28, 32, 46)); s.poly([(0, RH0, 44), (0, RTD, 44), (0, RTD, 45.5), (0, RH0, 45.5)], (214, 150, 60))
+    # 비상구: 문(안쪽으로 살짝 들어감) + 위의 초록 표지(달리는 사람)
+    dx0, dx1 = DOOR
+    s.poly([(dx0 - 2, RTD, 0), (dx1 + 2, RTD, 0), (dx1 + 2, RTD, 36), (dx0 - 2, RTD, 36)], (34, 48, 44)); s.poly([(dx0, RTD, 0), (dx1, RTD, 0), (dx1, RTD, 34), (dx0, RTD, 34)], (26, 122, 80))
+    s.poly([(dx0 + 2, RTD, 2), (dx1 - 2, RTD, 2), (dx1 - 2, RTD, 32), (dx0 + 2, RTD, 32)], (30, 140, 92)); s.poly([((dx0 + dx1) / 2 - .5, RTD, 2), ((dx0 + dx1) / 2 + .5, RTD, 2), ((dx0 + dx1) / 2 + .5, RTD, 32), ((dx0 + dx1) / 2 - .5, RTD, 32)], (20, 96, 64))
+    s.poly([(dx1 - 6, RTD, 14), (dx1 - 4, RTD, 14), (dx1 - 4, RTD, 22), (dx1 - 6, RTD, 22)], (210, 214, 200))                        # 문 손잡이
+    sx0, sx1 = dx0 - 2, dx1 + 2
+    s.poly([(sx0, RTD, 37), (sx1, RTD, 37), (sx1, RTD, 45), (sx0, RTD, 45)], (22, 70, 50)); s.poly([(sx0 + 1, RTD, 38), (sx1 - 1, RTD, 38), (sx1 - 1, RTD, 44), (sx0 + 1, RTD, 44)], (60, 214, 128))
+    mx = (sx0 + sx1) / 2
+    s.poly([(mx - 5, RTD, 39.5), (mx - 3.5, RTD, 39.5), (mx - 3.5, RTD, 42.5), (mx - 5, RTD, 42.5)], (240, 255, 244))                  # 사람 그림(머리·몸·다리를 굵은 점으로)
+    s.poly([(mx - 2.5, RTD, 40), (mx + .5, RTD, 40), (mx + .5, RTD, 41.4), (mx - 2.5, RTD, 41.4)], (240, 255, 244)); s.poly([(mx + 1, RTD, 38.6), (mx + 2.4, RTD, 38.6), (mx + 2.4, RTD, 43.2), (mx + 1, RTD, 43.2)], (240, 255, 244))
+    s.glow(mx, RTD - 6, 46, col=(70, 230, 140), power=.55, z=0); s.glow(mx, RTD - 3, 70, col=(60, 200, 120), power=.2, z=34)
+    # 앞쪽 낮은 벽(안쪽이 보이도록 키를 낮춘 단면): 가로 도로 앞 벽, 세로 도로 왼쪽 벽, 오른쪽 벽
+    LH = 12
+    s.poly([(0, RH0, LH), (RV0, RH0, LH), (RV0, RH0 - 5, LH), (0, RH0 - 5, LH)], (96, 108, 128)); s.poly([(0, RH0 - 5, 0), (RV0, RH0 - 5, 0), (RV0, RH0 - 5, LH), (0, RH0 - 5, LH)], TILE)
+    s.poly([(0, RH0 - 5, LH - 3), (RV0 + 0, RH0 - 5, LH - 3), (RV0, RH0 - 5, LH - 2), (0, RH0 - 5, LH - 2)], (214, 150, 60))
+    s.poly([(RV0 - 5, 0, LH), (RV0, 0, LH), (RV0, RH0 - 5, LH), (RV0 - 5, RH0 - 5, LH)], (96, 108, 128)); tiles_x(RV0, 0, RH0, LH)
+    s.poly([(RV0, 0, LH - 3), (RV0, RH0, LH - 3), (RV0, RH0, LH - 2), (RV0, 0, LH - 2)], (214, 150, 60))
+    s.box(RV1, 0, 8, RTD, LH, (96, 108, 128), TILE, (60, 70, 90))                                # 오른쪽 벽(위쪽 면과 앞 단면만 보인다)
+    # 조명: 뒤 벽 등(주황) + 세로 도로 왼쪽 벽 가로등
+    for lx in (30, 110, 190, 270, 350):
+        s.box(lx, RTD - 3, 14, 3, 3.5, (255, 214, 150), (255, 190, 110), (200, 140, 70), z0=50); s.glow(lx + 7, RTD - 26, 40, col=(255, 190, 110), power=.3)
+    for ld in (50, 120):
+        s.lamp(RV0 + 8, ld, 40, 1)
+    s.run()
+    s.lampx = [RV0 + 8]; s.lamps = [(RV0 + 8, 50), (RV0 + 8, 120)]
     return s.save(name) if save else s
 
 def main():
