@@ -279,7 +279,7 @@ C0, C1 = 75, 99                                                                 
 P0, P1 = 193, 217                                                                                 # 아래쪽 가운데 통로의 가로 범위
 FC = (205, 87); FR = 20
 BEN = [(SQ0 + 5, SQD - 8), (SQ1 - 36, SQD - 8)]; BIN = (SQ0 + 38, SQD - 6)                                                      # 풀밭 대신: 위쪽 왼쪽·오른쪽에 벤치 둘, 오른쪽에 쓰레기통 하나
-LAMPS = [(50, C1 - 4), (360, C1 - 4)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
+LAMPS = [(50, C1 - 4)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
 def disc(s, cx, cd, r, z, col, n=36):
     s.poly([(cx + r * math.cos(2 * math.pi * k / n), cd + r * math.sin(2 * math.pi * k / n), z) for k in range(n)], col)
 def cyl(s, cx, cd, r, z0, z1, top, side, n=36):                                                   # 원통: 옆면은 앞쪽(d 작은 쪽)이 보인다
@@ -352,8 +352,44 @@ def fountain_scene(W=410, name='city3d_fountain', save=True, fade='lr'):
     s.lampx = [l[0] for l in LAMPS]
     return s.save(name) if save else s
 
+# ---------------- 분수 광장에서 이어지는 두 공간: 분리수거장(오른쪽) · 같은 크기의 정사각형 공간(아래쪽) ----------------
+PL = 40                                                                                           # 위쪽 통로 길이(정사각형 공간용)
+def bin_box(s, x, d, col, w=12, dp=8, h=18):                                                      # 분리수거함: 몸통 + 뚜껑 + 색 띠
+    s.box(x, d, w, dp, h, dk(col, .8), dk(col, .65), dk(col, .5)); s.box(x - .6, d - .6, w + 1.2, dp + 1.2, 2, dk(col, 1.0), dk(col, .8), dk(col, .6), z0=h)
+    s.box(x + 1.5, d - .1, w - 3, .3, 4, (200, 204, 214), (200, 204, 214), (200, 204, 214), z0=h - 8)
+BINS = [(66, 120, 210), (60, 160, 96), (220, 190, 60), (214, 214, 220), (110, 114, 128)]          # 플라스틱·유리·캔·종이·일반
+def sq_scene(kind, W=300, name='city3d_square', save=True, fade='l'):
+    """kind 'recycle': 왼쪽 복도로 들어와 분리수거장(오른쪽 막힘).  kind 'plain': 위쪽 가운데 통로로 들어오는 같은 크기의 빈 정사각형 공간."""
+    D = SQD + (PL if kind == 'plain' else 0); s = Scene(W, 255, 130, k=2)
+    back_buildings(s, W, D)
+    s.floor(paving2, x0=SQ0, x1=SQ1, d0=SQF, d1=SQD)
+    T = W3 = 4; H = 3; L, R_, F0, B1 = SQ0 - W3, SQ1 + W3, SQF - T, SQD + T
+    if kind == 'recycle':
+        s.floor(paving, x0=0, x1=SQ0 + 1, d0=C0, d1=C1)
+        rects = [(0, C1, L, T), (0, C0 - T, L, T), (L, SQD, R_ - L, T), (L, F0, W3, C0 - F0), (L, C1, W3, B1 - C1), (SQ1, F0, W3, B1 - F0), (L, F0, R_ - L, T)]
+    else:
+        s.floor(lambda x, d: dk(paving2(x, d), .08 + .92 * min(1.0, (SQD + PL - d) / 34.0)), x0=P0, x1=P1, d0=SQD, d1=SQD + PL)
+        rects = [(L, SQD + T - T, P0 - W3 - L, T), (P1 + W3, SQD, R_ - P1 - W3, T), (P0 - W3, SQD, W3, PL), (P1, SQD, W3, PL), (L, F0, R_ - L, T), (L, F0, W3, B1 - F0), (SQ1, F0, W3, B1 - F0)]
+    curb_union(s, rects, H)
+    if kind == 'recycle':
+        for i, c in enumerate(BINS): bin_box(s, SQ0 + 34 + i * 18, SQD - 13, c)                    # 뒤 연석 앞에 분리수거함 다섯
+        for k_, (bx, bd, bw, bh_) in enumerate(((SQ1 - 52, SQD - 20, 14, 9), (SQ1 - 52, SQD - 20, 14, 9), (SQ1 - 40, SQD - 20, 12, 9))):
+            s.box(bx + (0 if k_ else 0), bd, bw, 9, bh_, (150, 112, 70), (118, 86, 52), (92, 66, 40), z0=(9 if k_ == 1 else 0))   # 쌓아 둔 종이 상자
+        s.lamp(SQ0 + 22, C1 - 4, 52, -1); s.lamp(SQ1 - 14, SQD - 4, 52, -1)
+        s.lamp(50, C1 - 4, 52, -1)
+    else:
+        s.lamp(SQ0 + 20, SQD - 4, 52, -1); s.lamp(SQ1 - 20, SQD - 4, 52, -1)
+    s.run()
+    for side in (fade or ''):
+        for X in range(s.img.size[0]):
+            Xl = X / s.k; u = (Xl - (s.X0 + W - 46)) / 46.0 if side == 'r' else ((s.X0 + 46) - Xl) / 46.0
+            if u <= 0: continue
+            f = min(1.0, u) * .92
+            for Y in range(s.img.size[1]): q = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (6, 7, 16)[i] * f) for i, v in enumerate(q))
+    return s.save(name) if save else s
+
 def main():
-    a, b = landing(150, False, 'city3d_landing', True, True, True, None, True), street(); landing(520, True, 'city3d_corridor'); fountain_scene()
+    a, b = landing(150, False, 'city3d_landing', True, True, True, None, True), street(); landing(520, True, 'city3d_corridor'); fountain_scene(); sq_scene('recycle', 300, 'city3d_recycle'); sq_scene('plain', 300, 'city3d_square', True, '')
     ov = Image.new('RGB', (a.width * 2 + b.width * 2 + 50, max(a.height, b.height) * 2 + 20), (40, 40, 48))
     ov.paste(a.resize((a.width * 2, a.height * 2), Image.NEAREST), (10, 10)); ov.paste(b.resize((b.width * 2, b.height * 2), Image.NEAREST), (a.width * 2 + 40, 10))
     ov.save(os.path.join(OUT, 'city3d_overview.png')); print('city3d ok', a.size, b.size)
