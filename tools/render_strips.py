@@ -18,12 +18,15 @@ cl = lambda v, a, b: max(a, min(b, v))
 
 def layout(th, chain):                                                          # 구간을 왼→오로 배치하고 구간마다 길(lane)과 영역을 정한다
     inter = th in INTERIOR; D = 64 if inter else 84; x = 0.0; d_in = D * .5; secs = []
-    for s in chain:
-        r = rnd(s['key']); sh = 'square' if s['shape'] == 'deep' else s['shape']; hw = 13 if s['kind'] == 'passage' else 14
+    for si, s in enumerate(chain):
+        r = rnd(s['key']); sh = 'square' if s['shape'] == 'deep' else s['shape']; hw = (9 if sh == 'switch' else 13) if s['kind'] == 'passage' else 14; nxt = chain[si + 1] if si + 1 < len(chain) else None
         if s['kind'] == 'passage':
-            w = {'tunnel': r.randint(170, 240), 'hall': r.randint(80, 110), 'bend': r.randint(90, 120) if inter else r.randint(130, 170), 'zig': r.randint(160, 200)}[sh]
+            w = {'tunnel': r.randint(170, 240), 'hall': r.randint(80, 110), 'bend': r.randint(90, 120) if inter else r.randint(130, 170), 'zig': r.randint(160, 200), 'switch': r.randint(150, 190)}[sh]
             sg = 1 if d_in < D * .5 else -1
-            if sh in ('tunnel', 'hall'): d_out = d_in; pts = [(x, d_in), (x + w, d_in)]
+            if sh == 'switch':                                                      # ㄱ 밑에 ㄴ이 붙은 S자(ㄹ) 공간: 위 칸 오른쪽으로 → 내려와 가운데 칸 왼쪽으로 → 내려와 아래 칸 오른쪽으로
+                sg2 = -1 if d_in > D * .5 else 1; dB = d_in + sg2 * 30; dC = dB + sg2 * 30; d_out = dC
+                pts = [(x, d_in), (x + w * .82, d_in), (x + w * .82, dB), (x + w * .18, dB), (x + w * .18, dC), (x + w, dC)]
+            elif sh in ('tunnel', 'hall'): d_out = d_in; pts = [(x, d_in), (x + w, d_in)]
             elif sh == 'bend': d_out = cl(d_in + sg * r.uniform(20, 26), 22, D - 22); xm = x + w * .5; pts = [(xm - w * .5, d_in), (xm, d_in), (xm, d_out), (x + w, d_out)]
             else: d_mid = cl(d_in + sg * 24, 22, D - 22); d_out = d_in; pts = [(x, d_in), (x + w * .3, d_in), (x + w * .3, d_mid), (x + w * .7, d_mid), (x + w * .7, d_in), (x + w, d_in)]
             ys = [p[1] for p in pts]; ext = (cl(min(ys) - hw - 7, 2, D), cl(max(ys) + hw + 7, 0, D - 2))
@@ -31,8 +34,11 @@ def layout(th, chain):                                                          
             if sh == 'long': w = r.randint(280, 420); h = r.randint(44, 54)
             elif sh == 'square': w = r.randint(56, 60) if inter else r.randint(78, 84); h = min(D - 6, w)
             else: w = r.randint(80, 96) if inter else r.randint(92, 112); h = r.randint(46, 52) if inter else r.randint(56, 66)
-            d_out = r.uniform(D * .34, D * .66); d0 = max(3, min(d_in, d_out) - 16); d1 = min(D - 3, d0 + h)
+            d_out = r.uniform(D * .34, D * .66)
+            if nxt is not None and nxt['shape'] == 'switch': d_out = D * (.92 if rnd(nxt['key'] + 'sw').random() < .5 else .2)       # S자 통로로 들어가기 좋은 높이에서 나간다
+            d0 = max(3, min(d_in, d_out) - 16); d1 = min(D - 3, d0 + h)
             if d1 < max(d_in, d_out) + 16: d1 = min(D - 3, max(d_in, d_out) + 16); d0 = max(3, d1 - h)
+            d0 = max(3, min(d0, min(d_in, d_out) - 14)); d1 = min(D - 3, max(d1, max(d_in, d_out) + 14))                  # 들어오는 길·나가는 길이 항상 방 영역 안에 들어오게
             ext = (d0, d1); dm = (d_in + d_out) / 2 + r.uniform(-8, 8)
             pts = [(x, d_in), (x + w * .35, d_in), (x + w * .65, d_out), (x + w, d_out)] if sh == 'long' else [(x, d_in), (x + w * .5, cl(dm, d0 + 14, d1 - 14)), (x + w, d_out)]
         secs.append(dict(s=s, key=s['key'], kind=s['kind'], shape=sh, x0=x, x1=x + w, pts=pts, hw=hw, d_in=d_in, d_out=d_out, ext=ext, mid=M.polymid(pts)))
@@ -53,6 +59,7 @@ def strip_spec(th, chain):
         shapes.append(('path', sec['pts'], sec['hw']))
         if sec['kind'] == 'room' and sec['shape'] in ('square', 'wide') and rnd(sec['key'] + 'c').random() < .6: shapes.append(('circle', M.polymid(sec['pts'])[0], M.polymid(sec['pts'])[1], rnd(sec['key'] + 'r').randint(20, 26)))
     spec = dict(theme=th, W=Wt, D=D, secs=secs, shapes=shapes, wall=r.choice(T['walls']), tries=0, density=1.0, alleys=[], tips=[], H=min(T['H'], 44 if inter else 64))
+    spec['erode'] = 3 if any(s['shape'] == 'switch' for s in secs) else 4
     spec['start'] = (14, secs[0]['d_in']); spec['end'] = (Wt - 14, secs[-1]['d_out'])
     for sec in secs:                                                                                                       # 딸린 골목(뒷벽에 붙은 칸): 뒷벽까지 열린 방에만
         if sec['kind'] != 'room' or sec['ext'][1] < D - 8: continue
@@ -89,7 +96,24 @@ def strip_props(name, k, tr, inside, rng):
         placed.append((lx, ld, 7)); return True
     for i, sec in enumerate(secs):                                              # 1) 구간 벽: 통로는 길 양옆, 방은 앞·뒤 줄
         rr = rnd(sec['key'] + 'w' + str(spec['tries']))
-        if sec['kind'] == 'passage':
+        if sec['kind'] == 'passage' and sec['shape'] == 'switch':                # S자(ㄹ) 통로: 칸 사이마다 낮은 칸막이 줄 하나, 바깥쪽은 앞은 낮게·뒤는 높게
+            pa, pb, pc, pd_, pe, pf = sec['pts']; dA, dB, dC = pa[1], pc[1], pe[1]; xr, xl, hw = pb[0], pe[0], sec['hw']; sg2 = 1 if dB > dA else -1
+            def row(xa, xb, dd, low):
+                for x in np.arange(min(xa, xb), max(xa, xb), 7.0):
+                    if sec['x0'] + 1 < x < sec['x1'] - 1 and 1 < dd < D - 1:
+                        lx, ld = tr((x, dd))
+                        if put(lx, ld, 7): unit(k, th, lx, ld, low, rr)
+            row(sec['x0'] + 2, xr + hw + 6, dA - sg2 * (hw + 5), sg2 > 0)                          # A 바깥쪽
+            row(sec['x0'] + 2, xr - hw - 9, (dA + dB) / 2, True)                                  # A·B 사이
+            row(xl + hw + 9, sec['x1'] - 2, (dB + dC) / 2, True)                                  # B·C 사이
+            row(xl - hw - 6, sec['x1'] - 2, dC + sg2 * (hw + 5), sg2 < 0)                         # C 바깥쪽
+            for dd in np.arange(min(dB, dC) - hw, max(dB, dC) + hw, 7.0):                          # 왼쪽·오른쪽 꺾이는 곳의 바깥 벽
+                lx, ld = tr((xl - hw - 6, dd))
+                if put(lx, ld, 7): unit(k, th, lx, ld, False, rr)
+            for dd in np.arange(min(dA, dB) - hw, max(dA, dB) + hw, 7.0):
+                lx, ld = tr((xr + hw + 6, dd))
+                if put(lx, ld, 7): unit(k, th, lx, ld, False, rr)
+        elif sec['kind'] == 'passage':
             hw = sec['hw'] + 7
             for p0, p1 in zip(sec['pts'], sec['pts'][1:]):
                 L_ = math.hypot(p1[0] - p0[0], p1[1] - p0[1]); n = int(L_ // 7) + 1; ux, ud = (p1[0] - p0[0]) / (L_ or 1), (p1[1] - p0[1]) / (L_ or 1)
@@ -148,6 +172,13 @@ def strip_props(name, k, tr, inside, rng):
             c = chosen.get(sec['key']); xs = [(c[0][0] + (26 if c[0][0] < (sec['x0'] + sec['x1']) / 2 else -26), min(sec['ext'][1] - 6, D - 6))] if (c and not c[1]) else []
         for x, d in xs:
             lx, ld = tr((x, min(d, D - 6))); nb, nr = len(k.block), len(k.rects); lamp(k, lx, ld, rr); del k.block[nb:]; del k.rects[nr:]
+    for sec in secs:                                                            # 4.7) 정사각 방: 사용자가 만든 집 방처럼 가운데 깔개 + 뒷벽 창(불 켜진 창 하나)
+        if sec['kind'] != 'room' or sec['shape'] != 'square': continue
+        d0, d1 = sec['ext']; cx = (sec['x0'] + sec['x1']) / 2; cd = (d0 + d1) / 2; lx, ld = tr((cx, cd)); rx = min(30, (sec['x1'] - sec['x0']) / 2 - 12)
+        M.flat(k, lx, ld, rx, rx * .5, tuple(int(v * .28) for v in LC)); M.flat(k, lx, ld, rx - 4, rx * .5 - 2, tuple(int(v * .4) for v in LC)); M.flat(k, lx, ld, rx - 9, rx * .5 - 4, tuple(int(v * .3) for v in LC))
+        if d1 >= D - 10:
+            wx, wd = tr((cx - 22 if (int(sec['x0']) % 2) else cx + 22, D)); win = tuple(int(min(255, v * .85)) for v in LC); fr = tuple(int(v * .35) for v in LC)
+            k.F(wx - 9, wx + 9, 18, 40, win, Dl - 1.2, back=True); k.F(wx - 10.5, wx - 9, 17, 41.5, fr, Dl - 1.3, back=True); k.F(wx + 9, wx + 10.5, 17, 41.5, fr, Dl - 1.3, back=True); k.F(wx - 10.5, wx + 10.5, 40, 41.5, fr, Dl - 1.3, back=True); k.F(wx - .6, wx + .6, 18, 40, fr, Dl - 1.3, back=True); k.F(wx - 9, wx + 9, 28.2, 29.4, fr, Dl - 1.3, back=True)
     for sec in secs:                                                            # 5) 일반 소품: 방에만, 작은 것(걸을 수 있는 것) 최대 3종 1개씩, 길 밖
         if sec['kind'] != 'room': continue
         rr = rnd(sec['key'] + 'p' + str(spec['tries'])); d0, d1 = sec['ext']
@@ -159,6 +190,8 @@ def strip_props(name, k, tr, inside, rng):
                 if any(math.hypot(lx - a, (ld - b) * 1.5) < gap * .5 + g_ * .5 + 2 for a, b, g_ in placed): continue
                 nb, nr = len(k.block), len(k.rects); fn(k, lx, ld, rr); del k.block[nb:]; del k.rects[nr:]; placed.append((lx, ld, gap)); break
 
+WHYLAST = [0]
+def WHY(n, k=None): WHYLAST[0] = (n, k); return False
 def reach(mask, meta, spec):
     g = np.array(mask) > 127; gh, gw = g.shape; cell = lambda x, d: (cl(int(d / CELL), 0, gh - 1), cl(int(x / CELL), 0, gw - 1))
     def flood(m, s):
@@ -173,19 +206,19 @@ def reach(mask, meta, spec):
         y0, x0 = max(0, c[0] - rad), max(0, c[1] - rad); ys, xs = np.nonzero(m[y0:c[0] + rad + 1, x0:c[1] + rad + 1])
         return None if not len(ys) else (ys[0] + y0, xs[0] + x0)
     o = meta['origin']; st = near(g, cell(*meta['start']), 6)
-    if st is None: return False
+    if st is None: return WHY(1)
     seen = flood(g, st)
     for (tx, td) in spec['tips']:
         c = cell(tx - o[0], td - o[1])
-        if not seen[max(0, c[0] - 4):c[0] + 5, max(0, c[1] - 4):c[1] + 5].any(): return False
+        if not seen[max(0, c[0] - 4):c[0] + 5, max(0, c[1] - 4):c[1] + 5].any(): return WHY(2)
     er = g.copy()
-    for _ in range(4): e2 = er.copy(); e2[1:] &= er[:-1]; e2[:-1] &= er[1:]; e2[:, 1:] &= er[:, :-1]; e2[:, :-1] &= er[:, 1:]; er = e2          # 길 폭 약 17px 이상
+    for _ in range(spec.get('erode', 4)): e2 = er.copy(); e2[1:] &= er[:-1]; e2[:-1] &= er[1:]; e2[:, 1:] &= er[:, :-1]; e2[:, :-1] &= er[:, 1:]; er = e2          # 길 폭 약 17px 이상
     s2 = near(er, cell(*meta['start']), 8)
-    if s2 is None: return False
+    if s2 is None: return WHY(3)
     seen2 = flood(er, s2)
     for sec in spec['secs']:
         c = cell(sec['mid'][0] - o[0], sec['mid'][1] - o[1])
-        if not seen2[max(0, c[0] - 5):c[0] + 6, max(0, c[1] - 5):c[1] + 6].any(): return False
+        if not seen2[max(0, c[0] - 5):c[0] + 6, max(0, c[1] - 5):c[1] + 6].any(): return WHY(4, sec['key'])
     e = meta['exits'][0]['zone']; c = cell((e[0] + e[1]) / 2, (e[2] + e[3]) / 2)
     return bool(seen2[max(0, c[0] - 5):c[0] + 6, max(0, c[1] - 5):c[1] + 6].any())
 
@@ -207,7 +240,7 @@ def main():
             spec['tries'] = t; W.SEEDOFF[name] = t * 17; spec['density'] = .85 if t < 5 else (.5 if t < 7 else (.25 if t < 9 else .0))
             im, dep, mask, meta = W.build(name)
             if reach(mask, meta, spec): bad = False; break
-        if bad: print('!! 길이 막힘', name)
+        if bad: print('!! 길이 막힘', name, 'reason', WHYLAST[0])
         o = meta['origin']; meta['theme'] = th; meta['kind'] = 'strip'; meta['label'] = THEMES[th]['label']
         meta['sections'] = [dict(key=s['key'], kind=s['kind'], shape=s['shape'], x0=round(s['x0'] - o[0], 1), x1=round(s['x1'] - o[0], 1), mid=[round(s['mid'][0] - o[0], 1), round(s['mid'][1] - o[1], 1)],
                                   label='%s %s%s' % (THEMES[th]['label'], '통로' if s['kind'] == 'passage' else '', s['key'][-2:].lstrip('0') or '0')) for s in spec['secs']]
