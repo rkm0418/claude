@@ -166,11 +166,9 @@ def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
 def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, baked=True, fade=None, dent=True):
     D = 80; s = Scene(W, 120 if corridor else D, 130 if corridor else 70); rng = random.Random(5)
     if corridor:                                                                                   # 같은 보도블록 바닥의 긴 복도: 앞쪽은 낮은 연석, 맨 끝은 아래(앞)로 열려 어둠으로 나간다
-        EX = W - 56
-        s.floor(paving, x0=0, x1=EX, d0=34, d1=D); s.floor(paving, x0=EX, x1=W, d0=34, d1=D)
-        s.floor(lambda x, d: dk(paving(x, d), max(.12, d / 34.0 * .9)), x0=EX, x1=W, d0=0, d1=34)
-        s.floor(paving, x0=0, x1=EX, d0=0, d1=34, z=-200) if False else None
-        s.box(0, 31, EX, 3, 4, CURBT, CURBF, CURBR)
+        EX = W
+        s.floor(paving, x0=0, x1=W, d0=34, d1=D)
+        s.box(0, 31, W, 3, 4, CURBT, CURBF, CURBR)
     else: s.floor(paving)
     if baked: s.glow(30, 30, 70, power=.35)
     if corridor:

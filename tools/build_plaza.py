@@ -30,11 +30,10 @@ def main():
     sa, ra = room(a, 'plaza', '광장', 150, 80, free_a, [60, 24], [dict(zone=[144, 150, 4, 77], to='corridor', spawn=[12, 56], type='trans', dir='R')])
     ra['img'] = uri(a.img.convert('RGB')); ra['depth'] = uri(dep)
     # --- 긴 복도(화단 없이)
-    b = C.landing(520, True, 'city3d_corridor', False, False, False, 'l'); EX = 520 - 56
+    b = C.landing(520, True, 'city3d_corridor', False, False, False, 'lr'); EX = 520 - 56
     dep2 = Image.new('RGB', (b.CW, b.CH), (255, 255, 255))
     def free_b(x, d):
         if x < 3 or x > 517: return False
-        if x >= EX: return 3 < d < 78
         if any(abs(x - lx) < 4 and abs(d - 74) < 4 for lx in b.lampx): return False
         return 37 < d < 78
     sb, rb = room(b, 'corridor', '긴 복도', 520, 120, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L')])
