@@ -64,8 +64,7 @@ class Scene:
     def wall_left(s, d0, d1, h, x=0, seed=1, plain=False):
         """왼쪽 건물 벽(안쪽 면)과 창. 평면 x 고정, 깊이 d0..d1."""
         r = random.Random(seed)
-        if plain: grad(s, lambda z0, z1: [(x, d0, z0), (x, d1, z0), (x, d1, z1), (x, d0, z1)], h, 1.0)
-        return
+        if plain: grad(s, lambda z0, z1: [(x, d0, z0), (x, d1, z0), (x, d1, z1), (x, d0, z1)], h, 1.0); return
         s.poly([(x, d0, 0), (x, d1, 0), (x, d1, h), (x, d0, h)], WALL)
         for z in range(10, int(h) - 4, 12): s.poly([(x, d0, z), (x, d1, z), (x, d1, z + .8), (x, d0, z + .8)], WALLD)
         for dd in range(int(d0) + 6, int(d1) - 8, 16):
@@ -75,8 +74,7 @@ class Scene:
         s.poly([(x, d0, h - 3), (x, d1, h - 3), (x, d1, h), (x, d0, h)], dk(WALL, .7))
     def wall_back(s, x0, x1, d, h, seed=2, sign=False, plain=False):
         r = random.Random(seed)
-        if plain: grad(s, lambda z0, z1: [(x0, d, z0), (x1, d, z0), (x1, d, z1), (x0, d, z1)], h, 1.0)
-        return
+        if plain: grad(s, lambda z0, z1: [(x0, d, z0), (x1, d, z0), (x1, d, z1), (x0, d, z1)], h, 1.0); return
         s.poly([(x0, d, 0), (x1, d, 0), (x1, d, h), (x0, d, h)], WALL)
         for z in range(10, int(h) - 4, 12): s.poly([(x0, d, z), (x1, d, z), (x1, d, z + .8), (x0, d, z + .8)], WALLD)
         for xx in range(int(x0) + 6, int(x1) - 10, 16):
@@ -169,7 +167,7 @@ def landing():
     W, D = 150, 80; s = Scene(W, D, 70); rng = random.Random(5)
     s.floor(paving)
     s.glow(30, 30, 70, power=.35)
-    s.wall_back(0, W, D, 60, plain=True); s.wall_left(0, D, 60, plain=True)
+    s.wall_back(0, W, D, 60); s.wall_left(0, D, 60)
     s.lamp(140, 74, 44, -1)
     # 인공 수풀 화단(왼쪽 안쪽): 낮은 콘크리트 화단 위에 같은 모양의 덩어리
     px0, pd0, pw, pdp, ph = 12, 38, 70, 30, 9
