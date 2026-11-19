@@ -36,7 +36,7 @@ def main():
         if x < 3 or x > 517: return False
         if any(abs(x - lx) < 4 and abs(d - 74) < 4 for lx in b.lampx): return False
         return 37 < d < 78
-    sb, rb = room(b, 'corridor', '긴 복도', 520, 120, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L')])
+    sb, rb = room(b, 'corridor', '긴 복도', 520, 170, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L')])
     rb['img'] = uri(b.img.convert('RGB')); rb['depth'] = uri(dep2)
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
     full['rooms'] = {'plaza': ra, 'corridor': rb}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}

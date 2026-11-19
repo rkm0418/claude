@@ -164,7 +164,7 @@ def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
 
 # ---------------- 장면 1: 광장 ----------------
 def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, baked=True, fade=None, dent=True):
-    D = 80; s = Scene(W, 120 if corridor else D, 130 if corridor else 70); rng = random.Random(5)
+    D = 80; s = Scene(W, 170 if corridor else D, 130 if corridor else 70); rng = random.Random(5)
     if corridor:                                                                                   # 같은 보도블록 바닥의 긴 복도: 앞쪽은 낮은 연석, 맨 끝은 아래(앞)로 열려 어둠으로 나간다
         EX = W
         s.floor(paving, x0=0, x1=W, d0=34, d1=D)
@@ -173,14 +173,20 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
     if baked: s.glow(30, 30, 70, power=.35)
     if corridor:
         s.box(0, D, W, 3, 4, CURBT, CURBF, CURBR)                                                  # 위쪽(뒤) 연석
-        bx = 0; br = random.Random(11)
-        while bx < W:                                                                              # 연석 너머: 불 꺼진 현대 건물들
+        bx = 0; br = random.Random(11); BD = D + 40; bi = 0                                       # 풍경이라 연석에서 멀리(뒤로) 둔다
+        while bx < W:                                                                              # 연석 너머: 불 꺼진 현대 건물들(세 동만 창 몇 개에 불이 켜져 있다)
             bw = br.randint(40, 70); bh = br.randint(70, 125); bd = br.randint(24, 34); g = br.randint(4, 10); c = br.choice(((22, 24, 46), (26, 28, 50), (20, 22, 40)))
-            s.box(bx, D + 8, bw, bd, bh, dk(c, 1.15), c, dk(c, .7))
-            def wins(bx=bx, bw=bw, bh=bh):
-                for xx in range(int(bx) + 5, int(bx + bw) - 8, 10):
-                    for zz in range(8, int(bh) - 8, 12): s.poly([(xx, D + 8, zz), (xx + 5, D + 8, zz), (xx + 5, D + 8, zz + 7), (xx, D + 8, zz + 7)], (14, 16, 32))
-            s.jobs.append((D + 7.5, wins)); bx += bw + g
+            s.box(bx, BD, bw, bd, bh, dk(c, 1.15), c, dk(c, .7))
+            cols = list(range(int(bx) + 5, int(bx + bw) - 8, 10)); rows = list(range(8, int(bh) - 8, 12)); lit = set()
+            if bi in (1, 4, 6):
+                for _ in range(40):                                                                # 불규칙하게, 서로 붙지 않게 5~7개
+                    cc, rr_ = br.randrange(len(cols)), br.randrange(len(rows))
+                    if all(max(abs(cc - a_), abs(rr_ - b_)) > 1 for a_, b_ in lit): lit.add((cc, rr_))
+                    if len(lit) >= br.randint(5, 7): break
+            def wins(cols=cols, rows=rows, lit=lit):
+                for ci, xx in enumerate(cols):
+                    for ri, zz in enumerate(rows): s.poly([(xx, BD, zz), (xx + 5, BD, zz), (xx + 5, BD, zz + 7), (xx, BD, zz + 7)], (226, 188, 112) if (ci, ri) in lit else (14, 16, 32))
+            s.jobs.append((BD - .5, wins)); bx += bw + g; bi += 1
     else: s.wall_back(0, W, D, 60)
     if bed: s.wall_left(0, D, 60)
     s.lamp(140, 74, 44, -1)
