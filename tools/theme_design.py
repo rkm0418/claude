@@ -66,8 +66,12 @@ def facade_w(base, mortar, lit=(255, 214, 140), dark=(20, 22, 40)):            #
         wx = (us % 22); wz = (z % 18); win = (wx > 6) & (wx < 15) & (wz > 6) & (wz < 14) & (z > 8) & (z < H_ - 4); on = nz(np.floor(us / 22), np.floor(z / 18), 9) > .86
         return np.where(win[..., None], np.where(on[..., None], np.array(lit, float), np.array(dark, float)), c)
     return f
+def facade_user(u, z, n_, H_, us, seed, pit):                                   # 사용자가 만든 광장 건물 벽: 어두운 벽 + 가로 줄 + 규칙적인 꺼진 창
+    c = np.where((z % 12 < .9)[..., None], np.array((20, 23, 44), float), np.array((28, 32, 60), float))
+    win = ((us % 16) > 6) & ((us % 16) < 15) & ((z % 12) > 3) & ((z % 12) < 9) & (z > 10) & (z < H_ - 5)
+    return np.where(win[..., None], np.array((22, 26, 50), float), c)
 PWALL = {
- 'city': facade_w((52, 56, 86), (34, 36, 58)),
+ 'city': facade_user,
  'snow': brick((98, 106, 122), (58, 66, 82), cap=(236, 242, 252)), 'lake': planks_h((96, 70, 54), (40, 30, 28), rope=(190, 170, 130)),
  'park': stripes_v((38, 36, 56), (70, 70, 96), neon=(255, 90, 150)), 'reed': stripes_v((120, 92, 46), (170, 130, 60), bw=3), 'woods': trunks((38, 32, 46), (62, 52, 70)),
  'ridge': strata((112, 88, 80), (150, 120, 104)), 'roofs': concrete((72, 76, 98), (112, 118, 138), neon=(90, 220, 255)), 'hall': lockers_w((96, 124, 140)),
@@ -88,7 +92,7 @@ def L_office(x, d, e, n): return col([(nz(x / 2, d / 2, 6) >= 0, (156, 160, 140)
 def L_tree(x, d, e, n): q = nz(x / 2, d / 2, 8); return col([(q >= 0, (126, 90, 56)), (q > .8, (146, 106, 66)), (nz(x, d, 4) > .95, (96, 150, 80)), (e > -2.5, (96, 68, 44))], n)
 def L_city(x, d, e, n):                                                        # 차도: 아스팔트 + 노란 중앙 점선 + 흰 가장자리선
     q = nz(x / 2, d / 2, 3); return col([(q >= 0, (46, 48, 62)), (q > .8, (52, 54, 70)), ((np.abs(e + 13) < .8) & (np.floor(x / 7) % 2 == 0), (206, 176, 76)), ((e > -3.4) & (e < -2.3), (150, 152, 170)), (e > -1.8, (84, 86, 106))], n)
-LANE = {'city': L_city, 'snow': L_snow, 'lake': L_lake, 'park': L_park, 'reed': L_reed, 'woods': L_woods, 'ridge': L_ridge, 'roofs': L_roofs, 'hall': L_hall, 'cabin': L_cabin, 'library': L_library, 'office': L_office, 'tree': L_tree}
+LANE = {'city': (lambda x, d, e, n: M.city_ground(x, d, e, n)), 'snow': L_snow, 'lake': L_lake, 'park': L_park, 'reed': L_reed, 'woods': L_woods, 'ridge': L_ridge, 'roofs': L_roofs, 'hall': L_hall, 'cabin': L_cabin, 'library': L_library, 'office': L_office, 'tree': L_tree}
 
 # ---------------- 통로 연속 벽 (상자를 이음새 없이 이어 붙인다) ----------------
 # (뒤쪽 높이, 앞쪽 높이, 뒤 색, 앞 색, 윗면 색)
@@ -134,7 +138,7 @@ def S(*items):                                                                  
     return f
 P = M
 SETS_KEY = {                                                                   # 특정 방(key)에 정해 놓는 대표 연출. 여기에 적은 방은 무작위 대신 이것을 쓴다(수정·추가 자유)
- 'cityx01': S(('p', P.p_hedgebed, 0, 0), ('p', P.p_lamp(True, (255, 214, 150), 26, .35), 40, 4), ('p', P.p_bench, 22, 12)),
+ 'cityx01': S(('p', P.p_hedgebed, 0, 0), ('p', P.p_streetlamp(), 40, 4), ('p', P.p_bench, 22, 12)),
 }
 SETS_KEY['cityx01'].lit = True                                                    # 이 연출이 자기 가로등을 가지므로 방에 가로등을 더 세우지 않는다
 SETS = {

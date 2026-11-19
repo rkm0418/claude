@@ -169,7 +169,7 @@ def strip_props(name, k, tr, inside, rng):
                 if put(sx, dd, 7): unit(k, th, sx, dd, False, rr)
         cand = list(T['props']); fn_ = cand[rr.randrange(len(cand))][1]
         nb, nr = len(k.block), len(k.rects); fn_(k, lx - 2, Dl - 12, rr); del k.block[nb:]; del k.rects[nr:]
-    LC = TD.LIGHT[th]; lamp = M.p_lamp(True, LC, 26, .35)                        # 4) 조명은 절제: 통로는 120px마다 뒷벽 쪽 가로등 하나, 방은 대표 연출에 불이 없을 때만 하나
+    LC = TD.LIGHT[th]; lamp = M.p_streetlamp(True, LC, 26, .35) if th == 'city' else M.p_lamp(True, LC, 26, .35)                        # 4) 조명은 절제: 통로는 120px마다 뒷벽 쪽 가로등 하나, 방은 대표 연출에 불이 없을 때만 하나
     chosen = {}
     for sec in secs:                                                            # 4.5) 방 대표 연출(set piece): 방 뒤쪽 중앙에 줄 맞춰 하나
         if sec['kind'] != 'room': continue
