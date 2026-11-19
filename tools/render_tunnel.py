@@ -9,8 +9,8 @@ from render_city3d import Scene, dk, OUT
 
 def mix(a, b, f): f = max(0.0, min(1.0, f)); return tuple(int(a[i] + (b[i] - a[i]) * f) for i in range(3))
 def noise(x, d, s=0): return ((int(x * 12.9898 + d * 78.233 + s * 37.7) * 2654435761) >> 7) % 100 / 100.0
-W, D, H = 64, 480, 58                                          # 길이 300 → 480: 낙엽·흙이 없는 도시 쪽 구간을 더 길게(앞 250까지는 순수 도시 터널)
-LEAF0, LEAFN = 250, 165                                        # 변화가 시작되는 깊이, 변화가 끝날 때까지의 길이(예전과 같은 165)
+W, D, H = 64, 780, 58                                          # 길이 780: 낙엽·흙이 없는 도시 구간을 600까지 아주 길게, 가을로 변하는 구간은 짧게(90), 끝 90은 가을 터널
+LEAF0, LEAFN = 600, 90                                        # 변화가 시작되는 깊이, 변화가 끝날 때까지의 길이
 def f_of(d): return (d - LEAF0) / float(LEAFN)                 # <=0 = 도시(낙엽 없음), 1 = 가을 세계
 
 def build():
@@ -58,8 +58,8 @@ def build():
     sc.run()
     # 낙엽: 끝으로 갈수록 많아지고, 가까운 쪽엔 거의 없다(몇 장은 안쪽으로 날려 들어온다)
     LC = [(214, 104, 44), (236, 160, 60), (170, 56, 36), (246, 206, 92)]
-    for _ in range(900):
-        d = D * rng.random() ** .6; x = rng.uniform(1, W - 1)
+    for _ in range(520):
+        d = LEAF0 + (D - LEAF0) * rng.random() ** .6; x = rng.uniform(1, W - 1)
         if f_of(d) > 0 and rng.random() < f_of(d) + .08:                       # 도시 구간(f<=0)에는 낙엽이 하나도 없다
             X, Y = sc.P(x, d, 0); sc.px[X, Y] = rng.choice(LC); sc.px[X + 1, Y] = rng.choice(LC)
     for _ in range(26):
