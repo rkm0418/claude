@@ -193,9 +193,9 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
         back_buildings(s, W, D)
     else: s.wall_back(0, W, D, 60)
     if bed: s.wall_left(0, D, 60)
-    s.lamp(140 if corridor else 112, 60, 44, -1)                                                  # 광장 가로등은 오른쪽 끝 그라데이션에 가리지 않게 왼쪽으로
+    s.lamp(140 if corridor else 112, 60, 60, -1)                                                  # 광장 가로등은 오른쪽 끝 그라데이션에 가리지 않게 왼쪽으로
     if corridor:
-        for lx in range(210, W - 40, 70): s.lamp(lx, 74, 44, -1)                                 # 같은 가로등을 뒷벽 쪽 한 줄로 나열
+        for lx in range(210, W - 40, 70): s.lamp(lx, 74, 60, -1)                                 # 같은 가로등을 뒷벽 쪽 한 줄로 나열
     s.bed = (12, 38, 70, 30, 9)
     s.front = []
     if bed:
@@ -267,10 +267,11 @@ def street():
     s.run(); return s.save('city3d_street')
 
 # ---------------- 장면: 복도가 정사각형 광장으로 커지는 곳 (가운데 인공 분수와 풀) ----------------
-SQ0, SQ1 = 110, 250                                                                               # 광장(정사각형) 가로 범위
-FC = (180, 43); FR = 22
-BEN = [(SQ0 + 3, 74), (SQ1 - 33, 74)]; BIN = (SQ0 + 38, 74)                                                      # 풀밭 대신: 위쪽 왼쪽·오른쪽에 벤치 둘, 오른쪽에 쓰레기통 하나
-LAMPS = [(50, 54), (310, 54)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
+SQ0, SQ1 = 110, 300                                                                               # 광장(정사각형) 가로 범위
+SQD = 96                                                                                          # 광장 깊이(뒤 끝)
+FC = (205, 51); FR = 24
+BEN = [(SQ0 + 3, SQD - 8), (SQ1 - 39, SQD - 8)]; BIN = (SQ0 + 45, SQD - 8)                                                      # 풀밭 대신: 위쪽 왼쪽·오른쪽에 벤치 둘, 오른쪽에 쓰레기통 하나
+LAMPS = [(50, 54), (360, 54)]                                              # 복도는 좁은 복도 뒤쪽 줄, 광장은 뒤쪽 모퉁이                                                                           # 분수 중심(x, d), 바깥 반지름
 def disc(s, cx, cd, r, z, col, n=36):
     s.poly([(cx + r * math.cos(2 * math.pi * k / n), cd + r * math.sin(2 * math.pi * k / n), z) for k in range(n)], col)
 def cyl(s, cx, cd, r, z0, z1, top, side, n=36):                                                   # 원통: 옆면은 앞쪽(d 작은 쪽)이 보인다
@@ -283,8 +284,8 @@ def cyl(s, cx, cd, r, z0, z1, top, side, n=36):                                 
     disc(s, cx, cd, r, z1, top, n)
 def grass(x, d):
     return (46, 104, 64) if (int(x // 4) + int(d // 4)) % 2 == 0 else (40, 94, 58)                # 일정한 무늬의 인조 잔디
-def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
-    D = 80; s = Scene(W, 170, 130); S0 = 34
+def fountain_scene(W=410, name='city3d_fountain', save=True, fade='lr'):
+    D = SQD; s = Scene(W, 190, 130); S0 = 34
     back_buildings(s, W, D)                                                                         # 가장 먼 건물부터 그린다
     s.floor(paving, x0=0, x1=W, d0=S0, d1=58); s.floor(paving, x0=SQ0, x1=SQ1, d0=6, d1=D)          # 복도(좁게) + 앞뒤로 넓어지는 정사각형 광장
     s.box(0, 58, SQ0, 3, 4, CURBT, CURBF, CURBR); s.box(SQ1, 58, W - SQ1, 3, 4, CURBT, CURBF, CURBR); s.box(SQ0, D, SQ1 - SQ0, 3, 4, CURBT, CURBF, CURBR)   # 뒤 연석
@@ -304,23 +305,22 @@ def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
                 s.px[px_, py_] = col_; s.px[px_ + 1, py_] = col_; s.px[px_, py_ - 1] = dk(col_, .7)
         s.jobs.append((gd1 - 1, roses))
     WOOD, WOODD, IRON = (150, 96, 52), (112, 70, 38), (30, 30, 38)                                  # 공원 벤치(참고 사진): 주황 갈색 널 + 가는 검은 주철 지지대
-    for bx_, bd_ in BEN:
-        for lx_ in (bx_ + 1, bx_ + 28):
-            s.box(lx_, bd_ + .5, 1, 1, 5, IRON, IRON, IRON); s.box(lx_, bd_ + 4.5, 1, 1, 5, IRON, IRON, IRON); s.box(lx_, bd_ + 5, 1, 1, 14, IRON, IRON, IRON); s.box(lx_, bd_ + .5, 1, 5, 1, IRON, IRON, IRON, z0=9)   # 다리 둘 + 등받이 기둥 + 팔걸이
-        s.box(bx_, bd_ + 1, 30, 5, 1, WOOD, WOODD, dk(WOODD, .8), z0=5)                                  # 앉는 널
-        for k in range(3): s.box(bx_, bd_ + 1 + k * 1.7, 30, .25, .1, WOODD, WOODD, WOODD, z0=6)
-        for k in range(3): s.box(bx_ + 1, bd_ + 5.3, 28, .8, 1.8, WOOD, dk(WOOD, .85), WOODD, z0=8 + k * 2.4)   # 등받이 널 셋
-    s.box(BIN[0], BIN[1], 5, 5, 9, (84, 92, 110), (62, 68, 86), (50, 54, 70)); s.box(BIN[0] - .5, BIN[1] - .5, 6, 6, 1.2, (104, 112, 130), (84, 92, 110), (70, 76, 92), z0=9)
+    for bx_, bd_ in BEN:                                                                           # 벤치: 너비 36, 앉는 높이 9, 등받이 끝 20(아이 키 24 기준)
+        for lx_ in (bx_ + 1, bx_ + 34):
+            s.box(lx_, bd_ + .5, 1, 1, 9, IRON, IRON, IRON); s.box(lx_, bd_ + 6, 1, 1, 9, IRON, IRON, IRON); s.box(lx_, bd_ + 6.5, 1, 1, 20, IRON, IRON, IRON); s.box(lx_, bd_ + .5, 1, 7, 1, IRON, IRON, IRON, z0=14)
+        s.box(bx_, bd_ + 1, 36, 7, 1.4, WOOD, WOODD, dk(WOODD, .8), z0=9)
+        for k in range(3): s.box(bx_, bd_ + 1 + k * 2.2, 36, .3, .1, WOODD, WOODD, WOODD, z0=10.4)
+        for k in range(3): s.box(bx_ + 1, bd_ + 7, 34, 1, 2.4, WOOD, dk(WOOD, .85), WOODD, z0=12 + k * 3)
+    s.box(BIN[0], BIN[1], 7, 7, 15, (84, 92, 110), (62, 68, 86), (50, 54, 70)); s.box(BIN[0] - .6, BIN[1] - .6, 8.2, 8.2, 1.4, (104, 112, 130), (84, 92, 110), (70, 76, 92), z0=15)
     cx, cd = FC
-    s.floor(lambda x, d: (52, 56, 82), x0=cx - 31, x1=cx + 31, d0=cd - 31, d1=cd + 31)                 # 분수 둘레의 네모 포장
     STONE, STONED, STONER, WATER = (112, 112, 134), (92, 94, 118), (78, 80, 104), (36, 76, 132)       # 멈춰 있는 분수: 물결·물줄기·물방울 없음, 모두 직각 상자
     def sq_water(x0, d0, x1, d1, z): s.poly([(x0, d0, z), (x1, d0, z), (x1, d1, z), (x0, d1, z)], WATER)
-    s.box(cx - FR, cd - FR, 2 * FR, 2 * FR, 6, STONE, STONED, STONER); sq_water(cx - FR + 3, cd - FR + 3, cx + FR - 3, cd + FR - 3, 6.05)   # 받침 + 물
-    s.box(cx - 3, cd - 3, 6, 6, 10, STONE, STONED, STONER, z0=6)                                    # 기둥
-    s.box(cx - 10, cd - 10, 20, 20, 3, STONE, STONED, STONER, z0=14); sq_water(cx - 8, cd - 8, cx + 8, cd + 8, 17.05)   # 1단 그릇
-    s.box(cx - 2, cd - 2, 4, 4, 6, STONE, STONED, STONER, z0=17)
-    s.box(cx - 5.5, cd - 5.5, 11, 11, 2.5, STONE, STONED, STONER, z0=22); sq_water(cx - 4, cd - 4, cx + 4, cd + 4, 24.55)   # 2단 그릇
-    for lx, ld_ in LAMPS: s.lamp(lx, ld_, 44, -1)                                          # 분수 뒤는 비우고 양옆 뒷줄에 같은 가로등
+    s.box(cx - FR, cd - FR, 2 * FR, 2 * FR, 9, STONE, STONED, STONER); sq_water(cx - FR + 3, cd - FR + 3, cx + FR - 3, cd + FR - 3, 9.05)   # 받침(아이 키 24 기준) + 물
+    s.box(cx - 3, cd - 3, 6, 6, 11, STONE, STONED, STONER, z0=9)                                    # 기둥
+    s.box(cx - 11, cd - 11, 22, 22, 3, STONE, STONED, STONER, z0=20); sq_water(cx - 9, cd - 9, cx + 9, cd + 9, 23.05)   # 1단 그릇
+    s.box(cx - 2, cd - 2, 4, 4, 7, STONE, STONED, STONER, z0=23)
+    s.box(cx - 6, cd - 6, 12, 12, 3, STONE, STONED, STONER, z0=30); sq_water(cx - 4, cd - 4, cx + 4, cd + 4, 33.05)   # 2단 그릇
+    for lx, ld_ in LAMPS: s.lamp(lx, ld_, 60, -1)                                          # 분수 뒤는 비우고 양옆 뒷줄에 같은 가로등
     s.run()
     for side in (fade or ''):
         for X in range(s.CW):
