@@ -560,11 +560,7 @@ function drawTrans() {
   } else if (ph === 'wait') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
   else {
     const e = ease(Math.min(1, q)); panX.clearRect(0, 0, VW, VH); panX.drawImage(cv, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); ctx.drawImage(panC, sv[0] * (1 - e) * 24, sv[1] * (1 - e) * 24);
-    const [fx, fy] = scr(P.x, P.d), px = (R.ox + fx) * S + sv[0] * (1 - e) * 24, py = (R.oy + fy - 14) * S + sv[1] * (1 - e) * 24, Rr = e * VW * 1.15, fl = [1, .25, .8, .3, .6, .15, .4, .08, .02][Math.min(8, Math.floor(q * 9))];
-    for (let i = 0; i < TRANK.length; i++) {
-      const cx = (i % TCOLS) * TCELL, cy = Math.floor(i / TCOLS) * TCELL, dd = Math.hypot(cx + 8 - px, (cy + 8 - py) * 1.3); let a = dd > Rr ? 1 : Math.min(1, fl * (.55 + dd / (Rr + 1) * .6));
-      if (a > .02) { ctx.fillStyle = `rgba(0,0,0,${a})`; ctx.fillRect(cx, cy, TCELL, TCELL); }
-    }
+    ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < (1 - e) * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL);   // 나올 때도 나갈 때와 같은 도트 칸으로(거꾸로) 걷힌다
   }
 }
 function update(dt) {
