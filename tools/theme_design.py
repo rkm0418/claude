@@ -59,7 +59,15 @@ def roots_w(bg, root):
         return np.where((z > H_ - 6)[..., None], np.array((40, 60, 40), float), c)
     return f
 
+def facade_w(base, mortar, lit=(255, 214, 140), dark=(20, 22, 40)):            # 밤 건물 벽: 벽돌 + 드문드문 켜진 창
+    def f(u, z, n_, H_, us, seed, pit):
+        row = np.floor(z / 5); off = (row % 2) * 5; cl = np.floor((us + off) / 10); mort = ((z % 5) < 1) | (((us + off) % 10) < 1)
+        c = np.where(mort[..., None], np.array(mortar, float), np.array(base, float)[None, None, :] * (1 + (nz(cl, row, 3) - .5) * .2)[..., None])
+        wx = (us % 22); wz = (z % 18); win = (wx > 6) & (wx < 15) & (wz > 6) & (wz < 14) & (z > 8) & (z < H_ - 4); on = nz(np.floor(us / 22), np.floor(z / 18), 9) > .86
+        return np.where(win[..., None], np.where(on[..., None], np.array(lit, float), np.array(dark, float)), c)
+    return f
 PWALL = {
+ 'city': facade_w((52, 56, 86), (34, 36, 58)),
  'snow': brick((98, 106, 122), (58, 66, 82), cap=(236, 242, 252)), 'lake': planks_h((96, 70, 54), (40, 30, 28), rope=(190, 170, 130)),
  'park': stripes_v((38, 36, 56), (70, 70, 96), neon=(255, 90, 150)), 'reed': stripes_v((120, 92, 46), (170, 130, 60), bw=3), 'woods': trunks((38, 32, 46), (62, 52, 70)),
  'ridge': strata((112, 88, 80), (150, 120, 104)), 'roofs': concrete((72, 76, 98), (112, 118, 138), neon=(90, 220, 255)), 'hall': lockers_w((96, 124, 140)),
@@ -78,11 +86,13 @@ def L_cabin(x, d, e, n): return col([(nz(x, d, 1) >= 0, (126, 56, 54)), (e > -4,
 def L_library(x, d, e, n): return col([(nz(x, d, 1) >= 0, (104, 34, 40)), (e > -5, (200, 164, 84)), (e > -3.6, (92, 30, 36)), (np.floor(x / 8) % 2 == 0, (96, 30, 36)), (e > -2.5, (60, 40, 30))], n)
 def L_office(x, d, e, n): return col([(nz(x / 2, d / 2, 6) >= 0, (156, 160, 140)), (np.abs(e + 13) < .9, (230, 218, 150)), (e > -2.5, (120, 124, 110))], n)
 def L_tree(x, d, e, n): q = nz(x / 2, d / 2, 8); return col([(q >= 0, (126, 90, 56)), (q > .8, (146, 106, 66)), (nz(x, d, 4) > .95, (96, 150, 80)), (e > -2.5, (96, 68, 44))], n)
-LANE = {'snow': L_snow, 'lake': L_lake, 'park': L_park, 'reed': L_reed, 'woods': L_woods, 'ridge': L_ridge, 'roofs': L_roofs, 'hall': L_hall, 'cabin': L_cabin, 'library': L_library, 'office': L_office, 'tree': L_tree}
+def L_city(x, d, e, n):                                                        # 차도: 아스팔트 + 노란 중앙 점선 + 흰 가장자리선
+    q = nz(x / 2, d / 2, 3); return col([(q >= 0, (46, 48, 62)), (q > .8, (52, 54, 70)), ((np.abs(e + 13) < .8) & (np.floor(x / 7) % 2 == 0), (206, 176, 76)), ((e > -3.4) & (e < -2.3), (150, 152, 170)), (e > -1.8, (84, 86, 106))], n)
+LANE = {'city': L_city, 'snow': L_snow, 'lake': L_lake, 'park': L_park, 'reed': L_reed, 'woods': L_woods, 'ridge': L_ridge, 'roofs': L_roofs, 'hall': L_hall, 'cabin': L_cabin, 'library': L_library, 'office': L_office, 'tree': L_tree}
 
 # ---------------- 통로 연속 벽 (상자를 이음새 없이 이어 붙인다) ----------------
 # (뒤쪽 높이, 앞쪽 높이, 뒤 색, 앞 색, 윗면 색)
-RUN = {'snow': (26, 9, (96, 104, 120), (96, 104, 120), (240, 246, 255)), 'lake': (22, 8, (70, 52, 46), (84, 62, 50), (120, 92, 68)), 'park': (24, 8, (44, 42, 62), (70, 74, 90), (255, 90, 150)),
+RUN = {'city': (36, 9, (56, 60, 90), (90, 94, 110), (110, 114, 140)), 'snow': (26, 9, (96, 104, 120), (96, 104, 120), (240, 246, 255)), 'lake': (22, 8, (70, 52, 46), (84, 62, 50), (120, 92, 68)), 'park': (24, 8, (44, 42, 62), (70, 74, 90), (255, 90, 150)),
        'reed': (28, 12, (130, 100, 50), (150, 116, 58), (210, 176, 90)), 'woods': (40, 8, (40, 34, 48), (54, 44, 56), (30, 52, 44)), 'ridge': (30, 9, (118, 92, 84), (130, 104, 96), (160, 130, 114)),
        'roofs': (24, 8, (92, 96, 122), (104, 108, 132), (150, 156, 176)), 'hall': (30, 9, (96, 124, 140), (150, 112, 76), (130, 156, 170)), 'cabin': (26, 9, (126, 84, 50), (112, 72, 42), (160, 112, 70)),
        'library': (40, 5, (78, 52, 38), (150, 50, 50), (110, 76, 52)), 'office': (26, 9, (130, 160, 176), (130, 100, 72), (110, 112, 108)), 'tree': (34, 8, (96, 66, 42), (86, 58, 38), (60, 90, 52))}
@@ -97,7 +107,7 @@ def run_unit(k, th, lx, ld, low, i, r):
     if th == 'woods' and not low and i % 3 == 0: k.B(lx - 1, ld - 4.5, 3, 2, 5, (30, 24, 36), solid=False)
 
 # ---------------- 방 대표 연출(set piece) ----------------
-SOLIDFN = {'p_fir', 'p_dtree', 'p_deadtree', 'p_kiosk', 'p_hut', 'p_tank', 'p_counter', 'p_bed', 'p_fire', 'p_bookcase', 'p_shelf', 'p_hlocker', 'p_cabinet', 'p_filecab', 'p_safe', 'p_machine', 'p_sofa', 'p_table', 'p_readtable', 'p_desk', 'p_ladder', 'p_trophy', 'p_stove', 'p_antenna', 'p_line', 'p_chimney', 'p_horse', 'p_boat', 'p_scarecrow', 'p_boulder', 'p_hay', 'p_cart', 'p_bumper', 'p_ac', 'p_root', 'p_atree', 'p_lantern', 'p_roofl'}
+SOLIDFN = {'p_car', 'p_vending', 'p_busstop', 'p_trafficlight', 'p_fir', 'p_dtree', 'p_deadtree', 'p_kiosk', 'p_hut', 'p_tank', 'p_counter', 'p_bed', 'p_fire', 'p_bookcase', 'p_shelf', 'p_hlocker', 'p_cabinet', 'p_filecab', 'p_safe', 'p_machine', 'p_sofa', 'p_table', 'p_readtable', 'p_desk', 'p_ladder', 'p_trophy', 'p_stove', 'p_antenna', 'p_line', 'p_chimney', 'p_horse', 'p_boat', 'p_scarecrow', 'p_boulder', 'p_hay', 'p_cart', 'p_bumper', 'p_ac', 'p_root', 'p_atree', 'p_lantern', 'p_roofl'}
 def hut(k, x, d, w, dp, h, wall, roof, door=(18, 16, 24), lit=None):
     k.B(x - w / 2, d - dp / 2, w, dp, h, wall); k.B(x - w / 2 - 1, d - dp / 2 - 1, w + 2, dp + 2, 3, roof, z0=h, solid=False); k.F(x - 3, x + 3, 0, h * .6, door, d - dp / 2)
     if lit: k.F(x + w / 2 - 7, x + w / 2 - 2, h * .45, h * .8, lit, d - dp / 2); k.glow(x + w / 2 - 4, d - dp / 2 - 4, 22, lit, .4)
@@ -106,7 +116,7 @@ def at(k, fn, x, d, r):
     nb, nr = len(k.block), len(k.rects); fn(k, x, d, r)
     if fn.__name__ not in SOLIDFN: del k.block[nb:]; del k.rects[nr:]
 LITFN = {'p_fire', 'p_flamp', 'p_hlantern', 'p_readtable', 'p_lantern', 'p_jar', 'p_stove', 'p_hut', 'p_lamp'}
-LIGHT = {'snow': (214, 232, 255), 'lake': (200, 226, 255), 'park': (255, 150, 170), 'reed': (255, 206, 130), 'woods': (130, 232, 212), 'ridge': (255, 190, 120), 'roofs': (190, 226, 255), 'hall': (226, 246, 214),
+LIGHT = {'city': (255, 214, 150), 'snow': (214, 232, 255), 'lake': (200, 226, 255), 'park': (255, 150, 170), 'reed': (255, 206, 130), 'woods': (130, 232, 212), 'ridge': (255, 190, 120), 'roofs': (190, 226, 255), 'hall': (226, 246, 214),
          'cabin': (255, 200, 130), 'library': (255, 210, 140), 'office': (230, 240, 255), 'tree': (255, 214, 140)}                      # 테마별 광색 하나로 통일
 def S(*items):                                                                  # 대표 연출: 소품은 최대 3개로 줄여 가운데 정렬, 글로우는 절제
     ps = [it for it in items if it[0] == 'p']; rest = [it for it in items if it[0] != 'p']
@@ -124,6 +134,10 @@ def S(*items):                                                                  
     return f
 P = M
 SETS = {
+ 'city': [S(('p', P.p_crosswalk, -20, -6), ('p', P.p_trafficlight, 26, 4), ('p', P.p_car, -10, 12), ('p', P.p_manhole, 6, 2)),
+          S(('hut', 0, 0, 32, 16, 26, (70, 76, 104), (60, 64, 90), (14, 12, 20), (255, 232, 176)), ('p', P.p_vending, -24, 6), ('p', P.p_vending, 24, 6), ('p', P.p_bench, 0, 14)),
+          S(('p', P.p_busstop, -8, 0), ('p', P.p_bin, 22, 4), ('p', P.p_hydrant, -26, 8)),
+          S(('p', P.p_bin, -16, 0), ('p', P.p_bike, 0, 4), ('p', P.p_mailbox, 16, 0), ('p', P.p_hydrant, 26, 8))],
  'snow': [S(('ring', 16, 6, (92, 70, 58), (30, 24, 24), 0, 0), ('glow', 34, (255, 170, 90), .55, 0, 0), ('p', P.p_log, -16, 5), ('p', P.p_log, 8, 6), ('p', P.p_stump, -4, -8), ('p', P.p_stump, 10, -6)),
           S(('ring', 22, 8, (206, 228, 248), (178, 208, 236), 0, 0), ('p', P.p_hole, -6, 0), ('p', P.p_hole, 8, 2), ('p', P.p_stump, -20, 6), ('p', P.p_shard, 14, -3)),
           S(('p', P.p_snowman, -14, 0), ('p', P.p_snowman, 0, 3), ('p', P.p_snowman, 14, -1), ('p', P.p_log, -4, 9)),

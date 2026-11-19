@@ -239,6 +239,26 @@ def p_pots(k, x, d, r): k.B(x, d, 4, 4, 5, (200, 150, 70)); k.B(x + 5, d + 1, 4,
 def p_acorns(k, x, d, r): k.B(x, d, 8, 6, 3, (150, 100, 56), solid=False); [k.rock(x + 1 + i * 2, d + 1, 2, (176, 120, 70)) for i in range(3)]
 def p_tstump(k, x, d, r): k.B(x, d, 7, 7, 6, (140, 96, 60)); k.B(x - .6, d - .6, 8.2, 8.2, 1, (180, 130, 84), z0=6, solid=False)
 
+def city_ground(x, d, e, n):                                                      # 보도블록: 8px 칸, 이음새, 얼룩
+    t = (np.floor(x / 8) + np.floor(d / 8)) % 2 == 0; seam = (np.abs(x % 8) < .7) | (np.abs(d % 8) < .7)
+    return col([(t, (70, 72, 92)), (~t, (64, 66, 86)), (seam, (44, 46, 62)), (nz(x / 2, d / 2, 6) > .93, (82, 84, 104)), (nz(x, d, 9) > .985, (120, 110, 90)), (e > -1.5, (84, 86, 106))], n)
+def p_car(k, x, d, r):                                                            # 세워 둔 차
+    c = r.choice(((120, 40, 50), (50, 70, 110), (150, 152, 164), (70, 72, 84))); k.B(x, d, 24, 10, 7, tuple(int(v * .7) for v in c)); k.B(x + 5, d + 1, 13, 8, 6, c, z0=7, solid=False); k.F(x + 6.5, x + 17.5, 8.2, 12, (30, 40, 62), d); k.B(x + 22, d + 2, 2, 2, 2, (255, 232, 170), z0=2, solid=False)
+def p_vending(k, x, d, r): k.B(x, d, 7, 6, 20, (60, 70, 110)); k.F(x + 1, x + 6, 6, 17, (160, 210, 236), d); k.glow(x + 3.5, d - 3, 14, (160, 210, 236), .16)
+def p_busstop(k, x, d, r):
+    k.post(x, d, 24, (80, 84, 100)); k.post(x + 22, d, 24, (80, 84, 100)); k.B(x - 1, d - 3, 26, 8, 2, (90, 94, 110), z0=24, solid=False); k.B(x + 10, d + 1, 3, 1.5, 14, (200, 60, 70), solid=False); k.B(x + 4, d + 3, 14, 4, 4, (110, 84, 66))
+def p_trafficlight(k, x, d, r):
+    k.post(x, d, 34, (60, 62, 76)); k.B(x - 2, d - 2, 5, 4, 11, (30, 30, 40), z0=34, solid=False); k.B(x - 1, d - 2.2, 3, 1, 3, (255, 70, 70), z0=42, solid=False); k.glow(x, d, 12, (255, 90, 90), .18)
+def p_hydrant(k, x, d, r): k.B(x, d, 3.4, 3.4, 5, (200, 60, 60), solid=False); k.B(x - .5, d - .5, 4.4, 4.4, 1.2, (150, 40, 40), z0=5, solid=False)
+def p_mailbox(k, x, d, r): k.B(x, d, 5, 4, 9, (70, 90, 140)); k.B(x - .4, d - .4, 5.8, 4.8, 1, (50, 66, 108), z0=9, solid=False)
+def p_bike(k, x, d, r):
+    def f(X, Y, g): g.ellipse([X - 8, Y - 6, X - 2, Y], outline=(150, 154, 170)); g.ellipse([X + 3, Y - 6, X + 9, Y], outline=(150, 154, 170)); g.line([(X - 5, Y - 3), (X, Y - 8), (X + 6, Y - 3)], fill=(190, 80, 90))
+    job(k, x, d, f)
+def p_manhole(k, x, d, r): flat(k, x, d, 6, 2, (40, 42, 56)); flat(k, x, d, 4, 1, (58, 60, 76))
+def p_crosswalk(k, x, d, r):
+    def f():
+        for i in range(8): k.sc.poly([(x + i * 5, d, 0), (x + i * 5 + 3, d, 0), (x + i * 5 + 3, d + 16, 0), (x + i * 5, d + 16, 0)], (186, 188, 204))
+    k.sc.jobs.append((399, f))
 def D(name, fn, mode, rng, gap): return (name, fn, mode, rng, gap)
 THEMES = {
  'snow': dict(label='눈 숲길', ground=snow_ground, face=face_rock((176, 196, 224), (70, 84, 120)), H=64, walls=[w_snow], pits=[0], floor=(196, 212, 238), blocked=dark_blocked((200, 212, 232), (190, 204, 228)), vig=.16, wob=1,
@@ -265,8 +285,10 @@ THEMES = {
    props=[D('counter', p_counter, 'edge', (0, 1), 30), D('desk', p_odesk, 'mid', (0, 2), 20), D('filecab', p_filecab, 'edge', (1, 3), 10), D('safe', p_safe, 'edge', (0, 1), 12), D('coat', p_coat, 'edge', (0, 2), 8), D('bench', p_hbench, 'edge', (0, 2), 14), D('machine', p_machine, 'edge', (0, 1), 10), D('bin', p_bin, 'edge', (0, 2), 8), D('chair', p_chair, 'any', (0, 2), 8)]),
  'tree': dict(label='나무집 속', ground=bark_ground, face=face_rock((140, 96, 60), (40, 26, 20)), H=56, walls=[w_bark], pits=[0], floor=(34, 22, 16), blocked=dark_blocked((70, 46, 30), (84, 56, 36)), vig=.3, wob=1,
    props=[D('root', p_root, 'edge', (2, 4), 14), D('shroom', p_tshroom, 'any', (1, 3), 10), D('jar', p_jar, 'edge', (1, 3), 14), D('hammock', p_hammock, 'mid', (0, 1), 26), D('pots', p_pots, 'edge', (0, 2), 10), D('acorns', p_acorns, 'any', (0, 2), 9), D('stump', p_tstump, 'any', (0, 2), 10), D('stool', p_stool, 'any', (0, 2), 8), D('table', p_table, 'mid', (0, 1), 18)]),
+ 'city': dict(label='초반 도시', ground=city_ground, face=face_rock((60, 64, 90), (14, 14, 28)), H=56, walls=['facade'], pits=[0], floor=(12, 13, 26), blocked=dark_blocked((40, 42, 60), (48, 50, 70)), vig=.36, wob=0,
+   props=[D('hydrant', p_hydrant, 'any', (1, 2), 8), D('mailbox', p_mailbox, 'edge', (0, 1), 8), D('bin', p_bin, 'edge', (1, 2), 8), D('bike', p_bike, 'any', (0, 1), 12), D('manhole', p_manhole, 'any', (1, 2), 8), D('car', p_car, 'edge', (0, 1), 28), D('vending', p_vending, 'edge', (0, 1), 12), D('bench', p_bench, 'edge', (0, 2), 14)]),
 }
-ORDER = ['snow', 'lake', 'park', 'reed', 'woods', 'ridge', 'roofs', 'hall', 'cabin', 'library', 'office', 'tree']
+ORDER = ['city', 'snow', 'lake', 'park', 'reed', 'woods', 'ridge', 'roofs', 'hall', 'cabin', 'library', 'office', 'tree']
 
 # ---------------- 연결표 · 번호 ----------------
 # scene_chains.json: 테마별 장면 순서. 처음 한 번 만들어 저장하고, 이후에는 이 파일을 고쳐 장면을 빼거나 끼운다(번호는 scene_ids.json 에 고정).
@@ -277,10 +299,10 @@ TRAVEL = {'L': (-1, 0), 'R': (1, 0), 'B': (0, 1), 'F': (0, -1)}                 
 HONLY = ('long', 'tunnel', 'zig')                                               # 가로로만 이어지는 장면(왼쪽→오른쪽)
 
 INTERIOR = ('cabin', 'library', 'office', 'tree', 'hall')                         # 실내 테마: 길고 넓은 방 금지(작은 방과 짧은 복도)
-def gen_chains():
+def gen_chains(themes=None):
     # 방과 방 사이에는 항상 통로 장면이 끼고, 문은 왼쪽 벽(L)과 뒷벽(B)에만 만든다(오른쪽·앞쪽은 벽이 없다).
     out = {}
-    for th in ORDER:
+    for th in (themes or ORDER):
         r = random.Random(sum(map(ord, th)) * 977); inter = th in INTERIOR; shapes = ['wide'] * 10
         if not inter:
             for i in (2, 6): shapes[i] = 'long'
@@ -299,13 +321,16 @@ def gen_chains():
         out[th] = seq
     return out
 def load_chains():
-    if os.path.exists(CHAIN_PATH): return json.load(open(CHAIN_PATH))
-    c = gen_chains(); json.dump(c, open(CHAIN_PATH, 'w'), ensure_ascii=False, indent=1); return c
+    c = json.load(open(CHAIN_PATH)) if os.path.exists(CHAIN_PATH) else {}
+    miss = [th for th in ORDER if th not in c]                                 # 새 테마만 만들어 덧붙인다(기존 장면·번호는 그대로)
+    if miss: c.update(gen_chains(miss)); json.dump(c, open(CHAIN_PATH, 'w'), ensure_ascii=False, indent=1)
+    return c
 
 # ---------------- 문(넘어가는 자리): 테마 소재로 만든다 ----------------
 # 레시피: (이름, 기둥 종류, 기둥 높이, 기둥 색, 상인방 색, 안쪽 빛 색, 바닥 빛 깔기)
 # 문 레시피: (이름, 형태, 재료 색, 높이, 포인트 색(가는 선), 곁들임). 안쪽은 늘 어두운 입구고, 노란 빛 슬랩은 쓰지 않는다.
 GATE_RECIPES = {
+ 'city': [('지하도 입구', 'cave', (70, 76, 98), 54, (90, 220, 255), None), ('철 울타리 문', 'bars', (90, 94, 112), 44, (255, 90, 150), None), ('차단기 기둥', 'frame', (150, 152, 164), 42, (255, 170, 80), None)],
  'snow': [('얼음 동굴 입구', 'cave', (196, 220, 244), 54, None, None), ('눈 덮인 돌문', 'frame', (92, 98, 112), 50, None, 'snowcap'), ('전나무 사이 어두운 길', 'gap', None, 56, None, 'fir')],
  'lake': [('얼음 틈 계단', 'cave', (150, 196, 232), 46, (120, 200, 255), None), ('부두 입구', 'frame', (46, 38, 48), 46, (120, 200, 255), None), ('유빙 사이 틈', 'gap', None, 46, None, 'ice')],
  'park': [('개찰구', 'bars', (110, 112, 126), 40, (255, 90, 150), None), ('천막 입구', 'drape', (170, 50, 62), 50, None, (210, 196, 176)), ('낡은 철 아치', 'frame', (70, 74, 90), 56, (255, 90, 150), None)],
@@ -413,14 +438,16 @@ BARLOW = {                                                                     #
  'reed': lambda k, x, d, r: (k.reed(x, d, 11), k.reed(x + 3, d, 12), k.block.append((x, d, 3))), 'woods': lambda k, x, d, r: (k.B(x, d, 6, 6, 6, (54, 44, 56)), k.B(x - .5, d - .5, 7, 7, 1, (72, 60, 70), z0=6, solid=False)),
  'ridge': lambda k, x, d, r: k.rock(x + 2, d + 2, 4, (130, 104, 96)), 'roofs': lambda k, x, d, r: k.B(x, d, 7, 4, 8, (110, 114, 140)), 'hall': lambda k, x, d, r: k.B(x, d, 7, 4, 8, (150, 112, 76)),
  'cabin': lambda k, x, d, r: k.B(x, d, 8, 7, 9, (150, 112, 70)), 'library': lambda k, x, d, r: (k.B(x, d, 7, 5, 4, (150, 50, 50)), k.B(x + .5, d + .5, 6, 4, 4, (60, 90, 130), z0=4, solid=False)),
- 'office': lambda k, x, d, r: k.B(x, d, 7, 5, 9, (130, 100, 72)), 'tree': lambda k, x, d, r: k.B(x, d, 6, 6, 9, (96, 66, 42))}
+ 'office': lambda k, x, d, r: k.B(x, d, 7, 5, 9, (130, 100, 72)), 'tree': lambda k, x, d, r: k.B(x, d, 6, 6, 9, (96, 66, 42)),
+ 'city': lambda k, x, d, r: k.B(x, d, 7, 4, 8, (90, 94, 112))}
 BAR = {                                                                        # 골목·통로 벽(막는 소품 한 칸). 통로 양옆에 줄지어 서서 벽을 이룬다
  'snow': lambda k, x, d, r: (fir2(k.sc, x + 3, d + 3, r.choice((58, 66, 74))), k.block.append((x + 3, d + 3, 4))), 'lake': lambda k, x, d, r: (k.B(x, d, 7, 6, r.choice((18, 24, 30)), (178, 220, 244)), k.B(x + 1, d + 1, 4, 4, 4, (232, 248, 255), z0=24, solid=False)),
  'park': lambda k, x, d, r: (k.B(x, d, 7, 3, 22, (190, 60, 70) if int(x / 7) % 2 else (214, 200, 180)), k.B(x, d, 7, 3, 2, (120, 96, 70), z0=22, solid=False)), 'reed': lambda k, x, d, r: (p_reedc(k, x, d, r), k.block.append((x, d, 4))),
  'woods': lambda k, x, d, r: p_dtree(k, x, d, r), 'ridge': lambda k, x, d, r: (k.rock(x + 2, d + 2, 6, (130, 104, 96)), k.rock(x + 2, d + 2, 4, (150, 122, 110))),
  'roofs': lambda k, x, d, r: k.B(x, d, 7, 5, r.choice((14, 20, 26)), (110, 114, 140)), 'hall': lambda k, x, d, r: (k.B(x, d, 6, 4, 28, (96, 124, 140)), k.F(x + 1, x + 5, 16, 18, (40, 50, 60), d)),
  'cabin': lambda k, x, d, r: k.B(x, d, 8, 7, r.choice((14, 20, 26)), (150, 112, 70)), 'library': lambda k, x, d, r: (k.B(x, d, 7, 5, 38, (78, 52, 38)), [k.F(x + 1, x + 6, z, z + r.randint(5, 8), r.choice(((150, 50, 50), (60, 90, 130), (200, 170, 70), (70, 110, 80))), d) for z in (4, 13, 22, 31)]),
- 'office': lambda k, x, d, r: k.B(x, d, 7, 6, 24, (96, 108, 112)), 'tree': lambda k, x, d, r: k.B(x, d, 6, 6, 34, (96, 66, 42))}
+ 'office': lambda k, x, d, r: k.B(x, d, 7, 6, 24, (96, 108, 112)), 'tree': lambda k, x, d, r: k.B(x, d, 6, 6, 34, (96, 66, 42)),
+ 'city': lambda k, x, d, r: k.B(x, d, 7, 6, 30, (56, 60, 90))}
 
 # ---------------- 장면 사양 ----------------
 def gate_pt(side, pos, Wd, Dd):
@@ -472,7 +499,7 @@ def make_spec(th, s):
             xs.append(x); spec['alleys'].append((x, ln, 17)); spec['tips'].append((x, Dd - 4 - ln / 2))
     return spec
 
-GRADES = {'snow': (.78, .84, .98), 'lake': (.86, .9, 1.0), 'park': (.9, .9, 1.0), 'reed': (.84, .8, .8), 'woods': (1, 1, 1), 'ridge': (.86, .8, .82), 'roofs': (.95, .95, 1.0), 'hall': (.82, .86, .9), 'cabin': (.88, .85, .84), 'library': (.88, .85, .84), 'office': (.84, .86, .86), 'tree': (.9, .87, .84)}
+GRADES = {'city': (.82, .86, 1.0), 'snow': (.78, .84, .98), 'lake': (.86, .9, 1.0), 'park': (.9, .9, 1.0), 'reed': (.84, .8, .8), 'woods': (1, 1, 1), 'ridge': (.86, .8, .82), 'roofs': (.95, .95, 1.0), 'hall': (.82, .86, .9), 'cabin': (.88, .85, .84), 'library': (.88, .85, .84), 'office': (.84, .86, .86), 'tree': (.9, .87, .84)}
 def setup(name, spec):
     W.GRADE[name] = GRADES[spec['theme']]
     T = THEMES[spec['theme']]; H = T['H']

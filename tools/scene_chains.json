@@ -2530,5 +2530,216 @@
    "link": "trans",
    "gate": 0
   }
+ ],
+ "city": [
+  {
+   "key": "cityx01",
+   "kind": "room",
+   "shape": "wide",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.61,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityp01",
+   "kind": "passage",
+   "shape": "tunnel",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 1
+  },
+  {
+   "key": "cityx02",
+   "kind": "room",
+   "shape": "wide",
+   "entry": "L",
+   "epos": 0.61,
+   "exit": "B",
+   "xpos": 0.34,
+   "link": "trans",
+   "gate": 0
+  },
+  {
+   "key": "cityp02",
+   "kind": "passage",
+   "shape": "zig",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 1
+  },
+  {
+   "key": "cityx03",
+   "kind": "room",
+   "shape": "long",
+   "entry": "L",
+   "epos": 0.31,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 0
+  },
+  {
+   "key": "cityp03",
+   "kind": "passage",
+   "shape": "tunnel",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 0
+  },
+  {
+   "key": "cityx04",
+   "kind": "room",
+   "shape": "square",
+   "entry": "L",
+   "epos": 0.6,
+   "exit": "B",
+   "xpos": 0.61,
+   "link": "trans",
+   "gate": 1
+  },
+  {
+   "key": "cityp04",
+   "kind": "passage",
+   "shape": "bend",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityx05",
+   "kind": "room",
+   "shape": "deep",
+   "entry": "L",
+   "epos": 0.37,
+   "exit": "B",
+   "xpos": 0.32,
+   "link": "trans",
+   "gate": 0
+  },
+  {
+   "key": "cityp05",
+   "kind": "passage",
+   "shape": "bend",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityx06",
+   "kind": "room",
+   "shape": "deep",
+   "entry": "L",
+   "epos": 0.65,
+   "exit": "B",
+   "xpos": 0.42,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityp06",
+   "kind": "passage",
+   "shape": "bend",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityx07",
+   "kind": "room",
+   "shape": "long",
+   "entry": "L",
+   "epos": 0.39,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityp07",
+   "kind": "passage",
+   "shape": "zig",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityx08",
+   "kind": "room",
+   "shape": "wide",
+   "entry": "L",
+   "epos": 0.38,
+   "exit": "B",
+   "xpos": 0.68,
+   "link": "trans",
+   "gate": 0
+  },
+  {
+   "key": "cityp08",
+   "kind": "passage",
+   "shape": "zig",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 2
+  },
+  {
+   "key": "cityx09",
+   "kind": "room",
+   "shape": "square",
+   "entry": "L",
+   "epos": 0.64,
+   "exit": "B",
+   "xpos": 0.65,
+   "link": "trans",
+   "gate": 0
+  },
+  {
+   "key": "cityp09",
+   "kind": "passage",
+   "shape": "tunnel",
+   "entry": "L",
+   "epos": 0.5,
+   "exit": "B",
+   "xpos": 0.9,
+   "link": "trans",
+   "gate": 0
+  },
+  {
+   "key": "cityx10",
+   "kind": "room",
+   "shape": "square",
+   "entry": "B",
+   "epos": 0.69,
+   "exit": "L",
+   "xpos": 0.39,
+   "link": "trans",
+   "gate": 2
+  }
  ]
 }
