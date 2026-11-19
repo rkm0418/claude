@@ -592,6 +592,8 @@ function update(dt) {
     if (sdist(P.x, P.d, o.x, o.d) < (o.reach || 18)) {
       if (o.kind) enterFP(o);
       else if (o.type === 'note') msg = { text: o.text, t: 3.6 };
+      else if (o.type === 'poem') POEM = { lines: o.lines };
+      else if (o.type === 'tool') { if (!STATE.flags.tool) { STATE.flags.tool = true; beep(520, .12, 'square', .08); msg = { text: '낡은 도구를 얻었다', t: 2.6 }; } else msg = { text: '더는 쓸 만한 게 없다', t: 1.4 }; }
       else if (o.type === 'key') { if (!STATE.got[o.id]) { STATE.got[o.id] = true; STATE.flags[o.flag] = true; msg = { text: o.text, t: 2.8 }; } else msg = { text: '빈 양동이다', t: 1.2 }; }
       else if (o.type === 'book') { if (STATE.flags[pz.flag]) msg = { text: '이미 펼쳐 놓았다', t: 1.2 }; else if (o.correct) { STATE.flags[pz.flag] = true; STATE.got[o.id] = true; msg = { text: pz.solvedMsg, t: 3 }; } else msg = { text: o.text, t: 2.2 }; }
       else if (o.type === 'switch') {
@@ -679,7 +681,7 @@ function draw(dt) {
   for (const o of R.objects) { if (o.kind) { drawObj(o); continue; }                // 조작할 수 있는 사물: 엔진이 그림 위에 덧그린다
     const [X, Y0] = scr(o.x, o.d), cx = (R.ox + X) * S, cy = (R.oy + Y0 - (o.z || 0)) * S, sp = (Math.sin(tnow / 300 + o.x) + 1) / 2;
     const rect = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(cx + x * S, cy + y * S, w * S, h * S); };
-    if (o.type === 'note') { rect(-4, -2, 8, 5, '#f2e8c8'); rect(-3, -1, 6, 1, '#b8a888'); rect(-3, 1, 4, 1, '#b8a888'); if (sp > .6) rect(4, -5, 1, 1, '#fff'); }
+    if (o.type === 'note' || (o.type === 'poem' && !o.baked)) { rect(-4, -2, 8, 5, '#f2e8c8'); rect(-3, -1, 6, 1, '#b8a888'); rect(-3, 1, 4, 1, '#b8a888'); if (sp > .6) rect(4, -5, 1, 1, '#fff'); }
     else if (o.type === 'key') { if (STATE.got[o.id]) continue; rect(-2, -3, 4, 3, '#e8c050'); rect(-1, -2, 2, 1, '#6a4a1a'); rect(-1, 0, 1, 5, '#e8c050'); rect(0, 3, 3, 1, '#e8c050'); if (sp > .5) { rect(3, -5, 1, 1, '#fff'); rect(-4, -1, 1, 1, '#fff'); } }
     else if (o.type === 'book') { const c = `rgb(${o.color.join(',')})`; rect(-5, -2, 10, 6, '#e6dcc0'); rect(-4, -3, 8, 5, c); rect(-4, -3, 1, 5, '#0004'); if (STATE.got[o.id]) { rect(-5, -8, 10, 4, '#ffffff'); rect(-4, -12, 8, 4, '#cfe0ff'); rect(-1, -16, 2, 4, '#8fb0ff'); } else if (sp > .7) rect(4, -5, 1, 1, '#fff'); }
     else if (o.type === 'switch') {
@@ -713,19 +715,23 @@ function draw(dt) {
     const mi = mgX.getImageData(0, 0, 160, 24), md = mi.data; for (let i = 0; i < md.length; i += 4) { const on = md[i + 3] > 110; md[i] = 255; md[i + 1] = 238; md[i + 2] = 208; md[i + 3] = on ? 255 : 0; } mgX.putImageData(mi, 0, 0);
     ctx.fillStyle = '#0b0910'; ctx.fillRect(40, VH - 38, 240, 28); ctx.imageSmoothingEnabled = false; ctx.drawImage(mgC, 0, VH - 46, 320, 48);
   }
+  if (STATE.flags.tool) { ctx.fillStyle = '#0008'; ctx.fillRect(VW - 40, 26, 34, 16); ctx.fillStyle = '#c8c8d4'; ctx.fillRect(VW - 34, 33, 14, 2); ctx.fillRect(VW - 22, 30, 4, 8); ctx.fillRect(VW - 34, 30, 3, 8); }   // 얻은 도구
+  if (POEM) { ctx.fillStyle = 'rgba(8,6,12,.86)'; ctx.fillRect(0, 0, VW, VH); ctx.fillStyle = '#f2e8c8'; ctx.fillRect(48, 28, VW - 96, VH - 56); ctx.fillStyle = '#d8ccaa'; ctx.fillRect(48, 28, VW - 96, 3); ctx.fillStyle = '#3a2f26'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; POEM.lines.forEach((ln, i) => ctx.fillText(ln, VW / 2, 56 + i * 20)); ctx.textAlign = 'left'; }
   drawLabel();
   drawTrans();
   if (fade > 0) { ctx.fillStyle = `rgba(${fadeCol},${fade})`; ctx.fillRect(0, 0, VW, VH); }
 }
 
 // ---------- 입력: 누른 화면 점 -> 바닥 좌표 ----------
+let POEM = null;                                                              // 쪽지에 적힌 글을 읽는 화면(누르면 닫힌다)
 function onDown(ev) {
+  if (POEM) { POEM = null; ev.preventDefault(); return; }
   if (fadeDir || trans || !R || (C.st === 'rise' && C.t < 2.15)) return; ev.preventDefault(); audio();
   if (FP) { const b = cv.getBoundingClientRect(); fpPress((ev.clientX - b.left) * VW / b.width, (ev.clientY - b.top) * VH / b.height); return; }
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
   let [x, d] = world(X, Y);
   x = Math.max(0, Math.min(R.W, x)); d = Math.max(0, Math.min(R.D, d));                // 벽이나 바깥을 눌러도 가장 가까운 바닥으로
-  audio(); const o = R.objects.find(o => { if (o.reach === 0) return false; const [ox, oy] = scr(o.x, o.d); return Math.hypot(X - ox, Y - (oy - (o.z || 0) - (o.h || 28) / 2)) < (o.type === 'note' || o.type === 'key' || o.type === 'book' ? 9 : 12); });   // 등불 기둥 근처를 눌렀는가
+  audio(); const o = R.objects.find(o => { if (o.reach === 0) return false; const [ox, oy] = scr(o.x, o.d); return Math.hypot(X - ox, Y - (oy - (o.z || 0) - (o.h || 28) / 2)) < (o.rad || (o.type === 'note' || o.type === 'poem' || o.type === 'key' || o.type === 'book' ? 9 : 12)); });   // 등불 기둥 근처를 눌렀는가
   if (o) { P.act = o; goTo(o.x, o.d + 8); if (!P.path.length && sdist(P.x, P.d, o.x, o.d) < 14) { /* 이미 곁에 있다 */ } return; }
   P.act = null; goTo(x, d);
 }

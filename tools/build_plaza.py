@@ -49,32 +49,47 @@ def main():
         if abs(x - fx) < fr + 3 and abs(d - fd) < fr + 3: return False
         if any(abs(x - lx) < 4 and abs(d - ld_) < 4 for lx, ld_ in C.LAMPS): return False
         if any(bx - 3 < x < bx + 31 and bd - 3 < d < bd + 9 for bx, bd in C.BEN) or (C.BIN[0] - 3 < x < C.BIN[0] + 9 and C.BIN[1] - 3 < d < C.BIN[1] + 9): return False
-        if C.P0 + 3 < x < C.P1 - 3 and 2 < d <= C.SQF + 6: return True                                  # 아래쪽 가운데 통로
+        if C.P0 + 3 < x < C.P1 - 3 and (2 < d <= C.SQF + 6 or C.SQD - 6 <= d < C.SQD + C.PL): return True                                  # 아래쪽 가운데 통로
         if C.SQ0 + 4 < x < C.SQ1 - 4: return C.SQF + 4 < d < C.SQD - 2
         return C.C0 + 3 < d < C.C1 - 2
-    sf, rf = room(f, 'fountain', '분수 광장', 410, 215, free_f, [14, 87], [dict(zone=[0, 5, 78, 96], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[404, 410, 78, 96], to='recycle', spawn=[12, 87], type='trans', dir='R'), dict(zone=[196, 214, 0, 6], to='square2', spawn=[265, 160], type='trans', dir='F')])
+    sf, rf = room(f, 'fountain', '분수 광장', 410, 262, free_f, [14, 87], [dict(zone=[0, 5, 78, 96], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[404, 410, 78, 96], to='street', spawn=[22, 30], type='trans', dir='R'), dict(zone=[196, 214, 0, 6], to='lot', spawn=[265, 160], type='trans', dir='F'), dict(zone=[196, 214, C.SQD + C.PL - 6, C.SQD + C.PL], to='recycle', spawn=[205, 14], type='trans', dir='B')])
     rf['img'] = uri(f.img.convert('RGB')); rf['depth'] = uri(dep3)
-    # --- 분리수거장(오른쪽) · 같은 크기의 정사각형 공간(아래쪽)
-    r1 = C.sq_scene('recycle', 300, 'city3d_recycle', False, 'l'); r2 = C.lot_scene(C.LOT_W, 'city3d_lot', False)
+    # --- 분리수거장(분수 광장 위쪽) · 주차장(아래쪽) · 거리(오른쪽, 터널 입구가 있는 장면)
+    r1 = C.sq_scene('recycle', 300, 'city3d_recycle', False); r2 = C.lot_scene(C.LOT_W, 'city3d_lot', False); r3 = C.street(True)
     def blk(x, d, x0, d0, w, dp): return x0 - 3 < x < x0 + w + 3 and d0 - 3 < d < d0 + dp + 3
     def free_r(x, d):
         if x < 3 or x > 297: return False
         if any(blk(x, d, C.SQ0 + 34 + i * 18, C.SQD - 13, 12, 8) for i in range(5)) or blk(x, d, C.SQ1 - 52, C.SQD - 20, 26, 9): return False
-        if any(abs(x - lx) < 4 and abs(d - ld_) < 4 for lx, ld_ in ((C.SQ0 + 22, C.C1 - 4), (C.SQ1 - 14, C.SQD - 4), (50, C.C1 - 4))): return False
-        if C.SQ0 + 4 < x < C.SQ1 - 4: return C.SQF + 4 < d < C.SQD - 2
-        return x < C.SQ0 + 5 and C.C0 + 3 < d < C.C1 - 2
-    sr, rr_ = room(r1, 'recycle', '분리수거장', 300, 255, free_r, [14, 87], [dict(zone=[0, 5, 78, 96], to='fountain', spawn=[400, 87], type='trans', dir='L')])
+        if abs(x - (C.SQ1 - 14)) < 4 and abs(d - (C.SQD - 4)) < 4: return False
+        if C.P0 + 3 < x < C.P1 - 3 and 2 < d <= C.SQF + 6: return True
+        return C.SQ0 + 4 < x < C.SQ1 - 4 and C.SQF + 4 < d < C.SQD - 2
+    sr, rr_ = room(r1, 'recycle', '분리수거장', 300, 255, free_r, [205, 14], [dict(zone=[196, 214, 0, 6], to='fountain', spawn=[205, C.SQD + C.PL - 12], type='trans', dir='F')])
     rr_['img'] = uri(r1.img.convert('RGB')); rr_['depth'] = uri(Image.new('RGB', (r1.CW, r1.CH), (255, 255, 255)))
+    lampsl = (C.LX0 + 14, C.LX1 - 14)
     def free_s(x, d):
         if x < 3 or x > C.LOT_W - 3: return False
         if any(abs(x - cx_ - 7) < 11 and abs(d - cd_ - 14) < 17 for cx_, cd_ in r2.cars): return False        # 세워 둔 차
-        if any(abs(x - lx) < 4 and abs(d - (C.SQD - 4)) < 4 for lx in (C.LX0 + 14, C.LX1 - 14, (C.LX0 + C.LX1) // 2 - 40, (C.LX0 + C.LX1) // 2 + 60)): return False
+        if any(abs(x - lx) < 4 and abs(d - (C.SQD - 4)) < 4 for lx in lampsl): return False
         if C.LP0 + 3 < x < C.LP1 - 3 and C.SQD - 4 <= d < C.SQD + C.PL: return True
         return C.LX0 + 4 < x < C.LX1 - 4 and C.SQF + 4 < d < C.SQD + 3
-    ss, rs_ = room(r2, 'square2', '주차장', C.LOT_W, 255, free_s, [265, 160], [dict(zone=[C.LP0 + 3, C.LP1 - 3, C.SQD + C.PL - 6, C.SQD + C.PL], to='fountain', spawn=[205, 14], type='trans', dir='B')])
-    rs_['img'] = uri(r2.img.convert('RGB')); rs_['depth'] = uri(Image.new('RGB', (r2.CW, r2.CH), (255, 255, 255)))
+    ex, ed = r2.egg; nx, nd = C.NOTE_AT
+    poem = ['비 갠 저녁,', '가장 먼저 켜지는 것은', '신호등의 가운데 불.', '병아리가 지나간 자리에', '은행잎 한 장이 남았다.', '아무도 가져가지 않은', '마지막 햇빛의 색.']
+    objs = [dict(id='lot_poem', type='poem', baked=True, x=nx, d=nd, h=8, reach=22, lines=poem), dict(id='lot_tool', type='tool', x=ex + 7, d=ed + 12, h=14, rad=20, reach=36)]
+    ss, rs_ = room(r2, 'lot', '주차장', C.LOT_W, 255, free_s, [265, 160], [dict(zone=[C.LP0 + 3, C.LP1 - 3, C.SQD + C.PL - 6, C.SQD + C.PL], to='fountain', spawn=[205, 14], type='trans', dir='B')])
+    rs_['objects'] = objs; rs_['img'] = uri(r2.img.convert('RGB')); rs_['depth'] = uri(Image.new('RGB', (r2.CW, r2.CH), (255, 255, 255)))
+    def free_t(x, d):
+        if x > 171 or d < 2: return False
+        if x < 4 and not (16 < d < 42): return False
+        if d > 517 and not (40 < x < 136): return False
+        if x > 170 and 230 < d < 330: return False
+        for (bx, bd, bw, bdp) in ((12, 200, 5, 18), (158, 270, 8, 8), (14, 420, 5, 5)):
+            if blk(x, d, bx, bd, bw, bdp): return False
+        if any(abs(x - lx) < 4 and abs(d - ld_) < 4 for lx, ld_ in ((30, 170), (146, 240), (30, 330), (146, 400), (30, 452))): return False
+        return True
+    st_, rt_ = room(r3, 'street', '거리', 176, 520, free_t, [22, 30], [dict(zone=[0, 6, 16, 42], to='fountain', spawn=[400, 87], type='trans', dir='L'), dict(zone=[40, 136, 512, 520], to=None, type='trans', dir='B')])
+    rt_['img'] = uri(r3.img.convert('RGB')); rt_['depth'] = uri(Image.new('RGB', (r3.CW, r3.CH), (255, 255, 255)))
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
-    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'square2': rs_}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
+    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
     h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + open(os.path.join(WEB, 'plaza_data.js'), encoding='utf-8').read() + '</script><script>' + open(os.path.join(WEB, 'game.js'), encoding='utf-8').read() + '</script>')
