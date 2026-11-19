@@ -163,6 +163,23 @@ def alley_back(s, x0, x1, h=42, z=3, depth=18, road=False):
     s.img.paste(lay, (0, 0), mask); s.px = s.img.load(); s.d = ImageDraw.Draw(s.img)
 
 # ---------------- 장면 1: 광장 ----------------
+def back_buildings(s, W, D):
+    bx = 0; br = random.Random(11); BD = D + 40; bi = 0                                       # 풍경이라 연석에서 멀리(뒤로) 둔다
+    while bx < W:                                                                              # 연석 너머: 불 꺼진 현대 건물들(세 동만 창 몇 개에 불이 켜져 있다)
+        bw = br.randint(40, 70); bh = br.randint(70, 125); bd = br.randint(24, 34); g = br.randint(4, 10); c = br.choice(((22, 24, 46), (26, 28, 50), (20, 22, 40)))
+        s.box(bx, BD, bw, bd, bh, dk(c, 1.15), c, dk(c, .7))
+        cols = list(range(int(bx) + 5, int(bx + bw) - 8, 10)); rows = list(range(8, int(bh) - 8, 12)); lit = set()
+        if bi in (1, 4, 6):
+            want = br.randint(1, 3)
+            for _ in range(40):                                                                # 불규칙하게, 서로 붙지 않게 1~3개
+                cc, rr_ = br.randrange(len(cols)), br.randrange(len(rows))
+                if all(max(abs(cc - a_), abs(rr_ - b_)) > 1 for a_, b_ in lit): lit.add((cc, rr_))
+                if len(lit) >= want: break
+        def wins(cols=cols, rows=rows, lit=lit):
+            for ci, xx in enumerate(cols):
+                for ri, zz in enumerate(rows): s.poly([(xx, BD, zz), (xx + 5, BD, zz), (xx + 5, BD, zz + 7), (xx, BD, zz + 7)], (226, 188, 112) if (ci, ri) in lit else (14, 16, 32))
+        s.jobs.append((BD - .5, wins)); bx += bw + g; bi += 1
+
 def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, baked=True, fade=None, dent=True):
     D = 80; s = Scene(W, 170 if corridor else D, 130 if corridor else 70); rng = random.Random(5)
     if corridor:                                                                                   # 같은 보도블록 바닥의 긴 복도: 앞쪽은 낮은 연석, 맨 끝은 아래(앞)로 열려 어둠으로 나간다
@@ -173,24 +190,10 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
     if baked: s.glow(30, 30, 70, power=.35)
     if corridor:
         s.box(0, D, W, 3, 4, CURBT, CURBF, CURBR)                                                  # 위쪽(뒤) 연석
-        bx = 0; br = random.Random(11); BD = D + 40; bi = 0                                       # 풍경이라 연석에서 멀리(뒤로) 둔다
-        while bx < W:                                                                              # 연석 너머: 불 꺼진 현대 건물들(세 동만 창 몇 개에 불이 켜져 있다)
-            bw = br.randint(40, 70); bh = br.randint(70, 125); bd = br.randint(24, 34); g = br.randint(4, 10); c = br.choice(((22, 24, 46), (26, 28, 50), (20, 22, 40)))
-            s.box(bx, BD, bw, bd, bh, dk(c, 1.15), c, dk(c, .7))
-            cols = list(range(int(bx) + 5, int(bx + bw) - 8, 10)); rows = list(range(8, int(bh) - 8, 12)); lit = set()
-            if bi in (1, 4, 6):
-                want = br.randint(1, 3)
-                for _ in range(40):                                                                # 불규칙하게, 서로 붙지 않게 1~3개
-                    cc, rr_ = br.randrange(len(cols)), br.randrange(len(rows))
-                    if all(max(abs(cc - a_), abs(rr_ - b_)) > 1 for a_, b_ in lit): lit.add((cc, rr_))
-                    if len(lit) >= want: break
-            def wins(cols=cols, rows=rows, lit=lit):
-                for ci, xx in enumerate(cols):
-                    for ri, zz in enumerate(rows): s.poly([(xx, BD, zz), (xx + 5, BD, zz), (xx + 5, BD, zz + 7), (xx, BD, zz + 7)], (226, 188, 112) if (ci, ri) in lit else (14, 16, 32))
-            s.jobs.append((BD - .5, wins)); bx += bw + g; bi += 1
+        back_buildings(s, W, D)
     else: s.wall_back(0, W, D, 60)
     if bed: s.wall_left(0, D, 60)
-    s.lamp(140, 74, 44, -1)
+    s.lamp(140 if corridor else 84, 74, 44, -1)                                                  # 광장 가로등은 오른쪽 끝 그라데이션에 가리지 않게 왼쪽으로
     if corridor:
         for lx in range(210, W - 40, 70): s.lamp(lx, 74, 44, -1)                                 # 같은 가로등을 뒷벽 쪽 한 줄로 나열
     s.bed = (12, 38, 70, 30, 9)
@@ -263,8 +266,49 @@ def street():
         s.box(172, d, 2, 2, 12, POLE, POLE, POLE, z0=3)
     s.run(); return s.save('city3d_street')
 
+# ---------------- 장면: 복도가 정사각형 광장으로 커지는 곳 (가운데 인공 분수와 풀) ----------------
+SQ0, SQ1 = 110, 250                                                                               # 광장(정사각형) 가로 범위
+FC = (180, 43); FR = 22                                                                           # 분수 중심(x, d), 바깥 반지름
+def disc(s, cx, cd, r, z, col, n=36):
+    s.poly([(cx + r * math.cos(2 * math.pi * k / n), cd + r * math.sin(2 * math.pi * k / n), z) for k in range(n)], col)
+def cyl(s, cx, cd, r, z0, z1, top, side, n=36):                                                   # 원통: 옆면은 앞쪽(d 작은 쪽)이 보인다
+    segs = []
+    for k in range(n):
+        a0, a1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n; am = (a0 + a1) / 2
+        segs.append((math.sin(am), [(cx + r * math.cos(a0), cd + r * math.sin(a0), z0), (cx + r * math.cos(a1), cd + r * math.sin(a1), z0), (cx + r * math.cos(a1), cd + r * math.sin(a1), z1), (cx + r * math.cos(a0), cd + r * math.sin(a0), z1)], am))
+    for sn, q, am in sorted(segs, key=lambda t: -t[0]):
+        if sn < .05: s.poly(q, dk(side, .75 + .35 * max(0, math.cos(am - math.pi / 2 * 0) ) * .5 + .15 * -sn))
+    disc(s, cx, cd, r, z1, top, n)
+def grass(x, d):
+    return (46, 104, 64) if (int(x // 4) + int(d // 4)) % 2 == 0 else (40, 94, 58)                # 일정한 무늬의 인조 잔디
+def fountain_scene(W=330, name='city3d_fountain', save=True, fade='lr'):
+    D = 80; s = Scene(W, 170, 130); S0 = 34
+    s.floor(paving, x0=0, x1=W, d0=S0, d1=D); s.floor(paving, x0=SQ0, x1=SQ1, d0=6, d1=S0)
+    s.box(0, D, W, 3, 4, CURBT, CURBF, CURBR)                                                      # 뒤 연석
+    s.box(0, 31, SQ0, 3, 4, CURBT, CURBF, CURBR); s.box(SQ1, 31, W - SQ1, 3, 4, CURBT, CURBF, CURBR)   # 복도 부분의 앞 연석
+    s.box(SQ0, 3, SQ1 - SQ0, 3, 4, CURBT, CURBF, CURBR)                                            # 광장 앞 연석
+    s.box(SQ0, 6, 3, 25, 4, CURBT, CURBF, CURBR); s.box(SQ1 - 3, 6, 3, 25, 4, CURBT, CURBF, CURBR)  # 복도→광장으로 넓어지는 옆 연석
+    for (gx0, gx1, gd0, gd1) in ((SQ0 + 8, SQ0 + 34, 10, 28), (SQ1 - 34, SQ1 - 8, 10, 28), (SQ0 + 8, SQ0 + 34, 58, 76), (SQ1 - 34, SQ1 - 8, 58, 76)):   # 풀밭 넷(광장 네 모퉁이)
+        s.floor(grass, x0=gx0, x1=gx1, d0=gd0, d1=gd1, z=0)
+        for (a, b, c, d_) in ((gx0, gd0 - 1, gx1 - gx0, 1), (gx0, gd1, gx1 - gx0, 1), (gx0 - 1, gd0, 1, gd1 - gd0), (gx1, gd0, 1, gd1 - gd0)): s.box(a, b, c, d_, 2, (60, 64, 88), (50, 54, 76), (44, 48, 68))
+    cx, cd = FC
+    cyl(s, cx, cd, FR, 0, 6, (74, 78, 106), (58, 62, 88)); disc(s, cx, cd, FR - 3, 5, (30, 64, 118))   # 분수 바닥 + 물
+    for rr in (14, 9): [s.poly([(cx + rr * math.cos(t), cd + rr * math.sin(t), 5.2), (cx + (rr + 1) * math.cos(t), cd + (rr + 1) * math.sin(t), 5.2), (cx + (rr + 1) * math.cos(t + .25), cd + (rr + 1) * math.sin(t + .25), 5.2), (cx + rr * math.cos(t + .25), cd + rr * math.sin(t + .25), 5.2)], (70, 118, 176)) for t in [k * .8 for k in range(8)]]
+    cyl(s, cx, cd, 4, 5, 17, (84, 88, 116), (64, 68, 96)); cyl(s, cx, cd, 10, 17, 20, (74, 78, 106), (58, 62, 88)); disc(s, cx, cd, 8, 20.2, (40, 84, 140))
+    cyl(s, cx, cd, 1.6, 20, 27, (150, 190, 226), (110, 150, 196))                                    # 가운데 물줄기
+    for lx in (50, 120, 240, 310): s.lamp(lx, 74, 44, -1)                                          # 분수 뒤는 비우고 양옆 뒷줄에 같은 가로등
+    back_buildings(s, W, D); s.run()
+    for side in (fade or ''):
+        for X in range(s.CW):
+            u = (X - (s.X0 + W - 46)) / 46.0 if side == 'r' else ((s.X0 + 46) - X) / 46.0
+            if u <= 0: continue
+            f = min(1.0, u) * .92
+            for Y in range(s.CH): q = s.px[X, Y]; s.px[X, Y] = tuple(int(v * (1 - f) + (6, 7, 16)[i] * f) for i, v in enumerate(q))
+    s.lampx = [50, 120, 240, 310]
+    return s.save(name) if save else s
+
 def main():
-    a, b = landing(), street(); landing(520, True, 'city3d_corridor')
+    a, b = landing(), street(); landing(520, True, 'city3d_corridor'); fountain_scene()
     ov = Image.new('RGB', (a.width * 2 + b.width * 2 + 50, max(a.height, b.height) * 2 + 20), (40, 40, 48))
     ov.paste(a.resize((a.width * 2, a.height * 2), Image.NEAREST), (10, 10)); ov.paste(b.resize((b.width * 2, b.height * 2), Image.NEAREST), (a.width * 2 + 40, 10))
     ov.save(os.path.join(OUT, 'city3d_overview.png')); print('city3d ok', a.size, b.size)

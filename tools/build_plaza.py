@@ -33,13 +33,27 @@ def main():
     b = C.landing(520, True, 'city3d_corridor', False, False, False, 'lr'); EX = 520 - 56
     dep2 = Image.new('RGB', (b.CW, b.CH), (255, 255, 255))
     def free_b(x, d):
-        if x < 3 or x > 517: return False
+        if x < 3 or x > 519.5: return False
         if any(abs(x - lx) < 4 and abs(d - 74) < 4 for lx in b.lampx): return False
         return 37 < d < 78
-    sb, rb = room(b, 'corridor', '긴 복도', 520, 170, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L')])
+    sb, rb = room(b, 'corridor', '긴 복도', 520, 170, free_b, [14, 56], [dict(zone=[0, 5, 37, 78], to='plaza', spawn=[134, 40], type='trans', dir='L'), dict(zone=[514, 520, 37, 78], to='fountain', spawn=[12, 56], type='trans', dir='R')])
     rb['img'] = uri(b.img.convert('RGB')); rb['depth'] = uri(dep2)
+    # --- 복도가 정사각형 광장으로 커지는 곳(인공 분수와 풀)
+    f = C.fountain_scene(330, 'city3d_fountain', False, 'lr'); fx, fd = C.FC; fr = C.FR
+    dep3 = Image.new('RGB', (f.CW, f.CH), (255, 255, 255)); d3 = ImageDraw.Draw(dep3); v = ((fd - fr + 4) + 2) * 3          # 분수가 뒤로 지나가는 아이를 가린다
+    d3.polygon([f.P(fx + fr * math.cos(t), fd + fr * math.sin(t), z) for z in (0, 6) for t in [k * math.pi / 18 for k in range(36)]], fill=(v,) * 3)
+    for z in (0, 6): d3.polygon([f.P(fx + fr * math.cos(t), fd + fr * math.sin(t), z) for t in [k * math.pi / 18 for k in range(36)]], fill=(v,) * 3)
+    d3.rectangle([f.P(fx - 10, fd, 0)[0], f.P(fx, fd, 27)[1], f.P(fx + 10, fd, 0)[0], f.P(fx, fd, 0)[1]], fill=(v,) * 3)
+    def free_f(x, d):
+        if x < 3 or x > 329.5: return False
+        if math.hypot(x - fx, (d - fd)) < fr + 3: return False
+        if any(abs(x - lx) < 4 and abs(d - 74) < 4 for lx in f.lampx): return False
+        if C.SQ0 + 4 < x < C.SQ1 - 4: return 8 < d < 78
+        return 37 < d < 78
+    sf, rf = room(f, 'fountain', '분수 광장', 330, 170, free_f, [14, 56], [dict(zone=[0, 5, 37, 78], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[324, 330, 37, 78], to=None, type='trans', dir='R')])
+    rf['img'] = uri(f.img.convert('RGB')); rf['depth'] = uri(dep3)
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
-    full['rooms'] = {'plaza': ra, 'corridor': rb}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
+    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
     h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + open(os.path.join(WEB, 'plaza_data.js'), encoding='utf-8').read() + '</script><script>' + open(os.path.join(WEB, 'game.js'), encoding='utf-8').read() + '</script>')
