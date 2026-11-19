@@ -384,8 +384,14 @@ function isCorr(sc, vw) { return !!sc && (sc.kind === 'passage' || sc.x1 - sc.x0
 function camTarget() {
   let [fx, fy1] = scr(P.x, P.d); const fy = fy1 - zAt(P.x, P.d), vw = VW / S, vh = VH / S, c = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   if (R.sections) {
-    const sc = R.sections[secIdx(P.x)];
-    if (sc && !isCorr(sc, vw)) return [c(R.X0 + (sc.x0 + sc.x1) / 2 + R.D / 4 - vw / 2, 0, Math.max(0, R.CW - vw)), R.CH <= vh ? -(vh - R.CH) / 2 : c(R.CH / 2 - vh / 2, 0, R.CH - vh)];   // 방: 카메라 고정(방 전체가 보인다)
+    // 카메라 중심 = 아이 + 방 쏠림. 방 안에서는 방 가운데에 고정(쏠림 = 가운데 - 아이), 방 밖에서는 그 방 쪽으로 앞서다가(방 가장자리에서 70px 떨어지면) 아이 중심으로 풀린다. 두 방 사이에서는 서로 상쇄돼 연속이다.
+    let bias = 0;
+    for (const rm of ROOMS) {
+      const w = rm.x1 - rm.x0; if (w > vw + 10) continue; const cr = rm.x0 + w / 2, dx = P.x - cr;
+      if (Math.abs(dx) <= w / 2) bias += cr - P.x; else bias += -Math.sign(dx) * (w / 2) * (1 - ease(Math.min(1, (Math.abs(dx) - w / 2) / 70)));
+    }
+    const sc = R.sections[secIdx(P.x)], cx = R.X0 + P.x + bias + R.D / 4;
+    return [c(cx - vw / 2, 0, Math.max(0, R.CW - vw)), (sc && !isCorr(sc, vw)) ? (R.CH <= vh ? -(vh - R.CH) / 2 : c(R.CH / 2 - vh / 2, 0, R.CH - vh)) : (R.CH <= vh ? -(vh - R.CH) / 2 : c(fy - vh * .6, 0, R.CH - vh))];
   }
   return [R.CW <= vw ? -(vw - R.CW) / 2 : c(fx - vw / 2 + LEAD.v, 0, R.CW - vw), R.CH <= vh ? -(vh - R.CH) / 2 : c(fy - vh * .6, 0, R.CH - vh)];
 }
@@ -494,7 +500,7 @@ function drawLabel() {                                                          
   ctx.fillStyle = 'rgba(11,9,16,.7)'; ctx.fillRect(4, 3, lbW * 2 + 8, 22); ctx.imageSmoothingEnabled = false; ctx.drawImage(lbC, 0, 0, 160, 10, 6, 5, 320, 20);
 }
 // ---- 구간 조명: 한 장의 긴 띠 안에서 아이가 걷는 대로 앞 구간은 켜지고 지나온 구간은 어두워진다
-let LS = null, DIVX = [], zone = 0; const FLK = [.2, .7, .1, .6, .3, .8, .5, .9, 1];
+let LS = null, DIVX = [], ROOMS = [], zone = 0; const FLK = [.2, .7, .1, .6, .3, .8, .5, .9, 1];
 const secIdx = (x) => { const s = R.sections; for (let i = 0; i < s.length; i++) if (x < s[i].x1) return i; return s.length - 1; };
 // 분기점(통로 한가운데)이 띠를 구역으로 나눈다. 아이가 있는 구역만 켜지고, 분기점을 넘으면 뒤는 무너지듯 꺼지고 앞은 켜진다. 경계는 검은 띠.
 const zoneOf = (x) => { let z = 0; for (let i = 0; i < DIVX.length; i++) if (x > DIVX[i]) z = i + 1; return z; };
@@ -502,6 +508,7 @@ const CAMG = { t: 0, sec: -1 }, CAMV = { x: 0, y: 0 };                          
 function smoothDamp(cur, target, vel, key, smooth, dt) { const w = 2 / smooth, x = w * dt, e = 1 / (1 + x + .48 * x * x + .235 * x * x * x), ch = cur - target, tmp = (vel[key] + w * ch) * dt; vel[key] = (vel[key] - w * tmp) * e; return target + (ch + tmp) * e; }
 const LEAD = { v: 0, dir: 1 };                                                // 카메라 선행: 다음 분기점이 가까워지면 카메라가 아이보다 먼저 앞(어두운 구역)을 비춘다
 function leadTarget() {
+  return 0;                                                                         // 카메라 선행 대신 아래 camTarget 의 방 쏠림이 공간 쪽으로 카메라를 이끈다
   if (!R.sections) return 0;
   if (!isCorr(R.sections[secIdx(P.x)], VW / S)) return 0;                              // 고정 카메라인 방에서는 선행 없음
   if (P.path.length) { const dx = P.path[P.path.length - 1][0] - P.x; if (Math.abs(dx) > 6) LEAD.dir = dx > 0 ? 1 : -1; }
@@ -624,7 +631,7 @@ function update(dt) {
     else if (e.to) { if (e.type === 'trans' && !trans) startTrans(e); else if (!trans) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.CH > 140 ? 1 : 2; R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
@@ -644,7 +651,7 @@ function drawChild() {
 function draw(dt) {
   ctx.imageSmoothingEnabled = false; ctx.fillStyle = '#1e1618'; ctx.fillRect(0, 0, VW, VH); if (!R) return;
   const cz = camZoom(); ctx.save(); if (cz !== 1) { ctx.translate(VW / 2, VH * .55); ctx.scale(cz, cz); ctx.translate(-VW / 2, -VH * .55); }
-  const [tx, ty] = camTarget(); if (!cam.init) { cam.x = tx; cam.y = ty; cam.init = true; } else if (R.sections) { const sm = CAMG.t > 0 ? .9 : .22; CAMG.t = Math.max(0, CAMG.t - (dt || .016)); cam.x = smoothDamp(cam.x, tx, CAMV, 'x', sm, dt || .016); cam.y = smoothDamp(cam.y, ty, CAMV, 'y', .25, dt || .016); } else { const k = 1 - Math.exp(-(dt || .016) * 7); cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; }
+  const [tx, ty] = camTarget(); if (!cam.init) { cam.x = tx; cam.y = ty; cam.init = true; } else if (R.sections) { cam.x = smoothDamp(cam.x, tx, CAMV, 'x', .42, dt || .016); cam.y = smoothDamp(cam.y, ty, CAMV, 'y', .3, dt || .016); } else { const k = 1 - Math.exp(-(dt || .016) * 7); cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; }
   R.ox = -Math.round(cam.x); R.oy = -Math.round(cam.y);
   ctx.drawImage(R.im, R.ox * S, R.oy * S, R.CW * S, R.CH * S); drawLight();
   const dot = (x, d, c, r = 1) => { const [X, Y] = scr(x, d); ctx.fillStyle = c; ctx.fillRect((R.ox + X - r / 2) * S, (R.oy + Y - r / 2) * S, r * S, r * S); };
