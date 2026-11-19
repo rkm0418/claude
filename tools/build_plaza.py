@@ -100,25 +100,28 @@ def main():
             if blk(x, d, bx, bd, bw, bdp): return False
         if any(abs(x - lx) < 4 and abs(d - ld_) < 4 for lx, ld_ in ((30, 170), (146, 240), (30, 330), (146, 400), (30, 452))): return False
         return True
-    st_, rt_ = room(r3, 'street', '거리', 176, 520, free_t, [22, 30], [dict(zone=[0, 6, 16, 42], to='fountain', spawn=[400, 87], type='trans', dir='L'), dict(zone=[40, 136, 512, 520], to='rtunnel', spawn=[368, 8], type='trans', dir='B')])
+    st_, rt_ = room(r3, 'street', '거리', 176, 520, free_t, [22, 30], [dict(zone=[0, 6, 16, 42], to='fountain', spawn=[400, 87], type='trans', dir='L'), dict(zone=[40, 136, 512, 520], to='rtunnel', spawn=[76, 8], type='trans', dir='B')])
     rt_['img'] = uri(r3.img.convert('RGB')); rt_['depth'] = uri(occl(r3))
-    # --- 아치 안 도로 터널(ㄱ자) → 비상구 → 사용자가 만든 터널
-    r4 = C.road_tunnel('city3d_roadtunnel', False)
+    # --- 아치 안 일자 도로 터널 → 옆으로 파인 비상구 → ㄴ자 정비 통로 → 사용자가 만든 터널
+    r4 = C.road_tunnel('city3d_roadtunnel', False); n0, n1 = C.NICHE
     def free_u(x, d):
-        if C.RV0 + 8 < x < C.RV1 - 3 and 3 < d < C.RTD - 3: return True
-        if 3 < x < C.RV1 - 3 and C.RH0 + 6 < d < C.RTD - 1: return True
-        return False
-    if any(abs(x - C.RV0 - 8) < 4 and abs(d - ld_) < 4 for x, ld_ in [(C.RV0 + 8, 50)]): pass
-    def free_u2(x, d): return free_u(x, d) and not any(abs(x - lx) < 4 and abs(d - ld_) < 4 for lx, ld_ in r4.lamps)
-    su, ru = room(r4, 'rtunnel', '도로 터널', C.RTW, C.RTD, free_u2, [368, 8], [dict(zone=[C.RV0 + 8, C.RV1 - 3, 0, 6], to='street', spawn=[88, 498], type='trans', dir='F'), dict(zone=[C.DOOR[0] + 2, C.DOOR[1] - 2, C.RTD - 6, C.RTD], to='tunnel', spawn=[32, 8], type='trans', dir='B')])
+        if C.RV0 - 8 < x < C.RV1 - 3 and 3 < d < C.RTD - 4: return True
+        return 5 < x <= C.RV0 - 6 and n0 + 2 < d < n1 - 2
+    su, ru = room(r4, 'rtunnel', '도로 터널', C.RTW, C.RTD, free_u, [76, 8], [dict(zone=[C.RV0, C.RV1 - 3, 0, 6], to='street', spawn=[88, 498], type='trans', dir='F'), dict(zone=[5, 9, n0 + 2, n1 - 2], to='annex', spawn=[(C.ADOOR[0] + C.ADOOR[1]) / 2, 26], type='trans', dir='L'), dict(zone=[C.RV0, C.RV1 - 3, C.RTD - 6, C.RTD], to=None, type='trans', dir='B', endMsg='터널은 아직 이어지지 않았어요')])
     ru['img'] = uri(r4.img.convert('RGB')); ru['depth'] = uri(occl(r4))
+    r6 = C.annex('city3d_annex', False)
+    def free_a2(x, d):
+        if 3 < x < C.AV - 3 and 3 < d < C.AD - 2: return True
+        return 3 < x < C.AW - 4 and 3 < d < C.AV - 4
+    sa2, ra2 = room(r6, 'annex', '정비 통로', C.AW, C.AD, free_a2, [(C.ADOOR[0] + C.ADOOR[1]) / 2, 26], [dict(zone=[C.ADOOR[0] + 2, C.ADOOR[1] - 2, C.AV - 8, C.AV - 2], to='rtunnel', spawn=[19, (n0 + n1) / 2], type='trans', dir='F'), dict(zone=[C.APASS[0], C.APASS[1], C.AD - 6, C.AD], to='tunnel', spawn=[32, 8], type='trans', dir='B')])
+    ra2['img'] = uri(r6.img.convert('RGB')); ra2['depth'] = uri(occl(r6))
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < 297
-    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [32, 8], [dict(zone=[3, 61, 0, 4], to='rtunnel', spawn=[(C.DOOR[0] + C.DOOR[1]) / 2, C.RTD - 16], type='trans', dir='F'), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
+    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [32, 8], [dict(zone=[3, 61, 0, 4], to='annex', spawn=[(C.APASS[0] + C.APASS[1]) / 2, C.AD - 18], type='trans', dir='F'), dict(zone=[3, 61, 296, 300], to=None, type='trans', dir='B', endMsg='터널 끝 — 여기서부터는 아직 만들지 않았어요')])
     rv['img'] = uri(r5.img.convert('RGB')); rv['depth'] = uri(Image.new('RGB', (r5.CW, r5.CH), (255, 255, 255)))
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
-    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'tunnel': rv}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
+    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'tunnel': rv}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
     h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + open(os.path.join(WEB, 'plaza_data.js'), encoding='utf-8').read() + '</script><script>' + open(os.path.join(WEB, 'game.js'), encoding='utf-8').read() + '</script>')
