@@ -17,7 +17,7 @@ def dk(c, f): return tuple(int(v * f) for v in c)
 def grad(s, quad, h, k):                                                        # 벽 세로 그라데이션: 바닥 쪽은 연하고 위로 갈수록 어둡게
     n = int(h)
     for i in range(n):
-        f = i / max(1, n - 1); c = tuple(int(v * k * (1.35 - .5 * f)) for v in WALL); s.poly(quad(i * h / n, (i + 1) * h / n + .6), c)
+        f = i / max(1, n - 1); c = tuple(int(v * k * (.95 - .45 * f)) for v in WALL); s.poly(quad(i * h / n, (i + 1) * h / n + .6), c)
 
 class Scene:
     def __init__(s, W, D, H, pad=8):
