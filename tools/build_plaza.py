@@ -11,9 +11,12 @@ WEB = os.path.join(HERE, '..', 'web'); CELL = 2
 def room(s, key, label, W, D, free, start, exits, rects=()):
     CW, CH = s.CW, s.CH; gw, gh = math.ceil(W / CELL), math.ceil(D / CELL)
     walk = Image.new('L', (gw, gh), 0); px = walk.load()
-    for j in range(gh):
+    F = [[bool(free((i + .5) * CELL, (j + .5) * CELL)) for i in range(gw)] for j in range(gh)]
+    inx = lambda x, d: any(e['zone'][0] <= x <= e['zone'][1] and e['zone'][2] <= d <= e['zone'][3] for e in exits)
+    for j in range(gh):                                                                           # 아이 발 크기(좌우 4, 앞뒤 2.2)만큼 물체에서 띄운다: 몸이 물체를 뚫고 지나가지 않게
         for i in range(gw):
-            if free((i + .5) * CELL, (j + .5) * CELL): px[i, j] = 255
+            if not F[j][i]: continue
+            if inx((i + .5) * CELL, (j + .5) * CELL) or all(F[jj][ii] for jj in range(max(0, j - 1), min(gh, j + 2)) for ii in range(max(0, i - 2), min(gw, i + 3))): px[i, j] = 255
     return s, dict(W=W, D=D, X0=s.X0, Y0=s.Y0, CW=CW, CH=CH, rects=[list(r) for r in rects], exits=exits, start=start, S=2, label=label, walk=uri(walk.convert('RGB')))
 
 def main():
@@ -52,7 +55,7 @@ def main():
         if C.P0 + 3 < x < C.P1 - 3 and (2 < d <= C.SQF + 6 or C.SQD - 6 <= d < C.SQD + C.PL): return True                                  # 아래쪽 가운데 통로
         if C.SQ0 + 4 < x < C.SQ1 - 4: return C.SQF + 4 < d < C.SQD - 2
         return C.C0 + 3 < d < C.C1 - 2
-    sf, rf = room(f, 'fountain', '분수 광장', 410, 262, free_f, [14, 87], [dict(zone=[0, 5, 78, 96], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[404, 410, 78, 96], to='street', spawn=[22, 30], type='trans', dir='R'), dict(zone=[196, 214, 0, 6], to='lot', spawn=[265, 160], type='trans', dir='F'), dict(zone=[196, 214, C.SQD + C.PL - 6, C.SQD + C.PL], to='recycle', spawn=[205, 14], type='trans', dir='B')])
+    sf, rf = room(f, 'fountain', '분수 광장', 410, 262, free_f, [14, 87], [dict(zone=[0, 5, 78, 96], to='corridor', spawn=[506, 56], type='trans', dir='L'), dict(zone=[404, 410, 78, 96], to='street', spawn=[22, 30], type='trans', dir='R'), dict(zone=[196, 214, 0, 6], to='lot', spawn=[295, 190], type='trans', dir='F'), dict(zone=[196, 214, C.SQD + C.PL - 6, C.SQD + C.PL], to='recycle', spawn=[205, 14], type='trans', dir='B')])
     rf['img'] = uri(f.img.convert('RGB')); rf['depth'] = uri(dep3)
     # --- 분리수거장(분수 광장 위쪽) · 주차장(아래쪽) · 거리(오른쪽, 터널 입구가 있는 장면)
     r1 = C.sq_scene('recycle', 300, 'city3d_recycle', False); r2 = C.lot_scene(C.LOT_W, 'city3d_lot', False); r3 = C.street(True)
@@ -65,17 +68,17 @@ def main():
         return C.SQ0 + 4 < x < C.SQ1 - 4 and C.SQF + 4 < d < C.SQD - 2
     sr, rr_ = room(r1, 'recycle', '분리수거장', 300, 255, free_r, [205, 14], [dict(zone=[196, 214, 0, 6], to='fountain', spawn=[205, C.SQD + C.PL - 12], type='trans', dir='F')])
     rr_['img'] = uri(r1.img.convert('RGB')); rr_['depth'] = uri(Image.new('RGB', (r1.CW, r1.CH), (255, 255, 255)))
-    lampsl = (C.LX0 + 14, C.LX1 - 14)
+    lampsl = (C.LX0 + 14, C.LX1 - 14); SD = C.LSQD; MID = (C.LP0 + C.LP1) / 2
     def free_s(x, d):
         if x < 3 or x > C.LOT_W - 3: return False
-        if any(abs(x - cx_ - 7) < 11 and abs(d - cd_ - 14) < 17 for cx_, cd_ in r2.cars): return False        # 세워 둔 차
-        if any(abs(x - lx) < 4 and abs(d - (C.SQD - 4)) < 4 for lx in lampsl): return False
-        if C.LP0 + 3 < x < C.LP1 - 3 and C.SQD - 4 <= d < C.SQD + C.PL: return True
-        return C.LX0 + 4 < x < C.LX1 - 4 and C.SQF + 4 < d < C.SQD + 3
+        if any(abs(x - cx_ - 9.5) < 13 and abs(d - cd_ - 20) < 24 for cx_, cd_ in r2.cars): return False        # 세워 둔 차(크기 1.35배)
+        if any(abs(x - lx) < 4 and abs(d - (SD - 4)) < 4 for lx in lampsl): return False
+        if C.LP0 + 3 < x < C.LP1 - 3 and SD - 4 <= d < SD + C.PL: return True
+        return C.LX0 + 4 < x < C.LX1 - 4 and C.SQF + 4 < d < SD + 3
     ex, ed = r2.egg; nx, nd = C.NOTE_AT
     poem = ['비 갠 저녁,', '가장 먼저 켜지는 것은', '신호등의 가운데 불.', '병아리가 지나간 자리에', '은행잎 한 장이 남았다.', '아무도 가져가지 않은', '마지막 햇빛의 색.']
-    objs = [dict(id='lot_poem', type='poem', baked=True, x=nx, d=nd, h=8, reach=22, lines=poem), dict(id='lot_tool', type='tool', x=ex + 7, d=ed + 12, h=14, rad=20, reach=36)]
-    ss, rs_ = room(r2, 'lot', '주차장', C.LOT_W, 255, free_s, [265, 160], [dict(zone=[C.LP0 + 3, C.LP1 - 3, C.SQD + C.PL - 6, C.SQD + C.PL], to='fountain', spawn=[205, 14], type='trans', dir='B')])
+    objs = [dict(id='lot_poem', type='poem', baked=True, x=nx, d=nd, h=8, reach=22, lines=poem), dict(id='lot_tool', type='tool', need='poem_read', x=ex + 9, d=ed + 18, h=14, rad=24, reach=44)]
+    ss, rs_ = room(r2, 'lot', '주차장', C.LOT_W, 300, free_s, [MID, SD + 20], [dict(zone=[C.LP0 + 3, C.LP1 - 3, SD + C.PL - 6, SD + C.PL], to='fountain', spawn=[205, 14], type='trans', dir='B')])
     rs_['objects'] = objs; rs_['img'] = uri(r2.img.convert('RGB')); rs_['depth'] = uri(Image.new('RGB', (r2.CW, r2.CH), (255, 255, 255)))
     def free_t(x, d):
         if x > 171 or d < 2: return False

@@ -199,7 +199,7 @@ def landing(W=150, corridor=False, name='city3d_landing', bed=True, save=True, b
         back_buildings(s, W, D)
     else: s.wall_back(0, W, D, 60)
     if bed: s.wall_left(0, D, 60)
-    s.lamp(140 if corridor else 112, 60, 52, -1)                                                  # 광장 가로등은 오른쪽 끝 그라데이션에 가리지 않게 왼쪽으로
+    s.lamp(140 if corridor else 112, 74 if corridor else 60, 52, -1)                                                  # 광장 가로등은 오른쪽 끝 그라데이션에 가리지 않게 왼쪽으로
     if corridor:
         for lx in range(210, W - 40, 70): s.lamp(lx, 74, 52, -1)                                 # 같은 가로등을 뒷벽 쪽 한 줄로 나열
     s.bed = (12, 38, 70, 30, 9)
@@ -376,37 +376,35 @@ def sq_scene(kind='recycle', W=300, name='city3d_recycle', save=True, fade=''):
     return s.save(name) if save else s
 
 # ---------------- 아래쪽 공간: 주차장 ----------------
-LX0, LX1 = 110, 420                                                                               # 주차장 가로 범위(분수 광장보다 넓다)
-LP0, LP1 = 253, 277                                                                               # 위쪽 가운데 통로
-LOT_W = 530
+LX0, LX1 = 110, 480                                                                               # 주차장 가로 범위(분수 광장보다 넓다)
+LP0, LP1 = 281, 309                                                                               # 위쪽 가운데 통로
+LOT_W = 590
+LSQD = SQF + 142                                                                                  # 주차장 뒤 끝(깊이): 분수 광장보다 훨씬 넓다
+BAY_W, BAY_L = 27, 46                                                                             # 주차칸 폭·길이
 def asphalt2(x, d):
     n = (int(x * 7 + d * 13) * 2654435761) % 97
     return (30, 32, 46) if n > 6 else (36, 38, 54)
 CAR_MODELS = ('sedan', 'suv', 'hatch', 'van', 'pickup')
-def car(s, x, d, col, model='sedan'):                                                              # 세워 둔 차(앞이 화면 아래쪽, d 작은 쪽). 폭 14, 길이는 모델마다 다르다
+CK = 1.35                                                                                          # 차 크기 배율(아이 키 24 기준으로 키웠다)
+def car(s, x, d, col, model='sedan'):                                                              # 세워 둔 차(앞이 화면 아래쪽, d 작은 쪽). 기본 폭 14, 길이는 모델마다 다르다 × CK
     dc, ds, GL, TIRE, LAMP = dk(col, .6), dk(col, .5), (22, 30, 50), (14, 14, 18), (124, 116, 84)
     ln = {'sedan': 28, 'suv': 28, 'hatch': 24, 'van': 30, 'pickup': 30}[model]
-    wx_l, wx_r = (x - .9, x + 13.1) if model != 'van' else (x - .9, x + 13.1)
-    for wx in (wx_l, wx_r):                                                                        # 바퀴: 차체 옆으로 살짝 나오게, 차체보다 먼저 그려 뚫고 나오는 것처럼 보이지 않게
-        s.box(wx, d + 3, 1.8, 6, 3.4, TIRE, TIRE, TIRE); s.box(wx, d + ln - 9, 1.8, 6, 3.4, TIRE, TIRE, TIRE)
+    def B(x0, d0, w, l, h, top, front, right, z0=0): s.box(x + x0 * CK, d + d0 * CK, w * CK, l * CK, h * CK, top, front, right, z0 * CK)
+    def GP(x0, x1, dd, z0, z1): s.poly([(x + x0 * CK, d + dd * CK, z0 * CK), (x + x1 * CK, d + dd * CK, z0 * CK), (x + x1 * CK, d + dd * CK, z1 * CK), (x + x0 * CK, d + dd * CK, z1 * CK)], GL)
+    for wx in (-.9, 13.1):                                                                         # 바퀴: 차체 옆으로 살짝 나오게, 차체보다 먼저 그린다
+        B(wx, 3, 1.8, 6, 3.4, TIRE, TIRE, TIRE); B(wx, ln - 9, 1.8, 6, 3.4, TIRE, TIRE, TIRE)
     if model == 'sedan':
-        s.box(x, d, 14, ln, 6, col, dc, ds, z0=1.5); s.box(x + 1.2, d + 7, 11.6, 13, 4.5, dk(col, .85), dc, ds, z0=7.5)
-        s.poly([(x + 1.6, d + 7, 8), (x + 12.4, d + 7, 8), (x + 12.4, d + 7, 11.2), (x + 1.6, d + 7, 11.2)], GL)
+        B(0, 0, 14, ln, 6, col, dc, ds, 1.5); B(1.2, 7, 11.6, 13, 4.5, dk(col, .85), dc, ds, 7.5); GP(1.6, 12.4, 7, 8, 11.2)
     elif model == 'suv':
-        s.box(x, d, 14, ln, 7, col, dc, ds, z0=2); s.box(x + .6, d + 5, 12.8, 21, 6.5, dk(col, .88), dc, ds, z0=9)
-        s.poly([(x + 1.2, d + 5, 9.8), (x + 12.8, d + 5, 9.8), (x + 12.8, d + 5, 14.5), (x + 1.2, d + 5, 14.5)], GL)
+        B(0, 0, 14, ln, 7, col, dc, ds, 2); B(.6, 5, 12.8, 21, 6.5, dk(col, .88), dc, ds, 9); GP(1.2, 12.8, 5, 9.8, 14.5)
     elif model == 'hatch':
-        s.box(x, d, 14, ln, 6, col, dc, ds, z0=1.5); s.box(x + 1.2, d + 4, 11.6, 18, 5, dk(col, .85), dc, ds, z0=7.5)
-        s.poly([(x + 1.6, d + 4, 8), (x + 12.4, d + 4, 8), (x + 12.4, d + 4, 12), (x + 1.6, d + 4, 12)], GL)
+        B(0, 0, 14, ln, 6, col, dc, ds, 1.5); B(1.2, 4, 11.6, 18, 5, dk(col, .85), dc, ds, 7.5); GP(1.6, 12.4, 4, 8, 12)
     elif model == 'van':
-        s.box(x, d, 14, ln, 12, col, dc, ds, z0=2)
-        s.poly([(x + .6, d, 9), (x + 13.4, d, 9), (x + 13.4, d, 13.5), (x + .6, d, 13.5)], GL)
+        B(0, 0, 14, ln, 12, col, dc, ds, 2); GP(.6, 13.4, 0, 9, 13.5)
     else:
-        s.box(x, d + 13, 14, 17, 1.5, dc, dc, ds, z0=1.5); s.box(x, d + 29, 14, 1.2, 4.5, col, dc, ds, z0=3)      # 짐칸(뒤쪽이라 먼저 그린다): 바닥 + 뒷판
-        s.box(x, d + 13, 1.2, 17, 4.5, col, dc, ds, z0=3); s.box(x + 12.8, d + 13, 1.2, 17, 4.5, col, dc, ds, z0=3)   # 짐칸 양옆 판
-        s.box(x, d, 14, 13, 6.5, col, dc, ds, z0=1.5); s.box(x + 1.2, d + 2, 11.6, 9, 4.5, dk(col, .85), dc, ds, z0=8)   # 앞쪽 운전석 칸
-        s.poly([(x + 1.6, d + 2, 8.4), (x + 12.4, d + 2, 8.4), (x + 12.4, d + 2, 12), (x + 1.6, d + 2, 12)], GL)
-    s.box(x + 2, d - .1, 3, .3, 1.6, LAMP, LAMP, LAMP, z0=4); s.box(x + 9, d - .1, 3, .3, 1.6, LAMP, LAMP, LAMP, z0=4)
+        B(0, 13, 14, 17, 1.5, dc, dc, ds, 1.5); B(0, 29, 14, 1.2, 4.5, col, dc, ds, 3); B(0, 13, 1.2, 17, 4.5, col, dc, ds, 3); B(12.8, 13, 1.2, 17, 4.5, col, dc, ds, 3)   # 짐칸(뒤쪽이라 먼저)
+        B(0, 0, 14, 13, 6.5, col, dc, ds, 1.5); B(1.2, 2, 11.6, 9, 4.5, dk(col, .85), dc, ds, 8); GP(1.6, 12.4, 2, 8.4, 12)
+    B(2, -.1, 3, .3, 1.6, LAMP, LAMP, LAMP, 4); B(9, -.1, 3, .3, 1.6, LAMP, LAMP, LAMP, 4)
 def note_sprite(s, nx, nd):                                                                        # 쪽지: 보내 주신 그림(X 접힌 네모 + 엇갈려 접은 두 장)을 바닥 위에 눕혀 놓는다
     sc = 8.0 / 351; INK, PAP, PAP2 = (48, 38, 32), (232, 224, 196), (206, 196, 168)
     def fp(u, v): return (nx + (u - 175) * sc, nd - (v - 175) * sc * 1.5, .15)                   # 그림의 (가로, 세로) -> 바닥 (x, d)
@@ -417,35 +415,35 @@ def note_sprite(s, nx, nd):                                                     
     poly([(145, 225), (218, 152), (351, 258), (278, 352)], PAP)
     poly([(5, 215), (140, 75), (218, 152), (75, 292)], PAP)
 YELLOW = (230, 186, 48)                                                                           # 이스터에그: 이 차만 색이 있다
-NOTE_AT = (132, 62)                                                                                # 쪽지 자리(아래쪽 가운데 빈 칸)
+NOTE_AT = (136, 70)                                                                                # 쪽지 자리(아래쪽 가운데 빈 칸)
 def lot_scene(W=LOT_W, name='city3d_lot', save=True):
-    D = SQD + PL; s = Scene(W, 255, 130, k=2); s.cars = []; s.egg = None; back_buildings(s, W, D)
-    s.floor(asphalt2, x0=LX0, x1=LX1, d0=SQF, d1=SQD)
-    s.floor(lambda x, d: dk(asphalt2(x, d), .08 + .92 * min(1.0, (SQD + PL - d) / 34.0)), x0=LP0, x1=LP1, d0=SQD, d1=SQD + PL)
-    T = W3 = 4; H = 3; L, R_, F0, B1 = LX0 - W3, LX1 + W3, SQF - T, SQD + T
-    curb_union(s, [(L, SQD, LP0 - W3 - L, T), (LP1 + W3, SQD, R_ - LP1 - W3, T), (LP0 - W3, SQD, W3, PL), (LP1, SQD, W3, PL), (L, F0, R_ - L, T), (L, F0, W3, B1 - F0), (LX1, F0, W3, B1 - F0)], H)
+    SD = LSQD; D = SD + PL; s = Scene(W, 300, 130, k=2); s.cars = []; s.egg = None; back_buildings(s, W, D)
+    s.floor(asphalt2, x0=LX0, x1=LX1, d0=SQF, d1=SD)
+    s.floor(lambda x, d: dk(asphalt2(x, d), .08 + .92 * min(1.0, (SD + PL - d) / 34.0)), x0=LP0, x1=LP1, d0=SD, d1=SD + PL)
+    T = W3 = 4; H = 3; L, R_, F0, B1 = LX0 - W3, LX1 + W3, SQF - T, SD + T
+    curb_union(s, [(L, SD, LP0 - W3 - L, T), (LP1 + W3, SD, R_ - LP1 - W3, T), (LP0 - W3, SD, W3, PL), (LP1, SD, W3, PL), (L, F0, R_ - L, T), (L, F0, W3, B1 - F0), (LX1, F0, W3, B1 - F0)], H)
     LINE = (168, 170, 186); rr = random.Random(9)
-    NEUT = [(214, 74, 72), (74, 128, 214), (92, 176, 120), (232, 232, 238), (176, 180, 194), (70, 74, 96), (226, 134, 150), (96, 190, 206)]    # 다른 차는 밝고 다양한 색(노란 차만 도드라지지 않게)
+    NEUT = [(214, 74, 72), (74, 128, 214), (92, 176, 120), (232, 232, 238), (176, 180, 194), (70, 74, 96), (226, 134, 150), (96, 190, 206)]
+    back_row, front_row = SD - 6 - BAY_L, SQF + 8                                                   # 뒷줄·앞줄 주차칸 시작 d
     bays = []
-    for row_d in (SQD - 40, SQF + 6):
-        for i in range(LX0 // 20, LX1 // 20):
-            bx = i * 20 + 2
-            if bx < LX0 + 4 or bx + 20 > LX1 - 4: continue
+    for row_d in (back_row, front_row):
+        bx = LX0 + 6
+        while bx + BAY_W <= LX1 - 6:
             bays.append((bx, row_d))
-            if row_d == SQD - 40 and LP0 - 40 < bx <= LP1 + 20 and bx != 242 - 0 * 1 and False: continue
-            if row_d == SQD - 40 and LP0 - 40 <= bx <= LP1 + 20 and bx != min(b_ for b_ in range(LX0 // 20 * 20 + 2, LX1, 20) if b_ >= LP0 - 40): continue   # 입구 바로 앞은 주차선을 긋지 않는다(가장 왼쪽 칸만 남김)
-            s.floor(lambda x, d, bx=bx: LINE if (abs(x - bx) < .5 or abs(x - (bx + 20)) < .5) else None, x0=bx - .5, x1=bx + 20.5, d0=row_d, d1=row_d + 34)
-    egg_bay = [b_ for b_ in bays if b_[1] == SQD - 40 and b_[0] > 300][0]                           # 노란 차: 뒷줄 오른쪽 가운데쯤
+            if not (row_d == back_row and LP0 - 40 <= bx <= LP1 + 20 and bx != min(b_ for b_ in [LX0 + 6 + i * BAY_W for i in range(40)] if b_ >= LP0 - 40)):   # 입구 바로 앞은 선을 긋지 않는다(가장 왼쪽 칸만 남김)
+                s.floor(lambda x, d, bx=bx: LINE if (abs(x - bx) < .5 or abs(x - (bx + BAY_W)) < .5) else None, x0=bx - .5, x1=bx + BAY_W + .5, d0=row_d, d1=row_d + BAY_L)
+            bx += BAY_W
+    egg_bay = [b_ for b_ in bays if b_[1] == back_row and b_[0] > LP1 + 40][0]
     for (bx, row_d) in sorted(bays, key=lambda b_: (-b_[1], b_[0])):
-        if row_d == SQF + 6 and NOTE_AT[0] - 12 <= bx <= NOTE_AT[0] + 2: continue                                  # 쪽지가 놓이는 빈 칸
-        if row_d == SQD - 40 and (bx < LX0 + 34 or bx + 20 > LX1 - 34): continue
-        if row_d == SQD - 40 and LP0 - 40 <= bx <= LP1 + 20 and bx != min(b_[0] for b_ in bays if b_[1] == SQD - 40 and b_[0] >= LP0 - 40): continue   # 입구(위쪽 통로) 쪽 차는 없애되 가장 왼쪽 칸에는 한 대 둔다                       # 모서리 가로등과 겹치지 않게
-        if (bx, row_d) == egg_bay: model, col = 'hatch', YELLOW; s.egg = (bx + 3, row_d + 3)
+        if row_d == front_row and NOTE_AT[0] - BAY_W <= bx <= NOTE_AT[0] + 4: continue                      # 쪽지가 놓이는 빈 칸
+        if row_d == back_row and (bx < LX0 + 40 or bx + BAY_W > LX1 - 40): continue                       # 모서리 가로등과 겹치지 않게
+        if row_d == back_row and LP0 - 40 <= bx <= LP1 + 20 and bx != min(b_[0] for b_ in bays if b_[1] == back_row and b_[0] >= LP0 - 40): continue   # 입구 쪽 차는 없앤다
+        if (bx, row_d) == egg_bay: model, col = 'hatch', YELLOW; s.egg = (bx + 4, row_d + 4)
         elif rr.random() < .6: model, col = rr.choice(CAR_MODELS), rr.choice(NEUT)
         else: continue
-        car(s, bx + 3, row_d + 3, col, model); s.cars.append((bx + 3, row_d + 3))
+        car(s, bx + 4, row_d + 4, col, model); s.cars.append((bx + 4, row_d + 4))
     note_sprite(s, *NOTE_AT)
-    s.lamp(LX0 + 14, SQD - 4, 52, 1); s.lamp(LX1 - 14, SQD - 4, 52, -1)                               # 가장자리 가로등만(왼쪽 것은 좌우 반전)
+    s.lamp(LX0 + 14, SD - 4, 52, 1); s.lamp(LX1 - 14, SD - 4, 52, -1)                               # 가장자리 가로등만(왼쪽 것은 좌우 반전)
     s.run()
     return s.save(name) if save else s
 
