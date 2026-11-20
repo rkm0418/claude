@@ -755,7 +755,11 @@ function onDown(ev) {
   if (o) { P.act = o; goTo(o.x, o.d + 8); if (!P.path.length && sdist(P.x, P.d, o.x, o.d) < 14) { /* 이미 곁에 있다 */ } return; }
   P.act = null; goTo(x, d);
 }
-cv.addEventListener('pointerdown', onDown);
+function ripple(cx, cy) {                                                         // 눌린 곳 표시: 화면(캔버스) 안팎 어디든 누른 자리에 번지는 동그라미
+  const e = document.createElement('div'); e.style.cssText = 'position:fixed;left:' + cx + 'px;top:' + cy + 'px;width:12px;height:12px;margin:-6px 0 0 -6px;border:2px solid #ffe3a0;border-radius:50%;background:rgba(255,227,160,.25);pointer-events:none;z-index:8;transition:transform .55s ease-out,opacity .55s ease-out;transform:scale(.4);opacity:1';
+  document.body.appendChild(e); requestAnimationFrame(() => requestAnimationFrame(() => { e.style.transform = 'scale(3.2)'; e.style.opacity = '0'; })); setTimeout(() => e.remove(), 650);
+}
+document.addEventListener('pointerdown', (ev) => { if (ev.target.closest && ev.target.closest('button')) return; ripple(ev.clientX, ev.clientY); onDown(ev); });   // 캔버스 밖(검은 여백)을 눌러도 그 방향으로 이동하고 표시가 뜬다
 document.getElementById('dbg').addEventListener('click', () => { debug = !debug; });
 function fit() { const k = Math.max(1, Math.floor(Math.min(innerWidth / VW, innerHeight / VH))); cv.style.width = VW * k + 'px'; cv.style.height = VH * k + 'px'; }
 addEventListener('resize', fit); fit();
