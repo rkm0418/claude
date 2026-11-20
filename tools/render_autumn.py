@@ -48,7 +48,7 @@ def tree(sc, x, d, h, kind, rng, spread=14):
 
 def build(mode='original'):
     """mode='original': 처음 만든 112x112 가을 시골(집·울타리 포함, 보관용). mode='forest': 터널 출구에서 오른쪽(가로)으로 쭉 이어지는 나무 빽빽한 가을 숲."""
-    FOREST = mode == 'forest'; SCURVE = mode == 's_curve'
+    FOREST = mode == 'forest'; SCURVE = mode in ('s_curve', 's_curve2'); MIRROR = mode == 's_curve2'     # s_curve2: S자 구간을 좌우반전 + 나무 사이 벤치
     W, D, H = (420, 100, 66) if FOREST else (300, 210, 66) if SCURVE else (112, 112, 66)                                                                              # 공간을 넓혔다(원래 112x112): 터널 출구·흙길·집은 그대로 두고 오른쪽·뒤쪽 들판과 나무를 늘림
     sc = Scene(W, D, H); rng = random.Random(14); sc.img.paste((30, 22, 24), (0, 0, sc.CW, sc.CH)); sc.d = ImageDraw.Draw(sc.img)
     # 하늘(뒤 평면과 왼쪽 평면): 위는 옅은 살구색, 아래(지평선)는 호박색
@@ -80,8 +80,10 @@ def build(mode='original'):
         if a < 9.5 + 2.5 * min(1.0, d / 40.0): return (122, 90, 56)
         return grass
     sm = lambda t: 0 if t <= 0 else 1 if t >= 1 else t * t * (3 - 2 * t)
-    rs_ = lambda x: 25 + 140 * sm((x - 70) / 110.0)                                                              # S자 흙길 중심(깊이): 왼쪽에서 앞쪽을 따라 오다가 가운데에서 뒤쪽으로 크게 꺾여 올라가 오른쪽으로 이어진다
-    drs = lambda x: 140 * (0 if x <= 70 or x >= 180 else 6 * ((x - 70) / 110.0) * (1 - (x - 70) / 110.0) / 110.0)
+    rs0 = lambda x: 25 + 140 * sm((x - 70) / 110.0)
+    rs_ = (lambda x: rs0(W - x)) if MIRROR else rs0                                                              # S자 흙길 중심(깊이): 왼쪽에서 앞쪽을 따라 오다가 가운데에서 뒤쪽으로 크게 꺾여 올라가 오른쪽으로 이어진다
+    drs0 = lambda x: 140 * (0 if x <= 70 or x >= 180 else 6 * ((x - 70) / 110.0) * (1 - (x - 70) / 110.0) / 110.0)
+    drs = (lambda x: drs0(W - x)) if MIRROR else drs0
     if SCURVE:
         def ground(x, d):
             c = 78 + int(noise(x, d) * 14); n = noise(x, d, 3)
@@ -129,19 +131,31 @@ def build(mode='original'):
         sr = random.Random(53); placed = []; kinds = ['red', 'orange', 'gold', 'orange', 'red', 'gold']
         pathpts = [(x_, rs_(x_)) for x_ in range(0, W + 1, 3)]
         near = lambda px, pd, r: any(math.hypot(px - a_, pd - b_) < r for a_, b_ in pathpts)
+        BENCH = None
+        if MIRROR:                                                                                               # 나무 사이에 벤치 하나: 길 뒤쪽 숲속에 나무 둘 사이로 끼워 넣는다(길을 향해 앉는다)
+            bx = 226.0; bd = rs_(bx) + 34; BENCH = (bx, bd)
+            for tx, td, th, tk in ((bx - 14, bd + 6, 46, 'red'), (bx + 44, bd + 7, 42, 'gold')): placed.append((tx, td)); tree(sc, tx, td, th, tk, rng, 11)
+            WOOD, WOODD, IRON = (150, 96, 52), (112, 70, 38), (30, 30, 38)
+            for lx_ in (bx + 1, bx + 26):
+                sc.box(lx_, bd + .5, 1, 1, 7, IRON, IRON, IRON); sc.box(lx_, bd + 5, 1, 1, 7, IRON, IRON, IRON); sc.box(lx_, bd + 5.5, 1, 1, 16, IRON, IRON, IRON); sc.box(lx_, bd + .5, 1, 6, 1, IRON, IRON, IRON, z0=11)
+            sc.box(bx, bd + 1, 28, 6, 1.2, WOOD, WOODD, dk(WOODD, .8), z0=7)
+            for k in range(3): sc.box(bx, bd + 1 + k * 1.9, 28, .3, .1, WOODD, WOODD, WOODD, z0=8.2)
+            for k in range(3): sc.box(bx + 1, bd + 6, 26, .9, 2, WOOD, dk(WOOD, .85), WOODD, z0=9.5 + k * 2.4)
         for _ in range(1400):                                                                                    # 나무: 길 뒤쪽(간격 34, 처음 배치)과 길 아래쪽(간격 38)에 모두 심는다
             x = sr.uniform(12, W - 14); d = sr.uniform(8, D - 8)
             behind = d >= rs_(x) + 18
             if near(x, d, 36): continue                                                                          # 길에서 가까운 나무는 치운다(길 중심에서 36 이내 없음)
+            if BENCH and abs(x - BENCH[0] - 14) < 34 and abs(d - BENCH[1]) < 26: continue                       # 벤치 둘레는 비운다
             gap = 34 if behind else 38
             if any(math.hypot(x - a_, (d - b_) * 1.4) < gap for a_, b_ in placed): continue
             placed.append((x, d)); tree(sc, x, d, sr.uniform(34, 52), sr.choice(kinds), rng, sr.uniform(9, 12.5))
         def stone(x, d, w, dp, h, tone, z0=0): sc.box(x, d, w, dp, h, tone, dk(tone, .8), dk(tone, .64), z0=z0)
-        cx_, cd_ = 118, rs_(118) + 14                                                                           # 돌탑(길 뒤쪽)
+        XM = (lambda x, w=0: W - x - w) if MIRROR else (lambda x, w=0: x)                                          # 좌우반전이면 소품 x 도 뒤집는다
+        cx_, cd_ = XM(118, 9), rs_(XM(118, 9)) + 14                                                                           # 돌탑(길 뒤쪽)
         stone(cx_, cd_, 9, 6, 4, (126, 120, 112)); stone(cx_ + 1, cd_ + .5, 7, 5, 4, (116, 110, 102), 4); stone(cx_ + 2, cd_ + 1, 5, 4, 4, (136, 128, 118), 8); stone(cx_ + 3, cd_ + 1.5, 3, 3, 3, (120, 114, 106), 12)
-        lx, ld = 190, rs_(190) - 14                                                                              # 쓰러진 통나무(길 앞쪽): 낮고 눕혀 길이 가려지지 않는다
+        lx, ld = XM(190, 30), rs_(XM(190, 30)) - 14                                                                              # 쓰러진 통나무(길 앞쪽): 낮고 눕혀 길이 가려지지 않는다
         sc.box(lx, ld, 30, 6, 6, (112, 78, 52), (92, 62, 40), (72, 48, 32)); sc.box(lx + 29, ld + 1, 1.2, 4, 4.6, (176, 134, 90), (150, 110, 70), (130, 94, 60))
-        px_, pd_ = 142, rs_(142) + 10                                                                            # 이정표(S자 한가운데): 기둥 + 화살표 판 둘
+        px_, pd_ = XM(142, 2), rs_(XM(142, 2)) + 10                                                                            # 이정표(S자 한가운데): 기둥 + 화살표 판 둘
         sc.box(px_, pd_, 2.4, 2.4, 22, (112, 78, 52), (92, 62, 40), (72, 48, 32)); sc.box(px_ - 7, pd_ - .6, 14, 1.2, 4, (198, 160, 104), (170, 132, 82), (140, 106, 64), z0=15); sc.box(px_ - 5, pd_ - .6, 12, 1.2, 4, (186, 146, 92), (160, 122, 74), (132, 98, 58), z0=9)
     # 터널 출구(약간만 보임): 왼쪽 앞 구석, 풀이 덮인 언덕 속 콘크리트 아치. 오른쪽 면에 아치 입구, 흙길이 거기서 시작한다
     def portal():
