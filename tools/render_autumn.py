@@ -49,7 +49,7 @@ def tree(sc, x, d, h, kind, rng, spread=14):
 def build(mode='original'):
     """mode='original': 처음 만든 112x112 가을 시골(집·울타리 포함, 보관용). mode='forest': 터널 출구에서 오른쪽(가로)으로 쭉 이어지는 나무 빽빽한 가을 숲."""
     FOREST = mode == 'forest'; SCURVE = mode in ('s_curve', 's_curve2'); MIRROR = mode == 's_curve2'; BEND = mode == 'bend'; HOUSE = mode == 'house'; CLASSIC = mode == 'original'     # s_curve2: S자 구간을 좌우반전 + 나무 사이 벤치
-    W, D, H = (420, 100, 66) if FOREST else (300, 210, 66) if SCURVE else (260, 240, 66) if BEND else (200, 150, 66) if HOUSE else (112, 112, 66)                                                                              # 공간을 넓혔다(원래 112x112): 터널 출구·흙길·집은 그대로 두고 오른쪽·뒤쪽 들판과 나무를 늘림
+    W, D, H = (420, 100, 66) if FOREST else (300, 210, 66) if SCURVE else (260, 240, 66) if BEND else (340, 220, 66) if HOUSE else (112, 112, 66)                                                                              # 공간을 넓혔다(원래 112x112): 터널 출구·흙길·집은 그대로 두고 오른쪽·뒤쪽 들판과 나무를 늘림
     sc = Scene(W, D, H); rng = random.Random(14); sc.img.paste((30, 22, 24), (0, 0, sc.CW, sc.CH)); sc.d = ImageDraw.Draw(sc.img)
     # 하늘(뒤 평면과 왼쪽 평면): 위는 옅은 살구색, 아래(지평선)는 호박색
     def sky(z): f = z / H; return (int(244 - 30 * f), int(196 - 40 * f), int(140 + 30 * f))
@@ -104,7 +104,7 @@ def build(mode='original'):
             if a < 9: return (156 + int(noise(x, d, 1) * 18), 112 + int(noise(x, d, 2) * 14), 74)
             if a < 11.5: return (122, 90, 56)
             return grass
-    HX, HD0 = 107.0, 108.0                                                                                       # house: 길은 집 문 앞 x=107 에서 위로 곧게
+    HX, HD0 = 170.0, 148.0                                                                                       # house(공간 340x220): 길은 집 문 앞 x=170 에서 위로 곧게, 집 문은 d=150
     if HOUSE:
         def ground(x, d):
             c = 78 + int(noise(x, d) * 14); n = noise(x, d, 3)
@@ -206,12 +206,11 @@ def build(mode='original'):
         sc.jobs.append((SWD, swing_draw))
     if HOUSE:
         hr = random.Random(71); placed = []; kinds = ['red', 'orange', 'gold', 'orange', 'red', 'gold']
-        house(80, 110, 40, 22, 16)                                                                               # 보관해 둔 기와집(tools/prop_house.py): 문은 x 103~112, 길이 문 앞으로 이어진다
+        house(HX - 55.2, HD0 + 2, 80, 44, 40)                                                                    # 보관해 둔 기와집(tools/prop_house.py)을 아이 키(24)에 맞게 2배로 키움(80x44x40, 문 높이 29): 문 중심이 길 x=170 에 오도록
         for _ in range(1200):
             x = hr.uniform(10, W - 10); d = hr.uniform(10, D - 8)
             if abs(x - HX) < 36 and d < HD0 + 4: continue                                                        # 길 양옆과 집 앞은 비운다
-            if 24 < x < W - 16 and 58 < d < 146: continue
-            if 60 < x < 185 and d < 72: continue                                                                  # 앞쪽 오른쪽 나무 잎이 (왼쪽 위로 비껴) 집 앞을 덮는 자리 제외                                                           # 집 둘레와 앞마당(앞쪽 나무가 집을 가리지 않게)
+            if 30 < x < W - 30 and 30 < d < HD0 + 62: continue
             if any(math.hypot(x - a_, (d - b_) * 1.4) < 34 for a_, b_ in placed): continue
             placed.append((x, d)); tree(sc, x, d, hr.uniform(34, 52), hr.choice(kinds), rng, hr.uniform(9, 12.5))
     # 터널 출구(약간만 보임): 왼쪽 앞 구석, 풀이 덮인 언덕 속 콘크리트 아치. 오른쪽 면에 아치 입구, 흙길이 거기서 시작한다

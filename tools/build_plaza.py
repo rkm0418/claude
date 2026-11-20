@@ -106,11 +106,11 @@ def build(check=False):
     r12 = AU.build('bend')                                                                        # 왼쪽에서 들어와 오른쪽으로 가다 위쪽(뒤)으로 꺾이는 길, 꺾이는 곳 안쪽에 그네
     BW, BD = r12.W, r12.D
     def free_bd(x, d): return 4 < x < BW - 4 and 4 < d < BD - 8
-    sbd, rbd = room(r12, 'bend', '그네 꺾인 길', BW, BD, free_bd, [42, 34], [dict(zone=[3, 9, 20, 48], to='scurve2', spawn=[SW - 80, 25], type='trans', dir='L'), dict(zone=[152, 188, BD - 24, BD - 10], to='house', spawn=[107, 40], type='trans', dir='B')])
+    sbd, rbd = room(r12, 'bend', '그네 꺾인 길', BW, BD, free_bd, [42, 34], [dict(zone=[3, 9, 20, 48], to='scurve2', spawn=[SW - 80, 25], type='trans', dir='L'), dict(zone=[152, 188, BD - 24, BD - 10], to='house', spawn=[170, 40], type='trans', dir='B')])
     r13 = AU.build('house')                                                                       # 위로 올라간 끝: 집 앞마당(보관해 둔 기와집)
     HW, HD = r13.W, r13.D
     def free_hs(x, d): return 4 < x < HW - 4 and 4 < d < HD - 8
-    shs, rhs = room(r13, 'house', '집 앞마당', HW, HD, free_hs, [107, 40], [dict(zone=[95, 119, 0, 6], to='bend', spawn=[170, 190], type='trans', dir='F'), dict(zone=[103, 113, 98, 110], to=None, type='trans', dir='B', endMsg='집 안은 아직 만들지 않았어요')])
+    shs, rhs = room(r13, 'house', '집 앞마당', HW, HD, free_hs, [170, 40], [dict(zone=[158, 182, 0, 6], to='bend', spawn=[170, 190], type='trans', dir='F'), dict(zone=[162, 179, 138, 150], to=None, type='trans', dir='B', endMsg='집 안은 아직 만들지 않았어요')])
     r8 = C.street(True, 'out'); D8 = 480
     def free_o(x, d): return 4 < x < 171 and 2 < d < r8.erode_front - 6                          # 끝에서 뾰족하게 번져 오는 검은 이빨 앞에서 막힌다(로딩 안 된 곳)
     so, ro = room(r8, 'outroad', '터널 밖 길', 176, D8, free_o, [88, 12], [dict(zone=[24, 150, 0, 4], to='rtunnel', spawn=[(C.RV0 + C.RV1) / 2, C.RTD - 14], type='trans', dir='F')])
