@@ -155,8 +155,7 @@ def build(mode='original'):
         stone(cx_, cd_, 9, 6, 4, (126, 120, 112)); stone(cx_ + 1, cd_ + .5, 7, 5, 4, (116, 110, 102), 4); stone(cx_ + 2, cd_ + 1, 5, 4, 4, (136, 128, 118), 8); stone(cx_ + 3, cd_ + 1.5, 3, 3, 3, (120, 114, 106), 12)
         lx, ld = XM(190, 30), rs_(XM(190, 30)) - 14                                                                              # 쓰러진 통나무(길 앞쪽): 낮고 눕혀 길이 가려지지 않는다
         sc.box(lx, ld, 30, 6, 6, (112, 78, 52), (92, 62, 40), (72, 48, 32)); sc.box(lx + 29, ld + 1, 1.2, 4, 4.6, (176, 134, 90), (150, 110, 70), (130, 94, 60))
-        px_, pd_ = XM(142, 2), rs_(XM(142, 2)) + 10                                                                            # 이정표(S자 한가운데): 기둥 + 화살표 판 둘
-        sc.box(px_, pd_, 2.4, 2.4, 22, (112, 78, 52), (92, 62, 40), (72, 48, 32)); sc.box(px_ - 7, pd_ - .6, 14, 1.2, 4, (198, 160, 104), (170, 132, 82), (140, 106, 64), z0=15); sc.box(px_ - 5, pd_ - .6, 12, 1.2, 4, (186, 146, 92), (160, 122, 74), (132, 98, 58), z0=9)
+        # (이정표는 뺐다)
     # 터널 출구(약간만 보임): 왼쪽 앞 구석, 풀이 덮인 언덕 속 콘크리트 아치. 오른쪽 면에 아치 입구, 흙길이 거기서 시작한다
     def portal():
         x0, x1, d0, d1, h = 4, 22, 2, 38, 28
@@ -189,7 +188,7 @@ def build(mode='original'):
         import numpy as np
         arr = np.array(sc.img.convert('RGB')).astype(float); Xs = np.arange(arr.shape[1])[None, :, None]; u = np.clip((Xs - (sc.X0 + W - 70)) / 70.0, 0, 1) * .94
         if SCURVE:
-            Ys = np.arange(arr.shape[0])[:, None, None]; xg = (Xs - sc.X0) - (sc.Y0 - Ys); u = np.clip((xg - (W - 70)) / 60.0, 0, 1) * .94              # 오른쪽 끝(바닥 좌표 기준)이 깊이와 상관없이 검게 사라진다
+            Ys = np.arange(arr.shape[0])[:, None, None]; xg = (Xs - sc.X0) - (sc.Y0 - Ys); u = np.maximum(np.clip((xg - (W - 70)) / 60.0, 0, 1), np.clip((54 - xg) / 44.0, 0, 1)) * .94              # 오른쪽·왼쪽 끝(바닥 좌표 기준)이 깊이와 상관없이 검게 사라진다(이동 통로 표시)
         sc.img = Image.fromarray((arr * (1 - u) + np.array([6, 7, 16]) * u).astype('uint8'))
     return sc
 

@@ -95,14 +95,14 @@ def build(check=False):
     r9 = AU.build('forest')                                                                       # 가로로 쭉 이어지는 빽빽한 가을 숲(처음 만든 집 있는 시골은 build('original') 로 보관)
     AU_W, AU_D = r9.W, r9.D
     def free_au(x, d): return 4 < x < AU_W - 4 and 3 < d < AU_D - 4
-    sau, rau = room(r9, 'autumn', '가을 낙엽길', AU_W, AU_D, free_au, [44, 20], [dict(zone=[27, 33, 12, 28], to='tunnel', spawn=[52, T.D - 18], type='trans', dir='L'), dict(zone=[AU_W - 14, AU_W - 6, 6, 34], to='scurve', spawn=[24, 25], type='trans', dir='R')])
+    sau, rau = room(r9, 'autumn', '가을 낙엽길', AU_W, AU_D, free_au, [44, 20], [dict(zone=[27, 33, 12, 28], to='tunnel', spawn=[52, T.D - 18], type='trans', dir='L'), dict(zone=[AU_W - 14, AU_W - 6, 6, 34], to='scurve', spawn=[42, 25], type='trans', dir='R')])
     r10 = AU.build('s_curve')                                                                      # 숲길 오른쪽 끝에서 이어지는 S자 흙길 구간
     SW, SD = r10.W, r10.D
     def free_sc(x, d): return 4 < x < SW - 14 and 4 < d < SD - 4
-    ssc, rsc = room(r10, 'scurve', 'S자 숲길', SW, SD, free_sc, [24, 25], [dict(zone=[3, 9, 10, 44], to='autumn', spawn=[AU_W - 26, 20], type='trans', dir='L'), dict(zone=[SW - 22, SW - 14, 150, 182], to='scurve2', spawn=[24, 165], type='trans', dir='R')])
+    ssc, rsc = room(r10, 'scurve', 'S자 숲길', SW, SD, free_sc, [42, 25], [dict(zone=[3, 9, 10, 44], to='autumn', spawn=[AU_W - 80, 20], type='trans', dir='L'), dict(zone=[SW - 22, SW - 14, 150, 182], to='scurve2', spawn=[42, 165], type='trans', dir='R')])
     r11 = AU.build('s_curve2')                                                                     # S자 구간을 좌우반전 + 나무 사이 벤치: 위쪽 왼쪽에서 들어와 아래쪽 오른쪽으로 내려간다
     def free_sc2(x, d): return 4 < x < SW - 14 and 4 < d < SD - 4
-    ssc2, rsc2 = room(r11, 'scurve2', '벤치 숲길', SW, SD, free_sc2, [24, 165], [dict(zone=[3, 9, 150, 182], to='scurve', spawn=[SW - 30, 165], type='trans', dir='L'), dict(zone=[SW - 22, SW - 14, 6, 44], to=None, type='trans', dir='R', endMsg='이 길은 여기까지예요 — 다음 구간은 아직 만들지 않았어요')])
+    ssc2, rsc2 = room(r11, 'scurve2', '벤치 숲길', SW, SD, free_sc2, [42, 165], [dict(zone=[3, 9, 150, 182], to='scurve', spawn=[SW - 80, 165], type='trans', dir='L'), dict(zone=[SW - 22, SW - 14, 6, 44], to=None, type='trans', dir='R', endMsg='이 길은 여기까지예요 — 다음 구간은 아직 만들지 않았어요')])
     r8 = C.street(True, 'out'); D8 = 480
     def free_o(x, d): return 4 < x < 171 and 2 < d < r8.erode_front - 6                          # 끝에서 뾰족하게 번져 오는 검은 이빨 앞에서 막힌다(로딩 안 된 곳)
     so, ro = room(r8, 'outroad', '터널 밖 길', 176, D8, free_o, [88, 12], [dict(zone=[24, 150, 0, 4], to='rtunnel', spawn=[(C.RV0 + C.RV1) / 2, C.RTD - 14], type='trans', dir='F')])
