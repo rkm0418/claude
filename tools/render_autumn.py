@@ -147,12 +147,14 @@ def build(mode='original'):
         if MIRROR:                                                                                               # 나무 사이에 벤치 하나: 길 뒤쪽 숲속에 나무 둘 사이로 끼워 넣는다(길을 향해 앉는다)
             bx = 226.0; bd = rs_(bx) + 34; BENCH = (bx, bd)
             for tx, td, th, tk in ((bx - 14, bd + 6, 46, 'red'), (bx + 44, bd + 7, 42, 'gold')): placed.append((tx, td)); tree(sc, tx, td, th, tk, rng, 11)
-            WOOD, WOODD, IRON = (150, 96, 52), (112, 70, 38), (30, 30, 38)
-            for lx_ in (bx + 1, bx + 26):
-                sc.box(lx_, bd + .5, 1, 1, 7, IRON, IRON, IRON); sc.box(lx_, bd + 5, 1, 1, 7, IRON, IRON, IRON); sc.box(lx_, bd + 5.5, 1, 1, 16, IRON, IRON, IRON); sc.box(lx_, bd + .5, 1, 6, 1, IRON, IRON, IRON, z0=11)
-            sc.box(bx, bd + 1, 28, 6, 1.2, WOOD, WOODD, dk(WOODD, .8), z0=7)
-            for k in range(3): sc.box(bx, bd + 1 + k * 1.9, 28, .3, .1, WOODD, WOODD, WOODD, z0=8.2)
-            for k in range(3): sc.box(bx + 1, bd + 6, 26, .9, 2, WOOD, dk(WOOD, .85), WOODD, z0=9.5 + k * 2.4)
+            def bench_draw():
+                WOOD, WOODD, IRON = (150, 96, 52), (112, 70, 38), (30, 30, 38)
+                for lx_ in (bx + 1, bx + 26):
+                    sc.box(lx_, bd + .5, 1, 1, 7, IRON, IRON, IRON); sc.box(lx_, bd + 5, 1, 1, 7, IRON, IRON, IRON); sc.box(lx_, bd + 5.5, 1, 1, 16, IRON, IRON, IRON); sc.box(lx_, bd + .5, 1, 6, 1, IRON, IRON, IRON, z0=11)
+                sc.box(bx, bd + 1, 28, 6, 1.2, WOOD, WOODD, dk(WOODD, .8), z0=7)
+                for k in range(3): sc.box(bx, bd + 1 + k * 1.9, 28, .3, .1, WOODD, WOODD, WOODD, z0=8.2)
+                for k in range(3): sc.box(bx + 1, bd + 6, 26, .9, 2, WOOD, dk(WOOD, .85), WOODD, z0=9.5 + k * 2.4)
+            sc.jobs.append((bd + 3, bench_draw))
         for _ in range(1400):                                                                                    # 나무: 길 뒤쪽(간격 34, 처음 배치)과 길 아래쪽(간격 38)에 모두 심는다
             x = sr.uniform(12, W - 14); d = sr.uniform(8, D - 8)
             behind = d >= rs_(x) + 18
@@ -164,9 +166,13 @@ def build(mode='original'):
         def stone(x, d, w, dp, h, tone, z0=0): sc.box(x, d, w, dp, h, tone, dk(tone, .8), dk(tone, .64), z0=z0)
         XM = (lambda x, w=0: W - x - w) if MIRROR else (lambda x, w=0: x)                                          # 좌우반전이면 소품 x 도 뒤집는다
         cx_, cd_ = XM(118, 9), rs_(XM(118, 9)) + 14                                                                           # 돌탑(길 뒤쪽)
-        stone(cx_, cd_, 9, 6, 4, (126, 120, 112)); stone(cx_ + 1, cd_ + .5, 7, 5, 4, (116, 110, 102), 4); stone(cx_ + 2, cd_ + 1, 5, 4, 4, (136, 128, 118), 8); stone(cx_ + 3, cd_ + 1.5, 3, 3, 3, (120, 114, 106), 12)
+        def cairn_draw():
+            stone(cx_, cd_, 9, 6, 4, (126, 120, 112)); stone(cx_ + 1, cd_ + .5, 7, 5, 4, (116, 110, 102), 4); stone(cx_ + 2, cd_ + 1, 5, 4, 4, (136, 128, 118), 8); stone(cx_ + 3, cd_ + 1.5, 3, 3, 3, (120, 114, 106), 12)
+        sc.jobs.append((cd_ + 1, cairn_draw))
         lx, ld = XM(190, 30), rs_(XM(190, 30)) - 14                                                                              # 쓰러진 통나무(길 앞쪽): 낮고 눕혀 길이 가려지지 않는다
-        sc.box(lx, ld, 30, 6, 6, (112, 78, 52), (92, 62, 40), (72, 48, 32)); sc.box(lx + 29, ld + 1, 1.2, 4, 4.6, (176, 134, 90), (150, 110, 70), (130, 94, 60))
+        def log_draw():
+            sc.box(lx, ld, 30, 6, 6, (112, 78, 52), (92, 62, 40), (72, 48, 32)); sc.box(lx + 29, ld + 1, 1.2, 4, 4.6, (176, 134, 90), (150, 110, 70), (130, 94, 60))
+        sc.jobs.append((ld + 3, log_draw))
         # (이정표는 뺐다)
     if BEND:                                                                                                    # 꺾이는 길: 성긴 나무 + 꺾이는 곳 안쪽의 그네
         br = random.Random(61); placed = []; kinds = ['red', 'orange', 'gold', 'orange', 'red', 'gold']
@@ -177,15 +183,17 @@ def build(mode='original'):
             if abs(x - SWX - 14) < 40 and abs(d - SWD) < 34: continue                                            # 그네 둘레는 비운다
             if any(math.hypot(x - a_, (d - b_) * 1.4) < 34 for a_, b_ in placed): continue
             placed.append((x, d)); tree(sc, x, d, br.uniform(34, 52), br.choice(kinds), rng, br.uniform(9, 12.5))
-        WOOD_, WOODD_, ROPE_ = (150, 96, 52), (112, 70, 38), (206, 188, 140)                                     # 그네: 양쪽 기둥(다리 벌림) + 윗보 + 줄 둘 + 나무 의자
-        PO = lambda gx, dd: sc.box(gx, dd, 2, 2, 38, WOOD_, WOODD_, dk(WOODD_, .8))
-        BM = lambda dd: sc.box(SWX - .5, dd, 29, 2, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36)
-        for gx in (SWX, SWX + 26): PO(gx, SWD + 3)                                                               # 먼 것(뒤)부터: 뒤 기둥 → 뒤 보 → 가로 보 → 앞 기둥 → 앞 보
-        BM(SWD + 3); sc.box(SWX + 6, SWD - 2, 2, 6, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36); sc.box(SWX + 18, SWD - 2, 2, 6, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36)
-        for gx in (SWX, SWX + 26): PO(gx, SWD - 3)
-        BM(SWD - 3)
-        sc.box(SWX + 6, SWD + .2, .8, .8, 26, ROPE_, ROPE_, ROPE_, z0=9); sc.box(SWX + 18, SWD + .2, .8, .8, 26, ROPE_, ROPE_, ROPE_, z0=9)      # 줄
-        sc.box(SWX + 4, SWD - 2, 17, 4.6, 1.8, (176, 124, 72), WOODD_, dk(WOODD_, .8), z0=8)                                             # 의자
+        WOOD_, WOODD_, ROPE_ = (224, 206, 168), (186, 166, 130), (150, 128, 92)                                     # 그네: 양쪽 기둥(다리 벌림) + 윗보 + 줄 둘 + 나무 의자
+        def swing_draw():
+            PO = lambda gx, dd: sc.box(gx, dd, 2, 2, 38, WOOD_, WOODD_, dk(WOODD_, .8))
+            BM = lambda dd: sc.box(SWX - .5, dd, 29, 2, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36)
+            for gx in (SWX, SWX + 26): PO(gx, SWD + 3)                                                               # 먼 것(뒤)부터: 뒤 기둥 → 뒤 보 → 가로 보 → 앞 기둥 → 앞 보
+            BM(SWD + 3); sc.box(SWX + 6, SWD - 2, 2, 6, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36); sc.box(SWX + 18, SWD - 2, 2, 6, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36)
+            for gx in (SWX, SWX + 26): PO(gx, SWD - 3)
+            BM(SWD - 3)
+            sc.box(SWX + 6, SWD + .2, .8, .8, 26, ROPE_, ROPE_, ROPE_, z0=9); sc.box(SWX + 18, SWD + .2, .8, .8, 26, ROPE_, ROPE_, ROPE_, z0=9)      # 줄
+            sc.box(SWX + 4, SWD - 2, 17, 4.6, 1.8, (176, 124, 72), WOODD_, dk(WOODD_, .8), z0=8)                                             # 의자
+        sc.jobs.append((SWD, swing_draw))
     # 터널 출구(약간만 보임): 왼쪽 앞 구석, 풀이 덮인 언덕 속 콘크리트 아치. 오른쪽 면에 아치 입구, 흙길이 거기서 시작한다
     def portal():
         x0, x1, d0, d1, h = 4, 22, 2, 38, 28
