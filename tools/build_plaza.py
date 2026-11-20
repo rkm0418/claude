@@ -110,7 +110,7 @@ def build(check=False):
     r13 = AU.build('house')                                                                       # 위로 올라간 끝: 집 앞마당(보관해 둔 기와집)
     HW, HD = r13.W, r13.D
     def free_hs(x, d): return 4 < x < HW - 4 and 4 < d < HD - 8
-    shs, rhs = room(r13, 'house', '집 앞마당', HW, HD, free_hs, [170, 40], [dict(zone=[158, 182, 0, 6], to='bend', spawn=[170, 190], type='trans', dir='F'), dict(zone=[162, 179, 138, 150], to=None, type='trans', dir='B', endMsg='집 안은 아직 만들지 않았어요')])
+    shs, rhs = room(r13, 'house', '집 앞마당', HW, HD, free_hs, [170, 40], [dict(zone=[158, 182, 0, 6], to='bend', spawn=[170, 190], type='trans', dir='F'), dict(zone=[158, 182, 138, 150], to=None, type='trans', dir='B', endMsg='집 안은 아직 만들지 않았어요')])
     r8 = C.street(True, 'out'); D8 = 480
     def free_o(x, d): return 4 < x < 171 and 2 < d < r8.erode_front - 6                          # 끝에서 뾰족하게 번져 오는 검은 이빨 앞에서 막힌다(로딩 안 된 곳)
     so, ro = room(r8, 'outroad', '터널 밖 길', 176, D8, free_o, [88, 12], [dict(zone=[24, 150, 0, 4], to='rtunnel', spawn=[(C.RV0 + C.RV1) / 2, C.RTD - 14], type='trans', dir='F')])

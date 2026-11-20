@@ -206,7 +206,7 @@ def build(mode='original'):
         sc.jobs.append((SWD, swing_draw))
     if HOUSE:
         hr = random.Random(71); placed = []; kinds = ['red', 'orange', 'gold', 'orange', 'red', 'gold']
-        house(HX - 55.2, HD0 + 2, 80, 44, 40)                                                                    # 보관해 둔 기와집(tools/prop_house.py)을 아이 키(24)에 맞게 2배로 키움(80x44x40, 문 높이 29): 문 중심이 길 x=170 에 오도록
+        house(HX - 89.7, HD0 + 2, 130, 44, 36)                                                                    # 보관해 둔 기와집(tools/prop_house.py)을 옆으로 넓혀 납작하게(130x44x36, 문 높이 26): 아이 키(24)보다 문이 높다: 문 중심이 길 x=170 에 오도록
         for _ in range(1200):
             x = hr.uniform(10, W - 10); d = hr.uniform(10, D - 8)
             if abs(x - HX) < 36 and d < HD0 + 4: continue                                                        # 길 양옆과 집 앞은 비운다
