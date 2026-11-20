@@ -549,6 +549,8 @@ function drawLight() {
 }
 const TCOLS = 20, TROWS = 15, TCELL = 16, TRANK = []; for (let i = 0; i < TCOLS * TROWS; i++) { const r = Math.floor(i / TCOLS) / TROWS, n = (Math.sin(i * 12.9898) * 43758.5453) % 1; TRANK.push(r * .55 + Math.abs(n) * .45); }
 const panC = document.createElement('canvas'); panC.width = 320; panC.height = 240; const panX = panC.getContext('2d'); let trans = null;
+// 통로를 지나면 나가던 그 높이(가로로 나가면 d, 세로로 나가면 x) 그대로 다음 방에 나온다(걸을 수 없는 곳이면 가장 가까운 걸을 수 있는 곳으로). e.carry 가 있는 출구만.
+const carrySpawn = (e) => { const sp = e.spawn.slice(); if (e.carry) { if (e.dir === 'R' || e.dir === 'L') sp[1] = P.d; else if (e.dir === 'B' || e.dir === 'F') sp[0] = P.x; } return sp; };
 function startTrans(e) {                                                      // 문을 지나면: 아이는 화면에 고정, 시선이 문 쪽으로 움직이며 이전 장면이 무너지듯 검게 사라진다 → 다음 장면은 불이 켜지듯 깜빡이며 밝아진다
   const sn = document.createElement('canvas'); sn.width = VW; sn.height = VH; sn.getContext('2d').drawImage(cv, 0, 0); const v = TRAVEL[e.dir] || [1, 0];
   trans = { phase: 'out', t: 0, snap: sn, e, sv: [v[0] + v[1] * .5, -v[1] * .5] }; P.path = []; P.act = null; marker = null;
@@ -568,13 +570,13 @@ function drawTrans() {
 function update(dt) {
   updLight(dt);
   if (trans) {
-    if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, trans.e.spawn).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; } }); } }
+    if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, carrySpawn(trans.e)).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; } }); } }
     else if (trans.phase === 'in') { trans.t += dt / 1.0; if (trans.t >= 1) trans = null; }
     return;
   }
   if (fadeDir) {
     fade += fadeDir * dt / .22;
-    if (fade >= 1 && pending) { fade = 1; const p = pending; pending = null; enter(p.to, p.spawn).then(() => { fadeDir = -1; }); fadeDir = 0; }
+    if (fade >= 1 && pending) { fade = 1; const p = pending; pending = null; enter(p.to, carrySpawn(p)).then(() => { fadeDir = -1; }); fadeDir = 0; }
     if (fade <= 0) { fade = 0; fadeDir = 0; fadeCol = '20,14,16'; }
     return;
   }
@@ -629,7 +631,7 @@ function update(dt) {
     else if (e.to) { if (e.type === 'trans' && !trans) startTrans(e); else if (!trans) { pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.sections ? 1.5 : (R.S || (R.CH > 140 ? 1 : 2)); R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; CAMK = []; { const vw = VW / S; for (const rm of ROOMS) { const w = rm.x1 - rm.x0, cr = rm.x0 + w / 2; if (w <= vw + 10) { const h = Math.min(w / 2 + 4, 50); CAMK.push([cr - h, cr], [cr + h, cr]); } else CAMK.push([rm.x0 + 70, rm.x0 + 70], [rm.x1 - 70, rm.x1 - 70]); } } LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.sections ? 1.5 : (R.S || (R.CH > 140 ? 1 : 2)); R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; { const [ci, cj] = cellOf(P.x, P.d); if (!isFree(ci, cj)) { const t = nearestFree(ci, cj); if (t) { P.x = (t[0] + .5) * CELL; P.d = (t[1] + .5) * CELL; } } } LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; CAMK = []; { const vw = VW / S; for (const rm of ROOMS) { const w = rm.x1 - rm.x0, cr = rm.x0 + w / 2; if (w <= vw + 10) { const h = Math.min(w / 2 + 4, 50); CAMK.push([cr - h, cr], [cr + h, cr]); } else CAMK.push([rm.x0 + 70, rm.x0 + 70], [rm.x1 - 70, rm.x1 - 70]); } } LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
@@ -745,6 +747,8 @@ function onDown(ev) {
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
   let [x, d] = world(X, Y);
   x = Math.max(0, Math.min(R.W, x)); d = Math.max(0, Math.min(R.D, d));                // 벽이나 바깥을 눌러도 가장 가까운 바닥으로
+  const dk_ = (R.exits || []).find((e) => { if (!e.dark) return false; const v = e.dark[0] === 'X' ? X : e.dark[0] === 'xg' ? X - R.X0 - (R.Y0 - Y) : 2 * (R.Y0 - Y); return v >= e.dark[1] && v <= e.dark[2]; });
+  if (dk_) { audio(); P.act = null; const z = dk_.zone; if (dk_.dir === 'R' || dk_.dir === 'L') goTo((z[0] + z[1]) / 2, Math.max(z[2], Math.min(z[3], d))); else goTo(Math.max(z[0], Math.min(z[1], x)), (z[2] + z[3]) / 2); return; }   // 검게 사라지는 통로 표시 부분은 어디를 눌러도 그 통로로(누른 높이 그대로)
   const eh = (R.exits || []).filter((e) => e.hit && X >= e.hit[0] && X <= e.hit[2] && Y >= e.hit[1] && Y <= e.hit[3]).sort((p, q) => (p.hit[2] - p.hit[0]) * (p.hit[3] - p.hit[1]) - (q.hit[2] - q.hit[0]) * (q.hit[3] - q.hit[1]))[0];
   if (eh) { audio(); P.act = null; const z = eh.zone; goTo((z[0] + z[1]) / 2, (z[2] + z[3]) / 2); return; }            // 문·통로를 어느 부분이든 누르면 그 문까지 걸어가 다음 공간으로 넘어간다
   audio(); const o = R.objects.find(o => { if (o.reach === 0 || (o.need && !STATE.flags[o.need])) return false; const [ox, oy] = scr(o.x, o.d); return Math.hypot(X - ox, Y - (oy - (o.z || 0) - (o.h || 28) / 2)) < (o.rad || (o.type === 'note' || o.type === 'poem' || o.type === 'key' || o.type === 'book' ? 9 : 12)); });   // 등불 기둥 근처를 눌렀는가
