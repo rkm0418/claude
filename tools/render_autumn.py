@@ -185,14 +185,15 @@ def build(mode='original'):
             placed.append((x, d)); tree(sc, x, d, br.uniform(34, 52), br.choice(kinds), rng, br.uniform(9, 12.5))
         WOOD_, WOODD_, ROPE_ = (224, 206, 168), (186, 166, 130), (150, 128, 92)                                     # 그네: 양쪽 기둥(다리 벌림) + 윗보 + 줄 둘 + 나무 의자
         def swing_draw():
-            PO = lambda gx, dd: sc.box(gx, dd, 2, 2, 38, WOOD_, WOODD_, dk(WOODD_, .8))
+            BRN, BRND = (152, 102, 60), (114, 74, 44)                                                              # 기둥은 갈색, 윗보·가로보·줄은 베이지로 섞는다
+            PO = lambda gx, dd: sc.box(gx, dd, 2, 2, 38, BRN, BRND, dk(BRND, .8))
             BM = lambda dd: sc.box(SWX - .5, dd, 29, 2, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36)
             for gx in (SWX, SWX + 26): PO(gx, SWD + 3)                                                               # 먼 것(뒤)부터: 뒤 기둥 → 뒤 보 → 가로 보 → 앞 기둥 → 앞 보
             BM(SWD + 3); sc.box(SWX + 6, SWD - 2, 2, 6, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36); sc.box(SWX + 18, SWD - 2, 2, 6, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36)
             for gx in (SWX, SWX + 26): PO(gx, SWD - 3)
             BM(SWD - 3)
             sc.box(SWX + 6, SWD + .2, .8, .8, 26, ROPE_, ROPE_, ROPE_, z0=9); sc.box(SWX + 18, SWD + .2, .8, .8, 26, ROPE_, ROPE_, ROPE_, z0=9)      # 줄
-            sc.box(SWX + 4, SWD - 2, 17, 4.6, 1.8, (176, 124, 72), WOODD_, dk(WOODD_, .8), z0=8)                                             # 의자
+            sc.box(SWX + 4, SWD - 2, 17, 4.6, 1.8, (196, 150, 98), BRND, dk(BRND, .8), z0=8)                                             # 의자
         sc.jobs.append((SWD, swing_draw))
     # 터널 출구(약간만 보임): 왼쪽 앞 구석, 풀이 덮인 언덕 속 콘크리트 아치. 오른쪽 면에 아치 입구, 흙길이 거기서 시작한다
     def portal():
