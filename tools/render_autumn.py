@@ -109,9 +109,9 @@ def build(mode='original'):
             tree(sc, x, d, h, k, rng, sp)
     else:                                                                                                      # 빽빽한 숲: 길 뒤쪽(위)을 나무로 가득 채운다. 길 앞쪽(아래)에는 나무를 두지 않아 길과 아이가 가려지지 않는다
         fr = random.Random(31); kinds = ['red', 'orange', 'gold', 'orange', 'red', 'gold']
-        for row, d0 in enumerate(range(34, D - 4, 9)):
-            for i in range(0, int(W / 9.0)):
-                x = 30 + i * 9.0 + (4.5 if row % 2 else 0) + fr.uniform(-2.2, 2.2); d = d0 + fr.uniform(-2.2, 2.2)
+        for row, d0 in enumerate(range(38, D - 4, 16)):                                                      # 줄 간격 16, 나무 간격 17(처음보다 훨씬 성기게)
+            for i in range(0, int(W / 17.0)):
+                x = 30 + i * 17.0 + (8.5 if row % 2 else 0) + fr.uniform(-4, 4); d = d0 + fr.uniform(-3, 3)
                 if x > W - 6 or abs(d - rd(x)) < 13: continue
                 tree(sc, x, d, fr.uniform(34, 54), fr.choice(kinds), rng, fr.uniform(9, 12.5))
     # 터널 출구(약간만 보임): 왼쪽 앞 구석, 풀이 덮인 언덕 속 콘크리트 아치. 오른쪽 면에 아치 입구, 흙길이 거기서 시작한다
