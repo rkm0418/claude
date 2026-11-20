@@ -132,8 +132,7 @@ def build(mode='original'):
         for _ in range(1400):                                                                                    # 나무: 길 뒤쪽(간격 34, 처음 배치)과 길 아래쪽(간격 38)에 모두 심는다
             x = sr.uniform(12, W - 14); d = sr.uniform(8, D - 8)
             behind = d >= rs_(x) + 18
-            if near(x, d, 16): continue                                                                          # 길 위는 피한다
-            if not behind and d > rs_(x) - 16: continue                                                          # 길 바로 앞(가까운 쪽)은 비워 둔다
+            if near(x, d, 36): continue                                                                          # 길에서 가까운 나무는 치운다(길 중심에서 36 이내 없음)
             gap = 34 if behind else 38
             if any(math.hypot(x - a_, (d - b_) * 1.4) < gap for a_, b_ in placed): continue
             placed.append((x, d)); tree(sc, x, d, sr.uniform(34, 52), sr.choice(kinds), rng, sr.uniform(9, 12.5))
