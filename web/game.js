@@ -747,7 +747,7 @@ function onDown(ev) {
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
   let [x, d] = world(X, Y);
   x = Math.max(0, Math.min(R.W, x)); d = Math.max(0, Math.min(R.D, d));                // 벽이나 바깥을 눌러도 가장 가까운 바닥으로
-  const dk_ = (R.exits || []).find((e) => { if (!e.dark) return false; const v = e.dark[0] === 'X' ? X : e.dark[0] === 'xg' ? X - R.X0 - (R.Y0 - Y) : 2 * (R.Y0 - Y); return v >= e.dark[1] && v <= e.dark[2]; });
+  const dk_ = (R.exits || []).find((e) => { if (!e.dark) return false; if (e.dark[0] === 'rect') return x >= e.dark[1] && x <= e.dark[2] && d >= e.dark[3] && d <= e.dark[4]; const v = e.dark[0] === 'X' ? X : e.dark[0] === 'xg' ? X - R.X0 - (R.Y0 - Y) : 2 * (R.Y0 - Y); return v >= e.dark[1] && v <= e.dark[2]; });
   if (dk_) { audio(); P.act = null; const z = dk_.zone; if (dk_.dir === 'R' || dk_.dir === 'L') goTo((z[0] + z[1]) / 2, Math.max(z[2], Math.min(z[3], d))); else goTo(Math.max(z[0], Math.min(z[1], x)), (z[2] + z[3]) / 2); return; }   // 검게 사라지는 통로 표시 부분은 어디를 눌러도 그 통로로(누른 높이 그대로)
   const eh = (R.exits || []).filter((e) => e.hit && X >= e.hit[0] && X <= e.hit[2] && Y >= e.hit[1] && Y <= e.hit[3]).sort((p, q) => (p.hit[2] - p.hit[0]) * (p.hit[3] - p.hit[1]) - (q.hit[2] - q.hit[0]) * (q.hit[3] - q.hit[1]))[0];
   if (eh) { audio(); P.act = null; const z = eh.zone; goTo((z[0] + z[1]) / 2, (z[2] + z[3]) / 2); return; }            // 문·통로를 어느 부분이든 누르면 그 문까지 걸어가 다음 공간으로 넘어간다

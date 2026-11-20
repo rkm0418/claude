@@ -19,7 +19,12 @@ def room(s, key, label, W, D, free, start, exits, rects=(), geom=None):
     DARK = {('plaza', 'corridor'): lambda: ['X', s.X0 + W - 26, 1e9], ('corridor', 'plaza'): lambda: ['X', -1e9, s.X0 + 46], ('corridor', 'fountain'): lambda: ['X', s.X0 + W - 46, 1e9],
             ('fountain', 'corridor'): lambda: ['X', -1e9, s.X0 + 46], ('fountain', 'street'): lambda: ['X', s.X0 + W - 46, 1e9], ('autumn', 'scurve'): lambda: ['X', s.X0 + W - 70, 1e9],
             ('scurve', 'autumn'): lambda: ['xg', -1e9, 54], ('scurve', 'scurve2'): lambda: ['xg', W - 70, 1e9], ('scurve2', 'scurve'): lambda: ['xg', -1e9, 54], ('scurve2', 'bend'): lambda: ['xg', W - 70, 1e9],
-            ('bend', 'scurve2'): lambda: ['xg', -1e9, 54], ('bend', 'house'): lambda: ['dg', D - 46, 1e9], ('house', 'bend'): lambda: ['dg', -1e9, 54]}                 # 검게 사라지는 통로 표시 범위(그림의 그라데이션과 같은 기준)
+            ('bend', 'scurve2'): lambda: ['xg', -1e9, 54], ('bend', 'house'): lambda: ['dg', D - 46, 1e9], ('house', 'bend'): lambda: ['dg', -1e9, 54],
+            # 바닥이 검게 사라지는 통로(바닥 좌표 상자: 누른 곳의 바닥 위치가 이 안이면 그 통로로)
+            ('fountain', 'lot'): lambda: ['rect', C.P0, C.P1, 0, C.SQF + 4], ('fountain', 'recycle'): lambda: ['rect', C.P0, C.P1, C.SQD, C.SQD + C.PL], ('recycle', 'fountain'): lambda: ['rect', C.P0, C.P1, 0, C.SQF + 4],
+            ('lot', 'fountain'): lambda: ['rect', C.LP0, C.LP1, C.LSQD, C.LSQD + C.PL], ('street', 'fountain'): lambda: ['rect', 0, 12, 8, 50], ('street', 'rtunnel'): lambda: ['rect', 36, 140, D - 44, D + 5],
+            ('rtunnel', 'street'): lambda: ['rect', C.RV0, C.RV1, 0, 70], ('rtunnel', 'outroad'): lambda: ['rect', C.RV0, C.RV1, C.RTD - 70, C.RTD + 5], ('annex', 'tunnel'): lambda: ['rect', 0, 60, C.AF, C.AD + 5],
+            ('lounge', 'annex'): lambda: ['rect', C.LDOOR[0] - 2, C.LDOOR[1] + 2, 0, 14]}                 # 검게 사라지는 통로 표시 범위(그림의 그라데이션과 같은 기준)
     for e in exits:                                                                              # 문·통로를 누를 수 있는 화면 범위(논리 화소): 출구 구역을 위(문 높이 40)까지 세운 상자의 화면 윤곽
         if (e.get('to') or e.get('need')) and 'hit' not in e:
             z = e['zone']; pts = [(s.X0 + x + .5 * d, s.Y0 - .5 * d - h) for x in (z[0] - 4, z[1] + 4) for d in (z[2] - 3, z[3] + 3) for h in (0, 40)]
