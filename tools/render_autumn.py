@@ -48,8 +48,8 @@ def tree(sc, x, d, h, kind, rng, spread=14):
 
 def build(mode='original'):
     """mode='original': 처음 만든 112x112 가을 시골(집·울타리 포함, 보관용). mode='forest': 터널 출구에서 오른쪽(가로)으로 쭉 이어지는 나무 빽빽한 가을 숲."""
-    FOREST = mode == 'forest'; SCURVE = mode in ('s_curve', 's_curve2'); MIRROR = mode == 's_curve2'     # s_curve2: S자 구간을 좌우반전 + 나무 사이 벤치
-    W, D, H = (420, 100, 66) if FOREST else (300, 210, 66) if SCURVE else (112, 112, 66)                                                                              # 공간을 넓혔다(원래 112x112): 터널 출구·흙길·집은 그대로 두고 오른쪽·뒤쪽 들판과 나무를 늘림
+    FOREST = mode == 'forest'; SCURVE = mode in ('s_curve', 's_curve2'); MIRROR = mode == 's_curve2'; BEND = mode == 'bend'; CLASSIC = mode == 'original'     # s_curve2: S자 구간을 좌우반전 + 나무 사이 벤치
+    W, D, H = (420, 100, 66) if FOREST else (300, 210, 66) if SCURVE else (260, 240, 66) if BEND else (112, 112, 66)                                                                              # 공간을 넓혔다(원래 112x112): 터널 출구·흙길·집은 그대로 두고 오른쪽·뒤쪽 들판과 나무를 늘림
     sc = Scene(W, D, H); rng = random.Random(14); sc.img.paste((30, 22, 24), (0, 0, sc.CW, sc.CH)); sc.d = ImageDraw.Draw(sc.img)
     # 하늘(뒤 평면과 왼쪽 평면): 위는 옅은 살구색, 아래(지평선)는 호박색
     def sky(z): f = z / H; return (int(244 - 30 * f), int(196 - 40 * f), int(140 + 30 * f))
@@ -92,15 +92,27 @@ def build(mode='original'):
             if a < 9: return (156 + int(noise(x, d, 1) * 18), 112 + int(noise(x, d, 2) * 14), 74)
             if a < 11.5: return (122, 90, 56)
             return grass
+    BX, PY = 170.0, 34.0                                                                                          # bend: 길이 (0,PY)→(BX,PY) 로 오른쪽으로 가다 (BX,PY)에서 위(뒤)로 꺾여 (BX,D)까지
+    def segd(x, d, x0, d0, x1, d1):
+        vx, vd = x1 - x0, d1 - d0; t = max(0.0, min(1.0, ((x - x0) * vx + (d - d0) * vd) / float(vx * vx + vd * vd))); return math.hypot(x - (x0 + t * vx), d - (d0 + t * vd))
+    bend_d = lambda x, d: min(segd(x, d, 0, PY, BX, PY), segd(x, d, BX, PY, BX, D))
+    if BEND:
+        def ground(x, d):
+            c = 78 + int(noise(x, d) * 14); n = noise(x, d, 3)
+            grass = (c + 40, c + 22, 40) if n < .55 else (c + 66, c + 28, 30) if n < .8 else (c + 20, c + 10, 34)
+            a = bend_d(x, d)
+            if a < 9: return (156 + int(noise(x, d, 1) * 18), 112 + int(noise(x, d, 2) * 14), 74)
+            if a < 11.5: return (122, 90, 56)
+            return grass
     sc.floor(ground)
     # 단면(앞·오른쪽) 흙 두께
     sc.poly([(0, 0, -7), (W, 0, -7), (W, 0, 0), (0, 0, 0)], (84, 58, 40)); sc.poly([(W, 0, -7), (W, D, -7), (W, D, 0), (W, 0, 0)], (62, 42, 30))
     # 낙엽(바닥) 점
     LC = [(214, 104, 44), (236, 160, 60), (170, 56, 36), (246, 206, 92)]
-    for _ in range(1000 if SCURVE else 900 if FOREST else 130):
+    for _ in range(1000 if SCURVE else 900 if FOREST else 800 if BEND else 130):
         x, d = rng.uniform(2, W - 2), rng.uniform(2, D - 2); X, Y = sc.P(x, d, 0); sc.px[X, Y] = rng.choice(LC); sc.px[X + 1, Y] = rng.choice(LC)
     # 왼쪽 낮은 돌담
-    for d in (range(0, D, 10) if not SCURVE else ()):
+    for d in (range(0, D, 10) if CLASSIC else ()):
         for k, tone in enumerate(((120, 112, 104), (104, 96, 90), (132, 122, 112))):
             sc.box(1, d + k * 3.3, 5, 3.3, 10, tone, dk(tone, .82), dk(tone, .68))
     # 소품: 짚더미, 장승, 허수아비, 나무 울타리, 먼 기와집
@@ -110,14 +122,14 @@ def build(mode='original'):
             for k in range(0, 18, 4): sc.d.line([(b[0] - 8 + k // 3, b[1] - k), (b[0] + 8 - k // 3, b[1] - k)], fill=(176, 132, 56))
             sc.zbox(x - 5, d - 2.5, 10, 5, 20)                                                                     # 짚더미: 단단한 물체
         sc.jobs.append((d, f))
-    if not FOREST and not SCURVE:
+    if CLASSIC:
         for d in range(6, D - 8, 11): sc.box(W - 10, d, 2, 2, 10, (98, 68, 44), (80, 54, 36), (62, 42, 30))
         sc.box(W - 10, 6, 2, D - 14, 1.6, (98, 68, 44), (80, 54, 36), (62, 42, 30), z0=7)
     from prop_house import house as _house
     house = lambda x, d, w, dp, h: _house(sc, x, d, w, dp, h)                                            # 집 그림은 tools/prop_house.py 에 보관
-    if not FOREST and not SCURVE: house(14, D - 34, 40, 22, 16)                                                        # 숲 맵에서는 집을 뺐다(보관: tools/prop_house.py)
+    if CLASSIC: house(14, D - 34, 40, 22, 16)                                                        # 숲 맵에서는 집을 뺐다(보관: tools/prop_house.py)
     # 나무: 단풍(주황·빨강)·은행(노랑)·감나무
-    if not FOREST and not SCURVE:
+    if CLASSIC:
         for x, d, h, k, sp in ((27, 33, 36, 'red', 10), (94, 38, 38, 'orange', 10), (97, 12, 48, 'gold', 12), (101, 70, 42, 'red', 10), (104, 98, 34, 'orange', 9)):
             tree(sc, x, d, h, k, rng, sp)
     elif FOREST:                                                                                               # 빽빽한 숲: 길 뒤쪽(위)을 나무로 가득 채운다. 길 앞쪽(아래)에는 나무를 두지 않아 길과 아이가 가려지지 않는다
@@ -156,6 +168,24 @@ def build(mode='original'):
         lx, ld = XM(190, 30), rs_(XM(190, 30)) - 14                                                                              # 쓰러진 통나무(길 앞쪽): 낮고 눕혀 길이 가려지지 않는다
         sc.box(lx, ld, 30, 6, 6, (112, 78, 52), (92, 62, 40), (72, 48, 32)); sc.box(lx + 29, ld + 1, 1.2, 4, 4.6, (176, 134, 90), (150, 110, 70), (130, 94, 60))
         # (이정표는 뺐다)
+    if BEND:                                                                                                    # 꺾이는 길: 성긴 나무 + 꺾이는 곳 안쪽의 그네
+        br = random.Random(61); placed = []; kinds = ['red', 'orange', 'gold', 'orange', 'red', 'gold']
+        SWX, SWD = 126.0, 66.0                                                                                   # 그네 틀의 왼쪽 기둥 x, 깊이 d(꺾이는 모퉁이 안쪽)
+        for _ in range(1400):
+            x = br.uniform(12, W - 14); d = br.uniform(8, D - 8)
+            if bend_d(x, d) < 36: continue                                                                       # 길에서 가까운 나무는 치운다
+            if abs(x - SWX - 14) < 40 and abs(d - SWD) < 34: continue                                            # 그네 둘레는 비운다
+            if any(math.hypot(x - a_, (d - b_) * 1.4) < 34 for a_, b_ in placed): continue
+            placed.append((x, d)); tree(sc, x, d, br.uniform(34, 52), br.choice(kinds), rng, br.uniform(9, 12.5))
+        WOOD_, WOODD_, ROPE_ = (150, 96, 52), (112, 70, 38), (206, 188, 140)                                     # 그네: 양쪽 기둥(다리 벌림) + 윗보 + 줄 둘 + 나무 의자
+        PO = lambda gx, dd: sc.box(gx, dd, 2, 2, 38, WOOD_, WOODD_, dk(WOODD_, .8))
+        BM = lambda dd: sc.box(SWX - .5, dd, 29, 2, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36)
+        for gx in (SWX, SWX + 26): PO(gx, SWD + 3)                                                               # 먼 것(뒤)부터: 뒤 기둥 → 뒤 보 → 가로 보 → 앞 기둥 → 앞 보
+        BM(SWD + 3); sc.box(SWX + 6, SWD - 2, 2, 6, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36); sc.box(SWX + 18, SWD - 2, 2, 6, 2.4, WOOD_, WOODD_, dk(WOODD_, .8), z0=36)
+        for gx in (SWX, SWX + 26): PO(gx, SWD - 3)
+        BM(SWD - 3)
+        sc.box(SWX + 6, SWD + .2, .8, .8, 26, ROPE_, ROPE_, ROPE_, z0=9); sc.box(SWX + 18, SWD + .2, .8, .8, 26, ROPE_, ROPE_, ROPE_, z0=9)      # 줄
+        sc.box(SWX + 4, SWD - 2, 17, 4.6, 1.8, (176, 124, 72), WOODD_, dk(WOODD_, .8), z0=8)                                             # 의자
     # 터널 출구(약간만 보임): 왼쪽 앞 구석, 풀이 덮인 언덕 속 콘크리트 아치. 오른쪽 면에 아치 입구, 흙길이 거기서 시작한다
     def portal():
         x0, x1, d0, d1, h = 4, 22, 2, 38, 28
@@ -176,7 +206,7 @@ def build(mode='original'):
             q = sc.P(x1, cx + rl.uniform(-hw, hw), 21 + rl.uniform(-4, 5)); y0_ = q[1] + rl.randint(-4, 0); sc.d.rectangle([q[0], y0_, q[0] + 1, y0_ + rl.randint(1, 3)], fill=rl.choice(LC2))
         for _ in range(110):                                                                                         # 입구 오른쪽 바닥 모서리의 낙엽 더미
             q = sc.P(x1 + rl.uniform(0, 3), cx + hw * rl.uniform(.15, 1.1), rl.uniform(0, 5)); sc.d.rectangle([q[0], q[1], q[0] + 1, q[1] + 1], fill=rl.choice(LC2))
-    if not SCURVE: sc.jobs.append((20, portal))
+    if CLASSIC or FOREST: sc.jobs.append((20, portal))
     sc.run()
     # 감나무의 감(주황 점)과 떨어지는 낙엽(공중)
     for _ in range(36):
@@ -184,9 +214,12 @@ def build(mode='original'):
         if sc.px[X, Y] != (30, 22, 24) and sc.px[X, Y][0] > 60: sc.d.rectangle([X, Y, X + 1, Y + 1], fill=c)
     # 따뜻한 빛: 전체에 호박색 안개 + 위쪽에서 아래로 약한 비네팅
     ov = Image.new('RGB', sc.img.size, (255, 190, 120)); sc.img = Image.blend(sc.img, ov, .08)
-    if FOREST or SCURVE:                                                                                        # 오른쪽 끝(아직 안 이어진 곳)은 검게 사라지는 그라데이션: 이동 통로 표시
+    if FOREST or SCURVE or BEND:                                                                                # 오른쪽 끝(아직 안 이어진 곳)은 검게 사라지는 그라데이션: 이동 통로 표시
         import numpy as np
         arr = np.array(sc.img.convert('RGB')).astype(float); Xs = np.arange(arr.shape[1])[None, :, None]; u = np.clip((Xs - (sc.X0 + W - 70)) / 70.0, 0, 1) * .94
+        if BEND:
+            Ys = np.arange(arr.shape[0])[:, None, None]; xg = (Xs - sc.X0) - (sc.Y0 - Ys); dg = 2 * (sc.Y0 - Ys)
+            u = np.maximum(np.clip((54 - xg) / 44.0, 0, 1), np.clip((dg - (D - 46)) / 40.0, 0, 1)) * .94                  # 왼쪽(들어온 곳)과 위쪽 끝(아직 안 이어진 곳)이 검게 사라진다
         if SCURVE:
             Ys = np.arange(arr.shape[0])[:, None, None]; xg = (Xs - sc.X0) - (sc.Y0 - Ys); u = np.maximum(np.clip((xg - (W - 70)) / 60.0, 0, 1), np.clip((54 - xg) / 44.0, 0, 1)) * .94              # 오른쪽·왼쪽 끝(바닥 좌표 기준)이 깊이와 상관없이 검게 사라진다(이동 통로 표시)
         sc.img = Image.fromarray((arr * (1 - u) + np.array([6, 7, 16]) * u).astype('uint8'))
