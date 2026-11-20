@@ -129,10 +129,13 @@ def build(mode='original'):
         sr = random.Random(53); placed = []; kinds = ['red', 'orange', 'gold', 'orange', 'red', 'gold']
         pathpts = [(x_, rs_(x_)) for x_ in range(0, W + 1, 3)]
         near = lambda px, pd, r: any(math.hypot(px - a_, pd - b_) < r for a_, b_ in pathpts)
-        for _ in range(900):
+        for _ in range(1400):                                                                                    # 나무: 길 뒤쪽(간격 34, 처음 배치)과 길 아래쪽(간격 38)에 모두 심는다
             x = sr.uniform(12, W - 14); d = sr.uniform(8, D - 8)
-            if d < rs_(x) + 18 or near(x, d, 16): continue                                                       # 길 뒤쪽(위)에만 심는다: 앞쪽 나무는 잎이 길을 가린다
-            if any(math.hypot(x - a_, (d - b_) * 1.4) < 90 for a_, b_ in placed): continue                  # 나무를 많이 치웠다(간격 34→90)
+            behind = d >= rs_(x) + 18
+            if near(x, d, 16): continue                                                                          # 길 위는 피한다
+            if not behind and d > rs_(x) - 16: continue                                                          # 길 바로 앞(가까운 쪽)은 비워 둔다
+            gap = 34 if behind else 38
+            if any(math.hypot(x - a_, (d - b_) * 1.4) < gap for a_, b_ in placed): continue
             placed.append((x, d)); tree(sc, x, d, sr.uniform(34, 52), sr.choice(kinds), rng, sr.uniform(9, 12.5))
         def stone(x, d, w, dp, h, tone, z0=0): sc.box(x, d, w, dp, h, tone, dk(tone, .8), dk(tone, .64), z0=z0)
         cx_, cd_ = 118, rs_(118) + 14                                                                           # 돌탑(길 뒤쪽)
