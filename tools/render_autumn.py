@@ -132,7 +132,7 @@ def build(mode='original'):
         for _ in range(900):
             x = sr.uniform(12, W - 14); d = sr.uniform(8, D - 8)
             if d < rs_(x) + 18 or near(x, d, 16): continue                                                       # 길 뒤쪽(위)에만 심는다: 앞쪽 나무는 잎이 길을 가린다
-            if any(math.hypot(x - a_, (d - b_) * 1.4) < 34 for a_, b_ in placed): continue
+            if any(math.hypot(x - a_, (d - b_) * 1.4) < 90 for a_, b_ in placed): continue                  # 나무를 많이 치웠다(간격 34→90)
             placed.append((x, d)); tree(sc, x, d, sr.uniform(34, 52), sr.choice(kinds), rng, sr.uniform(9, 12.5))
         def stone(x, d, w, dp, h, tone, z0=0): sc.box(x, d, w, dp, h, tone, dk(tone, .8), dk(tone, .64), z0=z0)
         cx_, cd_ = 118, rs_(118) + 14                                                                           # 돌탑(길 뒤쪽)

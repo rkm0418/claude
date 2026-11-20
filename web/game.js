@@ -640,13 +640,19 @@ function drawChild() {
   sprX.clearRect(0, 0, w, h); sprX.drawImage(im, 0, 0);
   const [fx, fy0] = scr(P.x, P.d), fy = fy0 - zAt(P.x, P.d), x0 = Math.round(fx - w / 2), y0 = Math.round(fy - h + 1);
   const id = sprX.getImageData(0, 0, w, h), a = id.data;
+  let tot = 0, hid = 0; const hidden = new Uint8Array(w * h);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const X = x0 + x, Y = y0 + y; if (X < 0 || Y < 0 || X >= R.CW || Y >= R.CH) continue;
-    if (R.dep[Y * R.CW + X] < P.d - .5) a[(y * w + x) * 4 + 3] = 0;                   // 더 앞에 있는 가구가 덮는다
+    if (a[(y * w + x) * 4 + 3] > 0) { tot++; if (R.dep[Y * R.CW + X] < P.d - .5) { hid++; hidden[y * w + x] = 1; } }
   }
+  // 80% 이상 가려지면 가린 물체를 투시(반투명)해서 아이를 보여 준다(서서히 바뀐다). 그보다 덜 가려질 때는 지금처럼 물체가 앞에서 덮는다.
+  const target = tot && hid / tot >= .8 ? 1 : 0; P.st = (P.st || 0) + (target - (P.st || 0)) * (1 - Math.exp(-(lastDt || .016) * 9));
+  for (let i = 0; i < hidden.length; i++) if (hidden[i]) a[i * 4 + 3] = Math.round(a[i * 4 + 3] * P.st * .62);
   sprX.putImageData(id, 0, 0); ctx.drawImage(sprC, (R.ox + x0) * S, (R.oy + y0) * S, w * S, h * S);
 }
+let lastDt = .016;
 function draw(dt) {
+  lastDt = dt || .016;
   ctx.imageSmoothingEnabled = false; ctx.fillStyle = '#1e1618'; ctx.fillRect(0, 0, VW, VH); if (!R) return;
   const cz = camZoom(); ctx.save(); if (cz !== 1) { ctx.translate(VW / 2, VH * .55); ctx.scale(cz, cz); ctx.translate(-VW / 2, -VH * .55); }
   const [tx, ty] = camTarget(); if (!cam.init) { cam.x = tx; cam.y = ty; cam.init = true; } else if (R.sections) { cam.x = tx; cam.y = ty; } else { const k = 1 - Math.exp(-(dt || .016) * 7); cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; }
