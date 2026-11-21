@@ -19,8 +19,8 @@ const mgC = document.createElement('canvas'); mgC.width = 160; mgC.height = 24; 
 const VW = 320, VH = 240; let S = 2;            // 논리 화면, 그림 배율(큰 방은 1로 줄여 3차원 틀 전체가 보이게 한다)
 const CELL = 2;                              // 길찾기 격자 한 칸 = 바닥 2px
 const BODY = { rx: 4, rd: 2.2 };             // 아이 발 자리(가구와 벽에서 띄우는 여유)
-const SPEED = 46;                            // 화면에서 느끼는 걸음 속도(그림 px/초)
-const WALK_FPS = 7, WALK_FPS_HD = 12;                                              // 고해상도 걷기(8장)는 더 빠르게 넘겨 부드럽게
+const SPEED = 36;                            // 화면에서 느끼는 걸음 속도(그림 px/초)
+const WALK_FPS = 7, WALK_FPS_HD = 8;                                              // 고해상도 걷기(8장)는 더 빠르게 넘겨 부드럽게
 const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0도(오른쪽)부터 시계 방향 45도씩
 let fadeCol = '20,14,16'; const TRAVEL = { L: [-1, 0], R: [1, 0], B: [0, 1], F: [0, -1] }; let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
