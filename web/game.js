@@ -570,10 +570,20 @@ function drawTrans() {
   }
 }
 let cut = null;                                                               // 컷씬: 배경(실제 장면)은 그대로 보이고 위아래에 검은 띠만. 글 없이 카메라가 길을 따라 쭉 가서 보여 주고 아이 곁으로 돌아온다(누르면 건너뜀)
-function startCut(c) { STATE.flags['cut_' + c.id] = true; cut = { t: 0, out: c.out || 3.2, hold: c.hold || 1.2, back: c.back || 3.2, dist: c.dist || 400, bar: 0 }; cut.T = cut.out + cut.hold + cut.back; P.path = []; P.act = null; marker = null; if (c.walk) goTo(c.walk[0], c.walk[1]); }
+function startCut(c) { STATE.flags['cut_' + c.id] = true; cut = { t: 0, out: c.out || 3.2, hold: c.hold || 1.2, back: c.back || 3.2, dist: c.dist || 400, bar: 0 }; cut.T = cut.out + cut.hold + cut.back; if (c.face) P.dir = c.face; P.path = []; P.act = null; marker = null; if (c.walk) goTo(c.walk[0], c.walk[1]); }
+let skipBtn = null, skipTm = 0;                                               // 컷씬 중 화면을 한 번 누르면 오른쪽 위에 >> 가 나오고, 그걸 누르면 컷씬 전체를 건너뛴다
+function hideSkip() { if (skipBtn) skipBtn.style.display = 'none'; clearTimeout(skipTm); }
+function showSkip() {
+  if (!skipBtn) {
+    skipBtn = document.createElement('button'); skipBtn.textContent = '>>'; skipBtn.style.cssText = 'position:fixed;right:8px;top:48px;z-index:12;font:bold 18px system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.6);border:1px solid #aaa;border-radius:6px;padding:6px 16px;cursor:pointer;display:none';
+    skipBtn.onclick = (e) => { e.stopPropagation(); if (cut) cut.t = Math.max(cut.t, cut.T); hideSkip(); };
+    ['pointerdown', 'touchstart', 'mousedown'].forEach((ev) => skipBtn.addEventListener(ev, (e) => e.stopPropagation())); document.body.appendChild(skipBtn);
+  }
+  skipBtn.style.display = 'block'; clearTimeout(skipTm); skipTm = setTimeout(hideSkip, 3500);
+}
 function updCut(dt) {
   if (!cut) return; cut.t += dt; const end = cut.T + .5;
-  cut.bar = Math.max(0, Math.min(1, cut.t / .5, (end - cut.t) / .5)); if (cut.t >= end) cut = null;
+  cut.bar = Math.max(0, Math.min(1, cut.t / .5, (end - cut.t) / .5)); if (cut.t >= end) { cut = null; hideSkip(); }
 }
 function cutPan() {                                                           // 카메라 이동 비율 0→1→0 (부드럽게)
   if (!cut) return 0; const t = cut.t - .5, sm = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
@@ -769,7 +779,7 @@ const addItem = (k, n = 1) => { STATE.counts = STATE.counts || {}; STATE.counts[
 let POEM = null;                                                              // 쪽지에 적힌 글을 읽는 화면(누르면 닫힌다)
 function onDown(ev) {
   if (POEM) { POEM = null; ev.preventDefault(); return; }
-  if (cut) { ev.preventDefault(); const sk = cut.T + .5 - .5; if (cut.t < cut.out + cut.hold) cut.t = cut.out + cut.hold + .5; return; }          // 컷씬 중에 누르면 돌아오는 부분으로 건너뜀
+  if (cut) { ev.preventDefault(); showSkip(); return; }                                                                            // 컷씬 중에는 한 번 누르면 >> 가 나온다(그걸 눌러야 건너뛴다)
   if (fadeDir || trans || !R || (C.st === 'rise' && C.t < 2.15)) return; ev.preventDefault(); audio();
   if (FP) { const b = cv.getBoundingClientRect(); fpPress((ev.clientX - b.left) * VW / b.width, (ev.clientY - b.top) * VH / b.height); return; }
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
