@@ -7,7 +7,7 @@ import os
 import numpy as np
 from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.join(HERE, '..', 'art', 'out', 'sprites', 'child8'); OUT = os.path.join(HERE, '..', 'art', 'out', 'sprites', 'child_hd')
-K = 4; GW, GH = 14, 24; SIZE = (GW * K, GH * K)
+K = 4; GW, GH = 14, 28; SIZE = (GW * K, GH * K)                  # 14x28: 이전(14x24)보다 키를 키워 납작해 보이지 않게
 DIRS = ['d', 'dr', 'r', 'ur', 'u', 'ul', 'l', 'dl']; FR = ['idle', 'w1', 'w2', 'w3', 'w4']
 
 def scale2x(a):

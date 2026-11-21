@@ -582,8 +582,9 @@ function cutPan() {                                                           //
 function update(dt) {
   updLight(dt);
   if (trans) {
-    if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, carrySpawn(trans.e)).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; } }); } }
-    else if (trans.phase === 'in') { trans.t += dt / 1.0; if (trans.t >= 1) { const ce = trans.e.cut; trans = null; if (ce && !STATE.flags['cut_' + ce.id]) startCut(ce); } }
+    if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, carrySpawn(trans.e)).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; const ce = trans.e.cut; if (ce && !STATE.flags['cut_' + ce.id]) startCut(ce); } }); } }                    // 나오자마자(불이 켜지는 동안) 컷씬을 시작한다
+    else if (trans.phase === 'in') { trans.t += dt / 1.0; if (trans.t >= 1) trans = null; }
+    if (trans && trans.phase === 'in') updCut(dt);
     return;
   }
   if (fadeDir) {
@@ -647,7 +648,7 @@ function update(dt) {
 async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.sections ? 1.5 : (R.S || (R.CH > 140 ? 1 : 2)); R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; { const [ci, cj] = cellOf(P.x, P.d); if (!isFree(ci, cj)) { const t = nearestFree(ci, cj); if (t) { P.x = (t[0] + .5) * CELL; P.d = (t[1] + .5) * CELL; } } } LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; CAMK = []; { const vw = VW / S; for (const rm of ROOMS) { const w = rm.x1 - rm.x0, cr = rm.x0 + w / 2; if (w <= vw + 10) { const h = Math.min(w / 2 + 4, 50); CAMK.push([cr - h, cr], [cr + h, cr]); } else CAMK.push([rm.x0 + 70, rm.x0 + 70], [rm.x1 - 70, rm.x1 - 70]); } } LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
-const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
+const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const shC = document.createElement('canvas'), shX = shC.getContext('2d'); const frames = {};
 function drawChild() {
   const [w, h] = G.childSize, K = G.childK || 1; sprC.width = w * K; sprC.height = h * K;
   const cvw = curView(); if (cvw && cvw.mode === 'adult' && adultIm) { const [ax, ay] = scr(P.x, P.d), bob = P.moving ? Math.round(Math.sin(P.t * 12)) : 0; ctx.save(); ctx.translate((R.ox + ax) * S, (R.oy + ay + 1) * S); if (['l', 'ul', 'dl'].includes(P.dir)) ctx.scale(-1, 1); ctx.drawImage(adultIm, -6.5 * S, (-38 + bob) * S, 13 * S, 38 * S); ctx.restore(); return; }
@@ -660,11 +661,20 @@ function drawChild() {
   let tot = 0, hid = 0; const hidden = new Uint8Array(wK * hK);
   for (let y = 0; y < hK; y++) for (let x = 0; x < wK; x++) {
     const X = Math.floor(x0 + x / K), Y = Math.floor(y0 + y / K); if (X < 0 || Y < 0 || X >= R.CW || Y >= R.CH) continue;
-    if (a[(y * wK + x) * 4 + 3] > 0) { tot++; if (R.dep[Y * R.CW + X] < P.d - .5) { hid++; hidden[y * wK + x] = 1; } }
+    if (a[(y * wK + x) * 4 + 3] > 0) { tot++; if (R.dep[Y * R.CW + X] < P.d - .5 - 2 * Math.max(0, Y + 1 - fy)) { hid++; hidden[y * wK + x] = 1; } }      // 발 줄 근처는 바닥 자체(발 아래 한 줄은 d 가 2 작다)를 가림으로 착각하지 않게 여유를 준다
   }
   // 80% 이상 가려지면 가린 물체를 투시(반투명)해서 아이를 보여 준다(서서히 바뀐다). 그보다 덜 가려질 때는 지금처럼 물체가 앞에서 덮는다.
   const target = tot && hid / tot >= .8 ? 1 : 0; P.st = (P.st || 0) + (target - (P.st || 0)) * (1 - Math.exp(-(lastDt || .016) * 9));
   for (let i = 0; i < hidden.length; i++) if (hidden[i]) a[i * 4 + 3] = Math.round(a[i * 4 + 3] * P.st * .62);
+  // 발 밑 그림자(바닥에 붙은 납작한 타원): 걷는 동안에도 항상 있고, 물체 뒤에서는 물체에 가려진다
+  { const SW = 16, SH = 6; shC.width = SW * K; shC.height = SH * K; const sx0 = Math.round((fx - SW / 2) * K) / K, sy0 = Math.round((fy - SH / 2 - .2) * K) / K, sid = shX.createImageData(SW * K, SH * K), sa = sid.data;
+    for (let y = 0; y < SH * K; y++) for (let x = 0; x < SW * K; x++) {
+      const u = ((x + .5) / K - SW / 2) / 5.6, v = ((y + .5) / K - SH / 2) / 2, q = u * u + v * v; if (q >= 1) continue;
+      const X = Math.floor(sx0 + x / K), Y = Math.floor(sy0 + y / K); if (X < 0 || Y < 0 || X >= R.CW || Y >= R.CH) continue;
+      if (R.dep[Y * R.CW + X] < P.d - .5 - 2 * Math.max(0, Y + 1 - fy)) continue;
+      const i = (y * SW * K + x) * 4; sa[i] = 6; sa[i + 1] = 4; sa[i + 2] = 10; sa[i + 3] = q < .45 ? 120 : 76;
+    }
+    shX.putImageData(sid, 0, 0); ctx.drawImage(shC, (R.ox + sx0) * S, (R.oy + sy0) * S, SW * S, SH * S); }
   sprX.putImageData(id, 0, 0); ctx.drawImage(sprC, (R.ox + x0) * S, (R.oy + y0) * S, w * S, h * S);
 }
 let lastDt = .016;
