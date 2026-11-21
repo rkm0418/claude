@@ -421,7 +421,7 @@ const sdist = (ax, ad, bx, bd) => Math.hypot((bx - ax) + (bd - ad) / 2, (bd - ad
 // ---------- 방 준비: 그림, 깊이 지도, 걸을 수 있는 격자 ----------
 async function prepare(key) {
   const r = G.rooms[key]; if (r.ready) return r;
-  r.name = key; r.im = await img(r.img); const dim = await img(r.depth);
+  r.name = key; r.im = await img(r.img); const dim = await img(r.depth); if (r.props) for (const q of r.props) if (!q.im) q.im = await img(q.img);
   const oc = document.createElement('canvas'); oc.width = r.CW; oc.height = r.CH; const o = oc.getContext('2d'); o.drawImage(dim, 0, 0);
   const px = o.getImageData(0, 0, r.CW, r.CH).data; r.dep = new Float32Array(r.CW * r.CH);
   if (r.dep16) for (let i = 0; i < r.dep.length; i++) { const v = px[i * 4] * 256 + px[i * 4 + 1]; r.dep[i] = v === 65535 ? 1e9 : v / 50 - 64; }   // 16비트 깊이(레이어 규칙: docs/layer-rules.md)
@@ -605,7 +605,7 @@ function drawTrans() {
   }
 }
 let cut = null, shotImg = null;                                                               // 컷씬: 배경(실제 장면)은 그대로 보이고 위아래에 검은 띠만. 글 없이 카메라가 길을 따라 쭉 가서 보여 주고 아이 곁으로 돌아온다(누르면 건너뜀)
-function startCut(c) { STATE.flags['cut_' + c.id] = true; cut = { t: 0, out: c.out || 3.2, hold: c.hold || 1.2, back: c.back || 3.2, dist: c.dist || 400, bar: 0, after: c.after, shot: c.shot }; if (c.shot) { shotImg = new Image(); shotImg.src = G.rooms[c.shot.room].img; } cut.T = cut.out + cut.hold + cut.back; if (c.face) P.dir = c.face; P.path = []; P.act = null; marker = null; if (c.walk) { goTo(c.walk[0], c.walk[1]); cut.walking = true; } else if (c.to) { goTo(c.to[0], c.to[1]); cut.walking = true; } }                     // walk 가 있으면 먼저 그곳까지 걸어 나온 뒤 컷씬(띠·카메라)이 시작된다
+function startCut(c) { STATE.flags['cut_' + c.id] = true; cut = { t: 0, out: c.out || 3.2, hold: c.hold || 1.2, back: c.back || 3.2, dist: c.dist || 400, bar: 0, after: c.after, shot: c.shot }; if (c.shot) { shotImg = new Image(); shotImg.src = G.rooms[c.shot.room].img; for (const q of G.rooms[c.shot.room].shotProps || []) if (!q.im) img(q.img).then((i) => { q.im = i; }); } cut.T = cut.out + cut.hold + cut.back; if (c.face) P.dir = c.face; P.path = []; P.act = null; marker = null; if (c.walk) { goTo(c.walk[0], c.walk[1]); cut.walking = true; } else if (c.to) { goTo(c.to[0], c.to[1]); cut.walking = true; } }                     // walk 가 있으면 먼저 그곳까지 걸어 나온 뒤 컷씬(띠·카메라)이 시작된다
 let skipBtn = null, skipTm = 0;                                               // 컷씬 중 화면을 한 번 누르면 오른쪽 위에 >> 가 나오고, 그걸 누르면 컷씬 전체를 건너뛴다
 function hideSkip() { if (skipBtn) skipBtn.style.display = 'none'; clearTimeout(skipTm); }
 function showSkip() {
@@ -699,6 +699,20 @@ async function enter(key, spawn) { FP = null; R = await prepare(key); room = key
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const shC = document.createElement('canvas'), shX = shC.getContext('2d'); const frames = {};
+const prC = document.createElement('canvas'), prX = prC.getContext('2d', { willReadFrequently: true });
+function drawProps(front) {                                                    // 방에 놓인 인물 그림(예: 그네에 앉은 곰): 아이보다 먼 것은 아이보다 먼저, 가까운 것은 나중에. 앞의 물체(기둥 등)에는 깊이 지도로 가려진다
+  if (!R.props) return;
+  for (const q of R.props) {
+    if ((q.d >= P.d) !== front || !q.im) continue;
+    const Kx = q.im.width / q.w, Ky = q.im.height / q.h, wK = q.im.width, hK = q.im.height; prC.width = wK; prC.height = hK; prX.clearRect(0, 0, wK, hK); prX.drawImage(q.im, 0, 0);
+    const [X, Y1] = scr(q.x, q.d), Y = Y1 - q.z, x0 = Math.round((X - q.w / 2) * S) / S, y0 = Math.round((Y - q.h) * S) / S, id = prX.getImageData(0, 0, wK, hK), a = id.data;
+    for (let y = 0; y < hK; y++) for (let x = 0; x < wK; x++) {
+      const wx = Math.floor(x0 + x / Kx), wy = Math.floor(y0 + y / Ky); if (wx < 0 || wy < 0 || wx >= R.CW || wy >= R.CH) continue;
+      if (R.dep[wy * R.CW + wx] < q.d - .5) a[(y * wK + x) * 4 + 3] = 0;
+    }
+    prX.putImageData(id, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(prC, (R.ox + x0) * S, (R.oy + y0) * S, q.w * S, q.h * S); ctx.imageSmoothingEnabled = false;
+  }
+}
 function drawChild() {
   const [w, h] = G.childSize, K = G.childK || 1, Ky = G.childKy || K, wK = Math.round(w * K), hK = Math.round(h * Ky); sprC.width = wK; sprC.height = hK;
   const cvw = curView(); if (cvw && cvw.mode === 'adult' && adultIm) { const [ax, ay] = scr(P.x, P.d), bob = P.moving ? Math.round(Math.sin(P.t * 12)) : 0; ctx.save(); ctx.translate((R.ox + ax) * S, (R.oy + ay + 1) * S); if (['l', 'ul', 'dl'].includes(P.dir)) ctx.scale(-1, 1); ctx.drawImage(adultIm, -6.5 * S, (-38 + bob) * S, 13 * S, 38 * S); ctx.restore(); return; }
@@ -788,7 +802,7 @@ function draw(dt) {
       else if (sp > .8) { ctx.fillStyle = '#fff'; ctx.fillRect(bx + 3 * S, by - 14 * S, S, S); }
     }
   }
-  if (C.d >= P.d) { drawChaser(); drawChild(); } else { drawChild(); drawChaser(); }
+  drawProps(true); if (C.d >= P.d) { drawChaser(); drawChild(); } else { drawChild(); drawChaser(); } drawProps(false);
   if (R.mood === 'dark' || C.st === 'rise' || C.st === 'chase' || C.st === 'wait') {                                                     // 추격 구간의 꺼림칙한 분위기: 어둡게 가라앉히고, 아이 둘레만 흐릿하게 보이며, 가장자리가 맥박처럼 숨 쉰다
     const [fx0, fy0] = scr(P.x, P.d), rs = C.st === 'rise', [qx, qy] = rs ? scr(C.x, C.d - 30) : [fx0, fy0], fx = (fx0 + qx) / 2, fy = (fy0 + qy) / 2, px = (R.ox + fx) * S, py = (R.oy + fy - 14) * S, t = performance.now() / 1000, br = (rs ? 2.4 : 1) * (1 + .06 * Math.sin(t * 2.2) + (Math.sin(t * 13) > .96 ? .12 : 0));
     ctx.fillStyle = 'rgba(14,10,30,.3)'; ctx.fillRect(0, 0, VW, VH);
@@ -801,15 +815,15 @@ function draw(dt) {
   if (C.black && C.st === 'rise') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
   if (R.puzzle && R.puzzle.hud) { const cs = R.objects.filter(o => o.type === 'candle'), n = cs.filter(o => STATE.lit[o.id]).length; ctx.font = '11px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#0008'; ctx.fillRect(6, 6, 70, 16); ctx.fillStyle = '#ffe6a0'; ctx.fillText(`촛불 ${n}/${cs.length}`, 12, 18); }
   if (STATE.flags.cabin_key) { ctx.fillStyle = '#0008'; ctx.fillRect(VW - 40, 6, 34, 16); ctx.fillStyle = '#e8c050'; ctx.fillRect(VW - 34, 11, 8, 5); ctx.fillRect(VW - 27, 13, 8, 2); ctx.fillRect(VW - 21, 13, 2, 4); }
-  if (cut && cut.shot && shotImg && shotImg.complete && !cut.walking) {                                 // 지도 끝에 있는 그네: 검은 띠가 화면을 지나가며 그 방의 그림을 드러낸다(돌아올 때도 같은 띠)
-    const rr = G.rooms[cut.shot.room], tt = cut.t - .5, cl = (x) => Math.max(0, Math.min(1, x)), uIn = cl((tt - (cut.out - 1.1)) / 1.1), uOut = cl((tt - (cut.out + cut.hold)) / 1.1), Xs = rr.X0 + cut.shot.x + .5 * cut.shot.d, Ys = rr.Y0 - .5 * cut.shot.d - 10;
-    const mode = uOut >= 1 || uIn <= 0 ? 0 : uOut > 0 ? 2 : uIn < 1 ? 1 : 3, u = mode === 1 ? uIn : uOut, BW = 70, bx0 = -BW + u * (VW + BW), bx1 = bx0 + BW, jit = (y) => (((y / 6 | 0) * 37) % 11 - 5) * 2;
-    if (mode) {
-      ctx.save(); ctx.beginPath();
-      if (mode === 3) ctx.rect(0, 0, VW, VH); else for (let y = 0; y < VH; y += 6) { if (mode === 1) ctx.rect(0, y, Math.max(0, bx0 + jit(y)), 6); else ctx.rect(Math.min(VW, bx1 + jit(y)), y, VW, 6); }   // 띠가 지나간 쪽(들어올 때 왼쪽, 나갈 때 오른쪽)에 그네 그림
-      ctx.clip(); ctx.imageSmoothingEnabled = false; ctx.drawImage(shotImg, Math.round(VW / 2 - Xs * S), Math.round(VH / 2 - Ys * S), rr.CW * S, rr.CH * S); ctx.restore();
-      if (mode !== 3) { ctx.fillStyle = '#000'; for (let y = 0; y < VH; y += 6) ctx.fillRect(bx0 + jit(y), y, BW + jit(y + 6) - jit(y), 6); }
-    }
+  if (cut && cut.shot && shotImg && shotImg.complete && !cut.walking) {                                 // 지도 끝에 있는 그네: 길을 넘어갈 때와 같은 검은 도트 효과로 장면이 무너지듯 검게 사라졌다가 그네가 드러나고, 돌아올 때도 같은 효과
+    const rr = G.rooms[cut.shot.room], tt = cut.t - .5, o = cut.out, h = cut.hold, Xs = rr.X0 + cut.shot.x + .5 * cut.shot.d, Ys = rr.Y0 - .5 * cut.shot.d - 10;
+    const blk = (e) => { if (e <= 0) return; e = Math.min(1, e); ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < e * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL); for (let g = 0; g < 4 * e && e < 1; g++) { ctx.fillStyle = 'rgba(0,0,0,.8)'; ctx.fillRect(0, Math.random() * VH, VW, 1 + Math.random() * 3); } };
+    const shot = () => { ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(shotImg, Math.round(VW / 2 - Xs * S), Math.round(VH / 2 - Ys * S), rr.CW * S, rr.CH * S); ctx.imageSmoothingEnabled = false; for (const q of rr.shotProps || []) if (q.im) ctx.drawImage(q.im, Math.round(VW / 2 + (rr.X0 + q.x + .5 * q.d - Xs) * S - q.w * S / 2), Math.round(VH / 2 + (rr.Y0 - .5 * q.d - q.z - Ys) * S - q.h * S), q.w * S, q.h * S); ctx.restore(); };
+    if (tt >= o - 1.0 && tt < o) blk((tt - (o - 1.0)) / 1.0);                                          // 낙엽길이 검게 무너진다
+    else if (tt >= o && tt < o + .9) { shot(); blk(1 - (tt - o) / .9); }                                // 그네가 도트로 드러난다
+    else if (tt >= o + .9 && tt < o + h) shot();                                                         // 그네를 보여 준다
+    else if (tt >= o + h && tt < o + h + .8) { shot(); blk((tt - o - h) / .8); }                         // 그네가 검게 무너진다
+    else if (tt >= o + h + .8 && tt < o + h + 1.6) blk(1 - (tt - o - h - .8) / .8);                      // 낙엽길이 도트로 드러난다(카메라는 돌아오는 중)
   }
   if (cut) { const bh = Math.round(34 * cut.bar); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, bh); ctx.fillRect(0, VH - bh, VW, bh); }
   if (msg && msg.text) {                                            // 글자도 도트로: 작은 캔버스에 그려 문턱값으로 깎고 2배로 키운다
