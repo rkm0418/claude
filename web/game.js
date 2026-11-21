@@ -492,9 +492,13 @@ function goTo(x, d) {
 
 // ---------- 조이스틱: 누르고 있을 때만 나타나는 떠 있는 조이스틱(누른 자리가 중심). 끌면 그 방향으로 걷는다 ----------
 let JOY = null; const JOY_R = 44;
-const joyBase = document.createElement('div'), joyKnob = document.createElement('div');
-joyBase.style.cssText = 'position:fixed;width:' + JOY_R * 2 + 'px;height:' + JOY_R * 2 + 'px;margin:-' + JOY_R + 'px 0 0 -' + JOY_R + 'px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(0,0,0,.2);pointer-events:none;z-index:9;display:none';
-joyKnob.style.cssText = 'position:fixed;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid rgba(255,255,255,.8);pointer-events:none;z-index:10;display:none';
+const px4 = (n) => 'polygon(' + n + 'px 0,calc(100% - ' + n + 'px) 0,calc(100% - ' + n + 'px) ' + n + 'px,100% ' + n + 'px,100% calc(100% - ' + n + 'px),calc(100% - ' + n + 'px) calc(100% - ' + n + 'px),calc(100% - ' + n + 'px) 100%,' + n + 'px 100%,' + n + 'px calc(100% - ' + n + 'px),0 calc(100% - ' + n + 'px),0 ' + n + 'px,' + n + 'px ' + n + 'px)';
+function pixBox(size, notch, border, fill, z) {                              // 네모난 도트 상자: 모서리가 계단으로 깎인 사각형 테두리 + 안쪽 칠(둥근 곳 없음)
+  const o = document.createElement('div'), i = document.createElement('div'), m = Math.round(size / 2);
+  o.style.cssText = 'position:fixed;width:' + size + 'px;height:' + size + 'px;margin:-' + m + 'px 0 0 -' + m + 'px;background:' + border + ';clip-path:' + px4(notch) + ';pointer-events:none;z-index:' + z + ';display:none;image-rendering:pixelated';
+  i.style.cssText = 'position:absolute;inset:' + notch + 'px;background:' + fill + ';clip-path:' + px4(notch) + ';image-rendering:pixelated'; o.appendChild(i); return o;
+}
+const joyBase = pixBox(JOY_R * 2, 12, 'rgba(255,255,255,.55)', 'rgba(20,16,24,.35)', 9), joyKnob = pixBox(40, 8, 'rgba(255,255,255,.95)', 'rgba(224,214,196,.85)', 10);
 document.body.appendChild(joyBase); document.body.appendChild(joyKnob); document.body.style.touchAction = 'none';
 function joyShow() { joyBase.style.left = JOY.x0 + 'px'; joyBase.style.top = JOY.y0 + 'px'; joyKnob.style.left = JOY.x + 'px'; joyKnob.style.top = JOY.y + 'px'; joyBase.style.display = joyKnob.style.display = 'block'; }
 function joyHide() { joyBase.style.display = joyKnob.style.display = 'none'; }
