@@ -567,11 +567,18 @@ function drawTrans() {
     ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < (1 - e) * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL);   // 나올 때도 나갈 때와 같은 도트 칸으로(거꾸로) 걷힌다
   }
 }
+let cut = null;                                                               // 컷씬: 배경(실제 장면)은 그대로 보이고 위아래 검은 띠 + 아래 띠에 글. 누르면 다음 줄, 아이는 정해진 곳까지 저절로 걷는다
+function startCut(c) { STATE.flags['cut_' + c.id] = true; cut = { lines: c.lines, i: 0, lt: 0, bar: 0, dur: c.dur || 3 }; P.path = []; P.act = null; marker = null; if (c.walk) goTo(c.walk[0], c.walk[1]); }
+function updCut(dt) {
+  if (!cut) return;
+  if (cut.i < cut.lines.length) { cut.bar = Math.min(1, cut.bar + dt / .5); if (cut.bar >= 1) { cut.lt += dt; if (cut.lt > cut.dur) { cut.i++; cut.lt = 0; } } }
+  else { cut.bar -= dt / .5; if (cut.bar <= 0) cut = null; }
+}
 function update(dt) {
   updLight(dt);
   if (trans) {
     if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, carrySpawn(trans.e)).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; } }); } }
-    else if (trans.phase === 'in') { trans.t += dt / 1.0; if (trans.t >= 1) trans = null; }
+    else if (trans.phase === 'in') { trans.t += dt / 1.0; if (trans.t >= 1) { const ce = trans.e.cut; trans = null; if (ce && !STATE.flags['cut_' + ce.id]) startCut(ce); } }
     return;
   }
   if (fadeDir) {
@@ -580,6 +587,7 @@ function update(dt) {
     if (fade <= 0) { fade = 0; fadeDir = 0; fadeCol = '20,14,16'; }
     return;
   }
+  updCut(dt);
   viewTick(dt);
   if (FP) { FP.a = Math.min(1, FP.a + dt / .25); FP.flash = Math.max(0, (FP.flash || 0) - dt); if (!curView()) FP = null; return; }
   if (marker) { marker.t += dt; if (marker.t > .6 && !P.path.length) marker = null; }
@@ -725,10 +733,12 @@ function draw(dt) {
   if (C.black && C.st === 'rise') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
   if (R.puzzle && R.puzzle.hud) { const cs = R.objects.filter(o => o.type === 'candle'), n = cs.filter(o => STATE.lit[o.id]).length; ctx.font = '11px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#0008'; ctx.fillRect(6, 6, 70, 16); ctx.fillStyle = '#ffe6a0'; ctx.fillText(`촛불 ${n}/${cs.length}`, 12, 18); }
   if (STATE.flags.cabin_key) { ctx.fillStyle = '#0008'; ctx.fillRect(VW - 40, 6, 34, 16); ctx.fillStyle = '#e8c050'; ctx.fillRect(VW - 34, 11, 8, 5); ctx.fillRect(VW - 27, 13, 8, 2); ctx.fillRect(VW - 21, 13, 2, 4); }
-  if (msg && msg.text) {                                                        // 글자도 도트로: 작은 캔버스에 그려 문턱값으로 깎고 2배로 키운다
-    mgX.clearRect(0, 0, 160, 24); mgX.font = 'bold 9px monospace'; mgX.textAlign = 'center'; mgX.fillStyle = '#fff'; mgX.fillText(msg.text, 80, 15);
+  const cutTxt = cut && cut.i < cut.lines.length && cut.bar >= 1 ? cut.lines[cut.i] : null;
+  if (cut) { const bh = Math.round(34 * cut.bar); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, bh); ctx.fillRect(0, VH - bh, VW, bh); }
+  if ((msg && msg.text) || cutTxt) {                                            // 글자도 도트로: 작은 캔버스에 그려 문턱값으로 깎고 2배로 키운다
+    mgX.clearRect(0, 0, 160, 24); mgX.font = 'bold 9px monospace'; mgX.textAlign = 'center'; mgX.fillStyle = '#fff'; mgX.fillText(cutTxt || msg.text, 80, 15);
     const mi = mgX.getImageData(0, 0, 160, 24), md = mi.data; for (let i = 0; i < md.length; i += 4) { const on = md[i + 3] > 110; md[i] = 255; md[i + 1] = 238; md[i + 2] = 208; md[i + 3] = on ? 255 : 0; } mgX.putImageData(mi, 0, 0);
-    ctx.fillStyle = '#0b0910'; ctx.fillRect(40, VH - 38, 240, 28); ctx.imageSmoothingEnabled = false; ctx.drawImage(mgC, 0, VH - 46, 320, 48);
+    if (!cutTxt) { ctx.fillStyle = '#0b0910'; ctx.fillRect(40, VH - 38, 240, 28); } ctx.imageSmoothingEnabled = false; ctx.drawImage(mgC, 0, VH - 46, 320, 48);
   }
   if (STATE.counts && STATE.counts.tool) { ctx.fillStyle = '#0008'; ctx.fillRect(VW - 52, 26, 46, 16); ctx.fillStyle = '#c8c8d4'; ctx.fillRect(VW - 46, 33, 14, 2); ctx.fillRect(VW - 34, 30, 4, 8); ctx.fillRect(VW - 46, 30, 3, 8); ctx.font = 'bold 9px monospace'; ctx.textAlign = 'left'; ctx.fillText('x' + STATE.counts.tool, VW - 26, 38); }   // 얻은 도구 개수(자동)   // 얻은 도구
   if (POEM) { ctx.fillStyle = 'rgba(8,6,12,.86)'; ctx.fillRect(0, 0, VW, VH); ctx.fillStyle = '#f2e8c8'; ctx.fillRect(48, 28, VW - 96, VH - 56); ctx.fillStyle = '#d8ccaa'; ctx.fillRect(48, 28, VW - 96, 3); ctx.fillStyle = '#3a2f26'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center'; POEM.lines.forEach((ln, i) => ctx.fillText(ln, VW / 2, 56 + i * 20)); ctx.textAlign = 'left'; }
@@ -742,6 +752,7 @@ const addItem = (k, n = 1) => { STATE.counts = STATE.counts || {}; STATE.counts[
 let POEM = null;                                                              // 쪽지에 적힌 글을 읽는 화면(누르면 닫힌다)
 function onDown(ev) {
   if (POEM) { POEM = null; ev.preventDefault(); return; }
+  if (cut) { ev.preventDefault(); if (cut.i < cut.lines.length && cut.bar >= 1) { cut.i++; cut.lt = 0; } return; }                    // 컷씬 중에는 누르면 다음 줄
   if (fadeDir || trans || !R || (C.st === 'rise' && C.t < 2.15)) return; ev.preventDefault(); audio();
   if (FP) { const b = cv.getBoundingClientRect(); fpPress((ev.clientX - b.left) * VW / b.width, (ev.clientY - b.top) * VH / b.height); return; }
   const b = cv.getBoundingClientRect(), X = (ev.clientX - b.left) * VW / b.width / S - R.ox, Y = (ev.clientY - b.top) * VH / b.height / S - R.oy;
