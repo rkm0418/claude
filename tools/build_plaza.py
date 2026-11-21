@@ -9,7 +9,7 @@ import layers as L
 from export_web import uri
 WEB = os.path.join(HERE, '..', 'web'); CELL = 2
 
-NOCARRY = {('rtunnel', 'annex'), ('annex', 'rtunnel'), ('annex', 'tunnel'), ('tunnel', 'annex'), ('annex', 'lounge'), ('lounge', 'annex'), ('tunnel', 'autumn'), ('autumn', 'tunnel')}   # 방향이 맞지 않는 옆문 연결은 정해 둔 자리에서 나온다
+NOCARRY = {('rtunnel', 'annex'), ('annex', 'rtunnel'), ('annex', 'tunnel'), ('tunnel', 'annex'), ('annex', 'lounge'), ('lounge', 'annex'), ('tunnel', 'autumn'), ('autumn', 'tunnel'), ('house', 'living'), ('living', 'house'), ('living', 'bath'), ('bath', 'living')}   # 방향이 맞지 않는 옆문 연결은 정해 둔 자리에서 나온다
 GEOM = {}                                                                                         # 검사기(tools/layers.py)용: 방마다 (장면, 걷는 칸, 출구 칸, 출발점, 출구)
 
 def room(s, key, label, W, D, free, start, exits, rects=(), geom=None):
@@ -122,7 +122,22 @@ def build(check=False):
     r13 = AU.build('house')                                                                       # 위로 올라간 끝: 집 앞마당(보관해 둔 기와집)
     HW, HD = r13.W, r13.D
     def free_hs(x, d): return 4 < x < HW - 4 and 4 < d < HD - 8
-    shs, rhs = room(r13, 'house', '집 앞마당', HW, HD, free_hs, [170, 40], [dict(zone=[158, 182, 0, 6], to='bend', spawn=[170, 190], type='trans', dir='F'), dict(zone=[158, 182, 138, 150], to=None, type='trans', dir='B', endMsg='집 안은 아직 만들지 않았어요')])
+    shs, rhs = room(r13, 'house', '집 앞마당', HW, HD, free_hs, [170, 40], [dict(zone=[158, 182, 0, 6], to='bend', spawn=[170, 190], type='trans', dir='F'), dict(zone=[158, 182, 142, 150], to='living', spawn=[159, 16], type='trans', dir='B')])
+    # --- 집 안: 거실을 가운데 두고 방들이 퍼진다(왼쪽 문 안방 · 오른쪽 틈 부엌 · 뒤 왼쪽 문 서재 · 뒤 오른쪽 문 욕실)
+    import render_house as HS
+    LV_FRONT, LV_SIDE, LV_STUDY, LV_BATH = HS.LV_FRONT, HS.LV_SIDE, HS.LV_STUDY, HS.LV_BATH
+    mid = (LV_SIDE[0] + LV_SIDE[1]) / 2; zs = [LV_SIDE[0] + 1, LV_SIDE[1] - 1]
+    def free_box(W, D, gx=None): return lambda x, d: (3 < x < W - 3 and 8 < d < D - 5) or (gx is not None and gx[0] < x < gx[1] and 0 <= d <= 8)
+    sli, rli = room(HS.living(), 'living', '거실', HS.LVW, HS.LVD, free_box(HS.LVW, HS.LVD, LV_FRONT), [LV_FRONT[0] + 9, 16], [
+        dict(zone=[LV_FRONT[0] + 1, LV_FRONT[1] - 1, 0, 6], to='house', spawn=[170, 140], type='trans', dir='F'),
+        dict(zone=[0, 6, zs[0], zs[1]], to='bedroom', spawn=[HS.BRW - 18, mid], type='trans', dir='L'),
+        dict(zone=[HS.LVW - 6, HS.LVW, zs[0], zs[1]], to='kitchen', spawn=[18, mid], type='trans', dir='R'),
+        dict(zone=[LV_STUDY[0] + 1, LV_STUDY[1] - 1, HS.LVD - 8, HS.LVD], to='study', spawn=[(HS.STDOOR[0] + HS.STDOOR[1]) / 2, 18], type='trans', dir='B'),
+        dict(zone=[LV_BATH[0] + 1, LV_BATH[1] - 1, HS.LVD - 8, HS.LVD], to='bath', spawn=[(HS.BADOOR[0] + HS.BADOOR[1]) / 2, 18], type='trans', dir='B')])
+    sbr, rbr = room(HS.bedroom(), 'bedroom', '안방', HS.BRW, HS.BRD, free_box(HS.BRW, HS.BRD), [HS.BRW - 18, mid], [dict(zone=[HS.BRW - 6, HS.BRW, zs[0], zs[1]], to='living', spawn=[20, mid], type='trans', dir='R')])
+    ski, rki = room(HS.kitchen(), 'kitchen', '부엌', HS.KIW, HS.KID, free_box(HS.KIW, HS.KID), [18, mid], [dict(zone=[0, 6, zs[0], zs[1]], to='living', spawn=[HS.LVW - 18, mid], type='trans', dir='L')])
+    sst, rst = room(HS.study(), 'study', '서재', HS.STW, HS.STD, free_box(HS.STW, HS.STD, HS.STDOOR), [(HS.STDOOR[0] + HS.STDOOR[1]) / 2, 18], [dict(zone=[HS.STDOOR[0] + 1, HS.STDOOR[1] - 1, 0, 6], to='living', spawn=[(LV_STUDY[0] + LV_STUDY[1]) / 2, 96], type='trans', dir='F')])
+    sba, rba = room(HS.bath(), 'bath', '욕실', HS.BAW, HS.BAD, free_box(HS.BAW, HS.BAD, HS.BADOOR), [(HS.BADOOR[0] + HS.BADOOR[1]) / 2, 18], [dict(zone=[HS.BADOOR[0] + 1, HS.BADOOR[1] - 1, 0, 6], to='living', spawn=[(LV_BATH[0] + LV_BATH[1]) / 2, 96], type='trans', dir='F')])
     r8 = C.street(True, 'out'); D8 = 480
     def free_o(x, d): return 4 < x < 171 and 2 < d < r8.erode_front - 6                          # 끝에서 뾰족하게 번져 오는 검은 이빨 앞에서 막힌다(로딩 안 된 곳)
     so, ro = room(r8, 'outroad', '터널 밖 길', 176, D8, free_o, [88, 12], [dict(zone=[24, 150, 0, 4], to='rtunnel', spawn=[(C.RV0 + C.RV1) / 2, C.RTD - 14], type='trans', dir='F')])
@@ -133,11 +148,11 @@ def build(check=False):
                 if e.get('to') and e.get('spawn'): sp.setdefault(e['to'], []).append((k, e['spawn']))
         return {k: (g, w, z, st, ex, sp.get(k, [])) for k, (g, w, z, st, ex) in GEOM.items()}
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
-    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'lounge': rl, 'tunnel': rv, 'outroad': ro, 'autumn': rau, 'scurve': rsc, 'scurve2': rsc2, 'bend': rbd, 'house': rhs}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
+    full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'lounge': rl, 'tunnel': rv, 'outroad': ro, 'autumn': rau, 'scurve': rsc, 'scurve2': rsc2, 'bend': rbd, 'house': rhs, 'living': rli, 'bedroom': rbr, 'kitchen': rki, 'study': rst, 'bath': rba}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
     h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + open(os.path.join(WEB, 'plaza_data.js'), encoding='utf-8').read() + '</script><script>' + open(os.path.join(WEB, 'game.js'), encoding='utf-8').read() + '</script>')
-    NAMES = [('plaza', '광장 · 시작'), ('corridor', '긴 복도'), ('fountain', '분수 광장'), ('recycle', '분리수거장'), ('lot', '주차장'), ('street', '거리'), ('rtunnel', '도로 터널'), ('annex', '정비 복도'), ('lounge', '휴게실'), ('tunnel', '터널'), ('outroad', '터널 밖 길'), ('autumn', '가을 낙엽길'), ('scurve', 'S자 숲길'), ('scurve2', '벤치 숲길'), ('bend', '그네 꺾인 길'), ('house', '집 앞마당')]
+    NAMES = [('plaza', '광장 · 시작'), ('corridor', '긴 복도'), ('fountain', '분수 광장'), ('recycle', '분리수거장'), ('lot', '주차장'), ('street', '거리'), ('rtunnel', '도로 터널'), ('annex', '정비 복도'), ('lounge', '휴게실'), ('tunnel', '터널'), ('outroad', '터널 밖 길'), ('autumn', '가을 낙엽길'), ('scurve', 'S자 숲길'), ('scurve2', '벤치 숲길'), ('bend', '그네 꺾인 길'), ('house', '집 앞마당'), ('living', '거실'), ('bedroom', '안방'), ('kitchen', '부엌'), ('study', '서재'), ('bath', '욕실')]
     assert [k for k, _ in NAMES] == list(full['rooms'].keys()), 'NAMES 가 방 목록과 다르다'
     ui = """<style>
 #where{position:fixed;left:8px;top:8px;z-index:9;font:14px/1.2 system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.55);border-radius:6px;padding:6px 10px;pointer-events:none}
