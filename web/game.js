@@ -553,6 +553,7 @@ const TCOLS = 20, TROWS = 15, TCELL = 16, TRANK = []; for (let i = 0; i < TCOLS 
 const panC = document.createElement('canvas'); panC.width = 320; panC.height = 240; const panX = panC.getContext('2d'); let trans = null;
 // 통로를 지나면 나가던 그 높이(가로로 나가면 d, 세로로 나가면 x) 그대로 다음 방에 나온다(걸을 수 없는 곳이면 가장 가까운 걸을 수 있는 곳으로). e.carry 가 있는 출구만.
 const carrySpawn = (e) => { const sp = e.spawn.slice(); if (e.carry) { if (e.dir === 'R' || e.dir === 'L') sp[1] = P.d; else if (e.dir === 'B' || e.dir === 'F') sp[0] = P.x; } return sp; };
+const EXIT_FACE = { R: 'r', L: 'l', B: 'u', F: 'd' };                        // 통로로 나간 방향 그대로 다음 방에서도 그쪽을 본다(예전 방향이 남지 않게)
 function startTrans(e) {                                                      // 문을 지나면: 아이는 화면에 고정, 시선이 문 쪽으로 움직이며 이전 장면이 무너지듯 검게 사라진다 → 다음 장면은 불이 켜지듯 깜빡이며 밝아진다
   const sn = document.createElement('canvas'); sn.width = VW; sn.height = VH; sn.getContext('2d').drawImage(cv, 0, 0); const v = TRAVEL[e.dir] || [1, 0];
   trans = { phase: 'out', t: 0, snap: sn, e, sv: [v[0] + v[1] * .5, -v[1] * .5] }; P.path = []; P.act = null; marker = null;
@@ -570,19 +571,20 @@ function drawTrans() {
   }
 }
 let cut = null;                                                               // 컷씬: 배경(실제 장면)은 그대로 보이고 위아래에 검은 띠만. 글 없이 카메라가 길을 따라 쭉 가서 보여 주고 아이 곁으로 돌아온다(누르면 건너뜀)
-function startCut(c) { STATE.flags['cut_' + c.id] = true; cut = { t: 0, out: c.out || 3.2, hold: c.hold || 1.2, back: c.back || 3.2, dist: c.dist || 400, bar: 0 }; cut.T = cut.out + cut.hold + cut.back; if (c.face) P.dir = c.face; P.path = []; P.act = null; marker = null; if (c.walk) goTo(c.walk[0], c.walk[1]); }
+function startCut(c) { STATE.flags['cut_' + c.id] = true; cut = { t: 0, out: c.out || 3.2, hold: c.hold || 1.2, back: c.back || 3.2, dist: c.dist || 400, bar: 0 }; cut.T = cut.out + cut.hold + cut.back; if (c.face) P.dir = c.face; P.path = []; P.act = null; marker = null; if (c.walk) { goTo(c.walk[0], c.walk[1]); cut.walking = true; } }                     // walk 가 있으면 먼저 그곳까지 걸어 나온 뒤 컷씬(띠·카메라)이 시작된다
 let skipBtn = null, skipTm = 0;                                               // 컷씬 중 화면을 한 번 누르면 오른쪽 위에 >> 가 나오고, 그걸 누르면 컷씬 전체를 건너뛴다
 function hideSkip() { if (skipBtn) skipBtn.style.display = 'none'; clearTimeout(skipTm); }
 function showSkip() {
   if (!skipBtn) {
     skipBtn = document.createElement('button'); skipBtn.textContent = '>>'; skipBtn.style.cssText = 'position:fixed;right:8px;top:48px;z-index:12;font:bold 18px system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.6);border:1px solid #aaa;border-radius:6px;padding:6px 16px;cursor:pointer;display:none';
-    skipBtn.onclick = (e) => { e.stopPropagation(); if (cut) cut.t = Math.max(cut.t, cut.T); hideSkip(); };
+    skipBtn.onclick = (e) => { e.stopPropagation(); if (cut) { cut.walking = false; cut.t = Math.max(cut.t, cut.T); } hideSkip(); };
     ['pointerdown', 'touchstart', 'mousedown'].forEach((ev) => skipBtn.addEventListener(ev, (e) => e.stopPropagation())); document.body.appendChild(skipBtn);
   }
   skipBtn.style.display = 'block'; clearTimeout(skipTm); skipTm = setTimeout(hideSkip, 3500);
 }
 function updCut(dt) {
-  if (!cut) return; cut.t += dt; const end = cut.T + .5;
+  if (!cut) return; if (cut.walking) { if (P.path.length || P.moving) { if ((cut.wt = (cut.wt || 0) + dt) < 12) return; } cut.walking = false; }   // 걸어 나오는 동안은 기다린다(12초 넘으면 그냥 시작)
+  cut.t += dt; const end = cut.T + .5;
   cut.bar = Math.max(0, Math.min(1, cut.t / .5, (end - cut.t) / .5)); if (cut.t >= end) { cut = null; hideSkip(); }
 }
 function cutPan() {                                                           // 카메라 이동 비율 0→1→0 (부드럽게)
@@ -592,14 +594,14 @@ function cutPan() {                                                           //
 function update(dt) {
   updLight(dt);
   if (trans) {
-    if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, carrySpawn(trans.e)).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; const ce = trans.e.cut; if (ce && !STATE.flags['cut_' + ce.id]) startCut(ce); } }); } }                    // 나오자마자(불이 켜지는 동안) 컷씬을 시작한다
+    if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, carrySpawn(trans.e)).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; if (EXIT_FACE[trans.e.dir]) P.dir = EXIT_FACE[trans.e.dir]; const ce = trans.e.cut; if (ce && !STATE.flags['cut_' + ce.id]) startCut(ce); } }); } }                    // 나오자마자(불이 켜지는 동안) 컷씬을 시작한다
     else if (trans.phase === 'in') { trans.t += dt / 1.0; if (trans.t >= 1) trans = null; }
     if (trans && trans.phase === 'in') updCut(dt);
     return;
   }
   if (fadeDir) {
     fade += fadeDir * dt / .22;
-    if (fade >= 1 && pending) { fade = 1; const p = pending; pending = null; enter(p.to, carrySpawn(p)).then(() => { fadeDir = -1; }); fadeDir = 0; }
+    if (fade >= 1 && pending) { fade = 1; const p = pending; pending = null; enter(p.to, carrySpawn(p)).then(() => { fadeDir = -1; if (EXIT_FACE[p.dir]) P.dir = EXIT_FACE[p.dir]; }); fadeDir = 0; }
     if (fade <= 0) { fade = 0; fadeDir = 0; fadeCol = '20,14,16'; }
     return;
   }
@@ -664,7 +666,7 @@ function drawChild() {
   const cvw = curView(); if (cvw && cvw.mode === 'adult' && adultIm) { const [ax, ay] = scr(P.x, P.d), bob = P.moving ? Math.round(Math.sin(P.t * 12)) : 0; ctx.save(); ctx.translate((R.ox + ax) * S, (R.oy + ay + 1) * S); if (['l', 'ul', 'dl'].includes(P.dir)) ctx.scale(-1, 1); ctx.drawImage(adultIm, -6.5 * S, (-38 + bob) * S, 13 * S, 38 * S); ctx.restore(); return; }
   const SEQ = K > 1 ? ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8'] : ['w1', 'w2', 'w3', 'w4'], f = P.moving ? SEQ[Math.floor(P.t * (K > 1 ? WALK_FPS_HD : WALK_FPS)) % SEQ.length] : 'idle'; const im = frames[P.dir + '_' + f]; if (!im) return;
   sprX.clearRect(0, 0, w * K, h * K); sprX.drawImage(im, 0, 0);
-  const bob = P.moving && K > 1 ? -Math.abs(Math.sin(P.t * WALK_FPS_HD * Math.PI / 4)) * .3 : 0;      // 걸을 때 몸이 살짝 오르내린다(1/K 칸 단위라 부드럽다)
+  const bob = 0;      // 걸을 때 몸이 살짝 오르내린다(1/K 칸 단위라 부드럽다)
   if (P.zr !== R || P.zs === undefined) { P.zr = R; P.zs = zAt(P.x, P.d); } else P.zs += (zAt(P.x, P.d) - P.zs) * (1 - Math.exp(-(lastDt || .016) * 24));   // 턱을 오를 때 발 높이가 부드럽게 바뀐다
   const [fx, fy0] = scr(P.x, P.d), fy = fy0 - P.zs, x0 = Math.round((fx - w / 2) * K) / K, y0 = Math.round((fy - h + 1 + bob) * K) / K, wK = w * K, hK = h * K;
   const id = sprX.getImageData(0, 0, wK, hK), a = id.data;
