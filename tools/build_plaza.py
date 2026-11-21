@@ -102,7 +102,8 @@ def build(check=False):
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < T.D - 3
-    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, T.D - 4, T.D], to='autumn', spawn=[44, 20], type='trans', dir='B', cut=dict(id='tunnel_out', face='r', walk=[150, 20], dist=400, out=7.0, hold=1.6, back=7.0))])
+    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, T.D - 4, T.D], to='autumn', spawn=[44, 20], type='trans', dir='B')])
+    rv['cutAt'] = dict(id='tunnel_out', d=T.D - 110, to=[32, T.D - 2], after=[150, 20], dist=170, out=5.0, hold=3.6, back=4.5, shot=dict(room='bend', x=126, d=66))     # 터널 끝 가까이에서 컷씬 시작: 걸어 나가며 둘러보고, 카메라가 오른쪽으로 가서 끝의 그네를 보여 주고 돌아온다
     import render_autumn as AU
     r9 = AU.build('forest')                                                                       # 가로로 쭉 이어지는 빽빽한 가을 숲(처음 만든 집 있는 시골은 build('original') 로 보관)
     AU_W, AU_D = r9.W, r9.D
@@ -149,7 +150,7 @@ def build(check=False):
         return {k: (g, w, z, st, ex, sp.get(k, [])) for k, (g, w, z, st, ex) in GEOM.items()}
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
     import gen_child_hd as HDC                                                                   # 주인공: 4배 촘촘한 도트 + 걷기 8장
-    hdf = HDC.build(); full['child'] = {'%s_%s' % (d, k): uri(im) for d, fr in hdf.items() for k, im in fr.items()}; full['childSize'] = [HDC.GW, HDC.GH]; full['childK'] = HDC.K
+    hdf = HDC.build(); full['child'] = {'%s_%s' % (d, k): uri(im) for d, fr in hdf.items() for k, im in fr.items()}; full['childSize'] = [12, 22]; full['childK'] = HDC.GW * HDC.K / 12.0; full['childKy'] = HDC.GH * HDC.K / 22.0                # 캐릭터 크기 12x22(문·가구·나무와 비율)
     full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'lounge': rl, 'tunnel': rv, 'outroad': ro, 'autumn': rau, 'scurve': rsc, 'scurve2': rsc2, 'bend': rbd, 'house': rhs, 'living': rli, 'bedroom': rbr, 'kitchen': rki, 'study': rst, 'bath': rba}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()

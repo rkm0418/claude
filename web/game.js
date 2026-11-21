@@ -573,8 +573,8 @@ function drawTrans() {
     ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < (1 - e) * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL);   // 나올 때도 나갈 때와 같은 도트 칸으로(거꾸로) 걷힌다
   }
 }
-let cut = null;                                                               // 컷씬: 배경(실제 장면)은 그대로 보이고 위아래에 검은 띠만. 글 없이 카메라가 길을 따라 쭉 가서 보여 주고 아이 곁으로 돌아온다(누르면 건너뜀)
-function startCut(c) { STATE.flags['cut_' + c.id] = true; cut = { t: 0, out: c.out || 3.2, hold: c.hold || 1.2, back: c.back || 3.2, dist: c.dist || 400, bar: 0 }; cut.T = cut.out + cut.hold + cut.back; if (c.face) P.dir = c.face; P.path = []; P.act = null; marker = null; if (c.walk) { goTo(c.walk[0], c.walk[1]); cut.walking = true; } }                     // walk 가 있으면 먼저 그곳까지 걸어 나온 뒤 컷씬(띠·카메라)이 시작된다
+let cut = null, shotImg = null;                                                               // 컷씬: 배경(실제 장면)은 그대로 보이고 위아래에 검은 띠만. 글 없이 카메라가 길을 따라 쭉 가서 보여 주고 아이 곁으로 돌아온다(누르면 건너뜀)
+function startCut(c) { STATE.flags['cut_' + c.id] = true; cut = { t: 0, out: c.out || 3.2, hold: c.hold || 1.2, back: c.back || 3.2, dist: c.dist || 400, bar: 0, after: c.after, shot: c.shot }; if (c.shot) { shotImg = new Image(); shotImg.src = G.rooms[c.shot.room].img; } cut.T = cut.out + cut.hold + cut.back; if (c.face) P.dir = c.face; P.path = []; P.act = null; marker = null; if (c.walk) { goTo(c.walk[0], c.walk[1]); cut.walking = true; } else if (c.to) { goTo(c.to[0], c.to[1]); cut.walking = true; } }                     // walk 가 있으면 먼저 그곳까지 걸어 나온 뒤 컷씬(띠·카메라)이 시작된다
 let skipBtn = null, skipTm = 0;                                               // 컷씬 중 화면을 한 번 누르면 오른쪽 위에 >> 가 나오고, 그걸 누르면 컷씬 전체를 건너뛴다
 function hideSkip() { if (skipBtn) skipBtn.style.display = 'none'; clearTimeout(skipTm); }
 function showSkip() {
@@ -587,7 +587,7 @@ function showSkip() {
 }
 function updCut(dt) {
   if (!cut) return;
-  if (cut.walking) { cut.bar = Math.min(1, cut.bar + dt / .5); if (P.path.length || P.moving) { if ((cut.wt = (cut.wt || 0) + dt) < 20) return; } cut.walking = false; cut.t = .5; }   // 걸어 나오는 것도 컷씬: 띠가 먼저 내려오고 천천히 걷는 동안 기다린다
+  if (cut.walking) { cut.bar = Math.min(1, cut.bar + dt / .5); if (P.dir === 'r') cut.lw = (cut.lw || 0) + dt; if (P.path.length || P.moving) { if ((cut.wt = (cut.wt || 0) + dt) < 20) return; } cut.walking = false; cut.t = .5; }   // 걸어 나오는 것도 컷씬: 띠가 먼저 내려오고 천천히 걷는 동안 기다린다
   cut.t += dt; const end = cut.T + .5;
   cut.bar = Math.max(0, Math.min(1, (end - cut.t) / .5)); if (cut.t >= end) { cut = null; hideSkip(); }
 }
@@ -598,7 +598,7 @@ function cutPan() {                                                           //
 function update(dt) {
   updLight(dt);
   if (trans) {
-    if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, carrySpawn(trans.e)).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; faceAfter(trans.e, trans.prev); const ce = trans.e.cut; if (ce && !STATE.flags['cut_' + ce.id]) startCut(ce); } }); } }                    // 나오자마자(불이 켜지는 동안) 컷씬을 시작한다
+    if (trans.phase === 'out') { trans.t += dt / .75; if (trans.t >= 1) { trans.phase = 'wait'; enter(trans.e.to, carrySpawn(trans.e)).then(() => { if (trans) { trans.phase = 'in'; trans.t = 0; faceAfter(trans.e, trans.prev); if (cut && cut.after) { P.dir = 'r'; goTo(cut.after[0], cut.after[1]); } const ce = trans.e.cut; if (ce && !STATE.flags['cut_' + ce.id]) startCut(ce); } }); } }                    // 나오자마자(불이 켜지는 동안) 컷씬을 시작한다
     else if (trans.phase === 'in') { trans.t += dt / 1.0; if (trans.t >= 1) trans = null; }
     if (trans && trans.phase === 'in') updCut(dt);
     return;
@@ -609,6 +609,7 @@ function update(dt) {
     if (fade <= 0) { fade = 0; fadeDir = 0; fadeCol = '20,14,16'; }
     return;
   }
+  if (R && R.cutAt && !cut && !trans && !fadeDir && !STATE.flags['cut_' + R.cutAt.id] && P.d > R.cutAt.d) startCut(R.cutAt);       // 터널 안에서 어느 지점을 넘으면 컷씬: 걸어 나가는 것부터 컷씬이다
   updCut(dt);
   viewTick(dt);
   if (FP) { FP.a = Math.min(1, FP.a + dt / .25); FP.flash = Math.max(0, (FP.flash || 0) - dt); if (!curView()) FP = null; return; }
@@ -666,17 +667,17 @@ async function enter(key, spawn) { FP = null; R = await prepare(key); room = key
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const shC = document.createElement('canvas'), shX = shC.getContext('2d'); const frames = {};
 function drawChild() {
-  const [w, h] = G.childSize, K = G.childK || 1; sprC.width = w * K; sprC.height = h * K;
+  const [w, h] = G.childSize, K = G.childK || 1, Ky = G.childKy || K, wK = Math.round(w * K), hK = Math.round(h * Ky); sprC.width = wK; sprC.height = hK;
   const cvw = curView(); if (cvw && cvw.mode === 'adult' && adultIm) { const [ax, ay] = scr(P.x, P.d), bob = P.moving ? Math.round(Math.sin(P.t * 12)) : 0; ctx.save(); ctx.translate((R.ox + ax) * S, (R.oy + ay + 1) * S); if (['l', 'ul', 'dl'].includes(P.dir)) ctx.scale(-1, 1); ctx.drawImage(adultIm, -6.5 * S, (-38 + bob) * S, 13 * S, 38 * S); ctx.restore(); return; }
-  const SEQ = K > 1 ? ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8'] : ['w1', 'w2', 'w3', 'w4'], f0 = P.moving ? SEQ[Math.floor(P.t * (K > 1 ? WALK_FPS_HD : WALK_FPS)) % SEQ.length] : 'idle', lk = cut && cut.walking && P.dir === 'r' ? ['', 'lu', '', 'ld'][Math.floor((cut.wt || 0) / 1.1) % 4] : '', f = lk ? lk + '_' + f0 : f0; const im = frames[P.dir + '_' + f] || frames[P.dir + '_' + f0]; if (!im) return;      // 컷씬에서 걸어 나오는 동안 고개를 위·아래로 돌려 주변을 둘러본다
-  sprX.clearRect(0, 0, w * K, h * K); sprX.drawImage(im, 0, 0);
+  const SEQ = K > 1 ? ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8'] : ['w1', 'w2', 'w3', 'w4'], f0 = P.moving ? SEQ[Math.floor(P.t * (K > 1 ? WALK_FPS_HD : WALK_FPS)) % SEQ.length] : 'idle', lk = cut && cut.walking && P.dir === 'r' ? ((cut.lw || 0) > .8 && cut.lw < 1.9 ? 'lu' : (cut.lw || 0) > 3.0 && cut.lw < 4.1 ? 'ld' : '') : '', f = lk ? lk + '_' + f0 : f0; const im = frames[P.dir + '_' + f] || frames[P.dir + '_' + f0]; if (!im) return;      // 컷씬에서 걸어 나오는 동안 고개를 위·아래로 돌려 주변을 둘러본다
+  sprX.clearRect(0, 0, wK, hK); sprX.drawImage(im, 0, 0);
   const bob = 0;      // 걸을 때 몸이 살짝 오르내린다(1/K 칸 단위라 부드럽다)
   if (P.zr !== R || P.zs === undefined) { P.zr = R; P.zs = zAt(P.x, P.d); } else P.zs += (zAt(P.x, P.d) - P.zs) * (1 - Math.exp(-(lastDt || .016) * 24));   // 턱을 오를 때 발 높이가 부드럽게 바뀐다
-  const [fx, fy0] = scr(P.x, P.d), fy = fy0 - P.zs, x0 = Math.round((fx - w / 2) * K) / K, y0 = Math.round((fy - h + 1 + bob) * K) / K, wK = w * K, hK = h * K;
+  const [fx, fy0] = scr(P.x, P.d), fy = fy0 - P.zs, x0 = Math.round((fx - w / 2) * S) / S, y0 = Math.round((fy - h + 1 + bob) * S) / S;      // 위치를 화면 칸에 맞춰 걸을 때 자글거리지 않게
   const id = sprX.getImageData(0, 0, wK, hK), a = id.data;
   let tot = 0, hid = 0; const hidden = new Uint8Array(wK * hK);
   for (let y = 0; y < hK; y++) for (let x = 0; x < wK; x++) {
-    const X = Math.floor(x0 + x / K), Y = Math.floor(y0 + y / K); if (X < 0 || Y < 0 || X >= R.CW || Y >= R.CH) continue;
+    const X = Math.floor(x0 + x / K), Y = Math.floor(y0 + y / Ky); if (X < 0 || Y < 0 || X >= R.CW || Y >= R.CH) continue;
     if (a[(y * wK + x) * 4 + 3] > 0) { tot++; if (R.dep[Y * R.CW + X] < P.d - .5 - 2 * Math.max(0, Y + 1 - fy)) { hid++; hidden[y * wK + x] = 1; } }      // 발 줄 근처는 바닥 자체(발 아래 한 줄은 d 가 2 작다)를 가림으로 착각하지 않게 여유를 준다
   }
   // 80% 이상 가려지면 가린 물체를 투시(반투명)해서 아이를 보여 준다(서서히 바뀐다). 그보다 덜 가려질 때는 지금처럼 물체가 앞에서 덮는다.
@@ -687,11 +688,11 @@ function drawChild() {
     for (let y = 0; y < SH * K; y++) for (let x = 0; x < SW * K; x++) {
       const u = ((x + .5) / K - SW / 2) / 5.6, v = ((y + .5) / K - SH / 2) / 2, q = u * u + v * v; if (q >= 1) continue;
       const X = Math.floor(sx0 + x / K), Y = Math.floor(sy0 + y / K); if (X < 0 || Y < 0 || X >= R.CW || Y >= R.CH) continue;
-      if (R.dep[Y * R.CW + X] < P.d - .5 - 2 * Math.max(0, Y + 1 - fy)) continue;
+      if (R.dep[Y * R.CW + X] < P.d - 3 - 2 * Math.max(0, Y + 1 - fy)) continue;
       const i = (y * SW * K + x) * 4; sa[i] = 6; sa[i + 1] = 4; sa[i + 2] = 10; sa[i + 3] = q < .45 ? 120 : 76;
     }
     shX.putImageData(sid, 0, 0); ctx.drawImage(shC, (R.ox + sx0) * S, (R.oy + sy0) * S, SW * S, SH * S); }
-  sprX.putImageData(id, 0, 0); ctx.drawImage(sprC, (R.ox + x0) * S, (R.oy + y0) * S, w * S, h * S);
+  sprX.putImageData(id, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(sprC, (R.ox + x0) * S, (R.oy + y0) * S, w * S, h * S); ctx.imageSmoothingEnabled = false;      // 고해상도 그림을 부드럽게 줄여 그린다(걸을 때 자글자글하지 않게)
 }
 let lastDt = .016;
 function draw(dt) {
@@ -767,6 +768,10 @@ function draw(dt) {
   if (C.black && C.st === 'rise') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
   if (R.puzzle && R.puzzle.hud) { const cs = R.objects.filter(o => o.type === 'candle'), n = cs.filter(o => STATE.lit[o.id]).length; ctx.font = '11px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#0008'; ctx.fillRect(6, 6, 70, 16); ctx.fillStyle = '#ffe6a0'; ctx.fillText(`촛불 ${n}/${cs.length}`, 12, 18); }
   if (STATE.flags.cabin_key) { ctx.fillStyle = '#0008'; ctx.fillRect(VW - 40, 6, 34, 16); ctx.fillStyle = '#e8c050'; ctx.fillRect(VW - 34, 11, 8, 5); ctx.fillRect(VW - 27, 13, 8, 2); ctx.fillRect(VW - 21, 13, 2, 4); }
+  if (cut && cut.shot && shotImg && shotImg.complete && !cut.walking) {                                 // 지도 끝에 있는 그네: 그 방의 그림을 서서히 겹쳐 보여 준다
+    const rr = G.rooms[cut.shot.room], tt = cut.t - .5, a = Math.max(0, Math.min(1, (tt - (cut.out - 1.4)) / 1.4, (cut.out + cut.hold + 1.4 - tt) / 1.4)), Xs = rr.X0 + cut.shot.x + .5 * cut.shot.d, Ys = rr.Y0 - .5 * cut.shot.d - 10;
+    if (a > 0) { ctx.save(); ctx.globalAlpha = a; ctx.imageSmoothingEnabled = false; ctx.drawImage(shotImg, Math.round(VW / 2 - Xs * S), Math.round(VH / 2 - Ys * S), rr.CW * S, rr.CH * S); ctx.restore(); }
+  }
   if (cut) { const bh = Math.round(34 * cut.bar); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, bh); ctx.fillRect(0, VH - bh, VW, bh); }
   if (msg && msg.text) {                                            // 글자도 도트로: 작은 캔버스에 그려 문턱값으로 깎고 2배로 키운다
     mgX.clearRect(0, 0, 160, 24); mgX.font = 'bold 9px monospace'; mgX.textAlign = 'center'; mgX.fillStyle = '#fff'; mgX.fillText(msg.text, 80, 15);
