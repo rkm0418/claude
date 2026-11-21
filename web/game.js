@@ -490,6 +490,33 @@ function goTo(x, d) {
   raw[0] = [P.x, P.d]; P.path = smooth(raw).slice(1); marker = { x: raw[raw.length - 1][0], d: raw[raw.length - 1][1], t: 0 };
 }
 
+// ---------- 조이스틱: 누르고 있을 때만 나타나는 떠 있는 조이스틱(누른 자리가 중심). 끌면 그 방향으로 걷는다 ----------
+let JOY = null; const JOY_R = 44;
+const joyBase = document.createElement('div'), joyKnob = document.createElement('div');
+joyBase.style.cssText = 'position:fixed;width:' + JOY_R * 2 + 'px;height:' + JOY_R * 2 + 'px;margin:-' + JOY_R + 'px 0 0 -' + JOY_R + 'px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(0,0,0,.2);pointer-events:none;z-index:9;display:none';
+joyKnob.style.cssText = 'position:fixed;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgba(255,255,255,.55);border:2px solid rgba(255,255,255,.8);pointer-events:none;z-index:10;display:none';
+document.body.appendChild(joyBase); document.body.appendChild(joyKnob); document.body.style.touchAction = 'none';
+function joyShow() { joyBase.style.left = JOY.x0 + 'px'; joyBase.style.top = JOY.y0 + 'px'; joyKnob.style.left = JOY.x + 'px'; joyKnob.style.top = JOY.y + 'px'; joyBase.style.display = joyKnob.style.display = 'block'; }
+function joyHide() { joyBase.style.display = joyKnob.style.display = 'none'; }
+function joyMove(ev) {
+  if (!JOY || ev.pointerId !== JOY.id) return; let dx = ev.clientX - JOY.x0, dy = ev.clientY - JOY.y0; const r = Math.hypot(dx, dy);
+  if (r > 10) JOY.moved = true;
+  if (r > JOY_R) { dx *= JOY_R / r; dy *= JOY_R / r; }
+  JOY.x = JOY.x0 + dx; JOY.y = JOY.y0 + dy; const rr = Math.min(r, JOY_R);
+  if (r < 8) { JOY.mag = 0; } else { JOY.mag = Math.min(1, (rr - 8) / (JOY_R - 8) * 1.6); JOY.vx = dx / (Math.hypot(dx, dy) || 1); JOY.vy = dy / (Math.hypot(dx, dy) || 1); }
+  joyShow();
+}
+function stepJoy(dt) {
+  const sp = SPEED * dt * Math.min(1, JOY.mag), nx = P.x + (JOY.vx + JOY.vy) * sp, nd = P.d - 2 * JOY.vy * sp, ok = (x, d) => isFree(...cellOf(x, d));      // 화면 방향 → 바닥 이동(dx = X + Y, dd = -2Y)
+  if (ok(nx, nd)) { P.x = nx; P.d = nd; } else if (ok(nx, P.d)) P.x = nx; else if (ok(P.x, nd)) P.d = nd;                 // 벽에 닿으면 벽을 따라 미끄러진다
+  P.dir = DIRS[((Math.round(Math.atan2(JOY.vy, JOY.vx) / (Math.PI / 4)) % 8) + 8) % 8];
+}
+document.addEventListener('pointermove', joyMove);
+const joyUp = (ev) => {
+  if (!JOY || ev.pointerId !== JOY.id) return; const j = JOY; JOY = null; joyHide();
+  if (!j.moved && performance.now() - j.t0 < 500 && ev.type === 'pointerup') { ripple(j.x0, j.y0); onDown({ clientX: j.x0, clientY: j.y0, preventDefault() {}, target: ev.target }); }     // 짧게 톡 누르면 문·통로·물건만 반응(맨바닥은 반응 없음)
+};
+document.addEventListener('pointerup', joyUp); document.addEventListener('pointercancel', joyUp);
 // ---------- 움직임 ----------
 const lbC = document.createElement('canvas'); lbC.width = 160; lbC.height = 10; const lbX = lbC.getContext('2d', { willReadFrequently: true }); let lbKey = '', lbW = 0;
 function drawLabel() {                                                          // 장면 번호표: #037 눈 숲길 3 (주소에 #nolabel 이 있으면 숨김)
@@ -647,7 +674,9 @@ function update(dt) {
       }
     } else if (!o.kind) msg = { text: '조금 더 가까이 가야 한다', t: 1 };
   }
-  if (!P.path.length) { P.moving = false; P.t = 0; return; }
+  const joyOn = !!(JOY && JOY.mag > 0 && !cut && !trans && !fadeDir);
+  if (joyOn) { P.path = []; P.act = null; marker = null; stepJoy(dt); }
+  if (!P.path.length && !joyOn) { P.moving = false; P.t = 0; return; }
   const slow = cut && cut.walking ? .5 : 1; let left = SPEED * slow * dt; P.moving = true; P.t += dt * slow;      // 컷씬의 걸어 나오기는 천천히
   while (left > 0 && P.path.length) {
     const [tx, td] = P.path[0], dist = sdist(P.x, P.d, tx, td);
@@ -802,13 +831,18 @@ function onDown(ev) {
   if (eh) { audio(); P.act = null; const z = eh.zone; goTo((z[0] + z[1]) / 2, (z[2] + z[3]) / 2); return; }            // 문·통로를 어느 부분이든 누르면 그 문까지 걸어가 다음 공간으로 넘어간다
   audio(); const o = R.objects.find(o => { if (o.reach === 0 || (o.need && !STATE.flags[o.need])) return false; const [ox, oy] = scr(o.x, o.d); return Math.hypot(X - ox, Y - (oy - (o.z || 0) - (o.h || 28) / 2)) < (o.rad || (o.type === 'note' || o.type === 'poem' || o.type === 'key' || o.type === 'book' ? 9 : 12)); });   // 등불 기둥 근처를 눌렀는가
   if (o) { P.act = o; goTo(o.x, o.d + 8); if (!P.path.length && sdist(P.x, P.d, o.x, o.d) < 14) { /* 이미 곁에 있다 */ } return; }
-  P.act = null; goTo(x, d);
+  P.act = null;                                                                                    // 맨바닥을 톡 눌러도 걷지 않는다(조이스틱으로만 움직인다)
 }
 function ripple(cx, cy) {                                                         // 눌린 곳 표시: 화면(캔버스) 안팎 어디든 누른 자리에 번지는 동그라미
   const e = document.createElement('div'); e.style.cssText = 'position:fixed;left:' + cx + 'px;top:' + cy + 'px;width:12px;height:12px;margin:-6px 0 0 -6px;border:2px solid #ffe3a0;border-radius:50%;background:rgba(255,227,160,.25);pointer-events:none;z-index:8;transition:transform .55s ease-out,opacity .55s ease-out;transform:scale(.4);opacity:1';
   document.body.appendChild(e); requestAnimationFrame(() => requestAnimationFrame(() => { e.style.transform = 'scale(3.2)'; e.style.opacity = '0'; })); setTimeout(() => e.remove(), 650);
 }
-document.addEventListener('pointerdown', (ev) => { if (ev.target.closest && ev.target.closest('button')) return; ripple(ev.clientX, ev.clientY); onDown(ev); });   // 캔버스 밖(검은 여백)을 눌러도 그 방향으로 이동하고 표시가 뜬다
+document.addEventListener('pointerdown', (ev) => {
+  if (ev.target.closest && ev.target.closest('button')) return;
+  if (POEM || cut || FP) { ripple(ev.clientX, ev.clientY); onDown(ev); return; }                                     // 쪽지·컷씬·1인칭 화면은 예전처럼
+  if (fadeDir || trans || !R || (C.st === 'rise' && C.t < 2.15)) return;
+  audio(); JOY = { id: ev.pointerId, x0: ev.clientX, y0: ev.clientY, x: ev.clientX, y: ev.clientY, t0: performance.now(), moved: false, mag: 0, vx: 0, vy: 0 }; joyShow();      // 누르면 그 자리에 조이스틱이 나타난다
+});   // 캔버스 밖(검은 여백)을 눌러도 그 방향으로 이동하고 표시가 뜬다
 document.getElementById('dbg').addEventListener('click', () => { debug = !debug; });
 function fit() { const k = Math.max(1, Math.floor(Math.min(innerWidth / VW, innerHeight / VH))); cv.style.width = VW * k + 'px'; cv.style.height = VH * k + 'px'; }
 addEventListener('resize', fit); fit();
