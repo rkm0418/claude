@@ -59,10 +59,16 @@ def build():
     arr = np.array(cv.convert('RGBa').resize((W, H), Image.LANCZOS).convert('RGBA')); arr[..., 3] = np.where(arr[..., 3] >= 128, 255, 0)
     return Image.fromarray(arr, 'RGBA')
 
+def orig_hd(rows=27):
+    """원래 곰(art/out/sprites/bear_green_A.png, 24x32)의 모습 그대로 도트 수만 4배(가로세로 두 번 Scale2x → 96x108)로 늘린다. 앉아 있게 보이도록 아래 5줄(발)은 자른다."""
+    import gen_child_hd as G
+    src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA').crop((0, 0, 24, rows))
+    return Image.fromarray(G.scale2x(G.scale2x(np.array(src))), 'RGBA')
+
 def pix(im, size=(24, 34), thr=120):
     """네모네모한 도트판(게임 화면 한 칸 단위, 24x34 = 게임 크기 12x17 × 2): 또렷한 네모 도트로 줄인다."""
     a = np.array(im.convert('RGBa').resize(size, Image.BOX).convert('RGBA')); a[..., 3] = np.where(a[..., 3] >= thr, 255, 0); return Image.fromarray(a, 'RGBA')
 
 if __name__ == '__main__':
-    im = build(); im.save(OUT); pix(im).save(OUT.replace('bear_hd', 'bear_px')); S = 8; sh = Image.new('RGBA', (im.width * S + 20, im.height * S + 20), (44, 48, 64, 255)); sh.alpha_composite(im.resize((im.width * S, im.height * S), Image.NEAREST), (10, 10))
+    im = build(); im.save(OUT); pix(im).save(OUT.replace('bear_hd', 'bear_px')); orig_hd().save(OUT.replace('bear_hd', 'bear_orig_hd')); S = 8; sh = Image.new('RGBA', (im.width * S + 20, im.height * S + 20), (44, 48, 64, 255)); sh.alpha_composite(im.resize((im.width * S, im.height * S), Image.NEAREST), (10, 10))
     sh.save(os.path.join(HERE, '..', 'maps', 'out', 'bear_hd_sheet.png')); print('bear_hd', im.size)
