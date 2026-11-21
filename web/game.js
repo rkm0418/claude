@@ -725,7 +725,7 @@ function drawChild() {
       const i = (y * SW * K + x) * 4; sa[i] = 6; sa[i + 1] = 4; sa[i + 2] = 10; sa[i + 3] = q < .45 ? 120 : 76;
     }
     shX.putImageData(sid, 0, 0); ctx.drawImage(shC, (R.ox + sx0) * S, (R.oy + sy0) * S, SW * S, SH * S); }
-  sprX.putImageData(id, 0, 0); ctx.imageSmoothingEnabled = false; ctx.drawImage(sprC, (R.ox + x0) * S, (R.oy + y0) * S, w * S, h * S); ctx.imageSmoothingEnabled = false;      // 고해상도 그림을 부드럽게 줄여 그린다(걸을 때 자글자글하지 않게)
+  sprX.putImageData(id, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(sprC, (R.ox + x0) * S, (R.oy + y0) * S, w * S, h * S); ctx.imageSmoothingEnabled = false;      // 고해상도 그림을 부드럽게 줄여 그린다(걸을 때 자글자글하지 않게)
 }
 let lastDt = .016;
 function draw(dt) {

@@ -150,7 +150,7 @@ def build(check=False):
         return {k: (g, w, z, st, ex, sp.get(k, [])) for k, (g, w, z, st, ex) in GEOM.items()}
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
     import gen_child_hd as HDC                                                                   # 주인공: 4배 촘촘한 도트 + 걷기 8장
-    hdf = HDC.build(); full['child'] = {'%s_%s' % (d, k): uri(HDC.pix(im)) for d, fr in hdf.items() for k, im in fr.items()}; full['childSize'] = [12, 22]; full['childK'] = 2.0; full['childKy'] = 2.0                # 캐릭터 크기 12x22(문·가구·나무와 비율)
+    hdf = HDC.build(); full['child'] = {'%s_%s' % (d, k): uri(im) for d, fr in hdf.items() for k, im in fr.items()}; full['childSize'] = [12, 22]; full['childK'] = HDC.GW * HDC.K / 12.0; full['childKy'] = HDC.GH * HDC.K / 22.0                # 캐릭터 크기 12x22(문·가구·나무와 비율)
     full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'lounge': rl, 'tunnel': rv, 'outroad': ro, 'autumn': rau, 'scurve': rsc, 'scurve2': rsc2, 'bend': rbd, 'house': rhs, 'living': rli, 'bedroom': rbr, 'kitchen': rki, 'study': rst, 'bath': rba}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
