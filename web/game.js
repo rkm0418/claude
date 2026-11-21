@@ -8,7 +8,7 @@ const VW = 320, VH = 240; let S = 2;            // 논리 화면, 그림 배율(
 const CELL = 2;                              // 길찾기 격자 한 칸 = 바닥 2px
 const BODY = { rx: 4, rd: 2.2 };             // 아이 발 자리(가구와 벽에서 띄우는 여유)
 const SPEED = 36;                            // 화면에서 느끼는 걸음 속도(그림 px/초)
-const WALK_FPS = 7, WALK_FPS_HD = 8;                                              // 고해상도 걷기(8장)는 더 빠르게 넘겨 부드럽게
+const SHOW_MARKER = false, WALK_FPS = 7, WALK_FPS_HD = 8;                                              // 고해상도 걷기(8장)는 더 빠르게 넘겨 부드럽게
 const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0도(오른쪽)부터 시계 방향 45도씩
 let fadeCol = '20,14,16'; const TRAVEL = { L: [-1, 0], R: [1, 0], B: [0, 1], F: [0, -1] }; let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
@@ -668,7 +668,7 @@ const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); con
 function drawChild() {
   const [w, h] = G.childSize, K = G.childK || 1; sprC.width = w * K; sprC.height = h * K;
   const cvw = curView(); if (cvw && cvw.mode === 'adult' && adultIm) { const [ax, ay] = scr(P.x, P.d), bob = P.moving ? Math.round(Math.sin(P.t * 12)) : 0; ctx.save(); ctx.translate((R.ox + ax) * S, (R.oy + ay + 1) * S); if (['l', 'ul', 'dl'].includes(P.dir)) ctx.scale(-1, 1); ctx.drawImage(adultIm, -6.5 * S, (-38 + bob) * S, 13 * S, 38 * S); ctx.restore(); return; }
-  const SEQ = K > 1 ? ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8'] : ['w1', 'w2', 'w3', 'w4'], f = P.moving ? SEQ[Math.floor(P.t * (K > 1 ? WALK_FPS_HD : WALK_FPS)) % SEQ.length] : 'idle'; const im = frames[P.dir + '_' + f]; if (!im) return;
+  const SEQ = K > 1 ? ['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7', 'w8'] : ['w1', 'w2', 'w3', 'w4'], f0 = P.moving ? SEQ[Math.floor(P.t * (K > 1 ? WALK_FPS_HD : WALK_FPS)) % SEQ.length] : 'idle', lk = cut && cut.walking && P.dir === 'r' ? ['', 'lu', '', 'ld'][Math.floor((cut.wt || 0) / 1.1) % 4] : '', f = lk ? lk + '_' + f0 : f0; const im = frames[P.dir + '_' + f] || frames[P.dir + '_' + f0]; if (!im) return;      // 컷씬에서 걸어 나오는 동안 고개를 위·아래로 돌려 주변을 둘러본다
   sprX.clearRect(0, 0, w * K, h * K); sprX.drawImage(im, 0, 0);
   const bob = 0;      // 걸을 때 몸이 살짝 오르내린다(1/K 칸 단위라 부드럽다)
   if (P.zr !== R || P.zs === undefined) { P.zr = R; P.zs = zAt(P.x, P.d); } else P.zs += (zAt(P.x, P.d) - P.zs) * (1 - Math.exp(-(lastDt || .016) * 24));   // 턱을 오를 때 발 높이가 부드럽게 바뀐다
@@ -713,7 +713,7 @@ function draw(dt) {
     for (const e of R.exits) for (let x = e.zone[0]; x <= e.zone[1]; x += 2) for (let d = e.zone[2]; d <= e.zone[3]; d += 2) dot(x, d, '#fd4a');
     let px = P.x, pd = P.d; for (const [x, d] of P.path) { const n = Math.ceil(sdist(px, pd, x, d)); for (let k = 0; k <= n; k++) dot(px + (x - px) * k / n, pd + (d - pd) * k / n, '#fff'); px = x; pd = d; }
   }
-  if (marker) {                                   // 누른 자리: 바닥에 퍼지는 고리
+  if (marker && SHOW_MARKER) {                    // 누른 자리: 바닥에 퍼지는 고리(지금은 끔: 걸을 때 바닥 표시가 뜨지 않는다)
     const [X, Y1] = scr(marker.x, marker.d), Y = Y1 - zAt(marker.x, marker.d), k = Math.min(1, marker.t / .35), rx = 2 + 5 * k; ctx.strokeStyle = `rgba(255,236,190,${.9 - .6 * k})`; ctx.lineWidth = S;
     ctx.beginPath(); ctx.ellipse((R.ox + X) * S, (R.oy + Y) * S, rx * S, rx * S / 2, 0, 0, Math.PI * 2); ctx.stroke();
   }
