@@ -37,7 +37,7 @@ CX = GW * K / 2.0
 
 def _tab(pts, y):
     ys = [p[0] for p in pts]; return float(np.interp(y, ys, [p[1] for p in pts]))
-HALF = ((57, 4.2), (60.5, 7.8), (63, 11.2), (66, 12.9), (70, 12.5), (75, 11.0), (80, 11.3), (85, 12.5))   # 몸통 가로 반폭(어깨는 비스듬히, 허리는 살짝 잘록, 밑단은 퍼짐)
+HALF = ((57, 4.2), (60, 6.4), (63, 9.4), (66, 11.6), (70, 12.2), (76, 12.6), (81, 13.0), (85.5, 13.6))        # 스웨터 실루엣: 어깨가 비스듬히 흘러내려 소매로 이어지고 밑단으로 갈수록 살짝 넓다   # 몸통 가로 반폭(어깨는 비스듬히, 허리는 살짝 잘록, 밑단은 퍼짐)
 
 def _stamp(draw, pts, rs, fill, dx=0.0):
     """경로를 따라 원을 찍어 굵기가 변하는 둥근 팔다리를 만든다(좌표는 4배 캔버스)."""
@@ -77,7 +77,7 @@ def body(theta_deg, phi, amp):
     # --- 팔: 같은 쪽 다리와 반대로 흔든다
     for s in (-1, 1):
         ph = phi + (math.pi if s < 0 else 0); sw = amp * math.sin(ph)
-        sh = (s * 14.2, 65.0, 0.0); el = (s * 15.3, 73.5, 2.4 * sw + .6); hd_ = (s * 15.0, 83.0, 5.2 * sw)
+        sh = (s * 10.8, 64.2, 0.0); el = (s * 15.4, 74.0, 2.4 * sw + .6); hd_ = (s * 19.0, 83.2, 5.2 * sw)                 # 소매가 어깨에서 바깥으로 비스듬히 내려온다(A 모양)
         P_ = [(pr(sh[0], sh[2]), sh[1]), (pr(el[0], el[2]), el[1]), (pr(hd_[0], hd_[2]), hd_[1])]
         parts.append((dep(hd_[0], hd_[2]) + (.5 if dep(sh[0], sh[2]) > 0 else -.5), 'arm', P_, (pr(hd_[0], hd_[2]), hd_[1] + 2.0), hd_))
     parts.sort(key=lambda p: p[0])
@@ -99,7 +99,7 @@ def body(theta_deg, phi, amp):
         # 밑단: 아래가 살짝 어두운 띠 + 허리 주름
         band = Image.new('L', canvas.size, 0); ImageDraw.Draw(band).rectangle([0, 82.6 * SS, W_ * SS, 85.8 * SS], fill=255); canvas.paste(Image.new('RGBA', canvas.size, SW_[2] + (255,)), (0, 0), Image.composite(band, Image.new('L', canvas.size, 0), sil))
         fm = Image.new('L', canvas.size, 0); fd = ImageDraw.Draw(fm)
-        for (x0, y0, x1, y1) in ((-6, 72, -2, 76.5), (3.5, 71, 7, 74.5), (-3, 79, 2, 80.5)):
+        for (x0, y0, x1, y1) in ((-5.2, 63.2, -11.0, 71.5), (5.2, 63.2, 11.0, 71.5), (-4, 76.5, 0, 78.5), (4.5, 74.5, 7.5, 77)):
             fd.line([(pr(x0, 0) * SS, y0 * SS), (pr(x1, 0) * SS, y1 * SS)], fill=255, width=int(1.4 * SS))
         canvas.paste(Image.new('RGBA', canvas.size, SW_[2] + (255,)), (0, 0), Image.composite(fm, Image.new('L', canvas.size, 0), sil))
         # 목둘레(둥근 깃): 앞에서는 안에 살갗, 뒤에서는 깃만
@@ -120,8 +120,10 @@ def body(theta_deg, phi, amp):
             b2 = Image.new('L', canvas.size, 0); ImageDraw.Draw(b2).ellipse([(cxx - rxs - .4) * SS, (cyy - 2.9) * SS, (cxx + rxs - .8) * SS, (cyy + 1.6) * SS], fill=255)
             put(sc, b2, Image.new('L', canvas.size, 0), SHO, ring)
         else:
-            limb(pts, (3.9, 3.3), SW_)
-            hx, hy = tip; hr = 2.5; E = lambda r_, dx_=0.0, dy_=0.0: [(hx - r_ + dx_) * SS, (hy - r_ + dy_) * SS, (hx + r_ + dx_) * SS, (hy + r_ + dy_) * SS]
+            limb(pts, (4.7, 3.6), SW_)
+            cm = Image.new('L', canvas.size, 0); ImageDraw.Draw(cm).ellipse([(pts[2][0] - 3.7) * SS, (pts[2][1] - 3.7) * SS, (pts[2][0] + 3.7) * SS, (pts[2][1] + 3.7) * SS], fill=255)       # 소매 끝(골)
+            canvas.paste(Image.new('RGBA', canvas.size, A_ + (255,)), (0, 0), cm); cm2 = Image.new('L', canvas.size, 0); ImageDraw.Draw(cm2).ellipse([(pts[2][0] - 3.3) * SS, (pts[2][1] - 3.3) * SS, (pts[2][0] + 3.3) * SS, (pts[2][1] + 3.3) * SS], fill=255); canvas.paste(Image.new('RGBA', canvas.size, SW_[2] + (255,)), (0, 0), cm2)
+            hx, hy = tip; hr = 2.4; hy = hy + 0.6; E = lambda r_, dx_=0.0, dy_=0.0: [(hx - r_ + dx_) * SS, (hy - r_ + dy_) * SS, (hx + r_ + dx_) * SS, (hy + r_ + dy_) * SS]
             hm = Image.new('L', canvas.size, 0); ImageDraw.Draw(hm).ellipse(E(hr), fill=255)
             hb = Image.new('L', canvas.size, 0); ImageDraw.Draw(hb).ellipse(E(hr * .9, -.5, -.3), fill=255)
             ring = Image.new('L', canvas.size, 0); ImageDraw.Draw(ring).ellipse(E(hr + RING), fill=255)
