@@ -138,6 +138,10 @@ def body(theta_deg, phi, amp):
     arr = np.array(canvas.convert('RGBa').resize((W_, H_), Image.LANCZOS).convert('RGBA')); arr[..., 3] = np.where(arr[..., 3] >= 128, 255, 0)
     return Image.fromarray(arr, 'RGBA')
 
+def pix(im, size=(24, 44), thr=120):
+    """게임에서 쓰는 네모난 도트판: 고해상도를 게임 화면 한 화소(캔버스 1칸) 단위(24x44, 게임 크기 12x22 × 2)로 줄여 또렷한 네모 도트로 만든다."""
+    a = np.array(im.convert('RGBa').resize(size, Image.BOX).convert('RGBA')); a[..., 3] = np.where(a[..., 3] >= thr, 255, 0); return Image.fromarray(a, 'RGBA')
+
 YAW = {'d': 0, 'dr': 45, 'r': 90, 'ur': 135, 'u': 180, 'ul': 225, 'l': 270, 'dl': 315}
 NW = 8                                                                # 걷기 장 수(한 걸음 주기를 8장으로)
 
