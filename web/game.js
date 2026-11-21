@@ -8,7 +8,7 @@ const VW = 320, VH = 240; let S = 2;            // 논리 화면, 그림 배율(
 const CELL = 2;                              // 길찾기 격자 한 칸 = 바닥 2px
 const BODY = { rx: 4, rd: 2.2 };             // 아이 발 자리(가구와 벽에서 띄우는 여유)
 const SPEED = 46;                            // 화면에서 느끼는 걸음 속도(그림 px/초)
-const WALK_FPS = 7;
+const WALK_FPS = 7, WALK_FPS_HD = 13;                                              // 고해상도 걷기(8장)는 더 빠르게 넘겨 부드럽게
 const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0도(오른쪽)부터 시계 방향 45도씩
 let fadeCol = '20,14,16'; const TRAVEL = { L: [-1, 0], R: [1, 0], B: [0, 1], F: [0, -1] }; let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
@@ -647,16 +647,17 @@ async function enter(key, spawn) { FP = null; R = await prepare(key); room = key
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const frames = {};
 function drawChild() {
-  const [w, h] = G.childSize; sprC.width = w; sprC.height = h;
+  const [w, h] = G.childSize, K = G.childK || 1; sprC.width = w * K; sprC.height = h * K;
   const cvw = curView(); if (cvw && cvw.mode === 'adult' && adultIm) { const [ax, ay] = scr(P.x, P.d), bob = P.moving ? Math.round(Math.sin(P.t * 12)) : 0; ctx.save(); ctx.translate((R.ox + ax) * S, (R.oy + ay + 1) * S); if (['l', 'ul', 'dl'].includes(P.dir)) ctx.scale(-1, 1); ctx.drawImage(adultIm, -6.5 * S, (-38 + bob) * S, 13 * S, 38 * S); ctx.restore(); return; }
-  const f = P.moving ? 'w' + (1 + (Math.floor(P.t * WALK_FPS) % 4)) : 'idle'; const im = frames[P.dir + '_' + f]; if (!im) return;
-  sprX.clearRect(0, 0, w, h); sprX.drawImage(im, 0, 0);
-  const [fx, fy0] = scr(P.x, P.d), fy = fy0 - zAt(P.x, P.d), x0 = Math.round(fx - w / 2), y0 = Math.round(fy - h + 1);
-  const id = sprX.getImageData(0, 0, w, h), a = id.data;
-  let tot = 0, hid = 0; const hidden = new Uint8Array(w * h);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const X = x0 + x, Y = y0 + y; if (X < 0 || Y < 0 || X >= R.CW || Y >= R.CH) continue;
-    if (a[(y * w + x) * 4 + 3] > 0) { tot++; if (R.dep[Y * R.CW + X] < P.d - .5) { hid++; hidden[y * w + x] = 1; } }
+  const SEQ = K > 1 ? ['w1', 'm1', 'w2', 'm2', 'w3', 'm3', 'w4', 'm4'] : ['w1', 'w2', 'w3', 'w4'], f = P.moving ? SEQ[Math.floor(P.t * (K > 1 ? WALK_FPS_HD : WALK_FPS)) % SEQ.length] : 'idle'; const im = frames[P.dir + '_' + f]; if (!im) return;
+  sprX.clearRect(0, 0, w * K, h * K); sprX.drawImage(im, 0, 0);
+  const bob = P.moving && K > 1 ? -Math.abs(Math.sin(P.t * WALK_FPS_HD * Math.PI / 2)) * .75 : 0;      // 걸을 때 몸이 살짝 오르내린다(1/K 칸 단위라 부드럽다)
+  const [fx, fy0] = scr(P.x, P.d), fy = fy0 - zAt(P.x, P.d), x0 = Math.round((fx - w / 2) * K) / K, y0 = Math.round((fy - h + 1 + bob) * K) / K, wK = w * K, hK = h * K;
+  const id = sprX.getImageData(0, 0, wK, hK), a = id.data;
+  let tot = 0, hid = 0; const hidden = new Uint8Array(wK * hK);
+  for (let y = 0; y < hK; y++) for (let x = 0; x < wK; x++) {
+    const X = Math.floor(x0 + x / K), Y = Math.floor(y0 + y / K); if (X < 0 || Y < 0 || X >= R.CW || Y >= R.CH) continue;
+    if (a[(y * wK + x) * 4 + 3] > 0) { tot++; if (R.dep[Y * R.CW + X] < P.d - .5) { hid++; hidden[y * wK + x] = 1; } }
   }
   // 80% 이상 가려지면 가린 물체를 투시(반투명)해서 아이를 보여 준다(서서히 바뀐다). 그보다 덜 가려질 때는 지금처럼 물체가 앞에서 덮는다.
   const target = tot && hid / tot >= .8 ? 1 : 0; P.st = (P.st || 0) + (target - (P.st || 0)) * (1 - Math.exp(-(lastDt || .016) * 9));

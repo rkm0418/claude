@@ -148,6 +148,8 @@ def build(check=False):
                 if e.get('to') and e.get('spawn'): sp.setdefault(e['to'], []).append((k, e['spawn']))
         return {k: (g, w, z, st, ex, sp.get(k, [])) for k, (g, w, z, st, ex) in GEOM.items()}
     data = open(os.path.join(WEB, 'data.js'), encoding='utf-8').read(); full = json.loads(data[data.index('{'):data.rindex('}') + 1])
+    import gen_child_hd as HDC                                                                   # 주인공: 4배 촘촘한 도트 + 걷기 8장
+    hdf = HDC.build(); full['child'] = {'%s_%s' % (d, k): uri(im) for d, fr in hdf.items() for k, im in fr.items()}; full['childSize'] = [HDC.GW, HDC.GH]; full['childK'] = HDC.K
     full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'lounge': rl, 'tunnel': rv, 'outroad': ro, 'autumn': rau, 'scurve': rsc, 'scurve2': rsc2, 'bend': rbd, 'house': rhs, 'living': rli, 'bedroom': rbr, 'kitchen': rki, 'study': rst, 'bath': rba}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
