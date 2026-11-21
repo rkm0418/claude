@@ -121,7 +121,7 @@ def build(check=False):
     def free_bd(x, d): return 4 < x < BW - 4 and 4 < d < BD - 8
     sbd, rbd = room(r12, 'bend', '그네 꺾인 길', BW, BD, free_bd, [42, 34], [dict(zone=[3, 9, 20, 48], to='scurve2', spawn=[SW - 80, 25], type='trans', dir='L'), dict(zone=[152, 188, BD - 24, BD - 10], to='house', spawn=[170, 40], type='trans', dir='B')])
     import gen_bear_hd as BEAR
-    rbd['shotProps'] = [dict(img=uri(BEAR.orig_hd()), x=138.5, d=62.5, z=10.2, w=12, h=13.5)]                  # 그네에 앉은 곰 조력자: 컷씬의 그네 장면에서만 보인다(직접 가면 없다). 원래 곰 그대로 도트 수만 4배
+    rbd['shotProps'] = [dict(img=uri(BEAR.orig_sit()[0]), x=138.5, d=62.5, z=5.8, w=16, h=17.5)]                  # 그네에 앉은 곰 조력자: 컷씬의 그네 장면에서만 보인다(직접 가면 없다). 원래 곰 그대로 도트 수만 4배
     r13 = AU.build('house')                                                                       # 위로 올라간 끝: 집 앞마당(보관해 둔 기와집)
     HW, HD = r13.W, r13.D
     def free_hs(x, d): return 4 < x < HW - 4 and 4 < d < HD - 8
