@@ -32,6 +32,7 @@ class Scene:
         s.zb = np.full((s.CH, s.CW), 1e9); s.zmin = np.full((s.CH, s.CW), 1e9)
         s.log = []                                      # 단단한 물체(상자) (x,d,w,dp,h,z0): 아이 몸이 겹치지 않게 걷는 곳을 자동으로 막는다
         s.faces = []                                    # 그린 평면 (축, 값, a0, a1, b0, b1): 'x' 면은 (d0,d1,z0,z1), 'd' 면은 (x0,x1,z0,z1), 'z' 면은 (x0,x1,d0,d1)
+        s.zfl = []                                      # 높은 바닥 상자 (x0,x1,d0,d1,z): 엔진이 아이 발을 그 높이로 올린다(인도 위에서 발이 잠기지 않게)
         s.holes = []                                    # 벽에 뚫린 구멍 (축, 값, a0, a1): 이 범위의 같은 면은 걸음을 막지 않는다(골목·비상구 입구)
     def P1(s, x, d, z=0): return (round(s.X0 + x + .5 * d), round(s.Y0 - .5 * d - z))          # 논리 좌표(깊이 지도용)
     def P(s, x, d, z=0): return (round((s.X0 + x + .5 * d) * s.k), round((s.Y0 - .5 * d - z) * s.k))
@@ -99,6 +100,7 @@ class Scene:
     def floor(s, fn, x0=0, x1=None, d0=0, d1=None, z=0):
         """바닥(높이 z) 영역을 화소마다 칠한다. fn(x, d) -> 색 또는 None."""
         x1 = s.W if x1 is None else x1; d1 = s.D if d1 is None else d1; k = s.k; IW, IH = s.img.size
+        if z > 0: s.zfl.append((x0, x1, d0, d1, z))
         for Y in range(int((s.Y0 - .5 * d1 - z) * k) - 1, int((s.Y0 - .5 * d0 - z) * k) + 2):
             d = (s.Y0 - z - (Y + .5) / k) / .5
             if not (d0 <= d < d1): continue

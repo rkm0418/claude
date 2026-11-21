@@ -33,7 +33,7 @@ def room(s, key, label, W, D, free, start, exits, rects=(), geom=None):
             e['hit'] = [min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts)]
     walk, zone = L.walk_grid(g, W, D, free, exits); GEOM[key] = (g, walk, zone, start, exits)
     im = Image.fromarray((walk * 255).astype('uint8'), 'L')
-    return s, dict(W=W, D=D, X0=s.X0, Y0=s.Y0, CW=s.CW, CH=s.CH, rects=[list(r) for r in rects], exits=exits, start=start, S=2, label=label, walk=uri(im.convert('RGB')),
+    return s, dict(W=W, D=D, X0=s.X0, Y0=s.Y0, CW=s.CW, CH=s.CH, rects=[list(r) for r in rects], exits=exits, start=start, S=2, label=label, walk=uri(im.convert('RGB')), zr=[[float(v) for v in r] for r in getattr(g, 'zfl', [])],
                    img=uri(s.img.convert('RGB')), depth=uri(g.depth_rgb()), dep16=1)
 
 def build(check=False):
@@ -102,7 +102,7 @@ def build(check=False):
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < T.D - 3
-    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, T.D - 4, T.D], to='autumn', spawn=[44, 20], type='trans', dir='B', cut=dict(id='tunnel_out', walk=[104, 20], dist=400, out=3.4, hold=1.2, back=3.4))])
+    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, T.D - 4, T.D], to='autumn', spawn=[44, 20], type='trans', dir='B', cut=dict(id='tunnel_out', walk=[104, 20], dist=400, out=7.0, hold=1.6, back=7.0))])
     import render_autumn as AU
     r9 = AU.build('forest')                                                                       # 가로로 쭉 이어지는 빽빽한 가을 숲(처음 만든 집 있는 시골은 build('original') 로 보관)
     AU_W, AU_D = r9.W, r9.D

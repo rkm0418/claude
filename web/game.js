@@ -8,7 +8,7 @@ const VW = 320, VH = 240; let S = 2;            // 논리 화면, 그림 배율(
 const CELL = 2;                              // 길찾기 격자 한 칸 = 바닥 2px
 const BODY = { rx: 4, rd: 2.2 };             // 아이 발 자리(가구와 벽에서 띄우는 여유)
 const SPEED = 46;                            // 화면에서 느끼는 걸음 속도(그림 px/초)
-const WALK_FPS = 7, WALK_FPS_HD = 13;                                              // 고해상도 걷기(8장)는 더 빠르게 넘겨 부드럽게
+const WALK_FPS = 7, WALK_FPS_HD = 10;                                              // 고해상도 걷기(8장)는 더 빠르게 넘겨 부드럽게
 const DIRS = ['r', 'dr', 'd', 'dl', 'l', 'ul', 'u', 'ur'];   // 화면 각도 0도(오른쪽)부터 시계 방향 45도씩
 let fadeCol = '20,14,16'; const TRAVEL = { L: [-1, 0], R: [1, 0], B: [0, 1], F: [0, -1] }; let debug = false, room = null, R = null, fade = 0, fadeDir = 0, pending = null, marker = null, msg = null;
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
@@ -397,7 +397,9 @@ function camTarget() {
 const img = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = src; });
 const scr = (x, d) => [R.X0 + x + d / 2, R.Y0 - d / 2];                    // 바닥 -> 그림 화소
 const world = (X, Y) => { const d = (R.Y0 - Y) * 2; return [X - R.X0 - d / 2, d]; };
-function zAt(x, d) {                                                            // 3차원 바닥 높이: S자 통로의 계단·단(앞 칸 0 → 가운데 칸 → 뒤 칸 → 오른쪽 끝에서 내려옴)
+function zAt(x, d) {
+  if (R && R.zr && R.zr.length) { let z = 0; for (const r of R.zr) if (x >= r[0] && x < r[1] && d >= (r[2] == null ? -1e9 : r[2]) && d < (r[3] == null ? 1e9 : r[3])) z = Math.max(z, r[4]); return z; }   // 인도처럼 높은 바닥(장면이 기록): 그 위에서는 발이 그 높이
+                                                            // 3차원 바닥 높이: S자 통로의 계단·단(앞 칸 0 → 가운데 칸 → 뒤 칸 → 오른쪽 끝에서 내려옴)
   if (!R || !R.sections) return 0;
   for (const s of R.sections) {
     const z = s.z3; if (!z || x < s.x0 || x >= s.x1) continue; const hw = z.hw;
@@ -651,8 +653,9 @@ function drawChild() {
   const cvw = curView(); if (cvw && cvw.mode === 'adult' && adultIm) { const [ax, ay] = scr(P.x, P.d), bob = P.moving ? Math.round(Math.sin(P.t * 12)) : 0; ctx.save(); ctx.translate((R.ox + ax) * S, (R.oy + ay + 1) * S); if (['l', 'ul', 'dl'].includes(P.dir)) ctx.scale(-1, 1); ctx.drawImage(adultIm, -6.5 * S, (-38 + bob) * S, 13 * S, 38 * S); ctx.restore(); return; }
   const SEQ = K > 1 ? ['w1', 'm1', 'w2', 'm2', 'w3', 'm3', 'w4', 'm4'] : ['w1', 'w2', 'w3', 'w4'], f = P.moving ? SEQ[Math.floor(P.t * (K > 1 ? WALK_FPS_HD : WALK_FPS)) % SEQ.length] : 'idle'; const im = frames[P.dir + '_' + f]; if (!im) return;
   sprX.clearRect(0, 0, w * K, h * K); sprX.drawImage(im, 0, 0);
-  const bob = P.moving && K > 1 ? -Math.abs(Math.sin(P.t * WALK_FPS_HD * Math.PI / 2)) * .75 : 0;      // 걸을 때 몸이 살짝 오르내린다(1/K 칸 단위라 부드럽다)
-  const [fx, fy0] = scr(P.x, P.d), fy = fy0 - zAt(P.x, P.d), x0 = Math.round((fx - w / 2) * K) / K, y0 = Math.round((fy - h + 1 + bob) * K) / K, wK = w * K, hK = h * K;
+  const bob = P.moving && K > 1 ? -Math.abs(Math.sin(P.t * WALK_FPS_HD * Math.PI / 2)) * .3 : 0;      // 걸을 때 몸이 살짝 오르내린다(1/K 칸 단위라 부드럽다)
+  if (P.zr !== R || P.zs === undefined) { P.zr = R; P.zs = zAt(P.x, P.d); } else P.zs += (zAt(P.x, P.d) - P.zs) * (1 - Math.exp(-(lastDt || .016) * 24));   // 턱을 오를 때 발 높이가 부드럽게 바뀐다
+  const [fx, fy0] = scr(P.x, P.d), fy = fy0 - P.zs, x0 = Math.round((fx - w / 2) * K) / K, y0 = Math.round((fy - h + 1 + bob) * K) / K, wK = w * K, hK = h * K;
   const id = sprX.getImageData(0, 0, wK, hK), a = id.data;
   let tot = 0, hid = 0; const hidden = new Uint8Array(wK * hK);
   for (let y = 0; y < hK; y++) for (let x = 0; x < wK; x++) {
