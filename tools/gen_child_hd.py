@@ -77,7 +77,7 @@ def body(theta_deg, phi, amp):
     # --- 팔: 같은 쪽 다리와 반대로 흔든다
     for s in (-1, 1):
         ph = phi + (math.pi if s < 0 else 0); sw = amp * math.sin(ph)
-        sh = (s * 12.4, 59.6, 0.0); el = (s * 17.6, 70.6, 2.6 * sw + .6); hd_ = (s * 22.0, 82.2, 5.4 * sw)                 # 소매가 어깨에서 바깥으로 비스듬히 내려온다(A 모양)
+        sh = (s * 12.4, 59.6, 0.0); el = (s * 16.8, 67.4, 2.4 * sw + .6); hd_ = (s * 20.0, 75.8, 4.8 * sw)                 # 소매가 어깨에서 바깥으로 비스듬히 내려온다(A 모양)
         P_ = [(pr(sh[0], sh[2]), sh[1]), (pr(el[0], el[2]), el[1]), (pr(hd_[0], hd_[2]), hd_[1])]
         parts.append((dep(hd_[0], hd_[2]) + (.5 if dep(sh[0], sh[2]) > 0 else -.5), 'arm', P_, (pr(hd_[0], hd_[2]), hd_[1] + 2.0), hd_))
     parts.sort(key=lambda p: p[0])
@@ -93,7 +93,7 @@ def body(theta_deg, phi, amp):
             pp = [((cxs + (x - cxs) * shrink + dx) * SS, y * SS) for x, y in poly if y0 <= y <= y1]
             d.polygon(pp, fill=255, outline=255, width=int(ow * SS)); return m
         neck = Image.new('L', canvas.size, 0); ImageDraw.Draw(neck).rectangle([(cxs - 4.4) * SS, 50 * SS, (cxs + 4.4) * SS, 60 * SS], fill=255)
-        if ct > .25: canvas.paste(Image.new('RGBA', canvas.size, (226, 196, 156, 255)), (0, 0), neck)
+        if ct > .25: canvas.paste(Image.new('RGBA', canvas.size, (214, 176, 132, 255)), (0, 0), neck)
         ring = pm(poly, ow=RING); sil = pm(poly); base = pm(poly, dx=-2.0 * (ct if abs(ct) > .3 else 1), shrink=.82); hi = pm(poly, dx=-4.2, shrink=.42, y0=0, y1=68)
         put(sil, base, hi, SW_, ring)
         # 밑단: 아래가 살짝 어두운 띠 + 허리 주름
@@ -110,7 +110,7 @@ def body(theta_deg, phi, amp):
         canvas.paste(Image.new('RGBA', canvas.size, SW_[2] + (255,)), (0, 0), Image.composite(c2, Image.new('L', canvas.size, 0), sil))
         if ct > .3:
             c3 = Image.new('L', canvas.size, 0); ImageDraw.Draw(c3).ellipse([(cxs - rx * .68) * SS, (cy - 2.0) * SS, (cxs + rx * .68) * SS, (cy + 1.6) * SS], fill=255)
-            canvas.paste(Image.new('RGBA', canvas.size, (226, 196, 156, 255)), (0, 0), Image.composite(c3, Image.new('L', canvas.size, 0), sil))
+            canvas.paste(Image.new('RGBA', canvas.size, (214, 176, 132, 255)), (0, 0), Image.composite(c3, Image.new('L', canvas.size, 0), sil))
     def draw_part(kind, pts, tip):
         if kind == 'leg':
             limb(pts, (5.7, 4.7), PT_)
@@ -127,7 +127,7 @@ def body(theta_deg, phi, amp):
             hm = Image.new('L', canvas.size, 0); ImageDraw.Draw(hm).ellipse(E(hr), fill=255)
             hb = Image.new('L', canvas.size, 0); ImageDraw.Draw(hb).ellipse(E(hr * .9, -.5, -.3), fill=255)
             ring = Image.new('L', canvas.size, 0); ImageDraw.Draw(ring).ellipse(E(hr + RING), fill=255)
-            put(hm, hb, Image.new('L', canvas.size, 0), (SKIN, SKIN, SKIN2), ring)
+            put(hm, hb, Image.new('L', canvas.size, 0), ((236, 202, 156), (236, 202, 156), (204, 160, 114)), ring)      # 손: 얼굴보다 따뜻한 살색(하얗게 튀지 않게)
     for dp, kind, pts, tip, j in parts:                                       # 다리는 언제나 몸통 아래
         if kind == 'leg': draw_part(kind, pts, tip)
     for dp, kind, pts, tip, j in parts:                                       # 먼 쪽 팔 → 몸통 → 가까운 쪽 팔
