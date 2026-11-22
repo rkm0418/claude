@@ -149,21 +149,15 @@ def orig_sit():
         for dx in (-1, 0, 1): px[hx + dx - 0, 13] = (176, 130, 86, 255); px[hx + dx - 0, 15] = (176, 130, 86, 255)
     for y in range(29, Ht):
         for x in range(Wd): px[x, y] = (0, 0, 0, 0)
-    for cx in (12.0, 20.0):                                         # 앉은 다리: 앞으로 뻗은 허벅지(무릎이 보는 쪽으로 불룩)가 윗옷 밑단 위로 겹치고, 그 아래로 정강이와 발바닥이 보이는 앞발이 이어진다
-        for y in range(34, 38):                                     # 발(앞발): 정강이 아래에서 이어지며 약간 바깥으로 벌어진 둥근 발, 맨 아래는 분홍 발바닥
+    for cx in (12, 20):                                             # 앉은 다리: 윗옷 밑단 아래에서 하나로 이어지는 곧은 바지통(무릎에 주름 한 줄) → 앞발. 둥글게 부푼 곳 없이 폭이 거의 같다
+        for y in range(28, 34):
+            for dx in range(-3, 4):
+                edge = abs(dx) == 3; px[cx + dx, y] = A0 if edge else (LT if dx == -2 and y < 32 else (DK if dx == 2 else MD))
+        for dx in range(-2, 3): px[cx + dx, 31] = DK                  # 무릎 주름
+        for y in range(34, 38):                                     # 앞발: 바지 끝에서 바로 이어지는 발(맨 아래 분홍 발바닥)
             hw = 3 if y < 37 else 2
             for dx in range(-hw, hw + 1):
-                x = int(cx) + dx; edge = abs(dx) == hw or y == 37; px[x, y] = A0 if edge else (PINK if y == 36 and abs(dx) <= 1 else ((190, 142, 96, 255) if y == 34 else TAN))
-        for y in (32, 33):                                          # 정강이(짧게)
-            for dx in range(-2, 3): px[int(cx) + dx, y] = A0 if dx in (-2, 2) else DK
-        for y in range(27, 32):                                     # 허벅지·무릎: 둥근 모양 + 위쪽 밝은 면
-            half = {27: 2, 28: 3, 29: 3, 30: 3, 31: 3}[y]
-            for dx in range(-half, half + 1):
-                x = int(cx) + dx; edge = abs(dx) == half or y == 27 and False
-                px[x, y] = A0 if abs(dx) == half else (LT if (y in (28, 29) and dx < 1) else (MD if y < 31 else DK))
-            if y == 27:
-                for dx in range(-half, half + 1): px[int(cx) + dx, y] = A0
-        for dx in range(-3, 4): px[int(cx) + dx, 31] = A0 if abs(dx) == 3 else DK
+                edge = abs(dx) == hw or y == 37; px[cx + dx, y] = A0 if edge else (PINK if y == 36 and abs(dx) <= 1 else ((190, 142, 96, 255) if y == 34 else TAN))
     return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
 
 def pix(im, size=(24, 34), thr=120):
