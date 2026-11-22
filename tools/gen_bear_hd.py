@@ -161,10 +161,64 @@ def orig_sit(hold=False):
                 edge = abs(dx) == hw or y == 37; px[fx + dx, y] = A0 if edge else (PINK if y == 36 and abs(dx) <= 1 else ((190, 142, 96, 255) if y == 34 else TAN))
     return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
 
+def swing_sit():
+    """그네 타는 곰(참고 그림: 의자에 앉아 두 손으로 양옆 줄을 가슴 높이에서 쥐고, 팔꿈치는 몸 옆에서 굽고, 허벅지는 의자 위, 정강이는 의자 앞으로 늘어뜨림).
+    원래 곰(bear_green_A)의 머리·후드·몸통·위팔(늘어진 소매 윗부분)과 표정은 그대로 두고 아래팔·손·다리만 고친 뒤 도트 수만 4배로 늘린다.
+    줄은 곰 그림 안에도 그려 손 위아래로 이어지게 한다(장면의 줄과 같은 색·같은 자리)."""
+    import gen_child_hd as G
+    A0, TAN, PINK = (26, 22, 32, 255), (211, 165, 116, 255), (232, 168, 152, 255); LT, MD, DK, DD = (155, 199, 124, 255), (111, 143, 88, 255), (63, 90, 52, 255), (44, 63, 38, 255)
+    CLR = (0, 0, 0, 0); ROPE = (150, 128, 92, 255)
+    src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA'); Wd, Ht = 32, 38
+    cv = Image.new('RGBA', (Wd, Ht), CLR); cv.alpha_composite(src.crop((0, 0, 24, 28)), (4, 0)); px = cv.load()
+    # 1) 늘어진 소매의 아랫부분(손 포함)을 지운다: 위팔만 팔꿈치(24줄)까지 남긴다
+    for y in range(24, 28):
+        for x in list(range(5, 11)) + list(range(21, 27)): px[x, y] = CLR
+        px[10, y] = A0; px[21, y] = A0                              # 몸통 옆선
+    for x in range(6, 11): px[x, 24] = A0 if x in (6, 10) else px[x, 24]
+    for x in list(range(6, 10)): px[x, 24] = A0
+    for x in list(range(22, 26)): px[x, 24] = A0
+    # 2) 줄(손 위아래로 이어짐)
+    # (줄은 장면에 이미 그려져 있다: 곰 그림에는 그리지 않아 두 줄로 겹쳐 보이지 않게 한다)
+    # 3) 아래팔: 팔꿈치(몸 옆, 23줄)에서 바깥 위로 줄까지, 끝에 줄을 쥔 앞발
+    ys, xs = np.mgrid[0:Ht, 0:Wd]
+    def forearm(el, hd, dirn):
+        pts = [(el[0] + (hd[0] - el[0]) * i / 30.0, el[1] + (hd[1] - el[1]) * i / 30.0) for i in range(31)]
+        M = np.zeros((Ht, Wd), bool); O = np.zeros((Ht, Wd), bool)
+        for cx_, cy_ in pts:
+            r2 = (xs + .5 - cx_) ** 2 + (ys + .5 - cy_) ** 2; M |= r2 <= 1.55 ** 2; O |= r2 <= 2.55 ** 2
+        for y in range(Ht):
+            for x in range(Wd):
+                if O[y, x] and not M[y, x] and (px[x, y][3] == 0 or px[x, y] == ROPE): px[x, y] = A0
+        for y in range(Ht):
+            for x in range(Wd):
+                if M[y, x]: px[x, y] = LT if (y + .5) < (el[1] + (hd[1] - el[1]) * max(0, min(1, (x + .5 - el[0]) / (hd[0] - el[0] or 1)))) - .3 else (MD if True else DK)
+        hx, hy = hd
+        for y in range(Ht):
+            for x in range(Wd):
+                r2 = (x + .5 - hx) ** 2 + (y + .5 - hy) ** 2
+                if r2 <= 1.9 ** 2: px[x, y] = TAN
+                elif r2 <= 2.9 ** 2 and (px[x, y][3] == 0 or px[x, y] in (ROPE, LT, MD)): px[x, y] = A0
+        for dx in (-1, 0, 1): px[int(hx) + dx, int(hy)] = (176, 130, 86, 255)                       # 줄을 감은 손가락 한 줄
+    forearm((7.2, 24.4), (2.7, 20.0), -1); forearm((24.6, 24.4), (27.7, 20.0), 1)            # 손 = 화면에서 잰 장면의 줄 자리(곰 가운데 x=139)
+    # 4) 다리: 허벅지는 의자 위(짧게, 반바지처럼 한 덩어리), 무릎에서 꺾여 정강이·발이 의자 앞으로 늘어진다
+    for y in range(28, Ht):
+        for x in range(Wd): px[x, y] = CLR if not (px[x, y] == ROPE and y < 30) else px[x, y]
+    for y in (28, 29, 30):                                          # 허벅지(의자 위)
+        for x in range(10, 22):
+            edge = x in (10, 21) or y == 30
+            px[x, y] = A0 if edge else (LT if (y == 28 and x < 15) else (DK if x in (15, 16) else MD))
+    for cx in (13, 18):                                             # 정강이(의자 앞으로 늘어뜨림)
+        for y in range(31, 35):
+            for dx in range(-2, 3): px[cx + dx, y] = A0 if abs(dx) == 2 else (TAN if dx == -1 else (190, 142, 96, 255))
+        for y, hw in ((35, 3), (36, 3), (37, 2)):                  # 발(앞발)
+            for dx in range(-hw, hw + 1):
+                px[cx + dx, y] = A0 if (abs(dx) == hw or y == 37) else ((PINK if (y == 36 and abs(dx) <= 1) else TAN))
+    return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
+
 def pix(im, size=(24, 34), thr=120):
     """네모네모한 도트판(게임 화면 한 칸 단위, 24x34 = 게임 크기 12x17 × 2): 또렷한 네모 도트로 줄인다."""
     a = np.array(im.convert('RGBa').resize(size, Image.BOX).convert('RGBA')); a[..., 3] = np.where(a[..., 3] >= thr, 255, 0); return Image.fromarray(a, 'RGBA')
 
 if __name__ == '__main__':
-    im = build(); im.save(OUT); pix(im).save(OUT.replace('bear_hd', 'bear_px')); orig_hd().save(OUT.replace('bear_hd', 'bear_orig_hd')); si, small = orig_sit(); si.save(OUT.replace('bear_hd', 'bear_sit_hd')); small.resize((small.width * 8, small.height * 8), Image.NEAREST).save(os.path.join(HERE, '..', 'maps', 'out', 'bear_sit_small.png')); S = 8; sh = Image.new('RGBA', (im.width * S + 20, im.height * S + 20), (44, 48, 64, 255)); sh.alpha_composite(im.resize((im.width * S, im.height * S), Image.NEAREST), (10, 10))
+    im = build(); im.save(OUT); pix(im).save(OUT.replace('bear_hd', 'bear_px')); orig_hd().save(OUT.replace('bear_hd', 'bear_orig_hd')); si, small = swing_sit(); si.save(OUT.replace('bear_hd', 'bear_sit_hd')); small.resize((small.width * 8, small.height * 8), Image.NEAREST).save(os.path.join(HERE, '..', 'maps', 'out', 'bear_sit_small.png')); S = 8; sh = Image.new('RGBA', (im.width * S + 20, im.height * S + 20), (44, 48, 64, 255)); sh.alpha_composite(im.resize((im.width * S, im.height * S), Image.NEAREST), (10, 10))
     sh.save(os.path.join(HERE, '..', 'maps', 'out', 'bear_hd_sheet.png')); print('bear_hd', im.size)
