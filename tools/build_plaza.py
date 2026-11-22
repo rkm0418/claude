@@ -103,7 +103,7 @@ def build(check=False):
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < T.D - 3
     sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, T.D - 4, T.D], to='autumn', spawn=[44, 20], type='trans', dir='B')])
-    rv['cutAt'] = dict(id='tunnel_out', d=T.D - 220, to=[32, T.D - 2], after=[150, 20], dist=170, out=5.0, hold=3.6, back=4.5, shot=dict(room='bend', x=126, d=66))     # 터널 끝 가까이에서 컷씬 시작: 걸어 나가며 둘러보고, 카메라가 오른쪽으로 가서 끝의 그네를 보여 주고 돌아온다
+    rv['cutAt'] = dict(id='tunnel_out', d=T.D - 220, to=[32, T.D - 2], after=[150, 20], dist=170, out=5.0, hold=3.6, back=4.5, shot=dict(room='bend', x=146, d=62))     # 터널 끝 가까이에서 컷씬 시작: 걸어 나가며 둘러보고, 카메라가 오른쪽으로 가서 끝의 그네를 보여 주고 돌아온다
     import render_autumn as AU
     r9 = AU.build('forest')                                                                       # 가로로 쭉 이어지는 빽빽한 가을 숲(처음 만든 집 있는 시골은 build('original') 로 보관)
     AU_W, AU_D = r9.W, r9.D
@@ -121,7 +121,7 @@ def build(check=False):
     def free_bd(x, d): return 4 < x < BW - 4 and 4 < d < BD - 8
     sbd, rbd = room(r12, 'bend', '그네 꺾인 길', BW, BD, free_bd, [42, 34], [dict(zone=[3, 9, 20, 48], to='scurve2', spawn=[SW - 80, 25], type='trans', dir='L'), dict(zone=[152, 188, BD - 24, BD - 10], to='house', spawn=[170, 40], type='trans', dir='B')])
     import gen_bear_hd as BEAR
-    bear_im = BEAR.swing_sit()[0]; BS = 0.9; rbd['shotProps'] = [dict(img=uri(bear_im), x=139.0, d=66.0, z=round(9.8 - (bear_im.height / 4.0 - 30) * 0.5 * BS, 2), w=round(bear_im.width / 8.0 * BS, 2), h=round(bear_im.height / 8.0 * BS, 2))]     # 곰을 조금 작게: 양옆 줄과 닿지 않고 줄 사이에 들어앉는다     # 원래 곰 도트 한 칸 = 월드 0.5칸 → 4배 도트는 1/8칸                  # 그네에 앉은 곰 조력자: 컷씬의 그네 장면에서만 보인다(직접 가면 없다). 원래 곰 그대로 도트 수만 4배
+    bear_im = BEAR.orig_hd(32); rbd['shotProps'] = [dict(img=uri(bear_im), x=166.0, d=56.0, z=0.0, w=round(bear_im.width / 8.0, 2), h=round(bear_im.height / 8.0, 2))]     # 곰은 그네 오른쪽에 서 있다(원래 곰 그대로, 도트 수만 4배)     # 곰을 조금 작게: 양옆 줄과 닿지 않고 줄 사이에 들어앉는다     # 원래 곰 도트 한 칸 = 월드 0.5칸 → 4배 도트는 1/8칸                  # 그네에 앉은 곰 조력자: 컷씬의 그네 장면에서만 보인다(직접 가면 없다). 원래 곰 그대로 도트 수만 4배
     r13 = AU.build('house')                                                                       # 위로 올라간 끝: 집 앞마당(보관해 둔 기와집)
     HW, HD = r13.W, r13.D
     def free_hs(x, d): return 4 < x < HW - 4 and 4 < d < HD - 8
