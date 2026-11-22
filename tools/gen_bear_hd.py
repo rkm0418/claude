@@ -215,10 +215,48 @@ def swing_sit():
                 px[cx + dx, y] = A0 if (abs(dx) == hw or y == 37) else ((PINK if (y == 36 and abs(dx) <= 1) else TAN))
     return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
 
+def walk_up():
+    """길을 따라 위쪽(화면 안쪽)으로 걸어가는 곰의 뒷모습: 원래 곰(bear_green_A)의 머리·귀·후드 윗옷 모양과 색 그대로, 얼굴 부분만 털로 덮고(뒷머리) 등에는 후드를 그린다.
+    걸음: 왼발은 땅을 딛고 오른발은 뒤로 들려(발바닥 분홍이 보임) 한 걸음 내딛는 모양. 도트 수만 4배."""
+    import gen_child_hd as G
+    A0, TAN, PINK, CREAM = (26, 22, 32, 255), (211, 165, 116, 255), (232, 168, 152, 255), (242, 220, 180, 255)
+    LT, MD, DK, DD = (155, 199, 124, 255), (111, 143, 88, 255), (63, 90, 52, 255), (44, 63, 38, 255); CLR = (0, 0, 0, 0)
+    src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA'); Wd, Ht = 26, 37
+    cv = Image.new('RGBA', (Wd, Ht), CLR); cv.alpha_composite(src.crop((0, 0, 24, 28)), (1, 0)); px = cv.load()
+    def boundary(x, y):
+        return any(not (0 <= x + dx < Wd and 0 <= y + dy < Ht) or px[x + dx, y + dy][3] == 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+    for y in range(3, 18):                                           # 얼굴(눈·코·입·뺨·주둥이·귀 안쪽)을 털로 덮는다: 뒷머리
+        for x in range(Wd):
+            c = px[x, y]
+            if c in (PINK, CREAM, (90, 70, 54, 255)) or (c == A0 and not boundary(x, y)): px[x, y] = TAN if not (y <= 6 and c == PINK) else (190, 140, 96, 255)
+    for y in range(17, 28):                                          # 앞 끈·V 깃(크림색)은 등에는 없다 → 윗옷색
+        for x in range(Wd):
+            if px[x, y] == CREAM: px[x, y] = MD
+    for y in range(24, 27):                                          # 앞 주머니 띠도 없다
+        for x in range(8, 18):
+            if px[x, y] in (DK, DD): px[x, y] = MD
+    for y, (x0, x1) in ((18, (7, 18)), (19, (6, 19)), (20, (7, 18))):   # 등의 후드(목 뒤에 둥글게 처진 모자)
+        for x in range(x0, x1 + 1):
+            if px[x, y][3]: px[x, y] = LT if y == 18 else (MD if y == 19 else DK)
+    for y in range(28, Ht):
+        for x in range(Wd): px[x, y] = CLR
+    for x in range(8, 19): px[x, 27] = A0 if px[x, 27][3] == 0 else px[x, 27]
+    def leg(x0, y0, y1, w=5):                                        # 바지통
+        for y in range(y0, y1 + 1):
+            for dx in range(w): px[x0 + dx, y] = A0 if dx in (0, w - 1) else (MD if dx < w // 2 + 1 else DK)
+    def foot(cx, y0, hw=3, rows=3, sole=False):                      # 곰 발
+        for i in range(rows):
+            h = hw if i < rows - 1 else hw - 1
+            for dx in range(-h, h + 1):
+                edge = abs(dx) == h or i == rows - 1; px[cx + dx, y0 + i] = A0 if edge else ((PINK if sole and i == 1 and abs(dx) <= 1 else TAN))
+    leg(7, 28, 32); foot(9, 33, 3, 4)                                 # 왼발: 땅을 딛는다(발 맨 아래가 땅)
+    leg(14, 28, 30); foot(16, 31, 3, 3, True)                         # 오른발: 뒤로 들려 한 걸음(발바닥이 보인다), 땅에서 두 줄 뜬다
+    return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
+
 def pix(im, size=(24, 34), thr=120):
     """네모네모한 도트판(게임 화면 한 칸 단위, 24x34 = 게임 크기 12x17 × 2): 또렷한 네모 도트로 줄인다."""
     a = np.array(im.convert('RGBa').resize(size, Image.BOX).convert('RGBA')); a[..., 3] = np.where(a[..., 3] >= thr, 255, 0); return Image.fromarray(a, 'RGBA')
 
 if __name__ == '__main__':
-    im = build(); im.save(OUT); pix(im).save(OUT.replace('bear_hd', 'bear_px')); orig_hd().save(OUT.replace('bear_hd', 'bear_orig_hd')); si, small = swing_sit(); si.save(OUT.replace('bear_hd', 'bear_sit_hd')); small.resize((small.width * 8, small.height * 8), Image.NEAREST).save(os.path.join(HERE, '..', 'maps', 'out', 'bear_sit_small.png')); S = 8; sh = Image.new('RGBA', (im.width * S + 20, im.height * S + 20), (44, 48, 64, 255)); sh.alpha_composite(im.resize((im.width * S, im.height * S), Image.NEAREST), (10, 10))
+    im = build(); im.save(OUT); pix(im).save(OUT.replace('bear_hd', 'bear_px')); orig_hd().save(OUT.replace('bear_hd', 'bear_orig_hd')); si, small = walk_up(); si.save(OUT.replace('bear_hd', 'bear_sit_hd')); small.resize((small.width * 8, small.height * 8), Image.NEAREST).save(os.path.join(HERE, '..', 'maps', 'out', 'bear_sit_small.png')); S = 8; sh = Image.new('RGBA', (im.width * S + 20, im.height * S + 20), (44, 48, 64, 255)); sh.alpha_composite(im.resize((im.width * S, im.height * S), Image.NEAREST), (10, 10))
     sh.save(os.path.join(HERE, '..', 'maps', 'out', 'bear_hd_sheet.png')); print('bear_hd', im.size)
