@@ -80,10 +80,24 @@ def orig_sit():
         b = G.body(0.0, 0.0, 0.0, pose, (Wc, Hc))
     finally:
         G.SW_, G.PT_, G.SHO, G.NECKC, G.HANDT = saved
+    # --- 후드티 느낌: 목 둘레에 두툼하게 말린 모자(후드), 가운데 크림색 끈 둘, 앞 주머니(원래 곰의 초록 후드 윗옷)
+    SSh = 4; hl = Image.new('RGBA', (Wc * SSh, Hc * SSh), (0, 0, 0, 0)); hd_ = ImageDraw.Draw(hl); cxh = Wc / 2.0
+    def E(cx, cy, rx, ry, g=0.0): return [(cx - rx - g) * SSh, (cy - ry - g) * SSh, (cx + rx + g) * SSh, (cy + ry + g) * SSh]
+    LTc, MDc, DKc, DDc = (166, 208, 134, 255), (111, 143, 88, 255), (63, 90, 52, 255), (44, 63, 38, 255)
+    hd_.ellipse(E(cxh, 61.8, 17.6, 6.4, RING), fill=A_ + (255,)); hd_.ellipse(E(cxh, 61.8, 17.6, 6.4), fill=DKc)                 # 후드 둥근 말림: 윤곽선 → 그늘
+    hd_.ellipse(E(cxh - .5, 61.0, 16.6, 5.4), fill=MDc); hd_.ellipse(E(cxh - 2.2, 60.2, 11.5, 3.2), fill=LTc)                  # 보통 → 위쪽 밝은 면
+    hd_.ellipse(E(cxh, 60.2, 8.6, 2.6, RING * .7), fill=A_ + (255,)); hd_.ellipse(E(cxh, 60.2, 8.6, 2.6), fill=(211, 165, 116, 255))                                                                              # 목이 들어가는 안쪽
+    for sx in (-1, 1):                                                                                                          # 끈: 목 아래에서 가슴으로 늘어지고 끝에 매듭
+        hd_.line([((cxh + sx * 4.2) * SSh, 64.5 * SSh), ((cxh + sx * 4.8) * SSh, 76.5 * SSh)], fill=A_ + (255,), width=int(3.6 * SSh)); hd_.line([((cxh + sx * 4.2) * SSh, 64.5 * SSh), ((cxh + sx * 4.8) * SSh, 76.5 * SSh)], fill=(240, 226, 196, 255), width=int(1.7 * SSh))
+        hd_.ellipse(E(cxh + sx * 4.8, 77.4, 1.9, 1.9, RING * .6), fill=A_ + (255,)); hd_.ellipse(E(cxh + sx * 4.8, 77.4, 1.9, 1.9), fill=(240, 226, 196, 255))
+    hd_.rounded_rectangle([(cxh - 14.5 - RING) * SSh, (72.5 - RING) * SSh, (cxh + 14.5 + RING) * SSh, (85.0 + RING) * SSh], radius=int((5 + RING) * SSh), fill=A_ + (255,))      # 앞 주머니(캥거루 주머니)
+    hd_.rounded_rectangle([(cxh - 14.5) * SSh, 72.5 * SSh, (cxh + 14.5) * SSh, 85.0 * SSh], radius=5 * SSh, fill=MDc); hd_.rounded_rectangle([(cxh - 13.2) * SSh, 73.6 * SSh, (cxh + 13.2) * SSh, 77.0 * SSh], radius=2 * SSh, fill=LTc)
+    for sx in (-1, 1): hd_.line([((cxh + sx * 11.6) * SSh, 76.0 * SSh), ((cxh + sx * 8.2) * SSh, 82.2 * SSh)], fill=DKc, width=int(1.5 * SSh))                      # 손 넣는 옆 트임
+    ha_ = np.array(hl.convert('RGBa').resize((Wc, Hc), Image.LANCZOS).convert('RGBA')); ha_[..., 3] = np.where(ha_[..., 3] >= 128, 255, 0); hood = Image.fromarray(ha_, 'RGBA')
     src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA').crop((0, 0, 24, 18))
     head = Image.fromarray(G.scale2x(G.scale2x(np.array(src))), 'RGBA')                                       # 원래 곰 머리를 4배 도트로(96x72)
     head = head.convert('RGBa').resize((54, 40), Image.LANCZOS).convert('RGBA'); ha = np.array(head); ha[..., 3] = np.where(ha[..., 3] >= 128, 255, 0); head = Image.fromarray(ha, 'RGBA')
-    out = Image.new('RGBA', (Wc, Hc), (0, 0, 0, 0)); out.alpha_composite(b); out.alpha_composite(head, ((Wc - 54) // 2, 56 - 40))
+    out = Image.new('RGBA', (Wc, Hc), (0, 0, 0, 0)); out.alpha_composite(b); out.alpha_composite(hood); out.alpha_composite(head, ((Wc - 54) // 2, 56 - 40))
     bb = out.getbbox(); out = out.crop((0, bb[1], Wc, Hc))                                                    # 위쪽 빈 줄을 잘라 낸다
     return out, out
 
