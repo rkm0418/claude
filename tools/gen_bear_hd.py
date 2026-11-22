@@ -109,7 +109,7 @@ def orig_sit():
     그네 자세만 손으로 고친다: 몸 옆에 늘어진 소매는 없애고, 어깨 → 팔꿈치(주머니 높이에서 둥글게 굽음) → 손으로 이어지는 팔 하나씩만 두어 양옆 줄을 잡고, 두 다리는 바지가 이어져 앞으로 내민 둥근 앞발로 끝난다."""
     import gen_child_hd as G
     A0, TAN, PINK = (26, 22, 32, 255), (211, 165, 116, 255), (232, 168, 152, 255); LT, MD, DK, DD = (155, 199, 124, 255), (111, 143, 88, 255), (63, 90, 52, 255), (44, 63, 38, 255)
-    src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA'); Wd, Ht = 32, 37
+    src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA'); Wd, Ht = 32, 38
     cv = Image.new('RGBA', (Wd, Ht), (0, 0, 0, 0)); cv.alpha_composite(src.crop((0, 0, 24, 28)), (4, 0)); px = cv.load()
     for y in range(20, 28):                                         # 몸 옆에 늘어진 소매·손은 지우고 몸통(10칸 폭)만 남긴 뒤 옆선을 긋는다(팔은 아래에서 하나씩 새로 그린다)
         for x in list(range(3, 11)) + list(range(21, 27)): px[x, y] = (0, 0, 0, 0)
@@ -143,19 +143,27 @@ def orig_sit():
         px[int(hx + dirn * -1), int(hy)] = PINK
     ROPE = (150, 128, 92, 255)                                                                   # 그네 줄(장면의 줄과 같은 색): 손 위아래로 곰 그림 안까지 이어 그려 줄이 주먹을 통과하게 한다
     for rx in (4, 28):
-        for y in range(11, 28): px[rx - 1, y] = ROPE; px[rx, y] = ROPE
-    arm((10.8, 20.6), (7.4, 19.9), (4.0, 18.8), -1); arm((21.2, 20.6), (24.6, 19.9), (28.0, 18.8), 1)                  # 어깨에서 줄까지 거의 곧게 살짝 올라가는 팔(꺾이는 관절 없이 자연스럽게)
+        for y in range(4, 27): px[rx - 1, y] = ROPE; px[rx, y] = ROPE
+    arm((10.8, 19.8), (6.6, 17.6), (4.0, 13.4), -1); arm((21.2, 19.8), (25.4, 17.6), (28.0, 13.4), 1)                  # 어깨에서 위로 뻗어 뺨 높이에서 줄을 꼭 쥔다(팔꿈치는 살짝 바깥으로)
     for hx in (4, 28):                                                                          # 주먹: 줄을 감아 쥔 손가락 두 줄
-        for dx in (-1, 0, 1): px[hx + dx - 0, 18] = (176, 130, 86, 255); px[hx + dx - 0, 20] = (176, 130, 86, 255)
+        for dx in (-1, 0, 1): px[hx + dx - 0, 13] = (176, 130, 86, 255); px[hx + dx - 0, 15] = (176, 130, 86, 255)
     for y in range(29, Ht):
         for x in range(Wd): px[x, y] = (0, 0, 0, 0)
-    for cx, fx in ((13, 12), (18, 19)):                             # 앞으로 내민 다리: 몸통 아래에서 바지가 이어져 둥근 앞발로 끝난다
-        for y in range(29, 32):
-            for dx in range(-2, 3): px[cx + dx, y] = A0 if dx in (-2, 2) else (MD if y < 31 else DK)
-        for y, hw in ((32, 3), (33, 4), (34, 4), (35, 3)):
+    for cx in (12.0, 20.0):                                         # 앉은 다리: 앞으로 뻗은 허벅지(무릎이 보는 쪽으로 불룩)가 윗옷 밑단 위로 겹치고, 그 아래로 정강이와 발바닥이 보이는 앞발이 이어진다
+        for y in range(34, 38):                                     # 발(앞발): 정강이 아래에서 이어지며 약간 바깥으로 벌어진 둥근 발, 맨 아래는 분홍 발바닥
+            hw = 4 if y < 37 else 3
             for dx in range(-hw, hw + 1):
-                edge = abs(dx) == hw or y == 35; px[fx + dx, y] = A0 if edge else ((190, 142, 96, 255) if y == 32 else TAN)
-        for dx in (-1, 0, 1): px[fx + dx, 34] = PINK
+                x = int(cx) + dx; edge = abs(dx) == hw or y == 37; px[x, y] = A0 if edge else (PINK if y == 36 and abs(dx) <= 2 else ((190, 142, 96, 255) if y == 34 else TAN))
+        for y in (32, 33):                                          # 정강이(짧게)
+            for dx in range(-3, 4): px[int(cx) + dx, y] = A0 if dx in (-3, 3) else DK
+        for y in range(27, 32):                                     # 허벅지·무릎: 둥근 모양 + 위쪽 밝은 면
+            half = {27: 3, 28: 4, 29: 5, 30: 5, 31: 4}[y]
+            for dx in range(-half, half + 1):
+                x = int(cx) + dx; edge = abs(dx) == half or y == 27 and False
+                px[x, y] = A0 if abs(dx) == half else (LT if (y in (28, 29) and dx < 1) else (MD if y < 31 else DK))
+            if y == 27:
+                for dx in range(-half, half + 1): px[int(cx) + dx, y] = A0
+        for dx in range(-3, 4): px[int(cx) + dx, 31] = A0 if abs(dx) == 3 else DK
     return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
 
 def pix(im, size=(24, 34), thr=120):
