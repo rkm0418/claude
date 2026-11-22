@@ -241,7 +241,7 @@ def walk_up():
     for y in range(28, Ht):
         for x in range(Wd): px[x, y] = CLR
     for x in range(8, 19): px[x, 27] = A0 if px[x, 27][3] == 0 else px[x, 27]
-    def leg(x0, y0, y1, w=5):                                        # 바지통
+    def leg(x0, y0, y1, w=7):                                        # 바지통
         for y in range(y0, y1 + 1):
             for dx in range(w): px[x0 + dx, y] = A0 if dx in (0, w - 1) else (MD if dx < w // 2 + 1 else DK)
     def foot(cx, y0, hw=3, rows=3, sole=False):                      # 곰 발
@@ -249,8 +249,8 @@ def walk_up():
             h = hw if i < rows - 1 else hw - 1
             for dx in range(-h, h + 1):
                 edge = abs(dx) == h or i == rows - 1; px[cx + dx, y0 + i] = A0 if edge else ((PINK if sole and i == 1 and abs(dx) <= 1 else TAN))
-    leg(7, 28, 32); foot(9, 33, 3, 4)                                 # 왼발: 땅을 딛는다(발 맨 아래가 땅)
-    leg(14, 28, 30); foot(16, 31, 3, 3, True)                         # 오른발: 뒤로 들려 한 걸음(발바닥이 보인다), 땅에서 두 줄 뜬다
+    leg(6, 28, 32); foot(9, 33, 3, 4)                                 # 왼발: 땅을 딛는다(발 맨 아래가 땅)
+    leg(13, 28, 30); foot(16, 31, 3, 3, True)                         # 오른발: 뒤로 들려 한 걸음(발바닥이 보인다), 땅에서 두 줄 뜬다
     return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
 
 def pix(im, size=(24, 34), thr=120):
