@@ -50,11 +50,12 @@ def _stamp(draw, pts, rs, fill, dx=0.0):
 def _bez(p0, p1, p2, n=3):
     return [((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t * t * p2[0], (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t * t * p2[1]) for t in [i / n for i in range(n + 1)]]
 
-def body(theta_deg, phi, amp):
+NECKC = (214, 176, 132, 255); HANDT = ((236, 202, 156), (236, 202, 156), (204, 160, 114))                # 목·손 살색(곰은 털색으로 바꿔 쓴다)
+def body(theta_deg, phi, amp, pose=None, canvas_wh=None):
     """한 자세의 몸(머리 아래)을 RGBA(56x104)로. theta: 0 정면, 90 오른쪽, 180 뒷모습(시계 반대는 270 = 왼쪽)."""
-    th = math.radians(theta_deg); ct, st = math.cos(th), math.sin(th); W_, H_ = GW * K, GH * K
+    th = math.radians(theta_deg); ct, st = math.cos(th), math.sin(th); W_, H_ = canvas_wh or (GW * K, GH * K); CXL = W_ / 2.0
     canvas = Image.new('RGBA', (W_ * SS, H_ * SS), (0, 0, 0, 0))
-    pr = lambda x, z: CX + x * ct + z * st                            # 몸 옆(x)·앞(z) → 화면 가로
+    pr = lambda x, z: CXL + x * ct + z * st                            # 몸 옆(x)·앞(z) → 화면 가로
     dep = lambda x, z: z * ct - x * st                                # 클수록 보는 사람에 가깝다
     def put(mask_fill, mask_base, mask_hi, tones, ring_mask):
         """윤곽선 → 그늘색 몸 → 보통색 → 밝은색 순서로 붙인다(모두 같은 실루엣 안에서만)."""
@@ -72,18 +73,20 @@ def body(theta_deg, phi, amp):
     for s in (-1, 1):
         ph = phi + (0 if s < 0 else math.pi); sw = amp * math.sin(ph); lift = 2.8 * amp * max(0.0, math.cos(ph))
         hip = (s * 4.6, 81.5, 0.0); ank = (s * 5.0, 97.6 - lift, 6.2 * sw); knee = ((hip[0] + ank[0]) / 2, (hip[1] + ank[1]) / 2 + .5, (hip[2] + ank[2]) / 2 + 1.0 + lift * .9)
+        if pose: hip, knee, ank = pose['leg'][s]
         P_ = [(pr(*(hip[0], hip[2])), hip[1]), (pr(knee[0], knee[2]), knee[1]), (pr(ank[0], ank[2]), ank[1])]
         parts.append((dep(ank[0], ank[2]) - .01, 'leg', P_, (pr(ank[0], ank[2]), ank[1]), ank))
     # --- 팔: 같은 쪽 다리와 반대로 흔든다
     for s in (-1, 1):
         ph = phi + (math.pi if s < 0 else 0); sw = amp * math.sin(ph)
-        sh = (s * 12.4, 59.6, 0.0); el = (s * 16.8, 67.4, 2.4 * sw + .6); hd_ = (s * 20.0, 75.8, 4.8 * sw)                 # 소매가 어깨에서 바깥으로 비스듬히 내려온다(A 모양)
+        sh = (s * 12.4, 59.6, 0.0); el = (s * 16.8, 67.4, 2.4 * sw + .6); hd_ = (s * 20.0, 75.8, 4.8 * sw)
+        if pose: sh, el, hd_ = pose['arm'][s]                 # 소매가 어깨에서 바깥으로 비스듬히 내려온다(A 모양)
         P_ = [(pr(sh[0], sh[2]), sh[1]), (pr(el[0], el[2]), el[1]), (pr(hd_[0], hd_[2]), hd_[1])]
         parts.append((dep(hd_[0], hd_[2]) + (.5 if dep(sh[0], sh[2]) > 0 else -.5), 'arm', P_, (pr(hd_[0], hd_[2]), hd_[1] + 2.0), hd_))
     parts.sort(key=lambda p: p[0])
     drawn_torso = False
     def torso():
-        ys = np.arange(52, 85.1, .5); cxs = CX + 0.9 * st
+        ys = np.arange(52, 85.1, .5); cxs = CXL + 0.9 * st
         wl = []
         for y in ys:
             a = _tab(HALF, y); b = .78 * a; w = math.sqrt((a * ct) ** 2 + (b * st) ** 2); wl.append((y, w))
@@ -93,7 +96,7 @@ def body(theta_deg, phi, amp):
             pp = [((cxs + (x - cxs) * shrink + dx) * SS, y * SS) for x, y in poly if y0 <= y <= y1]
             d.polygon(pp, fill=255, outline=255, width=int(ow * SS)); return m
         neck = Image.new('L', canvas.size, 0); ImageDraw.Draw(neck).rectangle([(cxs - 4.4) * SS, 50 * SS, (cxs + 4.4) * SS, 60 * SS], fill=255)
-        if ct > .25: canvas.paste(Image.new('RGBA', canvas.size, (214, 176, 132, 255)), (0, 0), neck)
+        if ct > .25: canvas.paste(Image.new('RGBA', canvas.size, NECKC), (0, 0), neck)
         ring = pm(poly, ow=RING); sil = pm(poly); base = pm(poly, dx=-2.0 * (ct if abs(ct) > .3 else 1), shrink=.82); hi = pm(poly, dx=-4.2, shrink=.42, y0=0, y1=68)
         put(sil, base, hi, SW_, ring)
         # 밑단: 아래가 살짝 어두운 띠 + 허리 주름
@@ -110,7 +113,7 @@ def body(theta_deg, phi, amp):
         canvas.paste(Image.new('RGBA', canvas.size, SW_[2] + (255,)), (0, 0), Image.composite(c2, Image.new('L', canvas.size, 0), sil))
         if ct > .3:
             c3 = Image.new('L', canvas.size, 0); ImageDraw.Draw(c3).ellipse([(cxs - rx * .68) * SS, (cy - 2.0) * SS, (cxs + rx * .68) * SS, (cy + 1.6) * SS], fill=255)
-            canvas.paste(Image.new('RGBA', canvas.size, (214, 176, 132, 255)), (0, 0), Image.composite(c3, Image.new('L', canvas.size, 0), sil))
+            canvas.paste(Image.new('RGBA', canvas.size, NECKC), (0, 0), Image.composite(c3, Image.new('L', canvas.size, 0), sil))
     def draw_part(kind, pts, tip):
         if kind == 'leg':
             limb(pts, (5.7, 4.7), PT_)
@@ -127,7 +130,7 @@ def body(theta_deg, phi, amp):
             hm = Image.new('L', canvas.size, 0); ImageDraw.Draw(hm).ellipse(E(hr), fill=255)
             hb = Image.new('L', canvas.size, 0); ImageDraw.Draw(hb).ellipse(E(hr * .9, -.5, -.3), fill=255)
             ring = Image.new('L', canvas.size, 0); ImageDraw.Draw(ring).ellipse(E(hr + RING), fill=255)
-            put(hm, hb, Image.new('L', canvas.size, 0), ((236, 202, 156), (236, 202, 156), (204, 160, 114)), ring)      # 손: 얼굴보다 따뜻한 살색(하얗게 튀지 않게)
+            put(hm, hb, Image.new('L', canvas.size, 0), HANDT, ring)      # 손: 얼굴보다 따뜻한 살색(하얗게 튀지 않게)
     for dp, kind, pts, tip, j in parts:                                       # 다리는 언제나 몸통 아래
         if kind == 'leg': draw_part(kind, pts, tip)
     for dp, kind, pts, tip, j in parts:                                       # 먼 쪽 팔 → 몸통 → 가까운 쪽 팔

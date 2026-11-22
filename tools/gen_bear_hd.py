@@ -65,42 +65,32 @@ def orig_hd(rows=27):
     src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA').crop((0, 0, 24, rows))
     return Image.fromarray(G.scale2x(G.scale2x(np.array(src))), 'RGBA')
 
+BEARK = 4.6                                                             # 곰 그림 한 칸이 게임 화면 몇 도트인지(주인공은 약 4.7)
 def orig_sit():
-    """원래 곰(bear_green_A)을 그네에 앉힌 자세로: 양옆 줄을 두 손으로 잡고(팔을 옆으로 뻗음) 두 발을 앞으로 내민다. 도트 그림 24x32 를 28x35 로 넓혀 손으로 고친 뒤 도트 수만 4배(Scale2x 두 번)로 늘린다."""
+    """곰: 머리는 원래 곰(bear_green_A) 그대로 도트 수만 늘리고, 몸은 주인공과 같은 사람 몸 모델(어깨가 비스듬히 흘러내리는 스웨터·둥근 팔·다리)로 그린다.
+    그네 자세: 팔꿈치를 굽혀 양옆 줄을 두 손으로 잡고, 두 다리를 앞으로 내밀어 둥근 앞발로 끝난다. 원래 곰의 색(연한 초록 윗옷·황갈색 털)을 쓴다."""
     import gen_child_hd as G
-    A0, TAN = (26, 22, 32, 255), (211, 165, 116, 255); LT, MD, DK, DD = (155, 199, 124, 255), (111, 143, 88, 255), (63, 90, 52, 255), (44, 63, 38, 255)
-    src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA'); cv = Image.new('RGBA', (32, 35), (0, 0, 0, 0)); cv.alpha_composite(src.crop((0, 0, 24, 28)), (4, 0)); px = cv.load()
-    for y in range(23, 28):                                         # 내려뜨린 팔·손(몸 옆)을 지우고 몸통 옆선을 다시 긋는다
-        for x in list(range(6, 9)) + list(range(24, 27)): px[x, y] = (0, 0, 0, 0)
-        px[9, y] = A0; px[23, y] = A0
-    def arm(sx, dirn):                                              # 어깨에서 바깥 위로 비스듬히 올라가 줄을 쥔 팔(소매) + 앞발
-        for k in range(0, 5):
-            x = sx + dirn * k; cy = 21 - round(k * .5)
-            for dy, c in ((-2, A0), (-1, LT), (0, MD), (1, DK), (2, A0)): px[x, cy + dy] = c
-        hx = sx + dirn * 5; hcy = 21 - round(5 * .5)
-        for y in range(hcy - 2, hcy + 3):
-            for dx in range(0, 4):
-                x = hx + dirn * dx; edge = dx == 3 or y in (hcy - 2, hcy + 2)
-                px[x, y] = A0 if edge else TAN
-        px[hx + dirn * 1, hcy] = (232, 168, 152, 255)                                                        # 손바닥 쪽 분홍 한 점
-    arm(10, -1); arm(21, 1)
-    for y in range(28, 35):
-        for x in range(32): px[x, y] = (0, 0, 0, 0)
-    for lx in (11, 17):                                              # 두 다리(바지): 앞으로 뻗어 짧게 보인다
-        for y in (28, 29):
-            for dx in range(4): px[lx + dx, y] = A0 if dx in (0, 3) else (MD if y == 28 else DK)
-    for fx in (7, 19):                                              # 앞으로 내민 두 발(앞발 바닥이 보인다): 크고 둥글게
-        rows = ((30, 1, 5), (31, 0, 6), (32, 0, 6), (33, 0, 6), (34, 1, 5))
-        for y, a, b in rows:
-            for dx in range(a, b + 1):
-                x = fx + dx; edge = dx in (a, b) or y in (30, 34); px[x, y] = A0 if edge else (TAN if y in (31, 32) else (190, 142, 96, 255))
-        for dx in (2, 3): px[fx + dx, 32] = (232, 168, 152, 255)                                         # 발바닥 분홍
-    return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
+    saved = (G.SW_, G.PT_, G.SHO, G.NECKC, G.HANDT)
+    TAN = (211, 165, 116); TANT = ((232, 188, 140), TAN, (176, 130, 86))
+    G.SW_ = ((166, 208, 134), (111, 143, 88), (63, 90, 52)); G.PT_ = ((118, 150, 96), (88, 118, 70), (58, 84, 48)); G.SHO = TANT; G.NECKC = TAN + (255,); G.HANDT = TANT
+    Wc, Hc = 72, 104
+    pose = {'arm': {-1: ((-13.0, 61.0, 0.0), (-20.5, 70.0, 0.0), (-27.6, 60.0, 0.0)), 1: ((13.0, 61.0, 0.0), (20.5, 70.0, 0.0), (27.6, 60.0, 0.0))},
+            'leg': {-1: ((-4.8, 82.0, 0.0), (-5.6, 90.0, 0.0), (-6.2, 97.0, 0.0)), 1: ((4.8, 82.0, 0.0), (5.6, 90.0, 0.0), (6.2, 97.0, 0.0))}}
+    try:
+        b = G.body(0.0, 0.0, 0.0, pose, (Wc, Hc))
+    finally:
+        G.SW_, G.PT_, G.SHO, G.NECKC, G.HANDT = saved
+    src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA').crop((0, 0, 24, 18))
+    head = Image.fromarray(G.scale2x(G.scale2x(np.array(src))), 'RGBA')                                       # 원래 곰 머리를 4배 도트로(96x72)
+    head = head.convert('RGBa').resize((54, 40), Image.LANCZOS).convert('RGBA'); ha = np.array(head); ha[..., 3] = np.where(ha[..., 3] >= 128, 255, 0); head = Image.fromarray(ha, 'RGBA')
+    out = Image.new('RGBA', (Wc, Hc), (0, 0, 0, 0)); out.alpha_composite(b); out.alpha_composite(head, ((Wc - 54) // 2, 56 - 40))
+    bb = out.getbbox(); out = out.crop((0, bb[1], Wc, Hc))                                                    # 위쪽 빈 줄을 잘라 낸다
+    return out, out
 
 def pix(im, size=(24, 34), thr=120):
     """네모네모한 도트판(게임 화면 한 칸 단위, 24x34 = 게임 크기 12x17 × 2): 또렷한 네모 도트로 줄인다."""
     a = np.array(im.convert('RGBa').resize(size, Image.BOX).convert('RGBA')); a[..., 3] = np.where(a[..., 3] >= thr, 255, 0); return Image.fromarray(a, 'RGBA')
 
 if __name__ == '__main__':
-    im = build(); im.save(OUT); pix(im).save(OUT.replace('bear_hd', 'bear_px')); orig_hd().save(OUT.replace('bear_hd', 'bear_orig_hd')); si, small = orig_sit(); si.save(OUT.replace('bear_hd', 'bear_sit_hd')); small.resize((small.width * 14, small.height * 14), Image.NEAREST).save(os.path.join(HERE, '..', 'maps', 'out', 'bear_sit_small.png')); S = 8; sh = Image.new('RGBA', (im.width * S + 20, im.height * S + 20), (44, 48, 64, 255)); sh.alpha_composite(im.resize((im.width * S, im.height * S), Image.NEAREST), (10, 10))
+    im = build(); im.save(OUT); pix(im).save(OUT.replace('bear_hd', 'bear_px')); orig_hd().save(OUT.replace('bear_hd', 'bear_orig_hd')); si, small = orig_sit(); si.save(OUT.replace('bear_hd', 'bear_sit_hd')); small.resize((small.width * 8, small.height * 8), Image.NEAREST).save(os.path.join(HERE, '..', 'maps', 'out', 'bear_sit_small.png')); S = 8; sh = Image.new('RGBA', (im.width * S + 20, im.height * S + 20), (44, 48, 64, 255)); sh.alpha_composite(im.resize((im.width * S, im.height * S), Image.NEAREST), (10, 10))
     sh.save(os.path.join(HERE, '..', 'maps', 'out', 'bear_hd_sheet.png')); print('bear_hd', im.size)
