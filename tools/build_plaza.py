@@ -102,7 +102,7 @@ def build(check=False):
     import render_tunnel as T
     r5 = T.build()
     def free_v(x, d): return 3 < x < 61 and 2 < d < T.D - 3
-    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, T.D - 4, T.D], to='autumn', spawn=[44, 20], type='trans', dir='B')])
+    sv, rv = room(r5, 'tunnel', '터널', T.W, T.D, free_v, [52, 40], [dict(zone=[57, 61, 22, 58], to='annex', spawn=[14, (C.APASS[0] + C.APASS[1]) / 2], type='trans', dir='R'), dict(zone=[3, 61, T.D - 4, T.D], to='autumn', spawn=[26, 16], type='trans', dir='B')])
     rv['cutAt'] = dict(id='tunnel_out', d=T.D - 340, to=[32, T.D - 2], after=[150, 20], dist=170, out=5.0, hold=3.6, back=4.5, shot=dict(room='bend', x=146, d=62))     # 터널 끝 가까이에서 컷씬 시작: 걸어 나가며 둘러보고, 카메라가 오른쪽으로 가서 끝의 그네를 보여 주고 돌아온다
     import render_autumn as AU
     r9 = AU.build('forest')                                                                       # 가로로 쭉 이어지는 빽빽한 가을 숲(처음 만든 집 있는 시골은 build('original') 로 보관)

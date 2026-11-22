@@ -592,16 +592,17 @@ function startTrans(e) {                                                      //
   const sn = document.createElement('canvas'); sn.width = VW; sn.height = VH; sn.getContext('2d').drawImage(cv, 0, 0); const v = TRAVEL[e.dir] || [1, 0];
   trans = { phase: 'out', t: 0, snap: sn, e, prev: room, sv: [v[0] + v[1] * .5, -v[1] * .5] }; P.path = []; P.act = null; marker = null;
 }
+const whiteFx = (e) => { if (e <= 0) return; e = Math.min(1, e); const r = e * VW * .95 + 1, g = ctx.createRadialGradient(VW / 2, VH / 2, 0, VW / 2, VH / 2, r); g.addColorStop(0, 'rgba(255,250,235,1)'); g.addColorStop(.5, 'rgba(255,248,228,.92)'); g.addColorStop(1, 'rgba(255,244,220,0)'); ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH); ctx.globalAlpha = e * e * e; ctx.fillStyle = '#fff8e6'; ctx.fillRect(0, 0, VW, VH); ctx.restore(); };   // 터널을 넘어가는 컷씬 전환: 하얀 빛이 퍼진다
 function drawTrans() {
   if (!trans) return; const q = trans.t, ph = trans.phase, sv = trans.sv, ease = (x) => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
   if (ph === 'out') {
     const e = ease(Math.min(1, q)); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); ctx.drawImage(trans.snap, -sv[0] * e * 24 + (Math.random() - .5) * e * 5, -sv[1] * e * 24 + (Math.random() - .5) * e * 3);
-    ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < e * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL);
-    for (let g = 0; g < 4 * e; g++) { ctx.fillStyle = 'rgba(0,0,0,.8)'; ctx.fillRect(0, Math.random() * VH, VW, 1 + Math.random() * 3); }
-  } else if (ph === 'wait') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
+    if (cut || trans.e.cut) whiteFx(e); else { ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < e * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL);
+    for (let g = 0; g < 4 * e; g++) { ctx.fillStyle = 'rgba(0,0,0,.8)'; ctx.fillRect(0, Math.random() * VH, VW, 1 + Math.random() * 3); } }
+  } else if (ph === 'wait') { ctx.fillStyle = (cut || trans.e.cut) ? '#fff8e6' : '#000'; ctx.fillRect(0, 0, VW, VH); }
   else {
     const e = ease(Math.min(1, q)); panX.clearRect(0, 0, VW, VH); panX.drawImage(cv, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); ctx.drawImage(panC, sv[0] * (1 - e) * 24, sv[1] * (1 - e) * 24);
-    ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < (1 - e) * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL);   // 나올 때도 나갈 때와 같은 도트 칸으로(거꾸로) 걷힌다
+    if (cut || trans.e.cut) whiteFx(1 - e); else { ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < (1 - e) * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL); }   // 나올 때도 나갈 때와 같은 도트 칸으로(거꾸로) 걷힌다
   }
 }
 let cut = null, shotImg = null;                                                               // 컷씬: 배경(실제 장면)은 그대로 보이고 위아래에 검은 띠만. 글 없이 카메라가 길을 따라 쭉 가서 보여 주고 아이 곁으로 돌아온다(누르면 건너뜀)
@@ -815,9 +816,9 @@ function draw(dt) {
   if (C.black && C.st === 'rise') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
   if (R.puzzle && R.puzzle.hud) { const cs = R.objects.filter(o => o.type === 'candle'), n = cs.filter(o => STATE.lit[o.id]).length; ctx.font = '11px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#0008'; ctx.fillRect(6, 6, 70, 16); ctx.fillStyle = '#ffe6a0'; ctx.fillText(`촛불 ${n}/${cs.length}`, 12, 18); }
   if (STATE.flags.cabin_key) { ctx.fillStyle = '#0008'; ctx.fillRect(VW - 40, 6, 34, 16); ctx.fillStyle = '#e8c050'; ctx.fillRect(VW - 34, 11, 8, 5); ctx.fillRect(VW - 27, 13, 8, 2); ctx.fillRect(VW - 21, 13, 2, 4); }
-  if (cut && cut.shot && shotImg && shotImg.complete && !cut.walking) {                                 // 지도 끝에 있는 그네: 길을 넘어갈 때와 하얀 빛이 퍼지듯 장면이 하얘졌다가 그네가 드러나고, 돌아올 때도 같은 효과
+  if (cut && cut.shot && shotImg && shotImg.complete && !cut.walking) {                                 // 지도 끝에 있는 그네: 길을 넘어갈 때와 검은 도트 효과로 장면이 무너지듯 검게 사라졌다가 그네가 드러나고, 돌아올 때도 같은 효과
     const rr = G.rooms[cut.shot.room], tt = cut.t - .5, o = cut.out, h = cut.hold, Xs = rr.X0 + cut.shot.x + .5 * cut.shot.d, Ys = rr.Y0 - .5 * cut.shot.d - 10;
-    const blk = (e) => { if (e <= 0) return; e = Math.min(1, e); const r = e * VW * .95 + 1, g = ctx.createRadialGradient(VW / 2, VH / 2, 0, VW / 2, VH / 2, r); g.addColorStop(0, 'rgba(255,250,235,1)'); g.addColorStop(.5, 'rgba(255,248,228,.92)'); g.addColorStop(1, 'rgba(255,244,220,0)'); ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH); ctx.globalAlpha = e * e * e; ctx.fillStyle = '#fff8e6'; ctx.fillRect(0, 0, VW, VH); ctx.restore(); };   // 가운데에서 하얀 빛이 퍼지듯 장면이 하얗게 번졌다가 걷힌다
+    const blk = (e) => { if (e <= 0) return; e = Math.min(1, e); ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < e * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL); for (let g = 0; g < 4 * e && e < 1; g++) { ctx.fillStyle = 'rgba(0,0,0,.8)'; ctx.fillRect(0, Math.random() * VH, VW, 1 + Math.random() * 3); } };
     const shot = () => { ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(shotImg, Math.round(VW / 2 - Xs * S), Math.round(VH / 2 - Ys * S), rr.CW * S, rr.CH * S); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; for (const q of rr.shotProps || []) if (q.im) { if (q.shadow) { ctx.save(); ctx.fillStyle = 'rgba(8,4,10,.32)'; ctx.beginPath(); ctx.ellipse(VW / 2 + (rr.X0 + q.x + .5 * q.d - Xs) * S - (q.shadow[0] * .1) * S, VH / 2 + (rr.Y0 - .5 * q.d - Ys) * S - 1, q.shadow[0] * S, q.shadow[1] * S, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } ctx.drawImage(q.im, Math.round(VW / 2 + (rr.X0 + q.x + .5 * q.d - Xs) * S - q.w * S / 2), Math.round(VH / 2 + (rr.Y0 - .5 * q.d - q.z - Ys) * S - q.h * S), q.w * S, q.h * S); } ctx.restore(); };
     if (tt >= o - 1.0 && tt < o) blk((tt - (o - 1.0)) / 1.0);                                          // 낙엽길이 검게 무너진다
     else if (tt >= o && tt < o + .9) { shot(); blk(1 - (tt - o) / .9); }                                // 그네가 도트로 드러난다
