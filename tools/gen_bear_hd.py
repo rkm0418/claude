@@ -151,13 +151,13 @@ def orig_sit():
         for x in range(Wd): px[x, y] = (0, 0, 0, 0)
     for cx in (12.0, 20.0):                                         # 앉은 다리: 앞으로 뻗은 허벅지(무릎이 보는 쪽으로 불룩)가 윗옷 밑단 위로 겹치고, 그 아래로 정강이와 발바닥이 보이는 앞발이 이어진다
         for y in range(34, 38):                                     # 발(앞발): 정강이 아래에서 이어지며 약간 바깥으로 벌어진 둥근 발, 맨 아래는 분홍 발바닥
-            hw = 4 if y < 37 else 3
+            hw = 3 if y < 37 else 2
             for dx in range(-hw, hw + 1):
-                x = int(cx) + dx; edge = abs(dx) == hw or y == 37; px[x, y] = A0 if edge else (PINK if y == 36 and abs(dx) <= 2 else ((190, 142, 96, 255) if y == 34 else TAN))
+                x = int(cx) + dx; edge = abs(dx) == hw or y == 37; px[x, y] = A0 if edge else (PINK if y == 36 and abs(dx) <= 1 else ((190, 142, 96, 255) if y == 34 else TAN))
         for y in (32, 33):                                          # 정강이(짧게)
-            for dx in range(-3, 4): px[int(cx) + dx, y] = A0 if dx in (-3, 3) else DK
+            for dx in range(-2, 3): px[int(cx) + dx, y] = A0 if dx in (-2, 2) else DK
         for y in range(27, 32):                                     # 허벅지·무릎: 둥근 모양 + 위쪽 밝은 면
-            half = {27: 3, 28: 4, 29: 5, 30: 5, 31: 4}[y]
+            half = {27: 2, 28: 3, 29: 3, 30: 3, 31: 3}[y]
             for dx in range(-half, half + 1):
                 x = int(cx) + dx; edge = abs(dx) == half or y == 27 and False
                 px[x, y] = A0 if abs(dx) == half else (LT if (y in (28, 29) and dx < 1) else (MD if y < 31 else DK))
