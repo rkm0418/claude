@@ -65,41 +65,98 @@ def orig_hd(rows=27):
     src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA').crop((0, 0, 24, rows))
     return Image.fromarray(G.scale2x(G.scale2x(np.array(src))), 'RGBA')
 
+HIPS_FROM_BOTTOM = 108 - 82                                              # 엉덩이(앉는 자리)에서 그림 맨 아래까지 도트 수
 BEARK = 4.6                                                             # 곰 그림 한 칸이 게임 화면 몇 도트인지(주인공은 약 4.7)
-def orig_sit():
+def orig_sit_human():
     """곰: 머리는 원래 곰(bear_green_A) 그대로 도트 수만 늘리고, 몸은 주인공과 같은 사람 몸 모델(어깨가 비스듬히 흘러내리는 스웨터·둥근 팔·다리)로 그린다.
     그네 자세: 팔꿈치를 굽혀 양옆 줄을 두 손으로 잡고, 두 다리를 앞으로 내밀어 둥근 앞발로 끝난다. 원래 곰의 색(연한 초록 윗옷·황갈색 털)을 쓴다."""
     import gen_child_hd as G
-    saved = (G.SW_, G.PT_, G.SHO, G.NECKC, G.HANDT)
+    saved = (G.SW_, G.PT_, G.SHO, G.NECKC, G.HANDT, G.RING); G.RING = 0.0                                  # 안쪽 윤곽선을 없애고(조각조각 보이지 않게) 바깥 윤곽선만 나중에 한 번 긋는다
     TAN = (211, 165, 116); TANT = ((232, 188, 140), TAN, (176, 130, 86))
     G.SW_ = ((166, 208, 134), (111, 143, 88), (63, 90, 52)); G.PT_ = ((118, 150, 96), (88, 118, 70), (58, 84, 48)); G.SHO = TANT; G.NECKC = TAN + (255,); G.HANDT = TANT
-    Wc, Hc = 72, 104
+    Wc, Hc = 72, 108
     pose = {'arm': {-1: ((-13.0, 61.0, 0.0), (-20.5, 70.0, 0.0), (-27.6, 60.0, 0.0)), 1: ((13.0, 61.0, 0.0), (20.5, 70.0, 0.0), (27.6, 60.0, 0.0))},
             'leg': {-1: ((-4.8, 82.0, 0.0), (-5.6, 90.0, 0.0), (-6.2, 97.0, 0.0)), 1: ((4.8, 82.0, 0.0), (5.6, 90.0, 0.0), (6.2, 97.0, 0.0))}}
     try:
         b = G.body(0.0, 0.0, 0.0, pose, (Wc, Hc))
     finally:
-        G.SW_, G.PT_, G.SHO, G.NECKC, G.HANDT = saved
+        G.SW_, G.PT_, G.SHO, G.NECKC, G.HANDT, G.RING = saved
     # --- 후드티 느낌: 목 둘레에 두툼하게 말린 모자(후드), 가운데 크림색 끈 둘, 앞 주머니(원래 곰의 초록 후드 윗옷)
     SSh = 4; hl = Image.new('RGBA', (Wc * SSh, Hc * SSh), (0, 0, 0, 0)); hd_ = ImageDraw.Draw(hl); cxh = Wc / 2.0
     def E(cx, cy, rx, ry, g=0.0): return [(cx - rx - g) * SSh, (cy - ry - g) * SSh, (cx + rx + g) * SSh, (cy + ry + g) * SSh]
     LTc, MDc, DKc, DDc = (166, 208, 134, 255), (111, 143, 88, 255), (63, 90, 52, 255), (44, 63, 38, 255)
-    hd_.ellipse(E(cxh, 61.8, 17.6, 6.4, RING), fill=A_ + (255,)); hd_.ellipse(E(cxh, 61.8, 17.6, 6.4), fill=DKc)                 # 후드 둥근 말림: 윤곽선 → 그늘
+    hd_.ellipse(E(cxh, 61.8, 17.6, 6.4), fill=DKc)                 # 후드 둥근 말림: 윤곽선 → 그늘
     hd_.ellipse(E(cxh - .5, 61.0, 16.6, 5.4), fill=MDc); hd_.ellipse(E(cxh - 2.2, 60.2, 11.5, 3.2), fill=LTc)                  # 보통 → 위쪽 밝은 면
-    hd_.ellipse(E(cxh, 60.2, 8.6, 2.6, RING * .7), fill=A_ + (255,)); hd_.ellipse(E(cxh, 60.2, 8.6, 2.6), fill=(211, 165, 116, 255))                                                                              # 목이 들어가는 안쪽
+    hd_.ellipse(E(cxh, 60.2, 8.6, 2.6), fill=(204, 156, 108, 255))                                                                              # 목이 들어가는 안쪽
     for sx in (-1, 1):                                                                                                          # 끈: 목 아래에서 가슴으로 늘어지고 끝에 매듭
-        hd_.line([((cxh + sx * 4.2) * SSh, 64.5 * SSh), ((cxh + sx * 4.8) * SSh, 76.5 * SSh)], fill=A_ + (255,), width=int(3.6 * SSh)); hd_.line([((cxh + sx * 4.2) * SSh, 64.5 * SSh), ((cxh + sx * 4.8) * SSh, 76.5 * SSh)], fill=(240, 226, 196, 255), width=int(1.7 * SSh))
-        hd_.ellipse(E(cxh + sx * 4.8, 77.4, 1.9, 1.9, RING * .6), fill=A_ + (255,)); hd_.ellipse(E(cxh + sx * 4.8, 77.4, 1.9, 1.9), fill=(240, 226, 196, 255))
-    hd_.rounded_rectangle([(cxh - 14.5 - RING) * SSh, (72.5 - RING) * SSh, (cxh + 14.5 + RING) * SSh, (85.0 + RING) * SSh], radius=int((5 + RING) * SSh), fill=A_ + (255,))      # 앞 주머니(캥거루 주머니)
-    hd_.rounded_rectangle([(cxh - 14.5) * SSh, 72.5 * SSh, (cxh + 14.5) * SSh, 85.0 * SSh], radius=5 * SSh, fill=MDc); hd_.rounded_rectangle([(cxh - 13.2) * SSh, 73.6 * SSh, (cxh + 13.2) * SSh, 77.0 * SSh], radius=2 * SSh, fill=LTc)
+        hd_.line([((cxh + sx * 4.2) * SSh, 64.5 * SSh), ((cxh + sx * 4.8) * SSh, 76.5 * SSh)], fill=(170, 150, 120, 255), width=int(2.6 * SSh)); hd_.line([((cxh + sx * 4.2) * SSh, 64.5 * SSh), ((cxh + sx * 4.8) * SSh, 76.5 * SSh)], fill=(240, 226, 196, 255), width=int(1.7 * SSh))
+        hd_.ellipse(E(cxh + sx * 4.8, 77.4, 1.7, 1.7), fill=(240, 226, 196, 255))
+    hd_.rounded_rectangle([(cxh - 14.0) * SSh, 72.5 * SSh, (cxh + 14.0) * SSh, 85.0 * SSh], radius=5 * SSh, fill=(100, 132, 80, 255)); hd_.rounded_rectangle([(cxh - 13.2) * SSh, 73.4 * SSh, (cxh + 13.2) * SSh, 80.5 * SSh], radius=4 * SSh, fill=(126, 160, 98, 255))      # 앞 주머니(윤곽선 없이 면만 살짝 다르게)
     for sx in (-1, 1): hd_.line([((cxh + sx * 11.6) * SSh, 76.0 * SSh), ((cxh + sx * 8.2) * SSh, 82.2 * SSh)], fill=DKc, width=int(1.5 * SSh))                      # 손 넣는 옆 트임
     ha_ = np.array(hl.convert('RGBa').resize((Wc, Hc), Image.LANCZOS).convert('RGBA')); ha_[..., 3] = np.where(ha_[..., 3] >= 128, 255, 0); hood = Image.fromarray(ha_, 'RGBA')
     src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA').crop((0, 0, 24, 18))
     head = Image.fromarray(G.scale2x(G.scale2x(np.array(src))), 'RGBA')                                       # 원래 곰 머리를 4배 도트로(96x72)
     head = head.convert('RGBa').resize((54, 40), Image.LANCZOS).convert('RGBA'); ha = np.array(head); ha[..., 3] = np.where(ha[..., 3] >= 128, 255, 0); head = Image.fromarray(ha, 'RGBA')
-    out = Image.new('RGBA', (Wc, Hc), (0, 0, 0, 0)); out.alpha_composite(b); out.alpha_composite(hood); out.alpha_composite(head, ((Wc - 54) // 2, 56 - 40))
+    out = Image.new('RGBA', (Wc, Hc), (0, 0, 0, 0)); out.alpha_composite(b); out.alpha_composite(hood)
+    from PIL import ImageFilter
+    am = out.getchannel('A'); ring = am.filter(ImageFilter.MaxFilter(5)); rm = np.array(ring) > 0; rm &= ~(np.array(am) > 0); ol = np.zeros((Hc, Wc, 4), np.uint8); ol[rm] = (26, 22, 32, 255)             # 몸 전체의 바깥 윤곽선 한 번
+    final = Image.fromarray(ol, 'RGBA'); final.alpha_composite(out); out = final; out.alpha_composite(head, ((Wc - 54) // 2, 56 - 40))
     bb = out.getbbox(); out = out.crop((0, bb[1], Wc, Hc))                                                    # 위쪽 빈 줄을 잘라 낸다
     return out, out
+
+def orig_sit():
+    """원래 곰(bear_green_A: 연한 초록 후드 윗옷·황갈색 털)의 도트 그림을 그대로 쓰고 도트 수만 4배(Scale2x 두 번)로 늘린다.
+    그네 자세만 손으로 고친다: 몸 옆에 늘어진 소매는 없애고, 어깨 → 팔꿈치(주머니 높이에서 둥글게 굽음) → 손으로 이어지는 팔 하나씩만 두어 양옆 줄을 잡고, 두 다리는 바지가 이어져 앞으로 내민 둥근 앞발로 끝난다."""
+    import gen_child_hd as G
+    A0, TAN, PINK = (26, 22, 32, 255), (211, 165, 116, 255), (232, 168, 152, 255); LT, MD, DK, DD = (155, 199, 124, 255), (111, 143, 88, 255), (63, 90, 52, 255), (44, 63, 38, 255)
+    src = Image.open(os.path.join(HERE, '..', 'art', 'out', 'sprites', 'bear_green_A.png')).convert('RGBA'); Wd, Ht = 32, 37
+    cv = Image.new('RGBA', (Wd, Ht), (0, 0, 0, 0)); cv.alpha_composite(src.crop((0, 0, 24, 28)), (4, 0)); px = cv.load()
+    for y in range(20, 28):                                         # 몸 옆에 늘어진 소매·손은 지우고 몸통(10칸 폭)만 남긴 뒤 옆선을 긋는다(팔은 아래에서 하나씩 새로 그린다)
+        for x in list(range(3, 11)) + list(range(21, 27)): px[x, y] = (0, 0, 0, 0)
+        px[10, y] = A0; px[21, y] = A0
+    for x in range(10, 22): px[x, 28] = A0
+    def arm(sh, el, hd, dirn):                                      # 어깨 → 팔꿈치 → 손: 굵기 같은 소매를 이어 그린다(관절에서 끊기지 않게 원으로 채움)
+        pts = []
+        for (a, b) in ((sh, el), (el, hd)):
+            for i in range(0, 41): pts.append((a[0] + (b[0] - a[0]) * i / 40.0, a[1] + (b[1] - a[1]) * i / 40.0))
+        ys, xs = np.mgrid[0:Ht, 0:Wd]; M = np.zeros((Ht, Wd), bool); R_ = 2.0
+        for cx_, cy_ in pts: M |= (xs + .5 - cx_) ** 2 + (ys + .5 - cy_) ** 2 <= R_ * R_
+        D = np.zeros((Ht, Wd), bool)
+        for cx_, cy_ in pts: D |= (xs + .5 - cx_) ** 2 + (ys + .5 - cy_) ** 2 <= (R_ + 1.1) ** 2
+        for y in range(Ht):
+            for x in range(Wd):
+                if D[y, x] and not M[y, x] and px[x, y][3] == 0: px[x, y] = A0
+                if D[y, x] and not M[y, x] and px[x, y] in (LT, MD, DK, DD, TAN): px[x, y] = px[x, y]
+        P_ = np.array(pts)
+        for y in range(Ht):
+            for x in range(Wd):
+                if not M[y, x]: continue
+                d = P_ - np.array([x + .5, y + .5]); k = int(np.argmin((d ** 2).sum(1))); v = -d[k]; n = np.hypot(*v) or 1.0
+                s = (v[0] * -.55 + v[1] * -.85) / n                  # 왼쪽 위에서 오는 빛
+                px[x, y] = LT if s > .35 else (DK if s < -.45 else MD)
+        hx, hy = hd                                                  # 줄을 쥔 앞발(털)
+        for y in range(Ht):
+            for x in range(Wd):
+                r2 = (x + .5 - hx) ** 2 + (y + .5 - hy) ** 2
+                if r2 <= 2.4 ** 2: px[x, y] = TAN
+                elif r2 <= 3.4 ** 2 and px[x, y] != TAN and (px[x, y][3] == 0 or px[x, y] in (LT, MD, DK)): px[x, y] = A0
+        px[int(hx + dirn * -1), int(hy)] = PINK
+    ROPE = (150, 128, 92, 255)                                                                   # 그네 줄(장면의 줄과 같은 색): 손 위아래로 곰 그림 안까지 이어 그려 줄이 주먹을 통과하게 한다
+    for rx in (4, 28):
+        for y in range(11, 28): px[rx - 1, y] = ROPE; px[rx, y] = ROPE
+    arm((10.6, 19.6), (6.6, 24.4), (4.0, 18.6), -1); arm((21.4, 19.6), (25.4, 24.4), (28.0, 18.6), 1)
+    for hx in (4, 28):                                                                          # 주먹: 줄을 감아 쥔 손가락 두 줄
+        for dx in (-1, 0, 1): px[hx + dx - 0, 18] = (176, 130, 86, 255); px[hx + dx - 0, 20] = (176, 130, 86, 255)
+    for y in range(29, Ht):
+        for x in range(Wd): px[x, y] = (0, 0, 0, 0)
+    for cx, fx in ((13, 12), (18, 19)):                             # 앞으로 내민 다리: 몸통 아래에서 바지가 이어져 둥근 앞발로 끝난다
+        for y in range(29, 32):
+            for dx in range(-2, 3): px[cx + dx, y] = A0 if dx in (-2, 2) else (MD if y < 31 else DK)
+        for y, hw in ((32, 3), (33, 4), (34, 4), (35, 3)):
+            for dx in range(-hw, hw + 1):
+                edge = abs(dx) == hw or y == 35; px[fx + dx, y] = A0 if edge else ((190, 142, 96, 255) if y == 32 else TAN)
+        for dx in (-1, 0, 1): px[fx + dx, 34] = PINK
+    return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
 
 def pix(im, size=(24, 34), thr=120):
     """네모네모한 도트판(게임 화면 한 칸 단위, 24x34 = 게임 크기 12x17 × 2): 또렷한 네모 도트로 줄인다."""
