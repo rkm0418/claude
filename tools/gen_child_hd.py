@@ -158,12 +158,12 @@ def build():
         def comp(phi, amp, hp=hp):
             b = np.array(body(YAW[d], phi, amp)); out = b.copy(); m = hp[..., 3] > 0; out[m] = hp[m]; return Image.fromarray(out, 'RGBA')
         f = {'idle': comp(0.0, 0.0)}
-        for i in range(NW): f[f'w{i + 1}'] = comp(2 * math.pi * i / NW, 1.0)
+        for i in range(NW): f[f'w{i + 1}'] = comp(2 * math.pi * i / NW, 1.7)
         if d == 'r':                                                      # 오른쪽 보며 걷는 몸에 고개만 위쪽(lu)·아래쪽(ld)으로 돌린 변형: 컷씬에서 주변을 둘러보는 데 쓴다
             for tag, srcd in (('lu', 'ur'), ('ld', 'dr')):
                 h2 = small_head(hd(Image.open(os.path.join(SRC, f'child_{srcd}_idle.png'))))
                 f[f'{tag}_idle'] = comp(0.0, 0.0, h2)
-                for i in range(NW): f[f'{tag}_w{i + 1}'] = comp(2 * math.pi * i / NW, 1.0, h2)
+                for i in range(NW): f[f'{tag}_w{i + 1}'] = comp(2 * math.pi * i / NW, 1.7, h2)
         for k, im in f.items(): im.save(os.path.join(OUT, f'child_{d}_{k}.png'))
         res[d] = f
     return res

@@ -215,7 +215,7 @@ def swing_sit():
                 px[cx + dx, y] = A0 if (abs(dx) == hw or y == 37) else ((PINK if (y == 36 and abs(dx) <= 1) else TAN))
     return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
 
-def walk_up():
+def walk_up(stand=False):
     """길을 따라 위쪽(화면 안쪽)으로 걸어가는 곰의 뒷모습: 원래 곰(bear_green_A)의 머리·귀·후드 윗옷 모양과 색 그대로, 얼굴 부분만 털로 덮고(뒷머리) 등에는 후드를 그린다.
     걸음: 왼발은 땅을 딛고 오른발은 뒤로 들려(발바닥 분홍이 보임) 한 걸음 내딛는 모양. 도트 수만 4배."""
     import gen_child_hd as G
@@ -249,9 +249,16 @@ def walk_up():
             h = hw if i < rows - 1 else hw - 1
             for dx in range(-h, h + 1):
                 edge = abs(dx) == h or i == rows - 1; px[cx + dx, y0 + i] = A0 if edge else ((PINK if sole and i == 1 and abs(dx) <= 1 else TAN))
-    leg(6, 28, 32); foot(9, 33, 3, 4)                                 # 왼발: 땅을 딛는다(발 맨 아래가 땅)
+    leg(6, 28, 32); foot(9, 33, 3, 4)
+    if stand: leg(13, 28, 32); foot(16, 33, 3, 4); return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv                                 # 왼발: 땅을 딛는다(발 맨 아래가 땅)
     leg(13, 28, 30); foot(16, 31, 3, 3, True)                         # 오른발: 뒤로 들려 한 걸음(발바닥이 보인다), 땅에서 두 줄 뜬다
     return Image.fromarray(G.scale2x(G.scale2x(np.array(cv))), 'RGBA'), cv
+
+def back_stand():
+    """정자세로 서서 뒤돌아 있는 곰(뒷모습): walk_up 과 같은 뒷모습에 두 발을 나란히 땅에 딛는다."""
+    import gen_child_hd as G
+    global leg_override
+    im, cv = walk_up(stand=True); return im
 
 def pix(im, size=(24, 34), thr=120):
     """네모네모한 도트판(게임 화면 한 칸 단위, 24x34 = 게임 크기 12x17 × 2): 또렷한 네모 도트로 줄인다."""
