@@ -592,17 +592,16 @@ function startTrans(e) {                                                      //
   const sn = document.createElement('canvas'); sn.width = VW; sn.height = VH; sn.getContext('2d').drawImage(cv, 0, 0); const v = TRAVEL[e.dir] || [1, 0];
   trans = { phase: 'out', t: 0, snap: sn, e, prev: room, sv: [v[0] + v[1] * .5, -v[1] * .5] }; P.path = []; P.act = null; marker = null;
 }
-const whiteFx = (e) => { if (e <= 0) return; e = Math.min(1, e); const r = e * VW * .95 + 1, g = ctx.createRadialGradient(VW / 2, VH / 2, 0, VW / 2, VH / 2, r); g.addColorStop(0, 'rgba(255,250,235,1)'); g.addColorStop(.5, 'rgba(255,248,228,.92)'); g.addColorStop(1, 'rgba(255,244,220,0)'); ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, VW, VH); ctx.globalAlpha = e * e * e; ctx.fillStyle = '#fff8e6'; ctx.fillRect(0, 0, VW, VH); ctx.restore(); };   // 터널을 넘어가는 컷씬 전환: 하얀 빛이 퍼진다
 function drawTrans() {
   if (!trans) return; const q = trans.t, ph = trans.phase, sv = trans.sv, ease = (x) => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
   if (ph === 'out') {
     const e = ease(Math.min(1, q)); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); ctx.drawImage(trans.snap, -sv[0] * e * 24 + (Math.random() - .5) * e * 5, -sv[1] * e * 24 + (Math.random() - .5) * e * 3);
-    if (cut || trans.e.cut) whiteFx(e); else { ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < e * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL);
+    { ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < e * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL);
     for (let g = 0; g < 4 * e; g++) { ctx.fillStyle = 'rgba(0,0,0,.8)'; ctx.fillRect(0, Math.random() * VH, VW, 1 + Math.random() * 3); } }
-  } else if (ph === 'wait') { ctx.fillStyle = (cut || trans.e.cut) ? '#fff8e6' : '#000'; ctx.fillRect(0, 0, VW, VH); }
+  } else if (ph === 'wait') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); }
   else {
     const e = ease(Math.min(1, q)); panX.clearRect(0, 0, VW, VH); panX.drawImage(cv, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, VH); ctx.drawImage(panC, sv[0] * (1 - e) * 24, sv[1] * (1 - e) * 24);
-    if (cut || trans.e.cut) whiteFx(1 - e); else { ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < (1 - e) * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL); }   // 나올 때도 나갈 때와 같은 도트 칸으로(거꾸로) 걷힌다
+    { ctx.fillStyle = '#000'; for (let i = 0; i < TRANK.length; i++) if (TRANK[i] < (1 - e) * 1.1) ctx.fillRect((i % TCOLS) * TCELL, Math.floor(i / TCOLS) * TCELL, TCELL, TCELL); }   // 나올 때도 나갈 때와 같은 도트 칸으로(거꾸로) 걷힌다
   }
 }
 let cut = null, shotImg = null;                                                               // 컷씬: 배경(실제 장면)은 그대로 보이고 위아래에 검은 띠만. 글 없이 카메라가 길을 따라 쭉 가서 보여 주고 아이 곁으로 돌아온다(누르면 건너뜀)
