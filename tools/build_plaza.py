@@ -121,7 +121,7 @@ def build(check=False):
     def free_bd(x, d): return 4 < x < BW - 4 and 4 < d < BD - 8
     sbd, rbd = room(r12, 'bend', '그네 꺾인 길', BW, BD, free_bd, [42, 34], [dict(zone=[3, 9, 20, 48], to='scurve2', spawn=[SW - 80, 25], type='trans', dir='L'), dict(zone=[152, 188, BD - 24, BD - 10], to='house', spawn=[170, 40], type='trans', dir='B')])
     import gen_bear_hd as BEAR
-    bear_im = BEAR.back_stand(); rbd['shotProps'] = [dict(img=uri(bear_im), x=170.0, d=64.0, z=0.0, w=round(bear_im.width / 8.0, 2), h=round(bear_im.height / 8.0, 2), shadow=[4.6, 1.7, 8.0 * 1.0])]     # 곰은 그네 오른쪽 길을 따라 위쪽으로 걸어간다(뒷모습, 발 밑 그림자)     # 곰은 그네 오른쪽에 서 있다(원래 곰 그대로, 도트 수만 4배)     # 곰을 조금 작게: 양옆 줄과 닿지 않고 줄 사이에 들어앉는다     # 원래 곰 도트 한 칸 = 월드 0.5칸 → 4배 도트는 1/8칸                  # 그네에 앉은 곰 조력자: 컷씬의 그네 장면에서만 보인다(직접 가면 없다). 원래 곰 그대로 도트 수만 4배
+    bear_im = BEAR.back_stand(); rbd['shotProps'] = [dict(img=uri(bear_im), x=169.0, d=111.0, z=0.0, w=round(bear_im.width / 8.0, 2), h=round(bear_im.height / 8.0, 2), shadow=[4.6, 1.7, 8.0 * 1.0])]     # 곰은 그네 오른쪽 길을 따라 위쪽으로 걸어간다(뒷모습, 발 밑 그림자)     # 곰은 그네 오른쪽에 서 있다(원래 곰 그대로, 도트 수만 4배)     # 곰을 조금 작게: 양옆 줄과 닿지 않고 줄 사이에 들어앉는다     # 원래 곰 도트 한 칸 = 월드 0.5칸 → 4배 도트는 1/8칸                  # 그네에 앉은 곰 조력자: 컷씬의 그네 장면에서만 보인다(직접 가면 없다). 원래 곰 그대로 도트 수만 4배
     r13 = AU.build('house')                                                                       # 위로 올라간 끝: 집 앞마당(보관해 둔 기와집)
     HW, HD = r13.W, r13.D
     def free_hs(x, d): return 4 < x < HW - 4 and 4 < d < HD - 8
