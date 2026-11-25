@@ -154,6 +154,17 @@ def build(check=False):
     import gen_child_hd as HDC                                                                   # 주인공: 4배 촘촘한 도트 + 걷기 8장
     hdf = HDC.build(); full['child'] = {'%s_%s' % (d, k): uri(im) for d, fr in hdf.items() for k, im in fr.items()}; full['childSize'] = [12, 22]; full['childK'] = HDC.GW * HDC.K / 12.0; full['childKy'] = HDC.GH * HDC.K / 22.0                # 캐릭터 크기 12x22(문·가구·나무와 비율)
     full['rooms'] = {'plaza': ra, 'corridor': rb, 'fountain': rf, 'recycle': rr_, 'lot': rs_, 'street': rt_, 'rtunnel': ru, 'annex': ra2, 'lounge': rl, 'tunnel': rv, 'outroad': ro, 'autumn': rau, 'scurve': rsc, 'scurve2': rsc2, 'bend': rbd, 'house': rhs, 'living': rli, 'bedroom': rbr, 'kitchen': rki, 'study': rst, 'bath': rba}; full['starts'] = {'plaza': {'room': 'plaza', 'x': 60, 'd': 24}}
+    # --- 역상: 꿈에서만 서 있는 벽(dwalls: [x, d, 너비, 깊이, 높이])과 장면 글(cap: 꿈 d / 실제 r)
+    RM = full['rooms']; aw, ad = RM['autumn']['W'], RM['autumn']['D']
+    RM['corridor']['dwalls'] = [[260, 37, 8, 41, 64]]
+    RM['autumn']['dwalls'] = [[round(aw * .5), 3, 8, ad - 7, 64]]
+    CAP = {'plaza': ('일곱 살의 밤. 늘 같은 자리.', '광장은 조용하다. 가로등이 켜져 있다.'),
+           'corridor': ('벽이 솟아 있다. X로 세계를 뒤집어 보자', '벽은 없다. 처음부터 없었다.'),
+           'fountain': ('분수가 소리 없이 솟는다.', '분수는 고장 났다. 소리는 안에서 났다.'),
+           'street': ('길 끝이 터널을 삼키고 있다.', '평범한 길이다. 가로등이 서 있다.'),
+           'rtunnel': ('터널이 길게 숨을 쉰다.', '불이 켜져 있다. 환기 소리다.'),
+           'autumn': ('낙엽이 떨어진다. 속도가 모두 같다.', '바람이 분다. 낙엽이 제각각 떨어진다.')}
+    for k, (cd, cr) in CAP.items(): RM[k]['cap'] = dict(d=cd, r=cr)
     open(os.path.join(WEB, 'plaza_data.js'), 'w', encoding='utf-8').write('window.GAME_DATA = ' + json.dumps(full) + ';\n')
     h = open(os.path.join(WEB, 'index.html'), encoding='utf-8').read()
     h = h.replace('<script src="data.js"></script><script src="game.js"></script>', '<script>' + open(os.path.join(WEB, 'plaza_data.js'), encoding='utf-8').read() + '</script><script>' + open(os.path.join(WEB, 'game.js'), encoding='utf-8').read() + '</script>')
@@ -166,13 +177,15 @@ def build(check=False):
 #jumpl button{font:14px system-ui,sans-serif;color:#fff;background:#2a2a30;border:1px solid #666;border-radius:4px;padding:5px 14px;text-align:left;cursor:pointer}
 #jumpl button.on{background:#3a5a8a}
 #dbg{top:8px !important;right:84px !important}
+#invb{position:fixed;left:8px;bottom:8px;z-index:9;font:15px system-ui,sans-serif;color:#fff;background:rgba(0,0,0,.6);border:2px solid #fff;border-radius:6px;padding:10px 16px;cursor:pointer}
 </style>
-<div id="where">-</div><button id="jumpb">이동</button><div id="jumpl"></div>
+<div id="where">-</div><button id="invb">역상 (X)</button><button id="jumpb">이동</button><div id="jumpl"></div>
 <script>
 (function(){var N=%s,W=document.getElementById('where'),B=document.getElementById('jumpb'),L=document.getElementById('jumpl'),cur='';
 N.forEach(function(n,i){var b=document.createElement('button');b.dataset.k=n[0];b.textContent=(i+1)+'. '+n[1];b.onclick=function(){L.style.display='none';var g=window.__game;if(!g)return;var st=window.GAME_DATA.rooms[n[0]].start;g.enter(n[0],[st[0],st[1]]);};L.appendChild(b);});
+document.getElementById('invb').onclick=function(e){e.stopPropagation();window.__game&&window.__game.toggleInv();};
 B.onclick=function(e){e.stopPropagation();L.style.display=L.style.display==='flex'?'none':'flex';};
-['pointerdown','touchstart','mousedown'].forEach(function(t){[B,L].forEach(function(el){el.addEventListener(t,function(e){e.stopPropagation();});});});
+['pointerdown','touchstart','mousedown'].forEach(function(t){[B,L,document.getElementById('invb')].forEach(function(el){el.addEventListener(t,function(e){e.stopPropagation();});});});
 setInterval(function(){var g=window.__game;if(!g||!g.room)return;var k=g.room;if(k===cur)return;cur=k;var i=N.findIndex(function(n){return n[0]===k;});W.textContent=i<0?k:(i+1)+'. '+N[i][1];Array.prototype.forEach.call(L.children,function(b){b.className=b.dataset.k===k?'on':'';});},150);})();
 </script>""" % json.dumps(NAMES, ensure_ascii=False)
     h = h.replace('</body>', ui + '</body>')

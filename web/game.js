@@ -14,6 +14,18 @@ let fadeCol = '20,14,16'; const TRAVEL = { L: [-1, 0], R: [1, 0], B: [0, 1], F: 
 const P = { x: 0, d: 0, path: [], dir: 'd', moving: false, t: 0 };
 const STATE = { lit: {}, solved: {}, seq: {}, flags: {}, got: {}, sw: {}, vi: {}, pv: {}, bag: [] };                                                  // 퍼즐 상태(방을 옮겨도 유지): 켠 등불
 const C = { st: 'none', x: 0, d: 0, t: 0, path: [], rep: 0, flip: false };    // 추격자(나무 머리): hidden(나무인 척) -> rise(일어남) -> chase / wait(뒤따라 들어옴)
+// ---------- 역상: 같은 장면을 뒤집어 본다(검은 꿈 <-> 실제). 꿈에서만 있는 벽(dwalls)은 역상에서 사라진다 ----------
+let INV = false;
+function setWorld() { if (!R || !R.freeD) return; R.free = (INV ? R.freeR : R.freeD).slice(); R.free0 = R.free.slice(); }
+function inDwall(r, x, d) { return (r.dwalls || []).some(([bx, bd, bw, bp]) => x > bx - BODY.rx && x < bx + bw + BODY.rx && d > bd - BODY.rd && d < bd + bp + BODY.rd); }
+function worldCap() { const c = R && R.cap; if (c) { const t = INV ? c.r : c.d; if (t) msg = { text: t, t: 3.6 }; } }
+function toggleInv() {
+  if (!R || cut || fadeDir || trans || FP) return;
+  if (INV && inDwall(R, P.x, P.d)) { msg = { text: '지금은 돌아갈 수 없다. 벽 안이다', t: 1.8 }; audio(); beep(110, .2, 'square', .1); return; }
+  INV = !INV; setWorld(); P.path = []; P.act = null; marker = null; cv.style.filter = INV ? 'invert(1)' : '';
+  audio(); beep(INV ? 523 : 392, .25, 'triangle', .12); beep(INV ? 784 : 196, .35, 'sine', .05, .02); worldCap();
+}
+document.addEventListener('keydown', (ev) => { if ((ev.key === 'x' || ev.key === 'X' || ev.key === 'Shift') && !ev.repeat) { ev.preventDefault(); toggleInv(); } });
 const CSPEED = 38, chFrames = {}; const NOCHASE = !/chase/.test(location.hash);                  // 추격 없음: 등장한 뒤 그 자리에 서서 지켜볼 뿐 쫓아오지도 붙잡지도 않는다(주소에 #chase 를 붙이면 옛 추격)
 function setupChaser() {
   C.path = []; C.t = 0; C.rep = 0; C.tp = null; C.pl = null; C.face0 = false; C.preview = false;
@@ -433,7 +445,9 @@ async function prepare(key) {
     const wd = w.getImageData(0, 0, r.gw, r.gh).data; for (let i = 0; i < r.free.length; i++) if (wd[i * 4] < 128) r.free[i] = 0;
   }
   if (r.reveal) for (const v of r.reveal) { v.im = await img(v.img); v.a = 0; }
-  r.free0 = r.free.slice(); r.start = r.start || [r.W / 2, r.D / 2]; r.objects = r.objects || [];
+  r.freeR = r.free.slice(); r.freeD = r.free.slice();
+  for (const [bx, bd, bw, bp] of (r.dwalls || [])) for (let j = 0; j < r.gh; j++) for (let i = 0; i < r.gw; i++) { const x = (i + .5) * CELL, d = (j + .5) * CELL; if (x > bx - BODY.rx && x < bx + bw + BODY.rx && d > bd - BODY.rd && d < bd + bp + BODY.rd) r.freeD[j * r.gw + i] = 0; }
+  r.free = (INV ? r.freeR : r.freeD).slice(); r.free0 = r.free.slice(); r.start = r.start || [r.W / 2, r.D / 2]; r.objects = r.objects || [];
   r.cr = (r.cracks || []).map(c => ({ ...c, st: 'ok', t: 0, cells: [] })); r.cr.forEach(c => { c.cells = cellsOf(r, c); });
   r.ready = true; return r;
 }
@@ -695,7 +709,7 @@ function update(dt) {
     else if (e.to) { if (e.type === 'trans' && !trans) startTrans(e); else if (!trans) { e.from = room; pending = e; fadeDir = 1; fadeCol = e.fc || '20,14,16'; } } else if (!msg) { msg = { text: e.endMsg || '여기서부터는 아직 만들지 않았어요', t: 2.6 }; P.path = []; const s = e.zone; goTo((s[0] + s[1]) / 2 + (e.side === 'left' ? 10 : e.side === 'right' ? -10 : 0), (s[2] + s[3]) / 2 + (e.side === 'front' ? 10 : e.side === 'back' ? -10 : 0)); }
   }
 }
-async function enter(key, spawn) { FP = null; R = await prepare(key); room = key; S = R.sections ? 1.5 : (R.S || (R.CH > 140 ? 1 : 2)); R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; { const [ci, cj] = cellOf(P.x, P.d); if (!isFree(ci, cj)) { const t = nearestFree(ci, cj); if (t) { P.x = (t[0] + .5) * CELL; P.d = (t[1] + .5) * CELL; } } } LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; CAMK = []; { const vw = VW / S; for (const rm of ROOMS) { const w = rm.x1 - rm.x0, cr = rm.x0 + w / 2; if (w <= vw + 10) { const h = Math.min(w / 2 + 4, 50); CAMK.push([cr - h, cr], [cr + h, cr]); } else CAMK.push([rm.x0 + 70, rm.x0 + 70], [rm.x1 - 70, rm.x1 - 70]); } } LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
+async function enter(key, spawn) { FP = null; R = await prepare(key); setWorld(); room = key; worldCap(); S = R.sections ? 1.5 : (R.S || (R.CH > 140 ? 1 : 2)); R.objects = viewObjs(R); P.x = spawn[0]; P.d = spawn[1]; { const [ci, cj] = cellOf(P.x, P.d); if (!isFree(ci, cj)) { const t = nearestFree(ci, cj); if (t) { P.x = (t[0] + .5) * CELL; P.d = (t[1] + .5) * CELL; } } } LEAD.v = 0; LEAD.dir = 1; DIVX = R.sections ? R.sections.filter((s) => s.kind === 'passage').map((s) => s.mid[0]) : []; ROOMS = R.sections ? R.sections.filter((s) => s.kind === 'room') : []; CAMK = []; { const vw = VW / S; for (const rm of ROOMS) { const w = rm.x1 - rm.x0, cr = rm.x0 + w / 2; if (w <= vw + 10) { const h = Math.min(w / 2 + 4, 50); CAMK.push([cr - h, cr], [cr + h, cr]); } else CAMK.push([rm.x0 + 70, rm.x0 + 70], [rm.x1 - 70, rm.x1 - 70]); } } LS = R.sections ? Array.from({ length: DIVX.length + 1 }, () => ({ L: 0, fl: 0, on: false })) : null; if (LS) updLight(0, true); P.path = []; marker = null; cam.init = false; setupChaser(); }
 
 // ---------- 그리기: 방 -> 아이(가구 뒤에 있으면 깊이 지도로 가림) -> 표시 ----------
 const sprC = document.createElement('canvas'), sprX = sprC.getContext('2d'); const shC = document.createElement('canvas'), shX = shC.getContext('2d'); const frames = {};
@@ -711,6 +725,19 @@ function drawProps(front) {                                                    /
       if (R.dep[wy * R.CW + wx] < q.d - .5) a[(y * wK + x) * 4 + 3] = 0;
     }
     prX.putImageData(id, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(prC, (R.ox + x0) * S, (R.oy + y0) * S, q.w * S, q.h * S); ctx.imageSmoothingEnabled = false;
+  }
+}
+function drawDW(before) {                                                      // 꿈에서만 서 있는 벽: 검은 면에 흰 윤곽(역상에서는 없다)
+  if (INV || !R.dwalls) return;
+  for (const [bx, bd, bw, bp, bh] of R.dwalls) {
+    if ((bd + bp / 2 > P.d) !== before) continue;
+    const q = (x, d, h) => { const [X, Y] = scr(x, d); return [(R.ox + X) * S, (R.oy + Y - h) * S]; };
+    const pl = (pts, fill) => { ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = S; ctx.stroke(); };
+    pl([q(bx, bd, 0), q(bx + bw, bd, 0), q(bx + bw, bd, bh), q(bx, bd, bh)], '#050505');
+    pl([q(bx, bd, bh), q(bx + bw, bd, bh), q(bx + bw, bd + bp, bh), q(bx, bd + bp, bh)], '#161616');
+    pl([q(bx + bw, bd, 0), q(bx + bw, bd + bp, 0), q(bx + bw, bd + bp, bh), q(bx + bw, bd, bh)], '#0a0a0a');
+    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = S;
+    for (let h = 8; h < bh; h += 12) { const a = q(bx + bw, bd, h), b = q(bx + bw, bd + bp, h - 6); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
   }
 }
 function drawChild() {
@@ -802,7 +829,7 @@ function draw(dt) {
       else if (sp > .8) { ctx.fillStyle = '#fff'; ctx.fillRect(bx + 3 * S, by - 14 * S, S, S); }
     }
   }
-  drawProps(true); if (C.d >= P.d) { drawChaser(); drawChild(); } else { drawChild(); drawChaser(); } drawProps(false);
+  drawProps(true); drawDW(true); if (C.d >= P.d) { drawChaser(); drawChild(); } else { drawChild(); drawChaser(); } drawDW(false); drawProps(false);
   if (R.mood === 'dark' || C.st === 'rise' || C.st === 'chase' || C.st === 'wait') {                                                     // 추격 구간의 꺼림칙한 분위기: 어둡게 가라앉히고, 아이 둘레만 흐릿하게 보이며, 가장자리가 맥박처럼 숨 쉰다
     const [fx0, fy0] = scr(P.x, P.d), rs = C.st === 'rise', [qx, qy] = rs ? scr(C.x, C.d - 30) : [fx0, fy0], fx = (fx0 + qx) / 2, fy = (fy0 + qy) / 2, px = (R.ox + fx) * S, py = (R.oy + fy - 14) * S, t = performance.now() / 1000, br = (rs ? 2.4 : 1) * (1 + .06 * Math.sin(t * 2.2) + (Math.sin(t * 13) > .96 ? .12 : 0));
     ctx.fillStyle = 'rgba(14,10,30,.3)'; ctx.fillRect(0, 0, VW, VH);
@@ -827,7 +854,7 @@ function draw(dt) {
   }
   if (cut) { const bh = Math.round(34 * cut.bar); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VW, bh); ctx.fillRect(0, VH - bh, VW, bh); }
   if (msg && msg.text) {                                            // 글자도 도트로: 작은 캔버스에 그려 문턱값으로 깎고 2배로 키운다
-    mgX.clearRect(0, 0, 160, 24); mgX.font = 'bold 9px monospace'; mgX.textAlign = 'center'; mgX.fillStyle = '#fff'; mgX.fillText(msg.text, 80, 15);
+    mgX.clearRect(0, 0, 160, 24); mgX.font = 'bold 9px monospace'; mgX.textAlign = 'center'; mgX.fillStyle = '#fff'; { const T = msg.text, sp = T.length > 15 ? T.lastIndexOf(' ', Math.ceil(T.length / 2) + 2) : -1; if (sp > 0) { mgX.fillText(T.slice(0, sp), 80, 10); mgX.fillText(T.slice(sp + 1), 80, 21); } else mgX.fillText(T, 80, 15); }
     const mi = mgX.getImageData(0, 0, 160, 24), md = mi.data; for (let i = 0; i < md.length; i += 4) { const on = md[i + 3] > 110; md[i] = 255; md[i + 1] = 238; md[i + 2] = 208; md[i + 3] = on ? 255 : 0; } mgX.putImageData(mi, 0, 0);
     ctx.fillStyle = '#0b0910'; ctx.fillRect(40, VH - 38, 240, 28); ctx.imageSmoothingEnabled = false; ctx.drawImage(mgC, 0, VH - 46, 320, 48);
   }
@@ -880,6 +907,6 @@ addEventListener('resize', fit); fit();
   let last = performance.now();
   const loop = (now) => { const dt = Math.min(.05, (now - last) / 1000); last = now; try { update(dt); draw(dt); } catch (e) { console.error(e); } requestAnimationFrame(loop); };
   requestAnimationFrame(loop);
-  window.__game = { cutT: () => cut && +cut.t.toFixed(2), div: () => DIVX, zone: () => zone, cam, lead: () => +LEAD.v.toFixed(1), light: () => LS && LS.map((o) => +o.L.toFixed(2)), secIdx: () => R.sections ? secIdx(P.x) : -1, STATE, C, get FP() { return FP; }, fpOpen: (id) => { const o = R.objects.find(x => x.id === id); if (o) enterFP(o); return !!FP; }, fpTap: (id) => { const v = curView(); if (!v || !FP) return false; const h = fpHits(v).find(q => q.o.id === id); if (!h) return false; fpPress(h.x + h.w / 2, h.y + h.h / 2); return true; }, fpExit: () => fpPress(160, 226), curView, act: (id) => { const o = R.objects.find(x => x.id === id); if (o) actObj(o); return !!o; }, knockNow: () => VW_.kn.push(performance.now() / 1000), preview: async (k) => { STATE.riseKind = k; STATE.flags.met = false; STATE.real = 4; const sp = G.rooms.woods.chaser.spots[4]; await enter('woods', [sp[0] - 44, sp[1] - 8]); [C.x, C.d] = sp; C.st = 'rise'; C.t = 0; C.pl = null; C.preview = true; C.face = -1; P.dir = 'r'; msg = null; }, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
+  window.__game = { toggleInv, inv: () => INV, cutT: () => cut && +cut.t.toFixed(2), div: () => DIVX, zone: () => zone, cam, lead: () => +LEAD.v.toFixed(1), light: () => LS && LS.map((o) => +o.L.toFixed(2)), secIdx: () => R.sections ? secIdx(P.x) : -1, STATE, C, get FP() { return FP; }, fpOpen: (id) => { const o = R.objects.find(x => x.id === id); if (o) enterFP(o); return !!FP; }, fpTap: (id) => { const v = curView(); if (!v || !FP) return false; const h = fpHits(v).find(q => q.o.id === id); if (!h) return false; fpPress(h.x + h.w / 2, h.y + h.h / 2); return true; }, fpExit: () => fpPress(160, 226), curView, act: (id) => { const o = R.objects.find(x => x.id === id); if (o) actObj(o); return !!o; }, knockNow: () => VW_.kn.push(performance.now() / 1000), preview: async (k) => { STATE.riseKind = k; STATE.flags.met = false; STATE.real = 4; const sp = G.rooms.woods.chaser.spots[4]; await enter('woods', [sp[0] - 44, sp[1] - 8]); [C.x, C.d] = sp; C.st = 'rise'; C.t = 0; C.pl = null; C.preview = true; C.face = -1; P.dir = 'r'; msg = null; }, msg: () => msg && msg.text, tapObject: (o) => { P.act = o; goTo(o.x, o.d + 8); }, enter, start: (k) => { const s = G.starts[k]; return enter(s.room, [s.x, s.d]); }, P, goTo, get room() { return room; }, get R() { return R; }, setDebug: (v) => { debug = v; } };
 })();
 })();
