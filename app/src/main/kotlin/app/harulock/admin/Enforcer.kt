@@ -29,14 +29,12 @@ class Enforcer(ctx: Context) {
             // 도중에 프로세스가 죽어도 풀 수 있도록 정지보다 먼저 기록한다.
             remember(previous + targets)
 
-            val installedNames = installed.mapTo(HashSet()) { it.packageName }
-            // 풀지 못한 앱은 설치되어 있는 동안 남겨 두고 다음에 다시 시도한다.
-            val stuck = setSuspended(previous - targets, false).intersect(installedNames)
+            val alreadySuspended = suspendedIn(installed)
+            // 풀지 못했고 아직 정지된 앱만 남겨 두고 다음에 다시 시도한다.
+            // 바꿀 수 없는 패키지는 정지된 적도 없으므로 기억에서 빠진다.
+            val stuck = setSuspended(previous - targets, false).intersect(alreadySuspended)
 
             // 이미 정지된 앱은 건너뛴다. 다시 설치되어 정지가 풀린 앱은 여기서 다시 정지된다.
-            val alreadySuspended = installed
-                .filter { it.flags and ApplicationInfo.FLAG_SUSPENDED != 0 }
-                .mapTo(HashSet()) { it.packageName }
             setSuspended(targets - alreadySuspended, true)
 
             remember(targets + stuck)
@@ -45,18 +43,30 @@ class Enforcer(ctx: Context) {
 
     /**
      * 기억한 목록이 틀렸거나 없어도 풀리도록 설치된 모든 앱의 정지를 해제한다.
-     * 앱 목록을 읽었고 설치된 앱 중 풀지 못한 것이 없으면 true. false면 다시 불러야 한다.
+     * 앱 목록을 읽었고 정지된 채 남은 앱이 없으면 true. false면 다시 불러야 한다.
+     *
+     * 시스템은 `android` 같은 바꿀 수 없는 패키지를 항상 실패로 돌려주므로 실패 목록만으로 판단하지 않는다.
+     * 실패한 패키지는 상태가 바뀌지 않았으므로 호출 전 목록의 FLAG_SUSPENDED로 아직 정지되었는지 본다.
      */
     fun unsuspendAll(): Boolean {
         val previous = remembered()
-        val installed = runCatching { DeviceInfo.installed(context).map { it.packageName } }
+        val installed = runCatching { DeviceInfo.installed(context) }
             .onFailure { Log.w(TAG, "cannot list apps", it) }
             .getOrNull()
-        val failed = setSuspended(previous + installed.orEmpty(), false)
-        remember(previous.intersect(failed))
-        // 지워진 앱은 풀 수 없지만 정지된 채 남지도 않는다.
-        return installed != null && failed.none { it in installed }
+        val names = installed.orEmpty().mapTo(HashSet()) { it.packageName }
+        val failed = setSuspended(previous + names, false)
+        if (installed == null) {
+            remember(previous.intersect(failed))
+            return false
+        }
+        val stuck = failed.intersect(suspendedIn(installed))
+        remember(stuck)
+        return stuck.isEmpty()
     }
+
+    private fun suspendedIn(installed: List<ApplicationInfo>): Set<String> = installed
+        .filter { it.flags and ApplicationInfo.FLAG_SUSPENDED != 0 }
+        .mapTo(HashSet()) { it.packageName }
 
     /** 바꾸지 못한 패키지를 돌려준다. 호출 자체가 실패하면 전부다. */
     private fun setSuspended(packages: Set<String>, suspended: Boolean): Set<String> {
