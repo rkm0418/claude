@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 시험판: adb로 기기 소유자를 해제할 수 있다. 설치는 adb install -t. -->
+    <application android:testOnly="true" />
+</manifest>

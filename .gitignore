@@ -2,3 +2,6 @@ build/
 .gradle/
 .kotlin/
 .superpowers/
+local.properties
+.idea/
+*.iml
