@@ -43,14 +43,19 @@ class Enforcer(ctx: Context) {
         }.onFailure { Log.w(TAG, "apply failed", it) }
     }
 
-    /** 기억한 목록이 틀렸거나 없어도 풀리도록 설치된 모든 앱의 정지를 해제한다. */
-    fun unsuspendAll() {
+    /**
+     * 기억한 목록이 틀렸거나 없어도 풀리도록 설치된 모든 앱의 정지를 해제한다.
+     * 앱 목록을 읽었고 설치된 앱 중 풀지 못한 것이 없으면 true. false면 다시 불러야 한다.
+     */
+    fun unsuspendAll(): Boolean {
         val previous = remembered()
         val installed = runCatching { DeviceInfo.installed(context).map { it.packageName } }
             .onFailure { Log.w(TAG, "cannot list apps", it) }
-            .getOrDefault(emptyList())
-        val failed = setSuspended(previous + installed, false)
+            .getOrNull()
+        val failed = setSuspended(previous + installed.orEmpty(), false)
         remember(previous.intersect(failed))
+        // 지워진 앱은 풀 수 없지만 정지된 채 남지도 않는다.
+        return installed != null && failed.none { it in installed }
     }
 
     /** 바꾸지 못한 패키지를 돌려준다. 호출 자체가 실패하면 전부다. */

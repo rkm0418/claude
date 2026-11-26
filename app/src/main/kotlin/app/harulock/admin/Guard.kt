@@ -40,16 +40,19 @@ class Guard(ctx: Context) {
         }
     }
 
-    fun relax() {
-        if (!isOwner()) return
+    /** 모두 되돌렸으면(또는 기기 소유자가 아니어서 할 것이 없으면) true. false면 다시 불러야 한다. */
+    fun relax(): Boolean {
+        if (!isOwner()) return true
         // 디버깅 제한은 빌드 종류와 상관없이 항상 푼다.
-        (RESTRICTIONS + UserManager.DISALLOW_DEBUGGING_FEATURES).forEach { key ->
+        val results = (RESTRICTIONS + UserManager.DISALLOW_DEBUGGING_FEATURES).map { key ->
             attempt(key) { dpm.clearUserRestriction(admin, key) }
-        }
-        attempt("restore auto time") { restore(AUTO_TIME) { dpm.setAutoTimeEnabled(admin, it) } }
-        attempt("restore auto time zone") { restore(AUTO_TIME_ZONE) { dpm.setAutoTimeZoneEnabled(admin, it) } }
-        attempt("enable user control") { dpm.setUserControlDisabledPackages(admin, emptyList()) }
-        attempt("unblock uninstall") { dpm.setUninstallBlocked(admin, context.packageName, false) }
+        } + listOf(
+            attempt("restore auto time") { restore(AUTO_TIME) { dpm.setAutoTimeEnabled(admin, it) } },
+            attempt("restore auto time zone") { restore(AUTO_TIME_ZONE) { dpm.setAutoTimeZoneEnabled(admin, it) } },
+            attempt("enable user control") { dpm.setUserControlDisabledPackages(admin, emptyList()) },
+            attempt("unblock uninstall") { dpm.setUninstallBlocked(admin, context.packageName, false) },
+        )
+        return results.all { it }
     }
 
     /** 처음 한 번만 기록한다. 다시 [harden]해도 원래 값이 덮이지 않는다. */
@@ -63,9 +66,8 @@ class Guard(ctx: Context) {
         before.edit().remove(key).commit()
     }
 
-    private fun attempt(what: String, call: () -> Unit) {
-        runCatching(call).onFailure { Log.w(TAG, "failed: $what", it) }
-    }
+    private fun attempt(what: String, call: () -> Unit): Boolean =
+        runCatching(call).onFailure { Log.w(TAG, "failed: $what", it) }.isSuccess
 
     private companion object {
         const val TAG = "Guard"

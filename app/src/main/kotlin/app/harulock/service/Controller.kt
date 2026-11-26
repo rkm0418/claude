@@ -142,34 +142,56 @@ class Controller(ctx: Context) {
         return true
     }
 
-    /** 저장 상태. 비었거나 손상되었으면 한 번 정지와 제한을 풀고 null. */
+    /** 저장 상태. 비었거나 손상되었으면 정지와 제한을 풀고(끝날 때까지 다시 시도) null. */
     private fun loadOrClean(): CoreState? = when (val loaded = store.load()) {
         is Loaded.Ok -> loaded.state
         Loaded.Empty -> {
-            if (guard.isOwner()) cleanOnce(notify = false)
+            if (guard.isOwner()) cleanUp(notify = false)
             null
         }
         Loaded.Corrupt -> {
-            cleanOnce(notify = true)
+            cleanUp(notify = true)
             null
         }
     }
 
-    /** 상태를 읽을 수 없을 때 영구히 잠기지 않도록 푼다. 다시 저장할 때까지 한 번만 한다. */
-    private fun cleanOnce(notify: Boolean) {
+    /**
+     * 상태를 읽을 수 없을 때 영구히 잠기지 않도록 푼다. 모두 풀릴 때까지 30초마다 다시 시도하고,
+     * 화면이 꺼져 있어도 알람으로 깨운다. 다시 저장할 때까지 성공 후에는 하지 않는다. 안내 알림은 처음 한 번만.
+     */
+    private fun cleanUp(notify: Boolean) {
         if (prefs.getBoolean(KEY_CLEANED, false)) return
-        enforcer.unsuspendAll()
-        guard.relax()
+        if (notify && !prefs.getBoolean(KEY_NOTIFIED, false)) {
+            notices.setupAgain()
+            prefs.edit().putBoolean(KEY_NOTIFIED, true).commit()
+        }
+        val t = SystemClock.elapsedRealtime()
+        val last = Memory.lastClean
+        if (last != null && t - last < APPLY_EVERY_MILLIS) return
+        Memory.lastClean = t
         Memory.hardened = false
         Memory.lastLocked = false
         Memory.lastAllowed = emptySet()
-        if (notify) notices.setupAgain()
-        prefs.edit().putBoolean(KEY_CLEANED, true).commit()
+        // 기기 소유자가 아니면 풀 권한도, 걸린 제한도 없다.
+        val done = runCatching {
+            if (!guard.isOwner()) return@runCatching true
+            val unsuspended = enforcer.unsuspendAll()
+            val relaxed = guard.relax()
+            unsuspended && relaxed
+        }.onFailure { Log.w(TAG, "clean up failed", it) }.getOrDefault(false)
+        if (done) {
+            prefs.edit().putBoolean(KEY_CLEANED, true).commit()
+        } else {
+            setAlarmAt(ALARM_RETRY, t + APPLY_EVERY_MILLIS)
+        }
     }
 
     private fun save(s: CoreState) {
         store.save(s)
-        if (prefs.contains(KEY_CLEANED)) prefs.edit().remove(KEY_CLEANED).commit()
+        if (prefs.contains(KEY_CLEANED) || prefs.contains(KEY_NOTIFIED)) {
+            prefs.edit().remove(KEY_CLEANED).remove(KEY_NOTIFIED).commit()
+        }
+        Memory.lastClean = null
     }
 
     /** 잠금 해제 전에는 측정 상태를 저장하지 않는다. 해제 후 기록을 다시 읽어 센다. 앵커는 저장한다. */
@@ -266,7 +288,11 @@ class Controller(ctx: Context) {
     }
 
     private fun setAlarm(code: Int, target: Instant, m: Moment) {
-        val at = m.elapsed + Duration.between(m.now, target).toMillis().coerceAtLeast(0) + ALARM_MARGIN_MILLIS
+        setAlarmAt(code, m.elapsed + Duration.between(m.now, target).toMillis().coerceAtLeast(0) + ALARM_MARGIN_MILLIS)
+    }
+
+    /** [at]은 부팅 경과 시간. 같은 시각으로 이미 걸어 두었으면 다시 걸지 않는다. */
+    private fun setAlarmAt(code: Int, at: Long) {
         val previous = Memory.alarms[code]
         if (previous != null && kotlin.math.abs(previous - at) < 1_000) return
         val intent = Intent(context, AlarmReceiver::class.java).setAction("$ALARM_ACTION.$code")
@@ -304,6 +330,7 @@ class Controller(ctx: Context) {
         var lastLocked: Boolean? = null
         var lastAllowed: Set<String>? = null
         var lastApply = 0L
+        var lastClean: Long? = null
         var hardened = false
         var free: Set<String>? = null
         var freeAt = 0L
@@ -313,11 +340,13 @@ class Controller(ctx: Context) {
     companion object {
         private const val TAG = "Controller"
         private const val KEY_CLEANED = "cleaned"
+        private const val KEY_NOTIFIED = "notified"
         private const val LOCK_FILE = "controller.lock"
         private const val RELEASED_FILE = "released"
         private const val ALARM_ACTION = "app.harulock.ALARM"
         private const val ALARM_RESET = 1
         private const val ALARM_INSTANT = 2
+        private const val ALARM_RETRY = 3
         private const val ALARM_MARGIN_MILLIS = 500L
         private const val APPLY_EVERY_MILLIS = 30_000L
 
