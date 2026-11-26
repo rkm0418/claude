@@ -16,4 +16,17 @@ class PolicyTest {
     @Test fun closesOwnSettingsPage() = assertTrue(close("com.android.settings", true))
     @Test fun leavesOpenForRepair() = assertFalse(close("com.android.settings", false))
     @Test fun ignoresOtherApps() = assertFalse(close("game", true))
+
+    @Test fun settingsStaysNotFreeWhenItIsAHome() {
+        val h = d.copy(homes = setOf("home", "com.android.settings"))
+        assertFalse("com.android.settings" in Policy.alwaysFree(h))
+        assertFalse("com.android.settings" in Policy.suspendTargets(h, emptySet()))
+    }
+    @Test fun telecomEmergencySystemUiNeverSuspended() {
+        val t = d.copy(candidates = setOf("self","home","dial","kb","com.android.settings","com.android.phone",
+          "com.android.server.telecom","com.android.emergency","com.android.systemui","ok","game"))
+        assertEquals(setOf("game"), Policy.suspendTargets(t, setOf("ok")))
+    }
+    @Test fun unarmedNeverClosesSettings() =
+      assertFalse(Policy.shouldCloseSettings("com.android.settings", listOf("하루잠금"), "하루잠금", false, true))
 }
