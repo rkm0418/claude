@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">하루잠금</string>
+    <string name="notif_running">하루잠금 실행 중</string>
+    <string name="notif_warning">남은 시간 %1$d분</string>
+    <string name="notif_setup_again">저장된 설정을 읽을 수 없어 잠금을 풀었습니다. 다시 설정해 주세요.</string>
+    <string name="channel_running">실행 상태</string>
+    <string name="channel_warning">남은 시간 알림</string>
+    <string name="channel_setup">설정 안내</string>
 </resources>
