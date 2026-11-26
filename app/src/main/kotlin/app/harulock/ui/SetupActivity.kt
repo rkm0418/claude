@@ -42,6 +42,8 @@ class SetupActivity : Activity() {
 
         fun show(done: Boolean) {
             state.setImageResource(if (done) R.drawable.ic_step_done else R.drawable.ic_step_todo)
+            state.contentDescription = state.context.getString(if (done) R.string.step_done else R.string.step_todo)
+            state.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             button.visibility = if (done) View.GONE else View.VISIBLE
         }
     }

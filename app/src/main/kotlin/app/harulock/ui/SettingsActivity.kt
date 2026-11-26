@@ -118,7 +118,7 @@ class SettingsActivity : Activity() {
                 btnSave.isEnabled = true
                 showNotice(snapshot)
             }.onFailure {
-                showMessage(R.string.save_failed)
+                showMessage(R.string.load_failed)
             }
         }
     }

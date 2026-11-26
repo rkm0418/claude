@@ -12,7 +12,7 @@
         android:id="@+id/img_state"
         android:layout_width="@dimen/icon_step"
         android:layout_height="@dimen/icon_step"
-        android:importantForAccessibility="no"
+        android:contentDescription="@string/step_todo"
         android:src="@drawable/ic_step_todo" />
 
     <LinearLayout

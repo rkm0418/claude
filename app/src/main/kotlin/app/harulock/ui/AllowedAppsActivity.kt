@@ -120,10 +120,9 @@ class AllowedAppsActivity : Activity() {
                 selected += restored ?: data.allowed
                 loaded = true
                 btnDone.isEnabled = true
-                tvEmpty.setText(R.string.allowed_empty)
                 filter()
             }.onFailure {
-                tvEmpty.setText(R.string.save_failed)
+                tvEmpty.setText(R.string.load_failed)
             }
         }
     }
@@ -135,6 +134,8 @@ class AllowedAppsActivity : Activity() {
         } else {
             all.filter { it.label.lowercase(Locale.ROOT).contains(query) || it.pkg.contains(query) }
         }
+        // 목록이 비었을 때: 검색어가 있으면 검색 결과 없음, 없으면 고를 앱이 없음.
+        if (loaded) tvEmpty.setText(if (query.isEmpty()) R.string.allowed_none else R.string.allowed_empty)
         adapter.notifyDataSetChanged()
     }
 

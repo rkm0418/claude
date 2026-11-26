@@ -16,6 +16,7 @@
     <string name="saved">저장했어요</string>
     <string name="save_failed">저장하지 못했어요. 휴대폰 잠금을 푼 상태에서 잠시 뒤 다시 해 주세요.</string>
     <string name="open_failed">설정 화면을 열 수 없어요.</string>
+    <string name="load_failed">불러오지 못했어요. 잠시 뒤 다시 열어 주세요.</string>
     <string name="format_date_time" translatable="false">M월 d일 (E) HH:mm</string>
     <string name="format_start_time" translatable="false">%1$02d:%2$02d</string>
     <string name="remaining_hours_minutes">%1$d시간 %2$d분</string>
@@ -63,7 +64,7 @@
     <string name="action_save">저장</string>
     <string name="pending_notice">바꾼 설정 중 일부는 다음 초기화(%1$s)부터 적용돼요.</string>
     <string name="confirm_start_title">하루 시작 시각을 바꿀까요?</string>
-    <string name="confirm_start_message">바꾼 시각은 다음 초기화부터 적용되고, 그 하루는 24시간보다 길어져요. 더 이른 시각으로 바꾸면 그 하루가 48시간 가까이 될 수 있고, 그동안 한도는 한 번만 주어져요.</string>
+    <string name="confirm_start_message">바꾼 시각은 다음 초기화부터 적용되고, 그 하루는 24시간보다 길어질 수 있어요. 더 이른 시각으로 바꾸면 그 하루가 48시간 가까이 될 수 있고, 그동안 한도는 한 번만 주어져요.</string>
 
     <!-- 허용앱 -->
     <string name="allowed_title">허용앱</string>
@@ -71,6 +72,7 @@
     <string name="hint_search">앱 이름 검색</string>
     <string name="allowed_loading">앱 목록을 불러오는 중이에요</string>
     <string name="allowed_empty">검색 결과가 없어요</string>
+    <string name="allowed_none">고를 수 있는 앱이 없어요</string>
     <string name="action_done">완료</string>
     <string name="confirm_risky_title">이 앱을 허용할까요?</string>
     <string name="confirm_risky_message">‘%1$s’은(는) 브라우저나 앱 스토어예요. 허용하면 잠금 중에도 웹이나 새로 설치한 앱으로 시간을 우회할 수 있어요.</string>
@@ -102,6 +104,8 @@
     <string name="step_notification_desc">남은 시간이 10분, 5분, 1분일 때 알려 줘요.</string>
     <string name="step_battery_title">5. 배터리 제한 해제 (권장)</string>
     <string name="step_battery_desc">휴대폰이 이 앱을 멈추지 않게 해서 시간을 정확히 세요.</string>
+    <string name="step_done">완료</string>
+    <string name="step_todo">미완료</string>
     <string name="action_open">열기</string>
     <string name="action_how">방법 보기</string>
     <string name="owner_dialog_title">기기 소유자 지정</string>
@@ -113,7 +117,7 @@
     <string name="arm_need_steps">필수 3단계를 먼저 마쳐 주세요</string>
     <string name="arm_running">잠금 중이에요</string>
     <string name="arm_confirm_title">잠금을 시작할까요?</string>
-    <string name="arm_confirm_message">시작하면 이 앱을 지우거나 끌 수 없어요. 하루 한도를 다 쓰면 다음 초기화까지 허용앱과 전화만 쓸 수 있어요. 풀려면 비상 해제를 요청하고 24시간을 기다려야 해요.</string>
+    <string name="arm_confirm_message">시작하면 이 앱을 지우거나 끌 수 없어요. 하루 한도를 다 쓰면 다음 초기화까지 허용앱과 전화만 쓸 수 있어요. 풀려면 비상 해제를 요청하고 24시간을 기다려야 해요.\n\n요일별 설정과 허용앱에 저장한 값으로 시작해요. 저장한 적이 없으면 매일 120분, 05:00 시작, 허용앱 없음이에요.</string>
     <string name="arm_started">잠금을 시작했어요</string>
     <string name="arm_failed">잠금을 시작하지 못했어요. 기기 소유자 지정을 확인하고 다시 해 주세요.</string>
 
@@ -123,4 +127,15 @@
     <string name="action_release_request">해제 요청</string>
     <string name="action_release_cancel">요청 취소</string>
     <string name="action_release_confirm">해제</string>
+    <string name="release_state_none">해제 요청 없음</string>
+    <string name="release_state_waiting">해제 대기 중</string>
+    <string name="release_state_ready">지금 해제할 수 있어요</string>
+    <string name="release_state_expired">해제 가능 시간이 지났어요. 다시 요청해 주세요.</string>
+    <string name="release_state_done">해제했어요. 이제 이 앱을 지울 수 있어요.</string>
+    <string name="release_waiting_left">해제할 수 있을 때까지 %1$s 남았어요</string>
+    <string name="release_ready_left">%1$s 안에 해제하지 않으면 만료돼요</string>
+    <string name="release_left_format">%1$d시간 %2$d분</string>
+    <string name="release_confirm_title">잠금을 완전히 풀까요?</string>
+    <string name="release_confirm_message">모든 앱 정지와 기기 제한이 풀리고 기기 소유자 지정도 해제돼요. 다시 잠그려면 PC로 처음부터 설정해야 해요.</string>
+    <string name="release_failed">해제하지 못했어요. 잠시 뒤 다시 해 주세요.</string>
 </resources>
