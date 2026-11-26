@@ -158,7 +158,7 @@ adb shell pm list users       # "UserInfo{0:..." 한 줄만 있어야 함
 adb shell dumpsys account     # 앞부분 "Accounts: 0" 이어야 함
 ```
 
-**계정은 기기 소유자 지정이 끝난 뒤 다시 추가해도 됩니다.** 이 앱은 계정 추가를 막지 않습니다. 다만 나중에 정식판을 설치할 때(8장) 다시 모두 지워야 합니다. 보안 폴더와 듀얼 메신저는 잠금 중에는 새로 만들 수 없습니다.
+**계정은 [TEST.md](TEST.md) 0~10번 시험이 끝난 뒤 다시 추가합니다.** 시험 중에는 소유자를 다시 지정하는 단계가 있어 계정이 없어야 합니다. 이 앱은 계정 추가를 막지 않습니다. 다만 나중에 정식판을 설치할 때(8장) 다시 모두 지워야 합니다. 보안 폴더와 듀얼 메신저는 잠금 중에는 새로 만들 수 없습니다.
 
 ## 4. "보안 위험 자동 차단" 끄기
 
@@ -250,14 +250,21 @@ adb install -r -t app/build/outputs/apk/debug/app-debug.apk
 
 조건: 시험판을 **1주 이상** 썼고, [TEST.md](TEST.md)의 모든 항목, 특히 **비상 해제(24시간 완료 시험 포함)** 가 통과했을 것.
 
-정식판은 잠금 중 **USB 디버깅을 막습니다.** PC 해제 명령이 듣지 않고, 풀려면 앱 안의 비상 해제(요청 후 24시간 대기)뿐입니다.
+> **경고: 정식판에 소유자를 지정하는 순간(아래 5번)부터 PC 해제 명령이 듣지 않습니다.** 잠금을 시작하기 전이어도 마찬가지입니다. 정식판은 시험판(testOnly)이 아니므로 `remove-active-admin`이 거부됩니다. 그때부터 푸는 방법은 앱 안의 비상 해제(요청 → 24시간 대기 → 그 뒤 **24시간 안에만** 해제, 지나면 다시 요청)뿐입니다. 잠금을 시작하면 USB 디버깅도 막힙니다.
 
-1. 해제: 시험판 해제 명령(6장 셋째 줄) 또는 앱의 비상 해제.
-2. 삭제: `adb uninstall app.harulock` (설정과 기록도 지워집니다)
-3. 빌드: `./gradlew :app:assembleRelease` (Windows: `.\gradlew.bat :app:assembleRelease`) → `app/build/outputs/apk/release/app-release.apk`
+1. **빌드 먼저**: 시험판을 지우기 전에 정식판을 빌드합니다. 빌드가 실패하면 여기서 멈추고 오류를 보내 주세요(시험판은 그대로 둡니다).
+   `./gradlew :app:assembleRelease` (Windows: `.\gradlew.bat :app:assembleRelease`) → `app/build/outputs/apk/release/app-release.apk`
+2. 해제: 시험판 해제 명령(6장 셋째 줄) 또는 앱의 비상 해제. `adb shell dpm list-owners`로 소유자가 없는지 확인.
+3. 삭제: `adb uninstall app.harulock` (설정과 기록도 지워집니다)
 4. 설치: `adb install app/build/outputs/apk/release/app-release.apk` (`-t` 없이)
 5. 소유자 설정: 3장대로 **계정을 다시 모두 지우고**, `adb shell dpm set-device-owner app.harulock/.admin.AdminReceiver`
-6. 7장을 다시 합니다(권한, 허용앱, 요일별 설정, 잠금 시작).
+   **이 명령부터 PC로 되돌릴 수 없습니다.** 위 경고를 다시 읽고 실행하세요.
+6. **잠금 시작 전에 정식판에서 꼭 확인** (하나라도 안 되면 잠금을 시작하지 말고 오류를 보내 주세요):
+   - 하루잠금 앱이 열린다.
+   - 홈의 **비상 해제** 버튼을 누르면 비상 해제 화면이 열린다.
+   - 인터넷에 연결한 상태에서 **해제 요청** → "해제 대기 중"과 남은 시간(약 24시간)이 보인다.
+   - **요청 취소** → "해제 요청 없음"으로 돌아온다.
+7. 모두 되면 7장을 다시 합니다(권한, 허용앱, 요일별 설정, 잠금 시작).
 
 ## 9. 알아 두면 좋은 점 (현재 코드 기준)
 
