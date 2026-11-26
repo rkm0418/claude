@@ -2,9 +2,11 @@ package app.harulock.ui
 
 import android.app.Activity
 import android.app.ActivityManager
+import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.app.admin.DevicePolicyManager
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -23,6 +25,7 @@ import app.harulock.core.Display
 import app.harulock.core.ReleaseFlow
 import app.harulock.core.ReleaseRecord
 import app.harulock.core.ReleaseView
+import app.harulock.core.RequestResult
 import app.harulock.data.ReleaseFiles
 import app.harulock.service.Controller
 import java.time.Duration
@@ -63,7 +66,7 @@ class ReleaseActivity : Activity() {
         btnCancel = findViewById(R.id.btn_cancel_request)
         btnConfirm = findViewById(R.id.btn_confirm)
         btnRequest.setOnClickListener { act { ctx -> ReleaseOps.request(ctx) } }
-        btnCancel.setOnClickListener { act { ctx -> ReleaseOps.cancel(ctx) } }
+        btnCancel.setOnClickListener { act { ctx -> if (ReleaseOps.cancel(ctx)) null else R.string.save_failed } }
         btnConfirm.setOnClickListener { confirm() }
         show()
     }
@@ -181,15 +184,15 @@ class ReleaseActivity : Activity() {
         }
     }
 
-    /** 요청과 취소. 저장하지 못하면 알리고, 끝나면 다시 읽는다. */
-    private fun act(task: (Context) -> Boolean) {
+    /** 요청과 취소. [task]가 돌려준 안내 문구(없으면 null)를 보여 주고, 끝나면 다시 읽는다. */
+    private fun act(task: (Context) -> Int?) {
         if (busy) return
         busy = true
         show()
         val ctx = applicationContext
         Work.run(this, { task(ctx) }) { result ->
             busy = false
-            if (!result.getOrDefault(false)) toast(R.string.save_failed)
+            result.fold({ it }, { R.string.save_failed })?.let { toast(it) }
             load()
         }
     }
@@ -242,13 +245,28 @@ internal object ReleaseOps {
         Opened(f.record, f.now, f.elapsed, f.files.markerToken() != null, isOwner(ctx))
     }
 
-    /** 요청이 없거나 만료되었으면 지금으로 요청한다. 이미 요청 중이면 그대로 둔다. 저장하지 못하면 false. */
-    fun request(ctx: Context): Boolean = Controller.exclusive(ctx) {
+    /**
+     * 요청이 없거나 만료되었으면 지금으로 요청한다. 이미 요청 중이면 그대로 둔다.
+     * API 33부터는 요청 시각을 네트워크 시각 이상으로 올린다(잠금 전에 시계를 뒤로 돌려 대기를 줄이는 것을 막는다).
+     * 네트워크 시각이 없으면 요청하지 않는다. 돌려주는 값은 보여 줄 안내 문구, 문제가 없으면 null.
+     */
+    fun request(ctx: Context): Int? = Controller.exclusive(ctx) {
         val f = fresh(ctx)
-        if (f.files.markerToken() != null) return@exclusive true
-        val next = ReleaseFlow.request(f.record, f.now, f.anchor) ?: return@exclusive true
-        f.files.writeRecord(next)
+        if (f.files.markerToken() != null) return@exclusive null
+        val required = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        val network = if (required) networkTime() else null
+        when (val r = ReleaseFlow.request(f.record, f.now, f.anchor, network, required)) {
+            RequestResult.Unchanged -> null
+            RequestResult.NeedNetwork -> R.string.release_need_network
+            is RequestResult.New -> if (f.files.writeRecord(r.record)) null else R.string.save_failed
+        }
     }
+
+    /** 네트워크로 맞춘 시각. 아직 받은 적이 없거나 읽지 못하면 null. */
+    @TargetApi(Build.VERSION_CODES.TIRAMISU)
+    private fun networkTime(): Instant? = runCatching { SystemClock.currentNetworkTimeClock().instant() }
+        .onFailure { Log.w(TAG, "no network time", it) }
+        .getOrNull()
 
     /** 요청을 지운다. 기준점은 남긴다. 저장하지 못하면 false. */
     fun cancel(ctx: Context): Boolean = Controller.exclusive(ctx) {

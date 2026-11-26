@@ -93,14 +93,53 @@ class ReleaseRecordTest {
         assertFalse(ReleaseFlow.mayRelease(null, t, marker = true, owner = false))
     }
 
+    private fun req(record: ReleaseRecord?, now: java.time.Instant, a: ClockAnchor = anchor) =
+        ReleaseFlow.request(record, now, a, network = null, networkRequired = false)
+
     @Test fun request_onlyFromNoneOrExpired() {
         val t = requested.requestedAt!!
         val later = anchor.copy(wall = t.plus(Duration.ofHours(48)))
-        assertEquals(ReleaseRecord(t, anchor), ReleaseFlow.request(null, t, anchor))
-        assertEquals(ReleaseRecord(t, anchor), ReleaseFlow.request(empty, t, anchor))
-        assertNull(ReleaseFlow.request(requested, t.plus(Duration.ofHours(1)), anchor))
-        assertNull(ReleaseFlow.request(requested, t.plus(Duration.ofHours(30)), anchor))
-        assertEquals(ReleaseRecord(later.wall, later), ReleaseFlow.request(requested, later.wall, later))
+        assertEquals(RequestResult.New(ReleaseRecord(t, anchor)), req(null, t))
+        assertEquals(RequestResult.New(ReleaseRecord(t, anchor)), req(empty, t))
+        assertEquals(RequestResult.Unchanged, req(requested, t.plus(Duration.ofHours(1))))
+        assertEquals(RequestResult.Unchanged, req(requested, t.plus(Duration.ofHours(30))))
+        assertEquals(RequestResult.New(ReleaseRecord(later.wall, later)), req(requested, later.wall, later))
+    }
+
+    @Test fun request_networkLaterThanClock_usesNetworkForRequestAndAnchor() {
+        // 잠금 전에 시계를 23시간 뒤로 돌려 둔 경우: 요청 시각이 실제 시각이 되어 대기가 줄지 않는다.
+        val now = anchor.wall
+        val network = now.plus(Duration.ofHours(23))
+        val r = ReleaseFlow.request(null, now, anchor, network, networkRequired = true)
+        assertEquals(RequestResult.New(ReleaseRecord(network, anchor.copy(wall = network))), r)
+        val saved = (r as RequestResult.New).record
+        // 재부팅 뒤 실제 시각으로 1시간이 지나도 아직 23시간을 기다려야 한다.
+        val after = ReleaseFlow.clock(saved, network.plus(Duration.ofHours(1)), 5_000, 9).first
+        assertEquals(ReleaseView.Waiting(Duration.ofHours(23)), ReleaseFlow.view(saved, after, marker = false, owner = true))
+    }
+
+    @Test fun request_networkEarlierThanClock_keepsClock() {
+        val now = anchor.wall
+        val r = ReleaseFlow.request(null, now, anchor, now.minus(Duration.ofHours(5)), networkRequired = true)
+        assertEquals(RequestResult.New(ReleaseRecord(now, anchor)), r)
+    }
+
+    @Test fun request_withoutNetworkTime_isRefusedWhenRequired() {
+        assertEquals(RequestResult.NeedNetwork, ReleaseFlow.request(null, anchor.wall, anchor, null, networkRequired = true))
+        assertEquals(RequestResult.NeedNetwork, ReleaseFlow.request(empty, anchor.wall, anchor, null, networkRequired = true))
+    }
+
+    @Test fun request_alreadyWaiting_needsNoNetwork() {
+        val t = requested.requestedAt!!
+        assertEquals(RequestResult.Unchanged,
+            ReleaseFlow.request(requested, t.plus(Duration.ofHours(1)), anchor, null, networkRequired = true))
+    }
+
+    @Test fun request_networkNeverMovesAnExistingRequest() {
+        val t = requested.requestedAt!!
+        val far = t.plus(Duration.ofDays(10))
+        assertEquals(RequestResult.Unchanged,
+            ReleaseFlow.request(requested, t.plus(Duration.ofHours(25)), anchor, far, networkRequired = true))
     }
 
     @Test fun cancel_keepsAnchor() = assertEquals(empty, ReleaseFlow.cancel(anchor))

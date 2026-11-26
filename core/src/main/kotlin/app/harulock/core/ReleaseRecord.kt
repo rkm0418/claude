@@ -70,6 +70,16 @@ sealed interface ReleaseView {
     object Done : ReleaseView
 }
 
+/** [ReleaseFlow.request]의 결과. */
+sealed interface RequestResult {
+    /** 이미 대기 중이거나 확인 가능하다. 그대로 둔다. */
+    object Unchanged : RequestResult
+    /** 네트워크 시각을 얻지 못했다. 요청하지 않는다. */
+    object NeedNetwork : RequestResult
+    /** 이 기록을 저장한다. */
+    data class New(val record: ReleaseRecord) : RequestResult
+}
+
 /** 비상 해제 화면의 판단. 파일과 시스템 호출은 앱이 하고, 여기서는 값만 정한다. */
 object ReleaseFlow {
     /**
@@ -96,12 +106,30 @@ object ReleaseFlow {
         }
     }
 
-    /** 요청이 없거나 만료되었을 때만 [now]로 새 요청을 만든다. 대기 중이거나 확인 가능하면 null(그대로 둔다). */
-    fun request(record: ReleaseRecord?, now: Instant, anchor: ClockAnchor): ReleaseRecord? =
+    /**
+     * 요청이 없거나 만료되었을 때만 새 요청을 만든다. 대기 중이거나 확인 가능하면 [RequestResult.Unchanged].
+     *
+     * 잠금 전에 시계를 뒤로 돌려 두고 요청한 뒤 재부팅하면 대기가 줄어든다. 그래서 [networkRequired]이면
+     * 요청 시각과 기준점을 네트워크 시각([network]) 이상으로 올린다. 이미 [now]가 더 늦으면 [now]를 쓴다
+     * (네트워크 시각이 대기를 줄이는 쪽으로 쓰이는 일은 없다). 네트워크 시각이 필요한데 없으면
+     * [RequestResult.NeedNetwork]이고 아무것도 바꾸지 않는다. 요청 외(대기, 취소, 해제)에는 네트워크가 필요 없다.
+     */
+    fun request(
+        record: ReleaseRecord?,
+        now: Instant,
+        anchor: ClockAnchor,
+        network: Instant?,
+        networkRequired: Boolean,
+    ): RequestResult {
         when (EmergencyRelease.status(record?.requestedAt, now)) {
-            ReleaseStatus.None, ReleaseStatus.Expired -> ReleaseRecord(now, anchor)
-            is ReleaseStatus.Waiting, is ReleaseStatus.Ready -> null
+            ReleaseStatus.None, ReleaseStatus.Expired -> Unit
+            is ReleaseStatus.Waiting, is ReleaseStatus.Ready -> return RequestResult.Unchanged
         }
+        if (!networkRequired) return RequestResult.New(ReleaseRecord(now, anchor))
+        if (network == null) return RequestResult.NeedNetwork
+        val at = maxOf(now, network)
+        return RequestResult.New(ReleaseRecord(at, anchor.copy(wall = maxOf(anchor.wall, at))))
+    }
 
     /** 요청을 지운다. 시계 기준점은 남긴다. */
     fun cancel(anchor: ClockAnchor): ReleaseRecord = ReleaseRecord(null, anchor)

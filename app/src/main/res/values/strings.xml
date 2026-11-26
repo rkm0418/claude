@@ -137,5 +137,6 @@
     <string name="release_left_format">%1$d시간 %2$d분</string>
     <string name="release_confirm_title">잠금을 완전히 풀까요?</string>
     <string name="release_confirm_message">모든 앱 정지와 기기 제한이 풀리고 기기 소유자 지정도 해제돼요. 다시 잠그려면 PC로 처음부터 설정해야 해요.</string>
+    <string name="release_need_network">정확한 시각을 확인할 수 없어 요청하지 못했어요. 인터넷에 연결한 뒤 다시 요청해 주세요.</string>
     <string name="release_failed">해제하지 못했어요. 잠시 뒤 다시 해 주세요.</string>
 </resources>
