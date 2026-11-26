@@ -77,3 +77,9 @@ Resumed: new session from handoff; BASE for task 11 = 35eb783
 Task 11: complete (commits 35eb783..7ad5f81, review clean; PC build UNVERIFIED)
   Minor (fix wave): corrupt-state save can leave Guard restrictions (run tick/cleanup before saving over Corrupt; arm dialog text); AllowedApps restored selection lost on 2nd recreation; recreation during arm shows wrong failure; arm does not re-check permissions; instant dialog lost on rotation; start-change confirm compares pending instead of active; disable setup open buttons while armed.
   Carry to Task 12: wire btn_release; release strings already in strings.xml.
+Ruling: R23 (Task 12 I1) on API 33+ a release request needs network time and is refused without it — clock set back before arming could cut the wait to ~1h — cost: with no network time since boot the user cannot request until online.
+Ruling: R24 (Task 12 I2) auto time/time zone restore failures are log-only in Guard.relax — a failing restore would keep device owner forever — cost: auto time may stay on after release.
+Task 12: fix round 1/5 (2 addressed, 0 open; commits 2d837a9..545ca0c)
+Task 12: complete (commits 22912fe..545ca0c, review clean; PC build UNVERIFIED)
+  Minor (fix wave): release must refuse when the cross-process file lock is not obtained (Controller.exclusive runs anyway); fsync directory after rename in ReleaseFiles; end other processes before clearOwner or document; STALE outcome message misleading; Guard.kt comment on restore retry; anchor elapsed read before network time.
+  Carry to Task 13: device checks - service restart + accessibility rebind after killProcess, settings guard after release then re-arm, clearDeviceOwnerApp on One UI, uninstall after release, release request offline / no network time since boot / clock set back before arming.
