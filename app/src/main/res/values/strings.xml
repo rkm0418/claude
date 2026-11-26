@@ -7,4 +7,5 @@
     <string name="channel_running">실행 상태</string>
     <string name="channel_warning">남은 시간 알림</string>
     <string name="channel_setup">설정 안내</string>
+    <string name="watch_service_description">잠금 중에 설정 앱 화면에 ‘하루잠금’이라는 이름이 보이면 홈 화면으로 나갑니다. 이 앱을 끄거나 권한을 빼지 못하게 하기 위해서입니다. 이를 위해 설정 앱 화면의 글자와 항목 설명만 읽어 이름이 있는지 확인하며, 읽은 내용은 저장하거나 기록하거나 전송하지 않습니다. 잠금을 시작하기 전이거나 필요한 권한이 빠져 있을 때는 설정 화면을 닫지 않습니다.</string>
 </resources>

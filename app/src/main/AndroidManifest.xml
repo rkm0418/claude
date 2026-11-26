@@ -48,6 +48,21 @@
                 android:value="Daily screen time limit that the device owner sets on their own phone. Counts foreground app use and suspends apps when the limit is reached." />
         </service>
 
+        <!-- 시스템만 연결할 수 있도록 권한으로 보호한다. 사용자가 설정의 접근성에서 켠다. -->
+        <service
+            android:name=".service.SettingsWatchService"
+            android:directBootAware="true"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility" />
+        </service>
+
         <!-- 시스템 방송만 받으므로 내보내지 않는다. -->
         <receiver
             android:name=".service.BootReceiver"
