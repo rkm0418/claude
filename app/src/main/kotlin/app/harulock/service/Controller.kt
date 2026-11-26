@@ -59,7 +59,7 @@ class Controller(ctx: Context) {
         runCatching { exclusive(context) { tickLocked() } }.onFailure { Log.w(TAG, "tick failed", it) }
     }
 
-    /** 잠금을 시작한다. 이미 잠금 중이거나 기기 소유자가 아니면 false. */
+    /** 잠금을 시작한다. 이미 잠금 중이거나 기기 소유자가 아니거나 필수 권한(사용 정보, 접근성)이 없으면 false. */
     fun arm(settings: Settings): Boolean =
         runCatching { exclusive(context) { armLocked(settings) } }
             .onFailure { Log.w(TAG, "arm failed", it) }
@@ -81,7 +81,8 @@ class Controller(ctx: Context) {
         if (released(context)) return
         val state = loadOrClean() ?: return
         if (!state.armed) {
-            apply(locked = false, allowed = emptySet(), force = false)
+            // 잠금 전이면 남은 정지와 제한을 모두 푼다. 저장할 때마다 한 번, 실패하면 30초마다 다시 시도한다.
+            if (guard.isOwner()) cleanUp(notify = false)
             return
         }
         val m = moment()
@@ -89,11 +90,17 @@ class Controller(ctx: Context) {
         persist(next, m)
         warn(state, next)
         enforce(next, m, force = false)
-        // 프로세스마다 한 번 다시 건다. 업데이트나 외부 변경으로 풀렸을 수 있다.
-        if (!Memory.hardened && !released(context)) {
-            guard.harden()
-            Memory.hardened = true
-        }
+        hardenIfDue()
+    }
+
+    /** 잠금 중에는 5분마다 제한을 다시 건다. 업데이트나 외부 변경(관리자 해제 뒤 재지정 등)으로 풀렸을 수 있다. 해제 뒤에는 걸지 않는다. */
+    private fun hardenIfDue() {
+        val t = SystemClock.elapsedRealtime()
+        val last = Memory.lastHarden
+        if (last != null && t - last < HARDEN_EVERY_MILLIS) return
+        if (released(context)) return
+        guard.harden()
+        Memory.lastHarden = t
     }
 
     /**
@@ -103,6 +110,8 @@ class Controller(ctx: Context) {
      */
     private fun armLocked(settings: Settings): Boolean {
         if (!guard.isOwner()) return false
+        // 권한 없이 시작하면 곧바로 권한 잠금이 걸리고 설정 감시도 동작하지 않는다.
+        if (!Permissions.all(context)) return false
         val loaded = store.load()
         if (loaded is Loaded.Ok && loaded.state.armed && !released(context)) return false
         val files = ReleaseFiles(context)
@@ -113,7 +122,7 @@ class Controller(ctx: Context) {
         store.anchor = m.anchor
         if (!files.deleteMarker()) return false
         guard.harden()
-        Memory.hardened = true
+        Memory.lastHarden = SystemClock.elapsedRealtime()
         enforce(state, m, force = true)
         LockService.start(context)
         return true
@@ -166,7 +175,7 @@ class Controller(ctx: Context) {
     }
 
     /**
-     * 상태를 읽을 수 없을 때 영구히 잠기지 않도록 푼다. 모두 풀릴 때까지 30초마다 다시 시도하고,
+     * 상태를 읽을 수 없거나 잠금 전일 때 영구히 잠기지 않도록 푼다. 모두 풀릴 때까지 30초마다 다시 시도하고,
      * 화면이 꺼져 있어도 알람으로 깨운다. 다시 저장할 때까지 성공 후에는 하지 않는다. 안내 알림은 처음 한 번만.
      */
     private fun cleanUp(notify: Boolean) {
@@ -179,7 +188,7 @@ class Controller(ctx: Context) {
         val last = Memory.lastClean
         if (last != null && t - last < APPLY_EVERY_MILLIS) return
         Memory.lastClean = t
-        Memory.hardened = false
+        Memory.lastHarden = null
         Memory.lastLocked = false
         Memory.lastAllowed = emptySet()
         // 기기 소유자가 아니면 풀 권한도, 걸린 제한도 없다.
@@ -341,7 +350,7 @@ class Controller(ctx: Context) {
         var lastAllowed: Set<String>? = null
         var lastApply = 0L
         var lastClean: Long? = null
-        var hardened = false
+        var lastHarden: Long? = null
         var free: Set<String>? = null
         var freeAt = 0L
         val alarms = HashMap<Int, Long>()
@@ -358,6 +367,7 @@ class Controller(ctx: Context) {
         private const val ALARM_RETRY = 3
         private const val ALARM_MARGIN_MILLIS = 500L
         private const val APPLY_EVERY_MILLIS = 30_000L
+        private const val HARDEN_EVERY_MILLIS = 5 * 60_000L
 
         /** 기록이 늦게 남는 경우를 위해 이미 센 구간 앞 10초부터 다시 읽는다. 다시 넘겨도 결과는 같다. */
         private const val REPLAY_MILLIS = 10_000L

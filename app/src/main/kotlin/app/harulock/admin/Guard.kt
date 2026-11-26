@@ -54,7 +54,8 @@ class Guard(ctx: Context) {
             attempt("enable user control") { dpm.setUserControlDisabledPackages(admin, emptyList()) },
             attempt("unblock uninstall") { dpm.setUninstallBlocked(admin, context.packageName, false) },
         )
-        // 결과에 넣지 않는다. 실패하면 기록이 남아 다음 relax에서 다시 시도한다.
+        // 결과에 넣지 않는다(R24). 실패하면 기록이 남아, 다음 relax가 있으면(정리 재시도, 해제 재시도) 그때 다시 시도한다.
+        // 비상 해제가 성공하면 기기 소유자가 풀리므로 다음 relax는 없고 자동 시간 설정이 켜진 채 남을 수 있다.
         attempt("restore auto time") { restore(AUTO_TIME) { dpm.setAutoTimeEnabled(admin, it) } }
         attempt("restore auto time zone") { restore(AUTO_TIME_ZONE) { dpm.setAutoTimeZoneEnabled(admin, it) } }
         return results.all { it }

@@ -91,7 +91,9 @@ class AllowedAppsActivity : Activity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (loaded) outState.putStringArrayList(KEY_SELECTED, ArrayList(selected))
+        // 아직 읽는 중이면 이전에 복원한 선택을 그대로 넘겨, 다시 만들어져도 잃지 않게 한다.
+        val keep = if (loaded) selected else restored
+        keep?.let { outState.putStringArrayList(KEY_SELECTED, ArrayList(it)) }
     }
 
     private fun load() {

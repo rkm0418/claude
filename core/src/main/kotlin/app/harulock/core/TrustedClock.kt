@@ -11,7 +11,9 @@ object TrustedClock {
     fun now(anchor: ClockAnchor?, wall: Instant, elapsedMillis: Long, bootCount: Int): Pair<Instant, ClockAnchor> {
         val time = when {
             anchor == null -> wall
-            anchor.bootCount == bootCount -> anchor.wall.plusMillis(elapsedMillis - anchor.elapsedMillis)
+            // 경과 시간이 줄었으면 부팅 번호가 같아 보여도(읽기 실패 등) 재부팅으로 본다.
+            anchor.bootCount == bootCount && elapsedMillis >= anchor.elapsedMillis ->
+                anchor.wall.plusMillis(elapsedMillis - anchor.elapsedMillis)
             else -> if (wall.isAfter(anchor.wall)) wall else anchor.wall
         }
         return time to ClockAnchor(time, elapsedMillis, bootCount)

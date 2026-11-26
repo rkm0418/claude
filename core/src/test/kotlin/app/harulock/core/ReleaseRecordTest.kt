@@ -59,6 +59,9 @@ class ReleaseRecordTest {
         assertEquals(ClockAnchor(anchor.wall, 5_000, 3), next)
     }
 
+    @Test fun clock_sameBootCountElapsedBackAcceptsForwardWall() = assertEquals(at("2026-11-26T12:00"),
+        ReleaseFlow.clock(empty, at("2026-11-26T12:00"), 5_000, 3).first)
+
     @Test fun clock_rebootWithClockBehindKeepsAnchor() = assertEquals(anchor.wall,
         ReleaseFlow.clock(empty, at("2026-11-26T08:00"), 5_000, 4).first)
 

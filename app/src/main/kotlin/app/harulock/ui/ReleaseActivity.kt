@@ -276,7 +276,7 @@ internal object ReleaseOps {
     }
 
     /**
-     * 확인 가능 기간이면 완료 표시 생성 → 모든 정지 해제 → 기기 제한 해제 → 기기 소유자 해제.
+     * 확인 가능 기간이면 완료 표시 생성 → 메인 프로세스 종료 → 모든 정지 해제 → 기기 제한 해제 → 기기 소유자 해제.
      * 완료 표시가 생기면 메인 프로세스는 더 이상 정지나 제한을 걸지 않는다. 앞의 둘이 모두 성공해야만
      * 기기 소유자를 해제한다(해제 뒤에는 남은 정지와 제한을 풀 권한이 없다). 실패하거나 도중에 프로세스가
      * 죽으면 완료 표시가 남으므로 화면에서 다시 시도할 수 있다.
@@ -295,6 +295,9 @@ internal object ReleaseOps {
                 if (loaded != null && loaded != token) return@exclusive Outcome.STALE
                 if (token == null) token = f.files.createMarker() ?: return@exclusive Outcome.FAILED
                 started = true
+                // 완료 표시가 생겼으므로 메인 프로세스를 먼저 끝낸다. 파일 잠금을 얻지 못해 메인 프로세스의
+                // 동작이 겹치고 있어도 정지를 풀기 전에 멈추게 한다(R27). 다시 떠도 완료 표시를 보고 아무것도 걸지 않는다.
+                endOtherProcesses(ctx)
                 // 기기 소유자가 아니면 풀 권한도, 이 앱이 건 정지와 제한도 없다.
                 if (!owner) return@exclusive Outcome.DONE
                 loadedWith = token
@@ -309,8 +312,8 @@ internal object ReleaseOps {
                 if (isOwner(ctx)) Outcome.FAILED else Outcome.DONE
             }
         }.onFailure { Log.w(TAG, "release failed", it) }.getOrDefault(Outcome.FAILED)
-        // 메인 프로세스가 기억한 SharedPreferences는 이 프로세스가 바꿔 낡았다. 끝내서 새로 읽게 한다.
-        // 완료 표시가 있으므로 다시 떠도 아무것도 걸지 않는다.
+        // 메인 프로세스가 기억한 SharedPreferences는 이 프로세스가 바꿔 낡았다. 그사이 다시 떴을 수 있으므로
+        // 한 번 더 끝내서 새로 읽게 한다. 완료 표시가 있으므로 다시 떠도 아무것도 걸지 않는다.
         if (started) endOtherProcesses(ctx)
         return outcome
     }

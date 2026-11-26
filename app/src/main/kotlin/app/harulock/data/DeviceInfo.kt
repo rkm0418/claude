@@ -7,9 +7,12 @@ import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.telecom.TelecomManager
 import android.view.inputmethod.InputMethodManager
 import app.harulock.core.DeviceApps
+import app.harulock.core.DeviceSelect
+import app.harulock.core.FoundApp
 
 fun deviceApps(ctx: Context): DeviceApps = DeviceApps(
     candidates = DeviceInfo.candidates(ctx),
@@ -48,10 +51,28 @@ object DeviceInfo {
         return (launchable + userInstalled).toSet()
     }
 
-    fun homes(ctx: Context): Set<String> =
-        handlers(ctx, Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
-            .map { it.activityInfo.packageName }
-            .toSet()
+    /**
+     * 시스템 홈 앱과 지금의 기본 홈(R18). 다른 홈 앱은 기본 홈일 때만 자유이고, 기본에서 빠지면
+     * 다음 30초 재계산부터 정지 대상이 된다.
+     */
+    fun homes(ctx: Context): Set<String> {
+        val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        val found = handlers(ctx, intent).map { FoundApp(it.activityInfo.packageName, isSystem(it)) }
+        return DeviceSelect.homes(found, defaultHome(ctx, intent))
+    }
+
+    /** 기본 홈 패키지. 정해지지 않았으면 고르기 화면("android")이 나오며, [DeviceSelect.homes]가 뺀다. */
+    private fun defaultHome(ctx: Context, intent: Intent): String? {
+        val pm = ctx.packageManager
+        val flags = PackageManager.MATCH_DEFAULT_ONLY or ANY_BOOT_STATE
+        val resolved = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.resolveActivity(intent, PackageManager.ResolveInfoFlags.of(flags.toLong()))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.resolveActivity(intent, flags)
+        }
+        return resolved?.activityInfo?.packageName
+    }
 
     /** 현재 기본 전화 앱, 다이얼 화면을 여는 시스템 앱, 안전 앱. */
     fun dialers(ctx: Context): Set<String> {
@@ -59,17 +80,19 @@ object DeviceInfo {
         // 번호가 있는 다이얼만 받는 앱도 찾는다.
         val system = listOf(Intent(Intent.ACTION_DIAL), Intent(Intent.ACTION_DIAL, Uri.parse("tel:")))
             .flatMap { handlers(ctx, it) }
-            .filter { it.activityInfo.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
+            .filter { isSystem(it) }
             .map { it.activityInfo.packageName }
         return (listOfNotNull(default) + system).toSet() + SAFETY_APPS
     }
 
-    /** 사용 설정된 입력기. */
-    fun keyboards(ctx: Context): Set<String> =
-        ctx.getSystemService(InputMethodManager::class.java)
+    /** 기본 입력기와 사용 설정된 시스템 입력기. 다른 입력기는 기본 입력기일 때만 정지하지 않는다. */
+    fun keyboards(ctx: Context): Set<String> {
+        val enabled = ctx.getSystemService(InputMethodManager::class.java)
             .enabledInputMethodList
-            .map { it.packageName }
-            .toSet()
+            .map { FoundApp(it.packageName, it.serviceInfo.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0) }
+        val default = Settings.Secure.getString(ctx.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
+        return DeviceSelect.keyboards(default, enabled)
+    }
 
     /** 아무 웹 주소나 여는 앱(브라우저). 특정 주소만 여는 앱은 들지 않는다. 시스템 거르기 없이 전부 찾는다. */
     fun browsers(ctx: Context): Set<String> {
@@ -85,6 +108,9 @@ object DeviceInfo {
         }
         return found.map { it.activityInfo.packageName }.toSet()
     }
+
+    private fun isSystem(info: ResolveInfo): Boolean =
+        info.activityInfo.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
 
     private fun handlers(ctx: Context, intent: Intent): List<ResolveInfo> {
         val pm = ctx.packageManager
