@@ -71,6 +71,21 @@ object DeviceInfo {
             .map { it.packageName }
             .toSet()
 
+    /** 아무 웹 주소나 여는 앱(브라우저). 특정 주소만 여는 앱은 들지 않는다. 시스템 거르기 없이 전부 찾는다. */
+    fun browsers(ctx: Context): Set<String> {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com/"))
+            .addCategory(Intent.CATEGORY_BROWSABLE)
+        val flags = ANY_BOOT_STATE or PackageManager.MATCH_ALL
+        val pm = ctx.packageManager
+        val found = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(flags.toLong()))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.queryIntentActivities(intent, flags)
+        }
+        return found.map { it.activityInfo.packageName }.toSet()
+    }
+
     private fun handlers(ctx: Context, intent: Intent): List<ResolveInfo> {
         val pm = ctx.packageManager
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

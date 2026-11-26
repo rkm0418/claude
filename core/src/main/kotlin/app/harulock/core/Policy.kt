@@ -19,6 +19,11 @@ object Policy {
     fun suspendTargets(d: DeviceApps, allowed: Set<String>): Set<String> =
         d.candidates - alwaysFree(d) - allowed - d.keyboards - SETTINGS - PHONE_PATHS
 
+    /** 허용하면 다른 앱을 설치하거나 웹으로 우회할 수 있는 앱: 브라우저와 앱 스토어. 고를 때 한 번 더 묻는다. */
+    fun needsAllowConfirm(pkg: String, browsers: Set<String>): Boolean = pkg in STORES || pkg in browsers
+
+    private val STORES = setOf("com.android.vending", "com.sec.android.app.samsungapps")
+
     /**
      * 잠금이 무장되어 있고 권한이 정상일 때, 설정 화면에 앱 이름이 보이면 닫는다.
      * 권한이 부족하면 복구를 위해 설정 화면을 그대로 둔다.

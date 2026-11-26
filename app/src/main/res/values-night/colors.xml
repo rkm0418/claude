@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 어두운 테마 색. 이름은 values/colors.xml과 같다. -->
+<resources>
+    <color name="bg">#FF121211</color>
+    <color name="surface">#FF1E1E1C</color>
+    <color name="divider">#FF34332F</color>
+    <color name="text_primary">#FFECEBE6</color>
+    <color name="text_secondary">#FFA9A8A0</color>
+    <color name="accent">#FF8DB8D6</color>
+
+    <color name="status_normal">#FF72CFA0</color>
+    <color name="status_warning">#FFF0B44C</color>
+    <color name="status_locked">#FFF28B82</color>
+
+    <color name="button_bg">#FF2B2B28</color>
+    <color name="button_text">#FFECEBE6</color>
+    <color name="button_lock_bg">#FFC0392F</color>
+    <color name="button_lock_text">#FFFFFFFF</color>
+    <color name="button_disabled_bg">#FF242422</color>
+    <color name="button_disabled_text">#FF6E6D67</color>
+</resources>

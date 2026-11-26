@@ -73,3 +73,4 @@ Ruling: R19 Task 11 screens edit on top of (pending ?: active) and replace only 
 Ruling: R20 defaults before first configuration: every day 120 min, start 05:00, no allowed apps — spec gives none, user's own example is 05:00 — cost: user edits them.
 Ruling: R21 Task 11 creates activity_release.xml but leaves btn_release disabled; Task 12 wires it — ReleaseActivity is Task 12 — cost: none.
 Ruling: R22 instant-lock preset buttons fill input_minutes; only btn_start locks — a lock cannot be cancelled, avoid one-tap mistakes — cost: one extra tap.
+Task 11: interrupted mid-implementation; partial code committed as WIP on top of 35eb783 (core tests 114 pass, XML parses). NOT complete, NOT reviewed; review base stays 35eb783.

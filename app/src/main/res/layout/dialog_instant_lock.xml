@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 즉시 잠금 작은 창. 빠른 선택 버튼은 입력칸만 채우고, 잠금은 시작 버튼으로만 한다. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/gap_large">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/instant_title"
+            android:textAppearance="@style/Text.Harulock.Title" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_30m"
+                style="@style/Widget.Harulock.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingStart="@dimen/gap_small"
+                android:paddingEnd="@dimen/gap_small"
+                android:text="@string/instant_30m" />
+
+            <Button
+                android:id="@+id/btn_1h"
+                style="@style/Widget.Harulock.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/gap_small"
+                android:layout_weight="1"
+                android:paddingStart="@dimen/gap_small"
+                android:paddingEnd="@dimen/gap_small"
+                android:text="@string/instant_1h" />
+
+            <Button
+                android:id="@+id/btn_2h"
+                style="@style/Widget.Harulock.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/gap_small"
+                android:layout_weight="1"
+                android:paddingStart="@dimen/gap_small"
+                android:paddingEnd="@dimen/gap_small"
+                android:text="@string/instant_2h" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/input_minutes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap"
+            android:hint="@string/instant_hint"
+            android:importantForAutofill="no"
+            android:inputType="number"
+            android:maxLength="4"
+            android:minHeight="@dimen/button_min_height"
+            android:textAppearance="@style/Text.Harulock.Body" />
+
+        <TextView
+            android:id="@+id/tv_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/Text.Harulock.Small"
+            android:textColor="@color/status_locked"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_warning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap"
+            android:text="@string/instant_warning"
+            android:textAppearance="@style/Text.Harulock.Body"
+            android:textColor="@color/status_warning" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap_large"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_cancel"
+                style="@style/Widget.Harulock.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/action_close" />
+
+            <Button
+                android:id="@+id/btn_start"
+                style="@style/Widget.Harulock.Button.Lock"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/gap_small"
+                android:layout_weight="1"
+                android:text="@string/action_start" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

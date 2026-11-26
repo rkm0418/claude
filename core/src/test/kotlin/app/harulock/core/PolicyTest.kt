@@ -29,4 +29,10 @@ class PolicyTest {
     }
     @Test fun unarmedNeverClosesSettings() =
       assertFalse(Policy.shouldCloseSettings("com.android.settings", listOf("하루잠금"), "하루잠금", false, true))
+    @Test fun storesAndBrowsersNeedConfirm() {
+        assertTrue(Policy.needsAllowConfirm("com.android.vending", emptySet()))
+        assertTrue(Policy.needsAllowConfirm("com.sec.android.app.samsungapps", emptySet()))
+        assertTrue(Policy.needsAllowConfirm("browser", setOf("browser")))
+        assertFalse(Policy.needsAllowConfirm("game", setOf("browser")))
+    }
 }

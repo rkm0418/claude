@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 요일별 설정: 요일마다 한도와 시작 시각. 저장 버튼은 항상 아래에 보인다. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/gutter">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_title"
+                android:textAppearance="@style/Text.Harulock.Title" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap_small"
+                android:text="@string/settings_hint"
+                android:textAppearance="@style/Text.Harulock.Small" />
+
+            <TextView
+                android:id="@+id/tv_pending_notice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap"
+                android:background="@drawable/bg_card"
+                android:padding="@dimen/card_padding"
+                android:textAppearance="@style/Text.Harulock.Body"
+                android:textColor="@color/status_warning"
+                android:visibility="gone" />
+
+            <include
+                android:id="@+id/day_mon"
+                layout="@layout/item_day" />
+
+            <include
+                android:id="@+id/day_tue"
+                layout="@layout/item_day" />
+
+            <include
+                android:id="@+id/day_wed"
+                layout="@layout/item_day" />
+
+            <include
+                android:id="@+id/day_thu"
+                layout="@layout/item_day" />
+
+            <include
+                android:id="@+id/day_fri"
+                layout="@layout/item_day" />
+
+            <include
+                android:id="@+id/day_sat"
+                layout="@layout/item_day" />
+
+            <include
+                android:id="@+id/day_sun"
+                layout="@layout/item_day" />
+
+            <Button
+                android:id="@+id/btn_allowed_apps"
+                style="@style/Widget.Harulock.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap_large"
+                android:text="@string/action_allowed_apps" />
+        </LinearLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/btn_save"
+        style="@style/Widget.Harulock.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/gutter"
+        android:enabled="false"
+        android:text="@string/action_save" />
+</LinearLayout>

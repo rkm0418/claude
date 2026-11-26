@@ -8,4 +8,119 @@
     <string name="channel_warning">남은 시간 알림</string>
     <string name="channel_setup">설정 안내</string>
     <string name="watch_service_description">잠금 중에 설정 앱 화면에 ‘하루잠금’이라는 이름이 보이면 홈 화면으로 나갑니다. 이 앱을 끄거나 권한을 빼지 못하게 하기 위해서입니다. 이를 위해 설정 앱 화면의 글자와 항목 설명만 읽어 이름이 있는지 확인하며, 읽은 내용은 저장하거나 기록하거나 전송하지 않습니다. 잠금을 시작하기 전이거나 필요한 권한이 빠져 있을 때는 설정 화면을 닫지 않습니다.</string>
+
+    <!-- 공통 -->
+    <string name="action_ok">확인</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_close">닫기</string>
+    <string name="saved">저장했어요</string>
+    <string name="save_failed">저장하지 못했어요. 휴대폰 잠금을 푼 상태에서 잠시 뒤 다시 해 주세요.</string>
+    <string name="open_failed">설정 화면을 열 수 없어요.</string>
+    <string name="format_date_time" translatable="false">M월 d일 (E) HH:mm</string>
+    <string name="format_start_time" translatable="false">%1$02d:%2$02d</string>
+    <string name="remaining_hours_minutes">%1$d시간 %2$d분</string>
+    <string name="remaining_minutes">%1$d분</string>
+    <string name="remaining_none">-</string>
+    <string name="day_mon">월요일</string>
+    <string name="day_tue">화요일</string>
+    <string name="day_wed">수요일</string>
+    <string name="day_thu">목요일</string>
+    <string name="day_fri">금요일</string>
+    <string name="day_sat">토요일</string>
+    <string name="day_sun">일요일</string>
+
+    <!-- 홈 -->
+    <string name="label_remaining">오늘 남은 시간</string>
+    <string name="status_not_armed">아직 잠금을 시작하지 않았어요. 설정 안내를 마치고 잠금을 시작해 주세요.</string>
+    <string name="status_unreadable">저장된 설정을 읽을 수 없어요. 설정 안내에서 잠금을 다시 시작해 주세요.</string>
+    <string name="status_using">사용 중</string>
+    <string name="status_low">남은 시간이 얼마 없어요</string>
+    <string name="status_limit_locked">오늘 사용 시간을 다 썼어요. 다음 초기화까지 잠겨요.</string>
+    <string name="status_instant_locked">즉시 잠금 중이에요. %1$s까지 잠겨요.</string>
+    <string name="status_permission_locked">필요한 권한이 꺼져 있어 잠겼어요. 설정 안내에서 다시 켜 주세요.</string>
+    <string name="next_reset">다음 초기화: %1$s</string>
+    <string name="pending_change_title">다음 초기화(%1$s)부터 바뀌어요</string>
+    <string name="pending_day_limit">%1$s 한도 %2$d분 → %3$d분</string>
+    <string name="pending_day_start">%1$s 시작 %2$s → %3$s</string>
+    <string name="pending_allowed_added">허용앱 %1$d개 추가</string>
+    <string name="pending_allowed_removed">허용앱 %1$d개 제외</string>
+    <string name="pending_stretch">시작 시각이 바뀌어 다음 하루는 %1$s부터 %2$s까지 약 %3$d시간이에요. 그동안 한도는 한 번만 주어져요.</string>
+    <string name="action_instant_lock">즉시 잠금</string>
+    <string name="action_settings">요일별 설정</string>
+    <string name="action_setup">설정 안내</string>
+    <string name="action_release">비상 해제</string>
+
+    <!-- 요일별 설정 -->
+    <string name="settings_title">요일별 설정</string>
+    <string name="settings_hint">요일마다 하루 사용 한도와 하루가 시작되는 시각을 정해요. 한도 늘리기, 허용앱 추가, 시작 시각 변경은 다음 초기화부터 적용돼요.</string>
+    <string name="label_limit">하루 한도</string>
+    <string name="label_start">하루 시작</string>
+    <string name="unit_minutes">분</string>
+    <string name="hint_limit">1~1440</string>
+    <string name="error_limit">1~1440분 사이로 입력해 주세요.</string>
+    <string name="error_fix_inputs">빨간 글씨로 표시된 칸을 고쳐 주세요.</string>
+    <string name="action_allowed_apps">허용앱 고르기</string>
+    <string name="action_save">저장</string>
+    <string name="pending_notice">바꾼 설정 중 일부는 다음 초기화(%1$s)부터 적용돼요.</string>
+    <string name="confirm_start_title">하루 시작 시각을 바꿀까요?</string>
+    <string name="confirm_start_message">바꾼 시각은 다음 초기화부터 적용되고, 그 하루는 24시간보다 길어져요. 더 이른 시각으로 바꾸면 그 하루가 48시간 가까이 될 수 있고, 그동안 한도는 한 번만 주어져요.</string>
+
+    <!-- 허용앱 -->
+    <string name="allowed_title">허용앱</string>
+    <string name="allowed_hint">허용앱은 잠금 중에도 쓸 수 있고 시간이 줄지 않아요. 추가한 앱은 다음 초기화부터 적용돼요.</string>
+    <string name="hint_search">앱 이름 검색</string>
+    <string name="allowed_loading">앱 목록을 불러오는 중이에요</string>
+    <string name="allowed_empty">검색 결과가 없어요</string>
+    <string name="action_done">완료</string>
+    <string name="confirm_risky_title">이 앱을 허용할까요?</string>
+    <string name="confirm_risky_message">‘%1$s’은(는) 브라우저나 앱 스토어예요. 허용하면 잠금 중에도 웹이나 새로 설치한 앱으로 시간을 우회할 수 있어요.</string>
+    <string name="action_allow">허용</string>
+    <string name="allowed_saved_pending">추가한 앱은 다음 초기화(%1$s)부터 허용돼요.</string>
+
+    <!-- 즉시 잠금 -->
+    <string name="instant_title">즉시 잠금</string>
+    <string name="instant_30m">30분</string>
+    <string name="instant_1h">1시간</string>
+    <string name="instant_2h">2시간</string>
+    <string name="instant_hint">직접 입력(1~1440분)</string>
+    <string name="instant_warning">끝나기 전에는 취소할 수 없어요. 그동안 허용앱과 전화만 쓸 수 있어요.</string>
+    <string name="instant_error_range">1~1440분 사이로 입력해 주세요.</string>
+    <string name="instant_failed">즉시 잠금을 시작하지 못했어요. 잠금을 시작한 뒤, 휴대폰 잠금을 푼 상태에서 다시 해 주세요.</string>
+    <string name="instant_started">%1$d분 즉시 잠금을 시작했어요</string>
+    <string name="action_start">시작</string>
+
+    <!-- 설정 안내 -->
+    <string name="setup_title">설정 안내</string>
+    <string name="setup_hint">필수 3단계를 마치면 잠금을 시작할 수 있어요. 알림과 배터리는 권장 단계예요. 잠금 중에는 이 앱의 설정 화면이 닫히므로 잠금 시작 전에 모두 해 두세요.</string>
+    <string name="step_owner_title">1. 기기 소유자 (필수)</string>
+    <string name="step_owner_desc">PC에서 명령 하나로 이 앱을 기기 소유자로 지정해요. 그래야 앱을 지우거나 끄지 못하게 막을 수 있어요.</string>
+    <string name="step_usage_title">2. 사용 정보 접근 (필수)</string>
+    <string name="step_usage_desc">어떤 앱을 얼마나 썼는지 세는 데 필요해요.</string>
+    <string name="step_accessibility_title">3. 접근성 (필수)</string>
+    <string name="step_accessibility_desc">잠금 중에 이 앱의 설정 화면을 닫아 권한을 끄지 못하게 해요. 켜지지 않으면 앱 정보의 ⋮ 메뉴에서 ‘제한된 설정 허용’을 먼저 눌러 주세요.</string>
+    <string name="step_notification_title">4. 알림 (권장)</string>
+    <string name="step_notification_desc">남은 시간이 10분, 5분, 1분일 때 알려 줘요.</string>
+    <string name="step_battery_title">5. 배터리 제한 해제 (권장)</string>
+    <string name="step_battery_desc">휴대폰이 이 앱을 멈추지 않게 해서 시간을 정확히 세요.</string>
+    <string name="action_open">열기</string>
+    <string name="action_how">방법 보기</string>
+    <string name="owner_dialog_title">기기 소유자 지정</string>
+    <string name="owner_dialog_message">1. 휴대폰의 모든 계정을 지우고 USB 디버깅을 켜요.\n2. PC에 연결하고 아래 명령을 실행해요.\n\n%1$s</string>
+    <string name="owner_command" translatable="false">adb shell dpm set-device-owner app.harulock/.admin.AdminReceiver</string>
+    <string name="action_copy">명령 복사</string>
+    <string name="copied">복사했어요</string>
+    <string name="arm_start">잠금 시작</string>
+    <string name="arm_need_steps">필수 3단계를 먼저 마쳐 주세요</string>
+    <string name="arm_running">잠금 중이에요</string>
+    <string name="arm_confirm_title">잠금을 시작할까요?</string>
+    <string name="arm_confirm_message">시작하면 이 앱을 지우거나 끌 수 없어요. 하루 한도를 다 쓰면 다음 초기화까지 허용앱과 전화만 쓸 수 있어요. 풀려면 비상 해제를 요청하고 24시간을 기다려야 해요.</string>
+    <string name="arm_started">잠금을 시작했어요</string>
+    <string name="arm_failed">잠금을 시작하지 못했어요. 기기 소유자 지정을 확인하고 다시 해 주세요.</string>
+
+    <!-- 비상 해제 (화면 동작은 Task 12) -->
+    <string name="release_title">비상 해제</string>
+    <string name="release_desc">요청하고 24시간이 지나면 잠금을 완전히 풀 수 있어요. 풀 수 있는 시간은 그 뒤 24시간이고, 지나면 다시 요청해야 해요.</string>
+    <string name="action_release_request">해제 요청</string>
+    <string name="action_release_cancel">요청 취소</string>
+    <string name="action_release_confirm">해제</string>
 </resources>

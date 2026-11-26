@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 허용앱: 검색칸, 앱 목록, 완료. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/gutter"
+        android:layout_marginTop="@dimen/gutter"
+        android:layout_marginEnd="@dimen/gutter"
+        android:text="@string/allowed_title"
+        android:textAppearance="@style/Text.Harulock.Title" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/gutter"
+        android:layout_marginTop="@dimen/gap_small"
+        android:layout_marginEnd="@dimen/gutter"
+        android:text="@string/allowed_hint"
+        android:textAppearance="@style/Text.Harulock.Small" />
+
+    <EditText
+        android:id="@+id/input_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/gutter"
+        android:layout_marginTop="@dimen/gap"
+        android:layout_marginEnd="@dimen/gutter"
+        android:hint="@string/hint_search"
+        android:imeOptions="actionSearch"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:maxLines="1"
+        android:minHeight="@dimen/button_min_height"
+        android:textAppearance="@style/Text.Harulock.Body" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/gap_small"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/list_apps"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@color/divider"
+            android:dividerHeight="1dp" />
+
+        <TextView
+            android:id="@+id/tv_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:padding="@dimen/gutter"
+            android:text="@string/allowed_loading"
+            android:textAppearance="@style/Text.Harulock.Body" />
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/btn_done"
+        style="@style/Widget.Harulock.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/gutter"
+        android:text="@string/action_done" />
+</LinearLayout>

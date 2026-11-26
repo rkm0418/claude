@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 설정 단계 하나: 상태 아이콘, 제목, 설명, 여는 버튼. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/gap"
+    android:background="@drawable/bg_card"
+    android:orientation="horizontal"
+    android:padding="@dimen/card_padding">
+
+    <ImageView
+        android:id="@+id/img_state"
+        android:layout_width="@dimen/icon_step"
+        android:layout_height="@dimen/icon_step"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_step_todo" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/gap"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/Text.Harulock.Heading" />
+
+        <TextView
+            android:id="@+id/tv_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/Text.Harulock.Small" />
+
+        <Button
+            android:id="@+id/btn_action"
+            style="@style/Widget.Harulock.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap_small"
+            android:text="@string/action_open" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 하루를 뜻하는 시계 테두리 위에 걸쇠 하나. 가운데 66dp 안에 그린다. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M44,40V35a10,10 0,0 1,20 0v5" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="5"
+        android:pathData="M54,38a19,19 0,1 0,0.001 0z" />
+    <path
+        android:strokeColor="#FFF6D58E"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M54,46V57L62,62" />
+</vector>

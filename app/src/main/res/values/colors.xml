@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 밝은 테마 색. 어두운 테마는 values-night/colors.xml. -->
+<resources>
+    <color name="bg">#FFF7F6F2</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="divider">#FFE1DFD7</color>
+    <color name="text_primary">#FF1C1C1A</color>
+    <color name="text_secondary">#FF5E5D57</color>
+    <color name="accent">#FF336B8C</color>
+
+    <!-- 상태 색: 사용 중, 10분 이하, 잠김 -->
+    <color name="status_normal">#FF2D7A57</color>
+    <color name="status_warning">#FFA65F00</color>
+    <color name="status_locked">#FFB3261E</color>
+
+    <color name="button_bg">#FFE9E7E0</color>
+    <color name="button_text">#FF1C1C1A</color>
+    <color name="button_lock_bg">#FFB3261E</color>
+    <color name="button_lock_text">#FFFFFFFF</color>
+    <color name="button_disabled_bg">#FFEDECE8</color>
+    <color name="button_disabled_text">#FF9C9B95</color>
+</resources>

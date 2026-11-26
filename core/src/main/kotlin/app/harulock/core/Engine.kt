@@ -79,12 +79,7 @@ object Engine {
         val settings = s.pending ?: s.settings
 
         // 시작 시각이 바뀌면 새 시각이 더 일러도 24시간 안에는 다시 초기화하지 않는다.
-        val extended = if (startChanged(s.settings, settings)) {
-            val end = DayClock.firstStartAtOrAfter(boundary.plus(Duration.ofHours(24)), settings.week, zone)
-            Period(boundary.atZone(zone).dayOfWeek, boundary, end)
-        } else {
-            null
-        }
+        val extended = if (startChanged(s.settings, settings)) stretched(boundary, settings, zone) else null
         val period = extended?.takeIf { now < it.end } ?: DayClock.periodAt(now, settings.week, zone)
 
         return s.copy(
@@ -93,6 +88,26 @@ object Engine {
             period = period,
             meter = closed.copy(countedUntil = maxOf(boundary, period.start), usedMillis = 0),
         )
+    }
+
+    /**
+     * 지금 기간이 끝난 뒤 이어질 기간. 대기 중인 설정을 쓰고, 초기화가 제때 일어난다고 본다.
+     * 시작 시각이 바뀌면 이 기간은 24시간보다 길다(더 이른 시각으로 바꾸면 48시간 가까이).
+     */
+    fun nextPeriod(s: CoreState, zone: ZoneId): Period {
+        val settings = s.pending ?: s.settings
+        val boundary = s.period.end
+        return if (startChanged(s.settings, settings)) {
+            stretched(boundary, settings, zone)
+        } else {
+            DayClock.periodAt(boundary, settings.week, zone)
+        }
+    }
+
+    /** [boundary]에서 시작해 24시간 뒤 이후 첫 시작 시각에 끝나는 기간. */
+    private fun stretched(boundary: Instant, settings: Settings, zone: ZoneId): Period {
+        val end = DayClock.firstStartAtOrAfter(boundary.plus(Duration.ofHours(24)), settings.week, zone)
+        return Period(boundary.atZone(zone).dayOfWeek, boundary, end)
     }
 
     private fun startChanged(old: Settings, new: Settings): Boolean =

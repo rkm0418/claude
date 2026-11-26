@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 어두운 테마에서 바탕만 바꾼다. Theme.Harulock 자체는 values/styles.xml에 있다. -->
+<resources>
+    <style name="Harulock.Platform" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <style name="Harulock.DialogPlatform" parent="android:Theme.Material.Dialog.Alert" />
+</resources>

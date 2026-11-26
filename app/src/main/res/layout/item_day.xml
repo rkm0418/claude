@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 요일 하나. 큰 글꼴에서도 넘치지 않게 한도와 시작 시각을 두 줄로 둔다. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/gap"
+    android:background="@drawable/bg_card"
+    android:orientation="vertical"
+    android:padding="@dimen/card_padding">
+
+    <TextView
+        android:id="@+id/tv_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/Text.Harulock.Heading" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/gap_small"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/button_min_height"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_limit"
+            android:textAppearance="@style/Text.Harulock.Body" />
+
+        <EditText
+            android:id="@+id/input_limit"
+            android:layout_width="@dimen/input_minutes_width"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:hint="@string/hint_limit"
+            android:importantForAutofill="no"
+            android:inputType="number"
+            android:maxLength="4"
+            android:minHeight="@dimen/button_min_height"
+            android:textAppearance="@style/Text.Harulock.Body" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/gap_small"
+            android:text="@string/unit_minutes"
+            android:textAppearance="@style/Text.Harulock.Body" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/error_limit"
+        android:textAppearance="@style/Text.Harulock.Small"
+        android:textColor="@color/status_locked"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/gap_small"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_start"
+            android:textAppearance="@style/Text.Harulock.Body" />
+
+        <Button
+            android:id="@+id/btn_start_time"
+            style="@style/Widget.Harulock.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+</LinearLayout>

@@ -20,10 +20,42 @@
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- 설정 안내의 배터리 단계에서 이 앱만 최적화에서 빼 달라고 묻는다. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:allowBackup="false"
-        android:label="@string/app_name">
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.Harulock">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:exported="false"
+            android:label="@string/settings_title"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.AllowedAppsActivity"
+            android:exported="false"
+            android:label="@string/allowed_title"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.SetupActivity"
+            android:exported="false"
+            android:label="@string/setup_title" />
 
         <receiver
             android:name=".admin.AdminReceiver"

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 홈: 남은 시간을 가장 크게 보여 준다. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/gutter">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textAppearance="@style/Text.Harulock.Title" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="@dimen/card_padding">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/label_remaining"
+                android:textAppearance="@style/Text.Harulock.Small" />
+
+            <TextView
+                android:id="@+id/tv_remaining"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/remaining_none"
+                android:textColor="@color/status_normal"
+                android:textSize="@dimen/text_remaining"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap_small"
+                android:textAppearance="@style/Text.Harulock.Body" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_next_reset"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap"
+            android:textAppearance="@style/Text.Harulock.Small"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tv_pending_change"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/card_padding"
+            android:textAppearance="@style/Text.Harulock.Body"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btn_instant_lock"
+            style="@style/Widget.Harulock.Button.Lock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap_large"
+            android:enabled="false"
+            android:text="@string/action_instant_lock" />
+
+        <Button
+            android:id="@+id/btn_settings"
+            style="@style/Widget.Harulock.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap"
+            android:text="@string/action_settings" />
+
+        <Button
+            android:id="@+id/btn_setup"
+            style="@style/Widget.Harulock.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap"
+            android:text="@string/action_setup" />
+
+        <Button
+            android:id="@+id/btn_release"
+            style="@style/Widget.Harulock.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap"
+            android:enabled="false"
+            android:text="@string/action_release" />
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 설정 안내: 다섯 단계와 잠금 시작. 필수 3단계 전에는 잠금 시작을 누를 수 없다. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/gutter">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/setup_title"
+            android:textAppearance="@style/Text.Harulock.Title" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap_small"
+            android:text="@string/setup_hint"
+            android:textAppearance="@style/Text.Harulock.Small" />
+
+        <include
+            android:id="@+id/step_owner"
+            layout="@layout/item_setup_step" />
+
+        <include
+            android:id="@+id/step_usage"
+            layout="@layout/item_setup_step" />
+
+        <include
+            android:id="@+id/step_accessibility"
+            layout="@layout/item_setup_step" />
+
+        <include
+            android:id="@+id/step_notification"
+            layout="@layout/item_setup_step" />
+
+        <include
+            android:id="@+id/step_battery"
+            layout="@layout/item_setup_step" />
+
+        <Button
+            android:id="@+id/btn_arm"
+            style="@style/Widget.Harulock.Button.Lock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gap_large"
+            android:enabled="false"
+            android:text="@string/arm_need_steps" />
+    </LinearLayout>
+</ScrollView>
