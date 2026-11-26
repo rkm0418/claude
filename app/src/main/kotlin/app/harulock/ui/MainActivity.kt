@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import app.harulock.R
+import app.harulock.admin.Guard
 import app.harulock.core.Display
 import app.harulock.core.Engine
 import app.harulock.core.HomeState
@@ -37,8 +38,8 @@ class MainActivity : Activity() {
         }
     }
 
-    /** 한 번 읽은 화면 값. */
-    private class Home(val snapshot: Snapshot, val now: Instant, val permissionsOk: Boolean)
+    /** 한 번 읽은 화면 값. [owner]는 비상 해제 뒤에만 읽는다(완료인지 도중에 멈췄는지). */
+    private class Home(val snapshot: Snapshot, val now: Instant, val permissionsOk: Boolean, val owner: Boolean)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,8 +57,9 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.btn_setup).setOnClickListener {
             startActivity(Intent(this, SetupActivity::class.java))
         }
-        // 비상 해제 화면은 Task 12에서 연결한다(R21).
-        findViewById<Button>(R.id.btn_release).isEnabled = false
+        findViewById<Button>(R.id.btn_release).setOnClickListener {
+            startActivity(Intent(this, ReleaseActivity::class.java))
+        }
     }
 
     override fun onResume() {
@@ -92,7 +94,8 @@ class MainActivity : Activity() {
             val snapshot = SettingsEdit.read(this)
             // 잠금 중인데 서비스가 멈춰 있으면 다시 띄운다. 이미 돌고 있으면 한 번 더 tick할 뿐이다.
             if (startService && snapshot.armed && !Controller.released(this)) LockService.start(this)
-            Home(snapshot, trustedNow(this), Permissions.all(this))
+            val owner = snapshot.released && Guard(this).isOwner()
+            Home(snapshot, trustedNow(this), Permissions.all(this), owner)
         }) { result ->
             loading = false
             result.onSuccess { show(it) }
@@ -114,8 +117,15 @@ class MainActivity : Activity() {
             ),
         )
         tvStatus.text = when (state) {
-            HomeState.NOT_ARMED ->
-                getString(if (h.snapshot.unreadable) R.string.status_unreadable else R.string.status_not_armed)
+            HomeState.NOT_ARMED -> getString(
+                when {
+                    // 비상 해제 뒤: 완료면 완료 안내, 도중에 멈췄으면 비상 해제 화면에서 다시 하도록 실패 안내.
+                    h.snapshot.released && h.owner -> R.string.release_failed
+                    h.snapshot.released -> R.string.release_state_done
+                    h.snapshot.unreadable -> R.string.status_unreadable
+                    else -> R.string.status_not_armed
+                },
+            )
             HomeState.USING -> getString(R.string.status_using)
             HomeState.LOW -> getString(R.string.status_low)
             HomeState.LIMIT_LOCKED -> getString(R.string.status_limit_locked)

@@ -25,6 +25,7 @@ import app.harulock.core.UsageEvent
 import app.harulock.data.DeviceInfo
 import app.harulock.data.Loaded
 import app.harulock.data.Permissions
+import app.harulock.data.ReleaseFiles
 import app.harulock.data.StateStore
 import app.harulock.data.UsageReader
 import java.io.File
@@ -95,14 +96,22 @@ class Controller(ctx: Context) {
         }
     }
 
+    /**
+     * 비상 해제 뒤에는 저장 상태가 아직 잠금 중이어도 다시 시작할 수 있다(기기 소유자를 다시 설정한 뒤).
+     * 두 해제 파일을 지운다(R5). 요청 기록은 저장 전에 지워 이전 요청이 새 잠금에 남지 않게 하고,
+     * 완료 표시는 저장 뒤에 지워 그 사이에 실패해도 서비스가 이전 상태로 잠그지 않게 한다.
+     */
     private fun armLocked(settings: Settings): Boolean {
         if (!guard.isOwner()) return false
         val loaded = store.load()
-        if (loaded is Loaded.Ok && loaded.state.armed) return false
+        if (loaded is Loaded.Ok && loaded.state.armed && !released(context)) return false
+        val files = ReleaseFiles(context)
+        if (!files.deleteRecord()) return false
         val m = moment()
         val state = Engine.arm(settings, m.now, m.zone)
         save(state)
         store.anchor = m.anchor
+        if (!files.deleteMarker()) return false
         guard.harden()
         Memory.hardened = true
         enforce(state, m, force = true)
@@ -113,7 +122,8 @@ class Controller(ctx: Context) {
     private fun requestLocked(s: Settings): Change? {
         val m = moment()
         val state = (store.load() as? Loaded.Ok)?.state
-        if (state == null || !state.armed) {
+        // 비상 해제 뒤에는 잠금 중이 아니므로 그대로 저장한다. 저장 상태의 armed도 이렇게 꺼진다.
+        if (state == null || !state.armed || released(context)) {
             // 잠금 시작 전에는 그대로 저장한다. 기간과 측정 칸은 arm에서 새로 만든다.
             save(Engine.arm(s, m.now, m.zone).copy(armed = false))
             store.anchor = m.anchor
@@ -131,7 +141,7 @@ class Controller(ctx: Context) {
     }
 
     private fun instantLocked(minutes: Int): Boolean {
-        if (minutes !in 1..1440) return false
+        if (minutes !in 1..1440 || released(context)) return false
         val state = (store.load() as? Loaded.Ok)?.state?.takeIf { it.armed } ?: return false
         val m = moment()
         if (!m.unlocked) return false
@@ -342,7 +352,6 @@ class Controller(ctx: Context) {
         private const val KEY_CLEANED = "cleaned"
         private const val KEY_NOTIFIED = "notified"
         private const val LOCK_FILE = "controller.lock"
-        private const val RELEASED_FILE = "released"
         private const val ALARM_ACTION = "app.harulock.ALARM"
         private const val ALARM_RESET = 1
         private const val ALARM_INSTANT = 2
@@ -361,8 +370,11 @@ class Controller(ctx: Context) {
             Memory.freeStale = true
         }
 
-        /** 비상 해제가 끝났으면 서비스는 아무것도 걸지 않고 멈춘다. */
-        fun released(ctx: Context): Boolean = File(protectedFiles(ctx), RELEASED_FILE).exists()
+        /**
+         * 비상 해제를 시작했으면(완료 표시가 있으면) 서비스는 아무것도 걸지 않고 멈추고, 화면은 잠금 중으로 보이지 않는다.
+         * 해제가 도중에 멈췄어도 마찬가지다. 남은 정지와 제한은 비상 해제 화면에서 다시 시도해 푼다.
+         */
+        fun released(ctx: Context): Boolean = ReleaseFiles.released(ctx)
 
         /**
          * 동작을 하나씩 실행한다. 프로세스 안에서는 잠금으로, 프로세스 사이(비상 해제)는 파일 잠금으로 막는다.

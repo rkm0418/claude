@@ -57,6 +57,13 @@
             android:exported="false"
             android:label="@string/setup_title" />
 
+        <!-- 비상 해제. 메인 프로세스나 저장 상태가 망가져도 동작하도록 따로 실행하고 자체 파일만 쓴다. -->
+        <activity
+            android:name=".ui.ReleaseActivity"
+            android:exported="false"
+            android:label="@string/release_title"
+            android:process=":release" />
+
         <receiver
             android:name=".admin.AdminReceiver"
             android:directBootAware="true"

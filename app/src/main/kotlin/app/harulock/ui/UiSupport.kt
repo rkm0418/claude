@@ -41,12 +41,18 @@ internal object Work {
 }
 
 /** 화면이 읽는 저장 상태. */
-internal class Snapshot(loaded: Loaded) {
-    /** 저장한 적이 없거나 읽을 수 없으면 null. */
-    val state: CoreState? = (loaded as? Loaded.Ok)?.state
+internal class Snapshot(loaded: Loaded, released: Boolean) {
+    /**
+     * 저장한 적이 없거나 읽을 수 없으면 null. 비상 해제를 시작했으면 저장 상태가 잠금 중이어도
+     * 잠금 전으로 보인다(서비스가 더는 적용하지 않는다).
+     */
+    val state: CoreState? = (loaded as? Loaded.Ok)?.state?.let { if (released) it.copy(armed = false) else it }
 
     /** 저장한 것이 있으나 읽을 수 없다. */
     val unreadable: Boolean = loaded is Loaded.Corrupt
+
+    /** 비상 해제를 시작했다(완료 표시가 있다). */
+    val released: Boolean = released
 
     val armed: Boolean get() = state?.armed == true
 
@@ -59,7 +65,7 @@ internal object SettingsEdit {
     class Saved(val change: Change?, val after: Snapshot)
 
     /** 디스크를 읽으므로 메인 스레드 밖에서 부른다. */
-    fun read(ctx: Context): Snapshot = Snapshot(StateStore(ctx).load())
+    fun read(ctx: Context): Snapshot = Snapshot(StateStore(ctx).load(), Controller.released(ctx))
 
     /**
      * 저장 상태를 다시 읽어 바탕에서 [part]가 바꾸는 부분(요일 또는 허용앱)만 바꿔 요청한다(R19).
