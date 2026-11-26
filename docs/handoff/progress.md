@@ -73,4 +73,7 @@ Ruling: R19 Task 11 screens edit on top of (pending ?: active) and replace only 
 Ruling: R20 defaults before first configuration: every day 120 min, start 05:00, no allowed apps — spec gives none, user's own example is 05:00 — cost: user edits them.
 Ruling: R21 Task 11 creates activity_release.xml but leaves btn_release disabled; Task 12 wires it — ReleaseActivity is Task 12 — cost: none.
 Ruling: R22 instant-lock preset buttons fill input_minutes; only btn_start locks — a lock cannot be cancelled, avoid one-tap mistakes — cost: one extra tap.
-Task 11: interrupted mid-implementation; partial code committed as WIP on top of 35eb783 (core tests 114 pass, XML parses). NOT complete, NOT reviewed; review base stays 35eb783.
+Resumed: new session from handoff; BASE for task 11 = 35eb783
+Task 11: complete (commits 35eb783..7ad5f81, review clean; PC build UNVERIFIED)
+  Minor (fix wave): corrupt-state save can leave Guard restrictions (run tick/cleanup before saving over Corrupt; arm dialog text); AllowedApps restored selection lost on 2nd recreation; recreation during arm shows wrong failure; arm does not re-check permissions; instant dialog lost on rotation; start-change confirm compares pending instead of active; disable setup open buttons while armed.
+  Carry to Task 12: wire btn_release; release strings already in strings.xml.
